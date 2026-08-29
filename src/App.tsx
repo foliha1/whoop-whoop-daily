@@ -58,9 +58,9 @@ const AnimatedRoutes: React.FC = () => {
 
 
 
-        {/* Unfinished routes: 404 in production, live under ?debug=1. */}
-        <Route path="/play" element={<DebugOnlyRoute><MultiplayerPage /></DebugOnlyRoute>} />
-        <Route path="/play/:roomCode" element={<DebugOnlyRoute><MultiplayerPage /></DebugOnlyRoute>} />
+        {/* Debug-gated routes: 404 in production, live under ?debug=1. */}
+        <Route path="/play" element={<MultiplayerPage />} />
+        <Route path="/play/:roomCode" element={<MultiplayerPage />} />
         <Route path="/about" element={<DebugOnlyRoute><SupportPage /></DebugOnlyRoute>} />
         <Route path="/typography" element={<DebugOnlyRoute><TypographyPage /></DebugOnlyRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
