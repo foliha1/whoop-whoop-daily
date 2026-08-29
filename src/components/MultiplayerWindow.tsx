@@ -116,6 +116,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // Game-started state — seat freeze lives here on the HOST. Joiners learn
   // seats from the wire via PublicState.seatMap.
   const [frozenSeats, setFrozenSeats] = useState<SeatMapEntry[] | null>(null);
+  const [frozenGrid, setFrozenGrid] = useState<GridSizeKey | null>(null);
   // Host-minted game id. Scopes the arbiter's UNIQUE (room, game, window)
   // constraint so consecutive games in the same room don't collide.
   const [gameId, setGameId] = useState<string>("");
@@ -240,6 +241,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     hostVisitorId: visitorId,
     enabled: gameEnabled,
     gameId,
+    gridSize: frozenGrid ?? undefined,
     roomId: activeRoom?.id ?? "",
     disconnectedSeats,
     awaySeats,
@@ -456,12 +458,13 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     }
     setGameId(newGameId);
     setFrozenSeats(seatMap);
+    setFrozenGrid(lobbyGrid);
     completedFiredRef.current = false;
     trackEvent("game_started", {
       roomCode: activeRoom?.room_code,
-      metadata: { player_count: seatMap.length },
+      metadata: { player_count: seatMap.length, grid_size: lobbyGrid },
     });
-  }, [isHostView, participants, activeRoom, starting, channel, visitorId]);
+  }, [isHostView, participants, activeRoom, starting, channel, visitorId, lobbyGrid]);
 
   // Joiner: listen for host's game_starting notice + lobby grid selection.
   useEffect(() => {
@@ -574,6 +577,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const leaveToIdle = useCallback(() => {
     setCodeInput("");
     setFrozenSeats(null);
+    setFrozenGrid(null);
     setGameId("");
     setStarting(false);
     setShowLeaveConfirm(false);
