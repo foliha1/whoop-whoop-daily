@@ -48,7 +48,10 @@ const AnimatedRoutes: React.FC = () => {
       <Routes location={displayLocation}>
         <Route path="/" element={<DailyPage />} />
         <Route path="/today" element={<DailyPage />} />
-        <Route path="/groups" element={<GroupsPage />} />
+        {/* HIDDEN: Groups is built but not launched. Debug-gated until the
+            multiplayer push ships; re-enable by moving this back above with
+            the open routes. */}
+        <Route path="/groups" element={<DebugOnlyRoute><GroupsPage /></DebugOnlyRoute>} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/admin" element={<AdminPage />} />
