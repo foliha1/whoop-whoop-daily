@@ -903,11 +903,9 @@ const DailyResultCard: React.FC<{
         </div>
       )}
 
-      {/* Group standing: one line, and nothing at all without a group — the
-          screen's height is unchanged for anyone who has not joined one. */}
-      <div className="ww-res-in" style={{ alignSelf: "stretch", marginTop: SPACE[4], ...blockIn("stats") }}>
-        <DailyGroupsLine puzzleNumber={puzzleNumber} email={knownEmail} mobile={mobile} />
-      </div>
+      {/* HIDDEN: Groups launch pending — the standing line mount was here.
+          Restore <DailyGroupsLine puzzleNumber email={knownEmail} mobile /> in
+          this spot when Groups ships. */}
 
 
 
@@ -1151,16 +1149,7 @@ const DailyReadyScreen: React.FC<{
           <HelpCircle size={16} aria-hidden="true" />
           How to Play
         </button>
-        <Link
-          to="/groups"
-          className="ww-press daily-btn-howto"
-          data-testid="ready-groups-chip"
-          aria-label="Your groups"
-          title="Your groups"
-          style={{ ...chipButtonBase(mobile), textDecoration: "none" }}
-        >
-          <Users size={16} aria-hidden="true" />
-        </Link>
+        {/* HIDDEN: Groups chip lived here; restore when Groups ships. */}
         <DailyThemeToggle mobile={mobile} />
         <DailySoundToggle mobile={mobile} />
       </div>
