@@ -1564,7 +1564,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       />
       <div style={{
         display: "flex", flexDirection: "column", gap: 8,
-        width: "100%", height: "auto", maxHeight: "100%",
+        width: "100%", height: mobile ? "100%" : "auto", maxHeight: "100%",
         paddingTop: mobile ? 0 : 8, boxSizing: "border-box",
       }}>
       {header}
