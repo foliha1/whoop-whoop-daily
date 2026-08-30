@@ -43,6 +43,8 @@ interface PreGameShellProps {
   gap?: number;
   /** Skip the max-width centred column and render children directly. */
   bare?: boolean;
+  /** Opens the multiplayer How to Play stepper instead of navigating to /about. */
+  onHowTo?: () => void;
   children?: React.ReactNode;
 }
 
@@ -51,6 +53,7 @@ const PreGameShell: React.FC<PreGameShellProps> = ({
   nav = true,
   gap = 0,
   bare = false,
+  onHowTo,
   children,
 }) => (
   <div className="mp-shell" style={shellStyleFor(mobile)}>
@@ -61,7 +64,7 @@ const PreGameShell: React.FC<PreGameShellProps> = ({
       .mp-shell [role="textbox"]:focus { box-shadow: 0 0 0 2px #0072B2 inset; }
       .mp-shell input::placeholder { color: ${COLORS.panel}; opacity: 1; }
     `}</style>
-    {nav && <SiteHeader />}
+    {nav && <SiteHeader onHowTo={onHowTo} />}
     {bare ? (
       children
     ) : (
