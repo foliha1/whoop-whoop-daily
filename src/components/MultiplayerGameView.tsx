@@ -28,7 +28,7 @@ import { Settings, X } from "lucide-react";
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
 import SiteHeader, { SITE_HEADER_H } from "@/components/SiteHeader";
 import GameCard from "@/components/GameCard";
-import { COLORS, FONT_FAMILY } from "@/lib/tokens";
+import { COLORS, FONT_FAMILY, RAW } from "@/lib/tokens";
 import type { PublicState } from "@/lib/publicState";
 import type { IntentAction, RollAttribute, RollCommitPayload, TransientEvent } from "@/lib/multiplayer";
 import { ROLL_HERO_MS } from "@/lib/multiplayer";
@@ -550,7 +550,7 @@ const DieBox: React.FC<{
     <div
       ref={homeRef}
       style={{
-        width: 89, height: 89, background: SURFACE, borderRadius: 8,
+        width: 89, height: 89, background: RAW.cream, borderRadius: 8,
         transform: "rotate(-3.65deg)", filter: `drop-shadow(${CARD_SHADOW})`,
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: "8%", boxSizing: "border-box",
@@ -562,7 +562,7 @@ const DieBox: React.FC<{
           aria-label="Waiting for roll"
           style={{
             fontFamily: FONT_FAMILY, fontStyle: "italic", fontWeight: 400,
-            fontSize: 18, lineHeight: "18px", color: INK, opacity: 0.55,
+            fontSize: 18, lineHeight: "18px", color: RAW.warmBlack, opacity: 0.55,
             textAlign: "center", transform: "rotate(3.65deg)",
             userSelect: "none", pointerEvents: "none",
           }}
