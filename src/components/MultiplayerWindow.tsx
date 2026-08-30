@@ -922,19 +922,19 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   }
 
   if (view.kind === "host-left") {
-    return wrapInShell(
-      <div style={containerStyle}>
-        <div style={{ ...textStyle("subhead", mobile), fontStyle: "italic", color: COLORS.ink }}>
-          The host left the game.
+    return entryFrame({
+      headline: "The host left the game.",
+      children: (
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+          <div style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, textAlign: "center" }}>
+            Games end when the host leaves. Start your own table to play again.
+          </div>
+          <AppButton variant="primary" tone="red" size="md" onClick={leaveToIdle} fullWidth>
+            Back to lobby
+          </AppButton>
         </div>
-        <div style={{ ...textStyle("body", mobile), color: COLORS.inkMuted }}>
-          Games end when the host leaves. Start your own table to play again.
-        </div>
-        <AppButton variant="primary" tone="red" size="md" onClick={leaveToIdle} fullWidth>
-          Back to lobby
-        </AppButton>
-      </div>,
-    );
+      ),
+    });
   }
 
   if (view.kind === "name-prompt") {
@@ -1126,19 +1126,19 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   }
 
   if (view.kind === "full") {
-    return wrapInShell(
-      <div style={containerStyle}>
-        <div style={{ ...textStyle("subhead", mobile), fontStyle: "italic", color: COLORS.ink }}>
-          Table "{view.code}" is full.
+    return entryFrame({
+      headline: `Table "${view.code}" is full.`,
+      children: (
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+          <div style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, textAlign: "center" }}>
+            Tables hold up to {ROOM_CAPACITY} players.
+          </div>
+          <AppButton variant="secondary" tone="ink" size="md" onClick={leaveToIdle} fullWidth>
+            Back
+          </AppButton>
         </div>
-        <div style={{ ...textStyle("body", mobile), color: COLORS.inkMuted }}>
-          Tables hold up to {ROOM_CAPACITY} players.
-        </div>
-        <AppButton variant="secondary" tone="ink" size="md" onClick={leaveToIdle} fullWidth>
-          Back
-        </AppButton>
-      </div>,
-    );
+      ),
+    });
   }
 
   if (view.kind === "idle") {
