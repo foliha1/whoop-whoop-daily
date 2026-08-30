@@ -164,8 +164,9 @@ function deriveChips(
   for (let seat = 0; seat < s.seatCount; seat++) {
     const entry = s.seatMap.find((e) => e.seat === seat);
     if (!entry) {
-      out.push({ kind: "EMPTY", name: "---", score: 0 });
+      out.push({ kind: "EMPTY", name: "---", score: 0, seat });
       continue;
+
     }
     let kind: ChipKind = "IDLE";
     if (s.awaySeats?.includes(seat)) kind = "DISCONNECTED";
