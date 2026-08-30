@@ -1,10 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { useParams, useSearchParams } from "react-router-dom";
 import React, { Suspense, useEffect, useState } from "react";
-import { COLORS, SPACE } from "@/lib/tokens";
-import DailyShapeRule from "@/components/DailyShapeRule";
-import { SITE_HEADER_OFFSET } from "@/components/SiteHeader";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { COLORS } from "@/lib/tokens";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 const IntroAnimation = React.lazy(() => import("@/components/IntroAnimation"));
 import { hasSeenIntro, preloadIntroJson } from "@/components/IntroAnimation";
@@ -37,7 +34,6 @@ const MultiplayerPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const modeParam = searchParams.get("mode");
   const initialMode = modeParam === "solo" || modeParam === "multiplayer" ? modeParam : undefined;
-  const mobile = useIsMobile();
 
   const initialIntroStatus = (): IntroStatus => {
     const alreadySeen = hasSeenIntro();
@@ -88,9 +84,9 @@ const MultiplayerPage: React.FC = () => {
   // mounts — a visible flash.
   const lobbyVisible = introStatus !== "pending";
 
-  const title = "Multiplayer — WHOOP! WHOOP!";
+  const title = "WHOOP! WHOOP! Classic";
   const description =
-    "Play WHOOP! WHOOP! online with friends. Start a table, share the link, and match cards under the die.";
+    "Play WHOOP! WHOOP! Classic online with friends. Start a table, share the link, and match cards under the die.";
 
   const handleIntroDone = (reason: "complete" | "skip" | "timeout" | "error") => {
     if (reason === "complete") setIntroStatus("complete");
