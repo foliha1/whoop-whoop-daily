@@ -191,23 +191,35 @@ function deriveChips(
 
 const ChipCell: React.FC<{ chip: DerivedChip }> = ({ chip }) => {
   const c = CHIP[chip.kind];
+  const seatColor = SEAT_COLORS[chip.seat % SEAT_COLORS.length];
+  const score = chip.score ?? 0;
+  const progress = Math.min(1, Math.max(0, score / TARGET_SCORE));
+  const atThreshold = score >= TARGET_SCORE - 2;
   return (
     <div
       role="group"
-      aria-label={`${chip.name}${c.labelText ? ` — ${c.labelText}` : ""}`}
+      aria-label={`${chip.name}${c.labelText ? ` — ${c.labelText}` : ""}, ${score} of ${TARGET_SCORE}`}
       style={{
         display: "flex", flexDirection: "row", alignItems: "stretch",
         padding: 0, height: 22, borderRadius: 4, minWidth: 0,
         background: c.bg, border: `2px solid ${c.border}`,
         boxSizing: "border-box", overflow: "hidden",
+        boxShadow: atThreshold ? `inset 0 0 0 2px ${seatColor}` : undefined,
       }}
     >
       <div style={{
         display: "flex", justifyContent: "space-between", alignItems: "center",
         padding: "0 8px", flex: "1 1 0", minWidth: 0,
         background: c.nameBg, borderRight: `2px solid ${c.border}`,
-        boxSizing: "border-box",
+        boxSizing: "border-box", position: "relative", overflow: "hidden",
       }}>
+        {chip.score !== null && (
+          <div aria-hidden="true" style={{
+            position: "absolute", left: 0, top: 0, bottom: 0,
+            width: `${progress * 100}%`,
+            background: seatColor, opacity: 0.18,
+          }} />
+        )}
         <AutoFitText minScale={0.8} style={{
           margin: "0 auto", flex: "1 1 0", minWidth: 0, textAlign: "center",
           fontFamily: FONT_FAMILY, fontSize: 14, lineHeight: 1,
@@ -215,15 +227,18 @@ const ChipCell: React.FC<{ chip: DerivedChip }> = ({ chip }) => {
         }}>{chip.name}</AutoFitText>
         {chip.score !== null && (
           <span style={{
-            margin: "0 auto", display: "flex", flexDirection: "column",
-            justifyContent: "center", alignItems: "center",
-            borderRadius: 2, padding: 2, height: 14, width: "auto",
-            flexShrink: 0, background: c.badgeBg, boxSizing: "border-box",
+            display: "inline-flex", alignItems: "baseline", gap: 1,
+            borderRadius: 2, padding: "0 3px", flexShrink: 0,
+            background: c.badgeBg, boxSizing: "border-box",
           }}>
             <span style={{
               fontFamily: FONT_FAMILY, fontSize: 14, lineHeight: 1,
-              letterSpacing: "0.02em", textAlign: "center", color: c.badgeText,
+              letterSpacing: "0.02em", color: c.badgeText,
             }}>{chip.score}</span>
+            <span style={{
+              fontFamily: FONT_FAMILY, fontSize: 9, lineHeight: 1,
+              color: c.badgeText, opacity: 0.65,
+            }}>/{TARGET_SCORE}</span>
           </span>
         )}
       </div>
@@ -253,9 +268,10 @@ const OpponentRow: React.FC<{ chips: DerivedChip[] }> = ({ chips }) => (
     background: PANEL, border: BORDER_HEAVY, borderRadius: 4,
     boxSizing: "border-box",
   }}>
-    {chips.map((c, i) => <ChipCell key={i} chip={c} />)}
+    {chips.map((c) => <ChipCell key={c.seat} chip={c} />)}
   </div>
 );
+
 
 
 // -------- End screen --------
