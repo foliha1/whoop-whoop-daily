@@ -954,6 +954,13 @@ const MultiplayerGameView: React.FC<Props> = ({
       lastPairRef.current = [...s.selectedCards];
     }
   }, [s.selectedCards]);
+  // Last seat to hold an open claim — the settle state itself no longer
+  // carries the claimant once the claim window closes.
+  const lastClaimSeatRef = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    if (s.claimBy !== null) lastClaimSeatRef.current = s.claimBy;
+  }, [s.claimBy]);
+
 
   // ---- correct-claim settle: the Daily's shared reward layer ------------
   // The grid (and its ancestors) clip, so the reveal + hold + ghost treatment
