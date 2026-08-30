@@ -92,8 +92,6 @@ import {
   startTheme,
   stopTheme,
   unlockAudio,
-  getSoundEnabled,
-  setSoundEnabled,
 } from "@/lib/sounds";
 
 import {
