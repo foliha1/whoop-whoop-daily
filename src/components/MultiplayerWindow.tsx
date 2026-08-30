@@ -712,7 +712,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const sectionGap = lerpCompress(t, 10, SPACE[8]);
   const innerGap = lerpCompress(t, 6, SPACE[4]);
   const tileH = lerpCompress(t, 52, 80);
-  const miniScale = lerpCompress(t, 0.58, 1);
 
   const inputStyle: React.CSSProperties = {
     ...textStyle("control", mobile),
