@@ -24,6 +24,7 @@
 
 import React from "react";
 import { createPortal } from "react-dom";
+import { usePortalHost } from "@/hooks/usePortalHost";
 import DailyShapeRule from "@/components/DailyShapeRule";
 import DailyEmailCapture from "@/components/DailyEmailCapture";
 import CloseButton from "@/components/CloseButton";
@@ -72,6 +73,7 @@ const DailyEmailModal: React.FC<{
   /** Delay before the modal closes itself once the success state has shown. */
   successHoldMs?: number;
 }> = ({ mode, onClose, onSubscribed, successHoldMs = 1400 }) => {
+  const portalHost = usePortalHost("email-modal");
   const hostRef = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
   const vv = useVisualViewportBox();
@@ -107,6 +109,8 @@ const DailyEmailModal: React.FC<{
     window.addEventListener("keydown", onKeyDown, true);
     return () => window.removeEventListener("keydown", onKeyDown, true);
   }, [onClose]);
+
+  if (!portalHost) return null;
 
   return createPortal(
     <div
@@ -187,7 +191,7 @@ const DailyEmailModal: React.FC<{
 
       {!compact && <DailyShapeRule />}
     </div>,
-    document.body
+    portalHost
   );
 };
 

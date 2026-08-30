@@ -12,6 +12,7 @@
 
 import React from "react";
 import { createPortal } from "react-dom";
+import { usePortalHost } from "@/hooks/usePortalHost";
 import DailyShapeRule from "@/components/DailyShapeRule";
 import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
@@ -65,9 +66,12 @@ const GroupModalShell: React.FC<{
   children: React.ReactNode;
 }> = ({ ariaLabel, testId, onClose, children }) => {
   useDismiss(onClose, { escape: true, returnFocus: true });
+  const portalHost = usePortalHost("group-modal");
   const short =
     typeof window !== "undefined" && window.innerHeight > 0 && window.innerHeight < 560;
   const gutter = short ? SPACE[6] : SPACE[12];
+
+  if (!portalHost) return null;
 
   return createPortal(
     <div
@@ -114,7 +118,7 @@ const GroupModalShell: React.FC<{
       </div>
       {!short && <DailyShapeRule />}
     </div>,
-    document.body
+    portalHost
   );
 };
 

@@ -13,6 +13,7 @@
 
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { usePortalHost } from "@/hooks/usePortalHost";
 import { COLORS, FONT_FAMILY, RADIUS, BORDER } from "@/lib/tokens";
 import { useThemeMode, type ThemeMode } from "@/lib/nightMode";
 import {
@@ -130,6 +131,7 @@ const howToStyle: React.CSSProperties = {
 
 const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, onHowTo }) => {
   const { mode, setMode } = useThemeMode();
+  const portalHost = usePortalHost("settings-sheet");
   const [sfx, setSfx] = useState(() => getSfxEnabled());
   const [music, setMusic] = useState(() => getMusicEnabled());
 
@@ -267,7 +269,7 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, onHowTo }) => {
   );
 
   if (typeof document === "undefined") return sheet;
-  return createPortal(sheet, document.body);
+  return portalHost ? createPortal(sheet, portalHost) : null;
 };
 
 export default SettingsSheet;
