@@ -73,6 +73,7 @@ const DailyEmailModal: React.FC<{
   /** Delay before the modal closes itself once the success state has shown. */
   successHoldMs?: number;
 }> = ({ mode, onClose, onSubscribed, successHoldMs = 1400 }) => {
+  const portalHost = usePortalHost("email-modal");
   const hostRef = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
   const vv = useVisualViewportBox();

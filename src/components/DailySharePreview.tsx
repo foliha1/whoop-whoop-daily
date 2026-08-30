@@ -59,6 +59,7 @@ const DailySharePreview: React.FC<{
   onClose,
 }) => {
 
+  const portalHost = usePortalHost("share-preview");
   const hostRef = useRef<HTMLDivElement | null>(null);
   const sendRef = useRef<HTMLButtonElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);

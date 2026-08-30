@@ -71,6 +71,8 @@ const GroupModalShell: React.FC<{
     typeof window !== "undefined" && window.innerHeight > 0 && window.innerHeight < 560;
   const gutter = short ? SPACE[6] : SPACE[12];
 
+  if (!portalHost) return null;
+
   return createPortal(
     <div
       role="dialog"
