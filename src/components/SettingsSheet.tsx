@@ -108,9 +108,26 @@ const Toggle: React.FC<{
 
 export interface SettingsSheetProps {
   onClose: () => void;
+  /** When provided, How to Play opens the in-app stepper instead of /about. */
+  onHowTo?: () => void;
 }
 
-const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose }) => {
+/** Shared by the link and the button form of the How to Play control. */
+const howToStyle: React.CSSProperties = {
+  minHeight: TOUCH,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontFamily: FONT_FAMILY,
+  fontSize: 16,
+  color: COLORS.ink,
+  textDecoration: "none",
+  border: BORDER.heavy,
+  borderRadius: RADIUS.sm,
+  boxSizing: "border-box",
+};
+
+const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, onHowTo }) => {
   const { mode, setMode } = useThemeMode();
   const [sfx, setSfx] = useState(() => getSfxEnabled());
   const [music, setMusic] = useState(() => getMusicEnabled());
@@ -231,24 +248,15 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose }) => {
           }}
         />
 
-        <a
-          href="/about#how-to-play"
-          style={{
-            minHeight: TOUCH,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontFamily: FONT_FAMILY,
-            fontSize: 16,
-            color: COLORS.ink,
-            textDecoration: "none",
-            border: BORDER.heavy,
-            borderRadius: RADIUS.sm,
-            boxSizing: "border-box",
-          }}
-        >
-          How to Play
-        </a>
+        {onHowTo ? (
+          <button type="button" onClick={onHowTo} style={{ ...howToStyle, cursor: "pointer", background: "transparent" }}>
+            How to Play
+          </button>
+        ) : (
+          <a href="/about#how-to-play" style={howToStyle}>
+            How to Play
+          </a>
+        )}
       </div>
     </div>
   );

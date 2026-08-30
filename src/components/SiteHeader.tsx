@@ -18,6 +18,9 @@ export interface SiteHeaderProps {
   onSettings?: () => void;
   /** In-game only: adds a leave control alongside settings in the right slot. */
   onLeave?: () => void;
+  /** When provided, the How to Play control opens the in-app stepper instead
+   *  of navigating to the public rules page. Used across multiplayer. */
+  onHowTo?: () => void;
 }
 
 /**
@@ -25,7 +28,7 @@ export interface SiteHeaderProps {
  * every screen: support page, play-style screen, lobby and in-game. The bar
  * spans edge to edge; its contents are constrained to the 420px game column.
  */
-const SiteHeader: React.FC<SiteHeaderProps> = ({ onSettings, onLeave }) => {
+const SiteHeader: React.FC<SiteHeaderProps> = ({ onSettings, onLeave, onHowTo }) => {
   const [showSettings, setShowSettings] = useState(false);
   const openSettings = onSettings ?? (() => setShowSettings(true));
 
@@ -81,9 +84,15 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onSettings, onLeave }) => {
             boxSizing: "border-box",
           }}
         >
-          <a href="/about#how-to-play" style={{ ...controlBase, flex: "none" }}>
-            How to Play
-          </a>
+          {onHowTo ? (
+            <button type="button" onClick={onHowTo} style={{ ...controlBase, flex: "none" }}>
+              How to Play
+            </button>
+          ) : (
+            <a href="/about#how-to-play" style={{ ...controlBase, flex: "none" }}>
+              How to Play
+            </a>
+          )}
 
 
           <div style={{ display: "flex", alignItems: "center", flex: "none" }}>
@@ -109,7 +118,9 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onSettings, onLeave }) => {
         </nav>
       </header>
 
-      {showSettings && <SettingsSheet onClose={() => setShowSettings(false)} />}
+      {showSettings && (
+        <SettingsSheet onClose={() => setShowSettings(false)} onHowTo={onHowTo} />
+      )}
     </>
   );
 };
