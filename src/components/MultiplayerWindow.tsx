@@ -689,7 +689,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const leaveToIdle = useCallback(() => {
     setCodeInput("");
     setFrozenSeats(null);
-    setFrozenGrid(null);
+    
     setGameId("");
     setStarting(false);
     setShowLeaveConfirm(false);
