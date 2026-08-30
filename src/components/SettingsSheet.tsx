@@ -231,23 +231,15 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose }) => {
           }}
         />
 
-        {(() => {
-        const howToStyle: React.CSSProperties = {
-            minHeight: TOUCH,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontFamily: FONT_FAMILY,
-            fontSize: 16,
-            color: COLORS.ink,
-            textDecoration: "none",
-            border: BORDER.heavy,
-            borderRadius: RADIUS.sm,
-            boxSizing: "border-box",
-          }}
-        >
-          How to Play
-        </a>
+        {onHowTo ? (
+          <button type="button" onClick={onHowTo} style={{ ...howToStyle, cursor: "pointer", background: "transparent" }}>
+            How to Play
+          </button>
+        ) : (
+          <a href="/about#how-to-play" style={howToStyle}>
+            How to Play
+          </a>
+        )}
       </div>
     </div>
   );
