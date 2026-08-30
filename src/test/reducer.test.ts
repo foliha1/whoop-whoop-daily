@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   reducer,
   initialState,
+  TARGET_SCORE,
   type State,
   type Action,
   type Phase,
@@ -845,7 +846,6 @@ describe("end-game entry conditions (v6.6 — two quiet rotations)", () => {
       rule: ["SHAPE"],
       deck: [],
       drawEmpty: true,
-      quietRotations: 0,
       grid: [SHAPE_MATCH_A, null, SHAPE_MATCH_B, null, null, null],
       inFlight: { kind: "claim", token: 9, by: 0, a: 0, b: 2 },
     });
