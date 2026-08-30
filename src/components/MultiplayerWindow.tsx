@@ -10,6 +10,8 @@ import {
   textStyle,
   TEXT,
   FONT_FAMILY,
+  FONT_FAMILY_UI,
+  FONT_WEIGHT_UI,
   buttonStyle,
   panelStyle,
   CONTROL_H,
