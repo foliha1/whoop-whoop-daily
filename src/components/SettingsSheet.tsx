@@ -231,9 +231,8 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose }) => {
           }}
         />
 
-        <a
-          href="/about#how-to-play"
-          style={{
+        {(() => {
+        const howToStyle: React.CSSProperties = {
             minHeight: TOUCH,
             display: "flex",
             alignItems: "center",
