@@ -204,16 +204,17 @@ const GameCard = ({
               switches at the 250ms midpoint of the 500ms rotateY so the face
               is visible only while pointing at the viewer, not while edge-on. */}
           <img
-            src={card.svgPath || CARD_BACK_PATH}
-            alt={card.svgPath ? card.id : ""}
-            aria-hidden={card.svgPath ? undefined : true}
+            src={frontFace || CARD_BACK_PATH}
+            alt={frontFace ? card.id : ""}
+            aria-hidden={frontFace ? undefined : true}
             style={{
               width: "100%",
               height: "100%",
               display: "block",
-              opacity: card.svgPath ? 1 : 0,
+              opacity: frontFace ? 1 : 0,
               transition: "opacity 0s linear 250ms",
             }}
+
             draggable={false}
           />
         </div>
