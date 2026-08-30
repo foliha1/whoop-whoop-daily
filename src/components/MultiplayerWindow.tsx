@@ -28,6 +28,7 @@ import PreGameShell from "@/components/PreGameShell";
 import MultiplayerGameView from "@/components/MultiplayerGameView";
 import { useSoloGame } from "@/hooks/useSoloGame";
 import GridSizeOption, { GRID_OPTIONS, type GridSizeKey } from "@/components/GridSizeOption";
+import MultiplayerHowToSteps, { hasSeenMpHowTo } from "@/components/MultiplayerHowToSteps";
 
 const SoloView: React.FC<{ onLeave: () => void; mobile: boolean; gridSize: GridSizeKey }> = ({ onLeave, mobile, gridSize }) => {
   const solo = useSoloGame(gridSize);
@@ -129,6 +130,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const [shareFlash, setShareFlash] = useState(false);
   const [codeFlash, setCodeFlash] = useState(false);
   const [lobbyGrid, setLobbyGrid] = useState<"3x2" | "3x3">("3x2");
+  // How to Play stepper. `gate` fires once per browser on the first play click
+  // and carries the action to run when it closes; `reference` is the header link.
+  const [howTo, setHowTo] = useState<{ mode: "gate" | "reference"; then?: () => void } | null>(null);
   const [soloGrid, setSoloGrid] = useState<GridSizeKey>("3x2");
   const shareFlashTimerRef = useRef<number | null>(null);
   const codeFlashTimerRef = useRef<number | null>(null);
@@ -385,18 +389,49 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     [visitorId],
   );
 
-  const handleStartRoom = useCallback(() => {
-    if (busy) return;
+  const startRoomFlow = useCallback(() => {
     setNameInput(getDisplayName());
     setNameTouched(false);
     setView({ kind: "name-prompt", pending: { kind: "create" } });
-  }, [busy]);
+  }, []);
+
+  const startSoloFlow = useCallback(() => {
+    unlockAudio();
+    setView({ kind: "solo-setup" });
+  }, []);
+
+  /** First play click of the browser opens the gate; the action runs after. */
+  const gateOr = useCallback((run: () => void) => {
+    if (hasSeenMpHowTo()) {
+      run();
+      return;
+    }
+    setHowTo({ mode: "gate", then: run });
+  }, []);
+
+  const handleStartRoom = useCallback(() => {
+    if (busy) return;
+    gateOr(startRoomFlow);
+  }, [busy, gateOr, startRoomFlow]);
 
   const handlePlaySolo = useCallback(() => {
     if (busy) return;
-    unlockAudio();
-    setView({ kind: "solo-setup" });
-  }, [busy]);
+    gateOr(startSoloFlow);
+  }, [busy, gateOr, startSoloFlow]);
+
+  const openHowToReference = useCallback(() => setHowTo({ mode: "reference" }), []);
+
+  const howToOverlay = howTo ? (
+    <MultiplayerHowToSteps
+      mode={howTo.mode}
+      onStart={() => {
+        const run = howTo.then;
+        setHowTo(null);
+        run?.();
+      }}
+      onClose={() => setHowTo(null)}
+    />
+  ) : null;
 
 
   const handleJoinByCode = useCallback(() => {
@@ -672,10 +707,18 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     content: React.ReactNode,
     opts?: { above?: React.ReactNode; gap?: number; nav?: boolean },
   ) => (
-    <PreGameShell mobile={mobile} nav={opts?.nav !== false} gap={opts?.gap ?? 0}>
-      {opts?.above}
-      {content}
-    </PreGameShell>
+    <>
+      <PreGameShell
+        mobile={mobile}
+        nav={opts?.nav !== false}
+        gap={opts?.gap ?? 0}
+        onHowTo={openHowToReference}
+      >
+        {opts?.above}
+        {content}
+      </PreGameShell>
+      {howToOverlay}
+    </>
   );
 
 
@@ -1223,9 +1266,12 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
 
     return (
-      <PreGameShell mobile={mobile} bare>
-        {idleCard}
-      </PreGameShell>
+      <>
+        <PreGameShell mobile={mobile} bare onHowTo={openHowToReference}>
+          {idleCard}
+        </PreGameShell>
+        {howToOverlay}
+      </>
     );
   }
 
