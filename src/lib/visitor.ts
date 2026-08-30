@@ -44,7 +44,7 @@ export function getDisplayName(): string {
   return inMemoryName ?? "";
 }
 
-export const NICKNAME_MAX = 8;
+export const NICKNAME_MAX = 6;
 
 export function setDisplayName(name: string): string {
   const trimmed = name.trim().slice(0, NICKNAME_MAX);

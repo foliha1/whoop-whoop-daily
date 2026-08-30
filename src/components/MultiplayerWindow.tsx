@@ -113,6 +113,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const [busy, setBusy] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [nameInput, setNameInput] = useState<string>(() => getDisplayName());
+  // True once the player has typed this session. While false the value is an
+  // untouched prefill — the first keystroke replaces it instead of appending.
+  const [nameTouched, setNameTouched] = useState(false);
+  const [nameFocused, setNameFocused] = useState(false);
   // Game-started state — seat freeze lives here on the HOST. Joiners learn
   // seats from the wire via PublicState.seatMap.
   const [frozenSeats, setFrozenSeats] = useState<SeatMapEntry[] | null>(null);
@@ -384,6 +388,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const handleStartRoom = useCallback(() => {
     if (busy) return;
     setNameInput(getDisplayName());
+    setNameTouched(false);
     setView({ kind: "name-prompt", pending: { kind: "create" } });
   }, [busy]);
 
@@ -402,6 +407,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       return;
     }
     setNameInput(getDisplayName());
+    setNameTouched(false);
     setView({ kind: "name-prompt", pending: { kind: "join-code", code: normalized } });
   }, [busy, codeInput]);
 
@@ -846,6 +852,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     const chars = nameInput.slice(0, NAME_CAP).split("");
     const boxes = Array.from({ length: NAME_CAP }, (_, i) => chars[i] ?? "");
     const canContinue = !busy && nameInput.trim().length > 0;
+    // The box the next character lands in. When full, the last box stays active.
+    const activeBox = Math.min(chars.length, NAME_CAP - 1);
 
     const focusHiddenInput = () => {
       hiddenNameInputRef.current?.focus();
@@ -893,34 +901,74 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               cursor: "text",
             }}
           >
-            {boxes.map((ch, i) => (
-              <div
-                key={i}
-                style={{
-                  ...textStyle("control", mobile),
-                  flexGrow: 1,
-                  flexBasis: 0,
-                  minWidth: 0,
-                  height: CONTROL_H.lg + SPACE[2],
-                  background: COLORS.surface,
-                  border: BORDER.heavy,
-                  borderRadius: RADIUS.md,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxSizing: "border-box",
-                  color: ch ? COLORS.ink : COLORS.panel,
-                  textAlign: "center",
-                }}
-              >
-                {ch || "•"}
-              </div>
-            ))}
+            {boxes.map((ch, i) => {
+              const isActive = nameFocused && i === activeBox;
+              return (
+                <div
+                  key={i}
+                  aria-hidden="true"
+                  style={{
+                    ...textStyle("control", mobile),
+                    flexGrow: 1,
+                    flexBasis: 0,
+                    minWidth: 0,
+                    height: CONTROL_H.lg + SPACE[2],
+                    background: COLORS.surface,
+                    border: isActive ? `3px solid ${COLORS.red}` : BORDER.heavy,
+                    borderRadius: RADIUS.md,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxSizing: "border-box",
+                    color: ch ? COLORS.ink : COLORS.inkMuted,
+                    textAlign: "center",
+                    position: "relative",
+                  }}
+                >
+                  {ch}
+                  {/* Resting state: a short baseline stroke in empty boxes so the
+                      row reads as an input, not decorative outlines. */}
+                  {!ch && (
+                    <div style={{
+                      position: "absolute",
+                      bottom: SPACE[8],
+                      left: "25%",
+                      right: "25%",
+                      height: 2,
+                      borderRadius: 1,
+                      background: isActive ? COLORS.red : COLORS.inkMuted,
+                      opacity: isActive ? 1 : 0.5,
+                    }} />
+                  )}
+                </div>
+              );
+            })}
             <input
               ref={hiddenNameInputRef}
               value={nameInput}
               onChange={(e) => setNameInput(e.target.value.slice(0, NAME_CAP))}
-              onKeyDown={(e) => { if (e.key === "Enter" && canContinue) handleConfirmName(); }}
+              onKeyDown={(e) => {
+                // First keystroke on an untouched prefill replaces the whole
+                // value: clear before the character lands so typing "ALPHA"
+                // over "BRAVO" yields "ALPHA", not "BRAVOA".
+                if (!nameTouched && nameInput.length > 0) {
+                  if (e.key.length === 1 || e.key === "Backspace" || e.key === "Delete") {
+                    setNameTouched(true);
+                    setNameInput("");
+                    if (e.key === "Backspace" || e.key === "Delete") e.preventDefault();
+                  }
+                }
+                if (e.key === "Enter" && canContinue) handleConfirmName();
+              }}
+              onPaste={(e) => {
+                if (!nameTouched) {
+                  e.preventDefault();
+                  setNameTouched(true);
+                  setNameInput(e.clipboardData.getData("text").slice(0, NAME_CAP));
+                }
+              }}
+              onFocus={() => setNameFocused(true)}
+              onBlur={() => setNameFocused(false)}
               maxLength={NAME_CAP}
               autoFocus
               autoCapitalize="characters"
@@ -944,6 +992,43 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 cursor: "text",
               }}
             />
+            {/* Clear control — empties the field in one tap. Sits above the
+                overlaid input so it stays clickable. */}
+            {chars.length > 0 && (
+              <button
+                type="button"
+                aria-label="Clear nickname"
+                onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
+                onTouchStart={(e) => { e.stopPropagation(); }}
+                onClick={() => {
+                  setNameTouched(true);
+                  setNameInput("");
+                  focusHiddenInput();
+                }}
+                style={{
+                  position: "relative",
+                  zIndex: 1,
+                  flexShrink: 0,
+                  width: TOUCH_MIN,
+                  height: TOUCH_MIN,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "transparent",
+                  border: BORDER.heavy,
+                  borderRadius: RADIUS.md,
+                  color: COLORS.inkMuted,
+                  fontFamily: FONT_FAMILY,
+                  fontSize: 16,
+                  lineHeight: 1,
+                  cursor: "pointer",
+                  padding: 0,
+                  boxSizing: "border-box",
+                }}
+              >
+                ×
+              </button>
+            )}
           </div>
 
           {/* Button row */}
