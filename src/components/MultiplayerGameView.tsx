@@ -447,6 +447,10 @@ const ModalShell: React.FC<{
   onCancel: () => void;
   children: React.ReactNode;
 }> = ({ titleId, onCancel, children }) => {
+  // Portalled to body: the game column is capped at 420px (and scaled entry
+  // frames apply transforms), so an in-tree fixed/absolute overlay only ever
+  // covered the mobile-width column. A modal must take over the full screen.
+  const portalHost = usePortalHost("mp-modal");
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") { e.preventDefault(); onCancel(); }
@@ -454,12 +458,13 @@ const ModalShell: React.FC<{
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onCancel]);
-  return (
+  if (!portalHost) return null;
+  return createPortal(
     <div
       role="presentation"
       onClick={onCancel}
       style={{
-        position: "absolute", inset: 0, zIndex: 50,
+        position: "fixed", inset: 0, zIndex: 1000,
         background: "rgba(0,0,0,0.5)",
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 16,
