@@ -584,6 +584,8 @@ export function reducer(state: State, action: Action): State {
           settleKind: null,
           settleBy: null,
         };
+        // The match animation has finished — now check the win target.
+        if (reachedTarget(post)) return withGameOverAnnounce(post);
         return startRound(post, state.settleBy);
       }
       return {
@@ -700,6 +702,7 @@ export function reducer(state: State, action: Action): State {
           inFlight: null,
           claimBy: null,
         };
+        if (reachedTarget(post)) return withGameOverAnnounce(post);
         return startRound(post, by);
       }
       const wrongForBy = new Set(state.wrongBy[by] ?? []);
@@ -752,15 +755,24 @@ export function reducer(state: State, action: Action): State {
       return { ...state, deck: state.deck.slice(0, 2) };
     }
 
-    // Debug-only: put the table in the exact state the end-game trigger fires
-    // from — empty draw pile, one card left on the grid. Scores, seats, names
-    // and round number are untouched, so the next completed rotation with no
-    // correct claim ends the game through the normal cycleAdvance path.
+    // Debug-only: set the highest-scoring seat to TARGET_SCORE - 2, so the
+    // next correct claim ends the game through the normal target-check path.
+    // Pile length always equals score, so the pile is padded from the deck.
     case "DEBUG_FORCE_END_GAME": {
       if (!debugFlagOn()) return state;
-      const keep = state.grid.findIndex((c) => c !== null);
-      const grid = state.grid.map((c, i) => (i === keep ? c : null));
-      return { ...state, grid, deck: [], drawEmpty: true };
+      const target = TARGET_SCORE - 2;
+      let top = 0;
+      state.scores.forEach((v, i) => {
+        if (v > state.scores[top]) top = i;
+      });
+      const deck = [...state.deck];
+      const pile: Card[] = [...(state.piles[top] ?? [])];
+      while (pile.length < target && deck.length > 0) pile.push(deck.pop()!);
+      while (pile.length < target && pile.length > 0) pile.push(pile[pile.length % Math.max(1, pile.length - 1)] ?? pile[0]);
+      if (pile.length === 0) return state;
+      const scores = replaceAt(state.scores, top, pile.length);
+      const piles = replaceAt(state.piles, top, pile);
+      return { ...state, scores, piles, deck, drawEmpty: deck.length === 0 };
     }
 
     case "SET_MESSAGE":
