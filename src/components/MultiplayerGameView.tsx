@@ -33,9 +33,10 @@ import type { PublicState } from "@/lib/publicState";
 import type { IntentAction, RollAttribute, RollCommitPayload, TransientEvent } from "@/lib/multiplayer";
 import { ROLL_HERO_MS } from "@/lib/multiplayer";
 import {
-  GREAT_MATCH_DELAY_MS, DEAL_MOVE_MS,
+  GREAT_MATCH_DELAY_MS, DEAL_MOVE_MS, WRONG_ANIM_MS, SETTLE_REVEAL_HOLD_MS,
   applyAnimationTimingVars,
 } from "@/lib/animationTiming";
+import DailyMatchGhost, { type GhostCard } from "@/components/DailyMatchGhost";
 import { serverNow } from "@/hooks/useServerClock";
 import { TARGET_SCORE } from "@/hooks/useGameState";
 
