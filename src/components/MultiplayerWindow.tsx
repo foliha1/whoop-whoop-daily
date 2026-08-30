@@ -72,8 +72,8 @@ const FitColumn: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         style={{
           width: "100%",
           transform: scale < 1 ? `scale(${scale})` : undefined,
-          transformOrigin: "top center",
-          alignSelf: "flex-start",
+          transformOrigin: "center center",
+          alignSelf: "center",
         }}
       >
         {children}
@@ -821,9 +821,13 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     </div>
   );
 
+  // Only the first lobby screen (the play-style chooser) gets the Classic
+  // lockup and the How to Play / Settings chips — every later screen drops
+  // both so they live in exactly one place.
   const entryFrame = (opts: {
     headline?: React.ReactNode;
     logo?: boolean;
+    chips?: boolean;
     fade?: React.CSSProperties;
     children: React.ReactNode;
   }) => (
@@ -840,15 +844,15 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             ...opts.fade,
           }}
         >
-          {opts.logo !== false && (
+          {opts.logo && (
             <DailyLogoLockup variant="classic" style={{ maxWidth: lockupMax }} />
           )}
+          {opts.chips && chipRow}
           {opts.headline !== undefined && (
             <div style={{ ...textStyle("hero", mobile), textAlign: "center", color: COLORS.ink }}>
               {opts.headline}
             </div>
           )}
-          {chipRow}
           {opts.children}
         </div>
         </FitColumn>
