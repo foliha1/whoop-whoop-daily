@@ -1514,24 +1514,7 @@ const MultiplayerGameView: React.FC<Props> = ({
         />
       )}
       {presenceStatus !== undefined && presenceStatus !== "connected" && (
-        <div
-          role="status"
-          aria-live="polite"
-          style={{
-            position: "absolute", inset: 0, zIndex: 900,
-            background: "rgba(35,31,32,0.85)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            padding: 24, pointerEvents: "auto",
-          }}
-        >
-          <div style={{
-            background: INK, color: SURFACE, border: `2px solid ${SURFACE}`,
-            borderRadius: R_BOX, padding: "14px 22px", textAlign: "center",
-            ...textStyle("label"),
-          }}>
-            Reconnecting…
-          </div>
-        </div>
+        <ReconnectingOverlay />
       )}
       {/* ROLLING scrim — beneath the die overlay (z=30), above the play
           content. Pointer-events none so header controls stay reachable;
