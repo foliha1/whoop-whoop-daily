@@ -39,6 +39,18 @@ export const DAILY_MATCH_GREAT_MS = 1300;
 export const DAILY_MATCH_SETTLE_MS =
   DAILY_MATCH_REVEAL_MS + DAILY_MATCH_HOLD_MS + DAILY_MATCH_GREAT_MS;
 
+/**
+ * Whole wrong-claim sequence on a board whose pair is face down when the claim
+ * resolves: reveal → hold → the shared `.ww-wrong*` shake / red wash / ring.
+ * Multiplayer's SETTLE_WRONG_MS is exactly this.
+ */
+export const WRONG_SETTLE_TOTAL_MS =
+  DAILY_MATCH_REVEAL_MS + DAILY_MATCH_HOLD_MS + WRONG_ANIM_MS;
+
+/** Delay from a settle starting to the moment its treatment begins playing. */
+export const SETTLE_REVEAL_HOLD_MS = DAILY_MATCH_REVEAL_MS + DAILY_MATCH_HOLD_MS;
+
+
 /** Final beat after round 3: the remaining board is shown before the result. */
 export const DAILY_FINAL_REVEAL_MS = 1500;
 
