@@ -113,6 +113,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const [busy, setBusy] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [nameInput, setNameInput] = useState<string>(() => getDisplayName());
+  // True once the player has typed this session. While false the value is an
+  // untouched prefill — the first keystroke replaces it instead of appending.
+  const [nameTouched, setNameTouched] = useState(false);
+  const [nameFocused, setNameFocused] = useState(false);
   // Game-started state — seat freeze lives here on the HOST. Joiners learn
   // seats from the wire via PublicState.seatMap.
   const [frozenSeats, setFrozenSeats] = useState<SeatMapEntry[] | null>(null);
@@ -384,6 +388,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const handleStartRoom = useCallback(() => {
     if (busy) return;
     setNameInput(getDisplayName());
+    setNameTouched(false);
     setView({ kind: "name-prompt", pending: { kind: "create" } });
   }, [busy]);
 
@@ -402,6 +407,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       return;
     }
     setNameInput(getDisplayName());
+    setNameTouched(false);
     setView({ kind: "name-prompt", pending: { kind: "join-code", code: normalized } });
   }, [busy, codeInput]);
 
