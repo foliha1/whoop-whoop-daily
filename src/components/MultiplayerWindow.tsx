@@ -1319,7 +1319,17 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
           <a
             href="/"
-            style={{ ...textStyle("caption", mobile), color: COLORS.blue, textAlign: "center" }}
+            className="ww-daily-link"
+            style={{
+              ...textStyle("captionItalic", mobile),
+              fontFamily: FONT_FAMILY_UI,
+              fontWeight: FONT_WEIGHT_UI,
+              color: COLORS.inkMuted,
+              textAlign: "center",
+              alignSelf: "center",
+              marginTop: sectionGap,
+              textDecoration: "none",
+            }}
           >
             Looking for Whoop! Whoop! Daily?
           </a>
