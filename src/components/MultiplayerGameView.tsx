@@ -24,7 +24,9 @@
 // ============================================================================
 
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Settings as SettingsIcon, X } from "lucide-react";
+import { usePortalHost } from "@/hooks/usePortalHost";
 import SettingsSheet from "@/components/SettingsSheet";
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
 import GameCard from "@/components/GameCard";
