@@ -150,6 +150,8 @@ export interface State {
   piles: Card[][];
   disconnected: boolean[];
   flippedThisCycle: Set<number>;
+  // v6.7: flips taken by the current flipper this turn. A turn is two flips.
+  flipsThisTurn: number;
   claimedThisCycle: boolean;
   drawEmpty: boolean;
   roundNum: number;
@@ -257,6 +259,7 @@ export function initialState(slotCount: number, opts: InitOptions = {}): State {
     piles: Array.from({ length: seatCount }, () => [] as Card[]),
     disconnected: Array(seatCount).fill(false),
     flippedThisCycle: new Set(),
+    flipsThisTurn: 0,
     claimedThisCycle: false,
     drawEmpty: newDeck.length === 0,
     roundNum: 1,
@@ -374,6 +377,7 @@ function startRound(s: State, winnerIndex: number | null): State {
     wrongBy: emptyWrongBy(s.seatCount),
     // `disconnected` is persistent — do NOT reset it here.
     flippedThisCycle: new Set(),
+    flipsThisTurn: 0,
     claimedThisCycle: false,
     selectedCards: [],
     matchedCards: new Set(),
@@ -386,6 +390,17 @@ function startRound(s: State, winnerIndex: number | null): State {
     quietRotations: winnerIndex !== null ? 0 : s.quietRotations,
     claimBy: null,
   };
+}
+
+/**
+ * A legal card for a seat is a filled grid slot that is not locked out for
+ * that seat by an earlier wrong claim this round.
+ */
+function hasLegalCard(s: State, seat: number): boolean {
+  for (let i = 0; i < s.grid.length; i++) {
+    if (s.grid[i] !== null && !s.wrongBy[seat]?.has(i)) return true;
+  }
+  return false;
 }
 
 function cycleAdvance(s: State, addWho: number): State {
@@ -419,6 +434,7 @@ function cycleAdvance(s: State, addWho: number): State {
   return {
     ...s,
     flipper: next,
+    flipsThisTurn: 0,
     flippedThisCycle: flipped,
     inFlight: null,
     peekingCard: null,
@@ -460,13 +476,11 @@ export function reducer(state: State, action: Action): State {
 
     case "PLAYER_ENTER_CLAIM": {
       if (state.phase !== "FLIPPING") return state;
-      const flipped = new Set(state.flippedThisCycle);
-      if (state.inFlight?.kind === "flip") flipped.add(state.inFlight.by);
-      else flipped.add(state.flipper);
+      // v6.7: claiming never consumes a flip. flippedThisCycle and
+      // flipsThisTurn are left exactly as they were.
       return {
         ...state,
         phase: "CLAIM_SELECTING",
-        flippedThisCycle: flipped,
         inFlight: null,
         peekingCard: null,
         selectedCards: [],
@@ -608,17 +622,30 @@ export function reducer(state: State, action: Action): State {
       if (state.inFlight?.kind !== "flip") return state;
       if (state.inFlight.token !== action.token) return state;
       const who = state.inFlight.by;
-      return cycleAdvance(state, who);
+      // v6.7: a turn is two flips. Stay with the same flipper for the second
+      // flip when one is still available and a legal card remains.
+      const flips = state.flipsThisTurn + 1;
+      const mid: State = { ...state, flipsThisTurn: flips };
+      if (flips < FLIPS_PER_TURN && hasLegalCard(mid, who)) {
+        return {
+          ...mid,
+          phase: "FLIPPING",
+          inFlight: null,
+          peekingCard: null,
+        };
+      }
+      return cycleAdvance(mid, who);
     }
 
     case "SKIP_TICK": {
       if (state.phase !== "FLIPPING") return state;
       if (state.inFlight) return state;
       const who = state.flipper;
-      // v6.5: the only reason a seat cannot take its flip turn is
-      // disconnection. SKIP_TICK advances the rotation past it, and that
-      // turn still counts toward the no-claim rotation backstop.
-      if (!state.disconnected[who]) return state;
+      // v6.7: a seat cannot take its flip turn when it is disconnected, or
+      // when every remaining card is locked out for it by earlier wrong
+      // claims. SKIP_TICK advances the rotation past it, and that turn still
+      // counts toward the no-claim rotation backstop.
+      if (!state.disconnected[who] && hasLegalCard(state, who)) return state;
       return cycleAdvance(state, who);
     }
 
@@ -632,12 +659,10 @@ export function reducer(state: State, action: Action): State {
       )
         return state;
 
-      const flipped = new Set(state.flippedThisCycle);
-      flipped.add(action.by);
+      // v6.7: claiming never consumes a flip — flippedThisCycle untouched.
       return {
         ...state,
         phase: "CLAIM_RESOLVING",
-        flippedThisCycle: flipped,
         peekingCard: null,
         claimBy: action.by,
         inFlight: {
