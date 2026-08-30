@@ -8,7 +8,10 @@ export type AnalyticsEventType =
   | "game_started"
   | "game_completed"
   | "room_replayed"
-  | "email_captured";
+  | "email_captured"
+  | "mp_howto_opened"
+  | "mp_howto_finished"
+  | "mp_howto_skipped";
 
 interface TrackOpts {
   roomCode?: string;
