@@ -1274,6 +1274,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
     return entryFrame({
       headline: "How do you want to play today?",
+      logo: true,
+      chips: true,
       fade,
       children: (
         <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
@@ -1315,9 +1317,12 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             </button>
           </div>
 
-          <div style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, textAlign: "center" }}>
-            Different from the Daily: no timer, no peek, and the round keeps going until someone lands a match.
-          </div>
+          <a
+            href="/"
+            style={{ ...textStyle("caption", mobile), color: COLORS.blue, textAlign: "center" }}
+          >
+            Looking for Whoop! Whoop! Daily?
+          </a>
         </div>
       ),
     });
