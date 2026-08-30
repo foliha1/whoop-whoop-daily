@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import type { LottieRefCurrentProps } from "lottie-react";
-import { COLORS } from "@/lib/tokens";
+import { COLORS, RAW } from "@/lib/tokens";
 
 // Never let a failed chunk fetch throw inside Suspense and blank the screen.
 const Lottie = React.lazy(() =>
