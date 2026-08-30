@@ -491,6 +491,34 @@ const ModalShell: React.FC<{
   );
 };
 
+/** Full-screen liveness veil. Portalled to body so it covers the whole
+    viewport, not just the width-capped game column. */
+const ReconnectingOverlay: React.FC = () => {
+  const portalHost = usePortalHost("mp-reconnecting");
+  if (!portalHost) return null;
+  return createPortal(
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
+        position: "fixed", inset: 0, zIndex: 1100,
+        background: "rgba(35,31,32,0.85)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 24, pointerEvents: "auto",
+      }}
+    >
+      <div style={{
+        background: INK, color: SURFACE, border: `2px solid ${SURFACE}`,
+        borderRadius: R_BOX, padding: "14px 22px", textAlign: "center",
+        ...textStyle("label"),
+      }}>
+        Reconnecting…
+      </div>
+    </div>,
+    portalHost,
+  );
+};
+
 type BannerKind = "YOUR_FLIP" | "TOO_SLOW" | "CLAIM_ERROR" | "PENALTY" | "CANCEL" | null;
 
 const BannerStyles: Record<Exclude<BannerKind, null>, { bg: string; text: string; label: string; icon?: boolean }> = {
