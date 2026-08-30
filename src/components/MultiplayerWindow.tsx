@@ -33,9 +33,35 @@ import { useSoloGame } from "@/hooks/useSoloGame";
 import GridSizeOption, { GRID_OPTIONS, type GridSizeKey } from "@/components/GridSizeOption";
 import MultiplayerHowToSteps, { hasSeenMpHowTo } from "@/components/MultiplayerHowToSteps";
 
+/**
+ * The in-game column. Multiplayer has no site header any more, so the 420px
+ * cap and the desktop safe-area padding that used to live on the page wrapper
+ * live here, around the board only.
+ */
+const GameShell: React.FC<{ mobile: boolean; children: React.ReactNode }> = ({ mobile, children }) => (
+  <div
+    style={{
+      width: "100%",
+      maxWidth: 420,
+      height: "var(--ww-vh)",
+      margin: "0 auto",
+      padding: mobile
+        ? 0
+        : "calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))",
+      boxSizing: "border-box",
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
+    }}
+  >
+    {children}
+  </div>
+);
+
 const SoloView: React.FC<{ onLeave: () => void; mobile: boolean; gridSize: GridSizeKey }> = ({ onLeave, mobile, gridSize }) => {
   const solo = useSoloGame(gridSize);
   return (
+    <GameShell mobile={mobile}>
     <MultiplayerGameView
       publicState={solo.publicState}
       mySeat={solo.mySeat}
@@ -49,6 +75,7 @@ const SoloView: React.FC<{ onLeave: () => void; mobile: boolean; gridSize: GridS
       isHost={true}
       soloMode={true}
     />
+    </GameShell>
   );
 };
 
@@ -838,6 +865,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       awaySeats,
     );
     return (
+      <GameShell mobile={mobile}>
       <MultiplayerGameView
         publicState={publicState}
         mySeat={0}
@@ -897,12 +925,14 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         hostDisconnectedSeats={disconnectedSeats}
         presenceStatus={presenceStatus}
       />
+      </GameShell>
     );
   }
 
   // ---------- GAME IN PROGRESS: JOINER ----------
   if (view.kind === "joiner" && joinerPublicState && activeRoom) {
     return (
+      <GameShell mobile={mobile}>
       <MultiplayerGameView
         publicState={joinerPublicState}
         mySeat={joinerSeat}
@@ -918,6 +948,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         presenceVisitorIds={participants.map((p) => p.visitor_id)}
         presenceStatus={presenceStatus}
       />
+      </GameShell>
     );
   }
 
