@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import patternAsset from "@/assets/WhoopWhoop_Daily_Pattern_Seamless.svg.asset.json";
 import { getLocalDateString } from "@/lib/daily";
-import { useThemeMode } from "@/lib/nightMode";
 import { MOTION } from "@/lib/tokens";
 
 /** Natural tile geometry — 15 shapes on a 24px pitch, 19px tall. */
@@ -10,8 +8,12 @@ const TILE_H = 19;
 const PITCH = 24;
 const SHAPES_PER_TILE = TILE_W / PITCH; // 15
 
-/** Night tile: identical geometry, warm-black triangles swapped to cream. */
-const NIGHT_PATTERN_URL = "/WhoopWhoop_Daily_Pattern_Seamless_Night.svg";
+/**
+ * One tile for both themes. Every shape colour is a frozen brand literal
+ * (RAW.blue / RAW.red / RAW.orange / RAW.khaki) so no shape can ever dissolve
+ * into the ground: khaki reads on cream and on warm black alike.
+ */
+const PATTERN_URL = "/WhoopWhoop_Daily_Pattern_Seamless.svg";
 
 /**
  * Deterministic per-day shift, in shape cells. Keyed off the same LOCAL
@@ -32,13 +34,11 @@ const dayCellOffset = (now = new Date()) => {
  * centred, so a shape always sits dead-centre and no shape is ever clipped at
  * either edge. Each day the tile slides by a whole number of cells.
  *
- * Light and night patterns are rendered as two stacked layers and cross-faded
- * so theme switches feel gentle rather than abrupt.
+ * The tile is theme-agnostic: shape colours are frozen brand literals.
  */
 const DailyShapeRule: React.FC<{ style?: React.CSSProperties }> = ({ style }) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
-  const { theme } = useThemeMode();
 
   useEffect(() => {
     const el = hostRef.current;
@@ -85,12 +85,11 @@ const DailyShapeRule: React.FC<{ style?: React.CSSProperties }> = ({ style }) =>
     }
   }
 
-  const layer = (url: string, active: boolean): React.CSSProperties => ({
+  const layerStyle: React.CSSProperties = {
     ...baseBand,
-    backgroundImage: `url(${url})`,
-    opacity: active ? 1 : 0,
+    backgroundImage: `url(${PATTERN_URL})`,
     transition: `opacity ${MOTION.slow}`,
-  });
+  };
 
   return (
     <div
@@ -99,8 +98,7 @@ const DailyShapeRule: React.FC<{ style?: React.CSSProperties }> = ({ style }) =>
       aria-hidden="true"
       style={{ ...style, position: "relative" }}
     >
-      <div style={layer(patternAsset.url, theme === "light")} />
-      <div style={layer(NIGHT_PATTERN_URL, theme === "night")} />
+      <div style={layerStyle} />
     </div>
   );
 };
