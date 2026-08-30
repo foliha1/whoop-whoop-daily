@@ -1140,7 +1140,8 @@ const MultiplayerHowToSteps: React.FC<{
       </div>
 
       <DailyShapeRule />
-    </div>
+    </div>,
+    portalHost,
   );
 };
 
