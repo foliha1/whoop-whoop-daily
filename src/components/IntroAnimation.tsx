@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import type { LottieRefCurrentProps } from "lottie-react";
-import { COLORS } from "@/lib/tokens";
+import { RAW } from "@/lib/tokens";
 
 // Never let a failed chunk fetch throw inside Suspense and blank the screen.
 const Lottie = React.lazy(() =>
@@ -208,9 +208,10 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onDone, preloadedData }
         // Once persistent: drop behind all UI so the frozen final frame
         // becomes the background layer for the rest of the session.
         zIndex: isActive ? 2147483000 : -1,
-        // Brand black behind the animation while it plays; transparent once it
-        // becomes the persistent background layer.
-        background: isActive ? COLORS.ink : "transparent",
+        // The intro art is composed against brand black, so it carries its own
+        // literal ground in both themes rather than inheriting the page's.
+        // Transparent once it becomes the persistent background layer.
+        background: isActive ? RAW.warmBlack : "transparent",
         pointerEvents: isActive ? "auto" : "none",
         cursor: isActive ? "pointer" : "default",
         overflow: "hidden",
