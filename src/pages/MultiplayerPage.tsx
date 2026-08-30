@@ -1,7 +1,8 @@
 import { Helmet } from "react-helmet-async";
 import { useParams, useSearchParams } from "react-router-dom";
 import React, { Suspense, useEffect, useState } from "react";
-import { COLORS } from "@/lib/tokens";
+import { COLORS, SPACE } from "@/lib/tokens";
+import DailyShapeRule from "@/components/DailyShapeRule";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 const IntroAnimation = React.lazy(() => import("@/components/IntroAnimation"));
