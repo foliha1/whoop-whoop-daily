@@ -13,7 +13,9 @@
 // ============================================================================
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { usePortalHost } from "@/hooks/usePortalHost";
 import GameCard from "@/components/GameCard";
 import MatchDie from "@/components/MatchDie";
 import { ChipCell } from "@/components/MultiplayerGameView";
@@ -1084,7 +1086,8 @@ const MultiplayerHowToSteps: React.FC<{
     );
   };
 
-  return (
+  if (!portalHost) return null;
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
