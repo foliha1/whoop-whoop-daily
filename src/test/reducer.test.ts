@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   reducer,
   initialState,
+  TARGET_SCORE,
   type State,
   type Action,
   type Phase,
@@ -74,7 +75,6 @@ function baseState(overrides: Partial<State> = {}): State {
     drawEmpty: false,
     roundNum: 1,
     roundsSinceClaim: 0,
-    quietRotations: 0,
     allFaceUp: false,
     selectedCards: [],
     matchedCards: new Set<number>(),
@@ -789,59 +789,55 @@ describe("end-game entry conditions (v6.6 — two quiet rotations)", () => {
     return reducer(s, { type: "FLIP_COMPLETE", token: 4 });
   }
 
-  it("ONE quiet rotation with an empty pile does NOT end the game", () => {
-    const next = quietRotation({ drawEmpty: true, quietRotations: 0 });
+  it("a quiet rotation never ends the game — it passes the roll clockwise", () => {
+    const next = quietRotation({ drawEmpty: true, roundsSinceClaim: 3 });
     expect(next.phase).toBe("AWAITING_ROLL");
-    expect(next.quietRotations).toBe(1);
+    expect(next.roundsSinceClaim).toBe(4);
+    expect(next.roller).toBe(1);
   });
 
-  it("TWO consecutive quiet rotations with an empty pile end the game", () => {
-    const next = quietRotation({ drawEmpty: true, quietRotations: 1 });
+  it("reaching TARGET_SCORE via CLAIM_RESOLVE ends the game immediately", () => {
+    const s = baseState({
+      phase: "CLAIM_RESOLVING",
+      rule: ["SHAPE"],
+      scores: [TARGET_SCORE - 2, 0],
+      piles: [Array(TARGET_SCORE - 2).fill(card("circle", 1, "red")), []],
+      inFlight: { kind: "claim", token: 7, by: 0, a: 0, b: 2 },
+    });
+    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 7 });
     expect(next.phase).toBe("GAME_OVER");
-    expect(next.quietRotations).toBe(2);
+    expect(next.scores[0]).toBe(TARGET_SCORE);
   });
 
-  it("a quiet rotation with a NON-empty pile does not increment the counter", () => {
-    const next = quietRotation({ drawEmpty: false, quietRotations: 1 });
+  it("reaching TARGET_SCORE via a matched pair ends the game AFTER the settle", () => {
+    const s = baseState({
+      phase: "CLAIM_SELECTING",
+      claimBy: 0,
+      selectedCards: [0, 2],
+      rule: ["SHAPE"],
+      scores: [TARGET_SCORE - 2, 0],
+      piles: [Array(TARGET_SCORE - 2).fill(card("circle", 1, "red")), []],
+    });
+    const settling = reducer(s, { type: "PLAYER_RESOLVE_MATCH", by: 0 });
+    // Animation still plays — not game over yet.
+    expect(settling.phase).toBe("SETTLING");
+    const done = reducer(settling, {
+      type: "SETTLE_COMPLETE",
+      token: settling.settleToken,
+    });
+    expect(done.phase).toBe("GAME_OVER");
+  });
+
+  it("below TARGET_SCORE the game continues normally", () => {
+    const s = baseState({
+      phase: "CLAIM_RESOLVING",
+      rule: ["SHAPE"],
+      scores: [TARGET_SCORE - 4, 0],
+      inFlight: { kind: "claim", token: 7, by: 0, a: 0, b: 2 },
+    });
+    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 7 });
     expect(next.phase).toBe("AWAITING_ROLL");
-    expect(next.quietRotations).toBe(0);
-  });
-
-  it("a correct claim between quiet rotations resets the counter and the game continues", () => {
-    // One quiet rotation on an empty pile.
-    const afterQuiet = quietRotation({ drawEmpty: true, quietRotations: 0 });
-    expect(afterQuiet.quietRotations).toBe(1);
-    // A correct claim resets it.
-    const claimed = reducer(
-      {
-        ...afterQuiet,
-        phase: "CLAIM_RESOLVING",
-        rule: ["SHAPE"],
-        inFlight: { kind: "claim", token: 7, by: 1, a: 0, b: 2 },
-      },
-      { type: "CLAIM_RESOLVE", token: 7 },
-    );
-    expect(claimed.quietRotations).toBe(0);
-    // The next quiet rotation is therefore only the first one again.
-    const next = reducer(
-      {
-        ...claimed,
-        phase: "FLIPPING",
-        flipper: 1,
-        claimedThisCycle: false,
-        flippedThisCycle: new Set([0]),
-        flipsThisTurn: 1,
-        inFlight: { kind: "flip", token: 8, by: 1, idx: 3 },
-      },
-      { type: "FLIP_COMPLETE", token: 8 },
-    );
-    expect(next.phase).not.toBe("GAME_OVER");
-    expect(next.quietRotations).toBe(1);
-  });
-
-  it("cycle-complete + drawEmpty + claimedThisCycle does NOT end the game (passes roll instead)", () => {
-    const next = quietRotation({ drawEmpty: true, claimedThisCycle: true, quietRotations: 1 });
-    expect(next.phase).toBe("AWAITING_ROLL");
+    expect(next.scores[0]).toBe(TARGET_SCORE - 2);
   });
 
   it("the grid draining to zero through correct claims still ends the game immediately", () => {
@@ -850,7 +846,6 @@ describe("end-game entry conditions (v6.6 — two quiet rotations)", () => {
       rule: ["SHAPE"],
       deck: [],
       drawEmpty: true,
-      quietRotations: 0,
       grid: [SHAPE_MATCH_A, null, SHAPE_MATCH_B, null, null, null],
       inFlight: { kind: "claim", token: 9, by: 0, a: 0, b: 2 },
     });
@@ -1380,36 +1375,34 @@ describe("DEBUG_FORCE_END_GAME", () => {
     expect(reducer(s0, { type: "DEBUG_FORCE_END_GAME" })).toBe(s0);
   });
 
-  it("leaves scores, seats and round number unchanged", () => {
+  it("puts the highest-scoring seat on TARGET_SCORE - 2", () => {
     window.history.replaceState({}, "", "/?debug=1");
     const s0 = initialState(9, { seatCount: 3 });
     const s1 = reducer(s0, { type: "DEBUG_FORCE_END_GAME" });
-    expect(s1.scores).toEqual(s0.scores);
+    expect(s1.scores).toEqual([TARGET_SCORE - 2, 0, 0]);
+    expect(s1.piles[0].length).toBe(TARGET_SCORE - 2);
     expect(s1.seatCount).toBe(s0.seatCount);
     expect(s1.names).toEqual(s0.names);
     expect(s1.roundNum).toBe(s0.roundNum);
-    expect(s1.deck.length).toBe(0);
-    expect(s1.drawEmpty).toBe(true);
-    expect(s1.grid.filter((c) => c !== null).length).toBe(1);
     window.history.replaceState({}, "", "/");
   });
 
-  it("reaches GAME_OVER through the normal rotation path", () => {
+  it("reaches GAME_OVER through the normal target-score path", () => {
     window.history.replaceState({}, "", "/?debug=1");
     const forced = reducer(
-      { ...initialState(9, { seatCount: 2 }), phase: "FLIPPING", flipper: 1 },
+      initialState(9, { seatCount: 2 }),
       { type: "DEBUG_FORCE_END_GAME" },
     );
     const s = {
       ...forced,
-      claimedThisCycle: false,
-      flippedThisCycle: new Set([0]),
-      flipsThisTurn: 1,
-      inFlight: { kind: "flip" as const, token: 9, by: 1, idx: 3 },
-      peekingCard: 3,
+      phase: "CLAIM_RESOLVING" as const,
+      rule: ["SHAPE"],
+      grid: [SHAPE_MATCH_A, null, SHAPE_MATCH_B, null, null, null, null, null, null],
+      inFlight: { kind: "claim" as const, token: 9, by: 0, a: 0, b: 2 },
     };
-    const next = reducer(s, { type: "FLIP_COMPLETE", token: 9 });
+    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 9 });
     expect(next.phase).toBe("GAME_OVER");
+    expect(next.scores[0]).toBe(TARGET_SCORE);
     window.history.replaceState({}, "", "/");
   });
 });

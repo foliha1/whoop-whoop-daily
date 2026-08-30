@@ -16,6 +16,15 @@ export const OPPONENT_TUNING = {
 const REVEAL_MS = 2000;
 /** v6.7: a turn is two flips. Same card may not be flipped twice per turn. */
 export const FLIPS_PER_TURN = 2;
+/** First seat to reach this score wins immediately. 10 was chosen by
+ * simulation: it is the only target that reliably finishes at every table
+ * size from two to six players. */
+export const TARGET_SCORE = 10;
+
+/** Has any seat reached the target score? Checked wherever a score rises. */
+function reachedTarget(s: State): boolean {
+  return s.scores.some((v) => v >= TARGET_SCORE);
+}
 
 function rollRandomAttributes(count: number, rng: Rng = Math.random): string[] {
   const result: string[] = [];
@@ -157,11 +166,8 @@ export interface State {
   claimedThisCycle: boolean;
   drawEmpty: boolean;
   roundNum: number;
+  // Metric only: rounds since the last correct claim. Not an end condition.
   roundsSinceClaim: number;
-  // v6.6: consecutive full rotations that ended with no correct claim while
-  // the draw pile was empty. The game ends when this reaches 2. Any correct
-  // claim, or a quiet rotation with cards still in the pile, resets it to 0.
-  quietRotations: number;
   allFaceUp: boolean;
   selectedCards: number[];
   matchedCards: Set<number>;
@@ -266,7 +272,7 @@ export function initialState(slotCount: number, opts: InitOptions = {}): State {
     drawEmpty: newDeck.length === 0,
     roundNum: 1,
     roundsSinceClaim: 0,
-    quietRotations: 0,
+
 
     allFaceUp: false,
     selectedCards: [],
@@ -387,9 +393,6 @@ function startRound(s: State, winnerIndex: number | null): State {
     peekingCard: null,
     roundNum: s.roundNum + 1,
     roundsSinceClaim: winnerIndex !== null ? 0 : s.roundsSinceClaim,
-    // v6.6: a correct claim always clears the quiet-rotation counter. Any
-    // other route leaves it as cycleAdvance set it — never reset blindly.
-    quietRotations: winnerIndex !== null ? 0 : s.quietRotations,
     claimBy: null,
   };
 }
@@ -413,22 +416,14 @@ function cycleAdvance(s: State, addWho: number): State {
   const conn = Math.max(1, connectedCount(s.seatCount, s.disconnected));
   if (flipped.size >= conn) {
     const noClaim = !s.claimedThisCycle;
-    // v6.6: the rotation backstop no longer ends the game on its own. A quiet
-    // rotation with an empty draw pile increments quietRotations; a quiet
-    // rotation with cards still in the pile resets it. Only the SECOND
-    // consecutive quiet rotation on an empty pile ends the game. Unmatched
-    // cards are stranded and score for nobody.
+    // A rotation with no correct claim simply ends the round and passes the
+    // roll clockwise — same as when the pile still has cards. The game only
+    // ends when a seat reaches TARGET_SCORE (or a startRound safety fires).
     if (noClaim) {
-      const q = s.drawEmpty ? s.quietRotations + 1 : 0;
-      if (q >= 2) {
-        return withGameOverAnnounce({
-          ...s,
-          flippedThisCycle: new Set(),
-          roundsSinceClaim: s.roundsSinceClaim + 1,
-          quietRotations: q,
-        });
-      }
-      return startRound({ ...s, flippedThisCycle: flipped, quietRotations: q }, null);
+      return startRound(
+        { ...s, flippedThisCycle: flipped, roundsSinceClaim: s.roundsSinceClaim + 1 },
+        null,
+      );
     }
     return startRound({ ...s, flippedThisCycle: flipped }, null);
   }
@@ -589,6 +584,8 @@ export function reducer(state: State, action: Action): State {
           settleKind: null,
           settleBy: null,
         };
+        // The match animation has finished — now check the win target.
+        if (reachedTarget(post)) return withGameOverAnnounce(post);
         return startRound(post, state.settleBy);
       }
       return {
@@ -705,6 +702,7 @@ export function reducer(state: State, action: Action): State {
           inFlight: null,
           claimBy: null,
         };
+        if (reachedTarget(post)) return withGameOverAnnounce(post);
         return startRound(post, by);
       }
       const wrongForBy = new Set(state.wrongBy[by] ?? []);
@@ -757,15 +755,24 @@ export function reducer(state: State, action: Action): State {
       return { ...state, deck: state.deck.slice(0, 2) };
     }
 
-    // Debug-only: put the table in the exact state the end-game trigger fires
-    // from — empty draw pile, one card left on the grid. Scores, seats, names
-    // and round number are untouched, so the next completed rotation with no
-    // correct claim ends the game through the normal cycleAdvance path.
+    // Debug-only: set the highest-scoring seat to TARGET_SCORE - 2, so the
+    // next correct claim ends the game through the normal target-check path.
+    // Pile length always equals score, so the pile is padded from the deck.
     case "DEBUG_FORCE_END_GAME": {
       if (!debugFlagOn()) return state;
-      const keep = state.grid.findIndex((c) => c !== null);
-      const grid = state.grid.map((c, i) => (i === keep ? c : null));
-      return { ...state, grid, deck: [], drawEmpty: true };
+      const target = TARGET_SCORE - 2;
+      let top = 0;
+      state.scores.forEach((v, i) => {
+        if (v > state.scores[top]) top = i;
+      });
+      const deck = [...state.deck];
+      const pile: Card[] = [...(state.piles[top] ?? [])];
+      while (pile.length < target && deck.length > 0) pile.push(deck.pop()!);
+      // Deck exhausted: pad by cycling the pile's own cards (debug-only).
+      for (let i = 0; pile.length < target && pile.length > 0; i++) pile.push(pile[i]);
+      const scores = replaceAt(state.scores, top, pile.length);
+      const piles = replaceAt(state.piles, top, pile);
+      return { ...state, scores, piles, deck, drawEmpty: deck.length === 0 };
     }
 
     case "SET_MESSAGE":
