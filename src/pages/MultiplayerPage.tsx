@@ -127,7 +127,16 @@ const MultiplayerPage: React.FC = () => {
       >
         {/* Brand pattern strip top and bottom, exactly as the Daily frames its
             screens: solid themed ground, nothing behind the content. */}
-        <div style={{ position: "absolute", top: SPACE[12], left: SPACE[12], right: SPACE[12], pointerEvents: "none" }}>
+        <div
+          style={{
+            position: "absolute",
+            top: `calc(${SITE_HEADER_OFFSET} + ${SPACE[12]}px)`,
+            left: SPACE[12],
+            right: SPACE[12],
+            zIndex: 1,
+            pointerEvents: "none",
+          }}
+        >
           <DailyShapeRule />
         </div>
         <div
@@ -136,6 +145,7 @@ const MultiplayerPage: React.FC = () => {
             bottom: `calc(${SPACE[12]}px + env(safe-area-inset-bottom))`,
             left: SPACE[12],
             right: SPACE[12],
+            zIndex: 1,
             pointerEvents: "none",
           }}
         >
