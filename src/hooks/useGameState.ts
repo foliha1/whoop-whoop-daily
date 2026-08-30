@@ -16,6 +16,15 @@ export const OPPONENT_TUNING = {
 const REVEAL_MS = 2000;
 /** v6.7: a turn is two flips. Same card may not be flipped twice per turn. */
 export const FLIPS_PER_TURN = 2;
+/** First seat to reach this score wins immediately. 10 was chosen by
+ * simulation: it is the only target that reliably finishes at every table
+ * size from two to six players. */
+export const TARGET_SCORE = 10;
+
+/** Has any seat reached the target score? Checked wherever a score rises. */
+function reachedTarget(s: State): boolean {
+  return s.scores.some((v) => v >= TARGET_SCORE);
+}
 
 function rollRandomAttributes(count: number, rng: Rng = Math.random): string[] {
   const result: string[] = [];
@@ -157,11 +166,8 @@ export interface State {
   claimedThisCycle: boolean;
   drawEmpty: boolean;
   roundNum: number;
+  // Metric only: rounds since the last correct claim. Not an end condition.
   roundsSinceClaim: number;
-  // v6.6: consecutive full rotations that ended with no correct claim while
-  // the draw pile was empty. The game ends when this reaches 2. Any correct
-  // claim, or a quiet rotation with cards still in the pile, resets it to 0.
-  quietRotations: number;
   allFaceUp: boolean;
   selectedCards: number[];
   matchedCards: Set<number>;
