@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import React, { Suspense, useEffect, useState } from "react";
 import { COLORS, SPACE } from "@/lib/tokens";
 import DailyShapeRule from "@/components/DailyShapeRule";
+import { SITE_HEADER_OFFSET } from "@/components/SiteHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 const IntroAnimation = React.lazy(() => import("@/components/IntroAnimation"));
