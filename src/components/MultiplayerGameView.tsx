@@ -954,86 +954,84 @@ const MultiplayerGameView: React.FC<Props> = ({
     }
   }, [s.selectedCards]);
 
-  // ---- great-match flying copies ---------------------------------------
-  // The grid (and its ancestors) clip, so the scale+slide is performed by
-  // copies rendered into a fixed-position layer that is a child of the page
-  // root. We measure each matched cell at event time and pin the copy there.
+  // ---- correct-claim settle: the Daily's shared reward layer ------------
+  // The grid (and its ancestors) clip, so the reveal + hold + ghost treatment
+  // is performed by copies rendered into a fixed layer at the page root, the
+  // same DailyMatchGhost the Daily's board uses. Driven from BROADCAST state
+  // (phase + settleKind + selectedCards), never from a local claim, so every
+  // client — claimant or not — plays the identical timeline.
   const cellRefs = React.useRef<(HTMLDivElement | null)[]>([]);
   const gridRef = React.useRef(s.grid);
   gridRef.current = s.grid;
-  const [flyCards, setFlyCards] = React.useState<
-    { key: string; card: Card; rect: { top: number; left: number; width: number; height: number } }[]
-  >([]);
-  const flyTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  React.useEffect(() => () => {
-    if (flyTimerRef.current) clearTimeout(flyTimerRef.current);
-  }, []);
+  const [ghost, setGhost] = React.useState<GhostCard[]>([]);
 
   // While SETTLING on a MATCH the real cards leave the table entirely — the
-  // flying copy is the only visible card, and it stays mounted for the whole
-  // settle window (SETTLE_MATCH_MS === animation delay + duration).
+  // ghost copies are the only visible cards for the whole SETTLE_MATCH_MS.
   const matchSettling = s.phase === "SETTLING" && s.settleKind === "MATCH";
+  const wrongSettling = s.phase === "SETTLING" && s.settleKind === "WRONG";
   React.useEffect(() => {
-    if (matchSettling) return;
-    if (flyTimerRef.current) clearTimeout(flyTimerRef.current);
-    setFlyCards((prev) => (prev.length ? [] : prev));
+    if (!matchSettling) return;
+    const idxs = lastPairRef.current;
+    const copies = idxs.flatMap<GhostCard>((i) => {
+      const el = cellRefs.current[i];
+      const card = gridRef.current[i]?.card;
+      if (!el || !card) return [];
+      const r = el.getBoundingClientRect();
+      return [{
+        key: `settle-${i}-${r.top}-${r.left}`,
+        card,
+        rect: { top: r.top, left: r.left, width: r.width, height: r.height },
+      }];
+    });
+    if (copies.length) setGhost(copies);
+    // Land the chime with the ghost treatment, not with the reveal.
+    const chime = setTimeout(
+      () => { playCorrect(); hapticSuccess(); },
+      SETTLE_REVEAL_HOLD_MS + GREAT_MATCH_DELAY_MS,
+    );
+    soundTimersRef.current.push(chime);
+    return () => clearTimeout(chime);
   }, [matchSettling]);
 
-
-
-
+  // ---- wrong-claim settle ----------------------------------------------
+  // The pair is exposed (and flipping up) the moment the claim resolves, so
+  // the shared `.ww-wrong*` treatment on the real cards must wait out the
+  // reveal and the read beat before it starts. Same broadcast trigger, so a
+  // non-claiming client runs the same clock.
   const [wrongCards, setWrongCards] = React.useState<number[]>([]);
-  // Transient PENALTY chip state — same NOPE event, same 900ms window as the
-  // wrong-card animation. Falls back to the seat's live state after.
+  // Transient PENALTY chip state — held for the treatment window, then falls
+  // back to the seat's live state.
   const [penaltySeat, setPenaltySeat] = React.useState<number | null>(null);
-  const wrongTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  React.useEffect(() => () => {
-    if (wrongTimerRef.current) clearTimeout(wrongTimerRef.current);
-  }, []);
+  React.useEffect(() => {
+    if (!wrongSettling) {
+      setWrongCards((prev) => (prev.length ? [] : prev));
+      setPenaltySeat(null);
+      return;
+    }
+    const idxs = [...lastPairRef.current];
+    const seat = s.claimBy ?? lastClaimSeatRef.current;
+    const start = setTimeout(() => {
+      playWrong();
+      hapticError();
+      // Every player sees the wrong pair animate — no seat filter.
+      setWrongCards(idxs);
+      if (seat !== null) setPenaltySeat(seat);
+    }, SETTLE_REVEAL_HOLD_MS);
+    const end = setTimeout(() => {
+      setWrongCards([]);
+      setPenaltySeat(null);
+    }, SETTLE_REVEAL_HOLD_MS + WRONG_ANIM_MS);
+    return () => { clearTimeout(start); clearTimeout(end); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wrongSettling]);
 
+  // Chips still key off the transient event stream; the card treatments no
+  // longer do (they are state-driven above, so no client can miss one).
   const seenEventIdsRef = React.useRef<Set<string>>(new Set());
   React.useEffect(() => {
     for (const e of events) {
       if (seenEventIdsRef.current.has(e.id)) continue;
       seenEventIdsRef.current.add(e.id);
-      if (e.kind === "GREAT_MATCH") {
-        // The ghost animation has a GREAT_MATCH_DELAY_MS animation-delay —
-        // hold the sound by the same amount so it lands with the card.
-        const chime = setTimeout(() => { playCorrect(); hapticSuccess(); }, GREAT_MATCH_DELAY_MS);
-        soundTimersRef.current.push(chime);
-        const idxs = lastPairRef.current;
-        const copies = idxs.flatMap((i) => {
-          const el = cellRefs.current[i];
-          const card = gridRef.current[i]?.card;
-          if (!el || !card) return [];
-          const r = el.getBoundingClientRect();
-          return [{
-            key: `${e.id}-${i}`,
-            card,
-            rect: { top: r.top, left: r.left, width: r.width, height: r.height },
-          }];
-        });
-        if (copies.length) {
-          setFlyCards(copies);
-          // Safety net only — the copy is normally unmounted when SETTLING
-          // ends (see effect below), which is exactly SETTLE_MATCH_MS.
-          if (flyTimerRef.current) clearTimeout(flyTimerRef.current);
-          flyTimerRef.current = setTimeout(() => setFlyCards([]), 1300);
-        }
-      }
-
-      else if (e.kind === "NOPE") {
-        playWrong();
-        hapticError();
-        // Every player sees the wrong pair animate — no seat filter.
-        setWrongCards(lastPairRef.current);
-        setPenaltySeat(e.seat);
-        if (wrongTimerRef.current) clearTimeout(wrongTimerRef.current);
-        wrongTimerRef.current = setTimeout(() => {
-          setWrongCards([]);
-          setPenaltySeat(null);
-        }, 900);
-      }
     }
     // Bound the dedup set so it doesn't grow forever across a long session.
     if (seenEventIdsRef.current.size > 256) {
@@ -1041,6 +1039,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       seenEventIdsRef.current = new Set(arr.slice(-128));
     }
   }, [events]);
+
 
   // Deal-in bookkeeping. A slot that newly becomes occupied gets a fresh
   // remount key (so the deal animation replays) and a stagger index: reading
