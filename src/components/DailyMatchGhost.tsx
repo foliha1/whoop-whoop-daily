@@ -27,11 +27,13 @@ export interface GhostCard {
   rect: { top: number; left: number; width: number; height: number };
 }
 
-const DailyMatchGhost: React.FC<{ pair: GhostCard[]; onDone: () => void }> = ({
-  pair,
-  onDone,
-}) => {
-  const { stage, faceUp } = useMatchGhostStage(onDone);
+const DailyMatchGhost: React.FC<{
+  pair: GhostCard[];
+  onDone: () => void;
+  /** True when the pair is already face up (multiplayer): skips the flip. */
+  startFaceUp?: boolean;
+}> = ({ pair, onDone, startFaceUp = false }) => {
+  const { stage, faceUp } = useMatchGhostStage(onDone, startFaceUp);
 
   if (pair.length === 0) return null;
 

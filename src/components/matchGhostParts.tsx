@@ -33,9 +33,9 @@ const prefersReducedMotion = () =>
  * treatment. Under reduced motion the great stage is skipped entirely.
  * `onDone` fires at the end of the pass.
  */
-export const useMatchGhostStage = (onDone?: () => void) => {
+export const useMatchGhostStage = (onDone?: () => void, startFaceUp = false) => {
   const [stage, setStage] = React.useState<MatchGhostStage>("reveal");
-  const [faceUp, setFaceUp] = React.useState(false);
+  const [faceUp, setFaceUp] = React.useState(startFaceUp);
   const doneRef = React.useRef(onDone);
   doneRef.current = onDone;
 
@@ -43,7 +43,11 @@ export const useMatchGhostStage = (onDone?: () => void) => {
     const reduced = prefersReducedMotion();
     const timers: ReturnType<typeof setTimeout>[] = [];
     // Start face down, then flip on the next frame so the transition runs.
-    const raf = requestAnimationFrame(() => setFaceUp(true));
+    // When startFaceUp is set the pair is already face up (multiplayer), so
+    // there is nothing to flip — the reveal beat is spent holding the pair.
+    const raf = startFaceUp
+      ? 0
+      : requestAnimationFrame(() => setFaceUp(true));
     timers.push(setTimeout(() => setStage("hold"), DAILY_MATCH_REVEAL_MS));
     const afterHold = DAILY_MATCH_REVEAL_MS + DAILY_MATCH_HOLD_MS;
     if (reduced) {
