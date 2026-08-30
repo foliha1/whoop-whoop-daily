@@ -112,7 +112,7 @@ const MultiplayerPage: React.FC = () => {
       <div
         className="mp-page-root"
         role="main"
-        aria-label="WHOOP! WHOOP! multiplayer"
+        aria-label="WHOOP! WHOOP! Classic"
         style={{
           height: "var(--ww-vh)",
           width: "100%",
@@ -120,77 +120,29 @@ const MultiplayerPage: React.FC = () => {
           position: "relative",
           isolation: "isolate",
           backgroundColor: COLORS.surface,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
           boxSizing: "border-box",
         }}
       >
-        {/* Brand pattern strip top and bottom, exactly as the Daily frames its
-            screens: solid themed ground, nothing behind the content. */}
-        <div
-          style={{
-            position: "absolute",
-            top: `calc(${SITE_HEADER_OFFSET} + ${SPACE[12]}px)`,
-            left: SPACE[12],
-            right: SPACE[12],
-            zIndex: 1,
-            pointerEvents: "none",
-          }}
-        >
-          <DailyShapeRule />
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            bottom: `calc(${SPACE[12]}px + env(safe-area-inset-bottom))`,
-            left: SPACE[12],
-            right: SPACE[12],
-            zIndex: 1,
-            pointerEvents: "none",
-          }}
-        >
-          <DailyShapeRule />
-        </div>
-
-        {/* IntroAnimation lives INSIDE .mp-page-root so that when it drops to
-            z-index:-1 in the persistent phase it paints behind the lobby
-            content but still in front of this container's own dark bg,
-            rather than being occluded by it (which happens when the overlay
-            is a sibling to an isolated, opaque parent). */}
+        {/* The ground, the brand pattern strips and the centred column all come
+            from the entry screens' DailyFrame (and from GameShell in play), so
+            this page only supplies the viewport and the intro overlay. */}
         {introMounted && (
           <Suspense fallback={null}>
             <IntroAnimation preloadedData={introData} onDone={handleIntroDone} />
           </Suspense>
         )}
 
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 420,
-            height: "auto",
-            maxHeight: 900,
-            margin: "auto",
-            padding: mobile
-              ? 0
-              : "calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))",
-            boxSizing: "border-box",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            visibility: lobbyVisible ? "visible" : "hidden",
-          }}
-        >
+        <div style={{ height: "100%", visibility: lobbyVisible ? "visible" : "hidden" }}>
           <Suspense fallback={<div style={{ margin: "auto", color: COLORS.ink }}>Loading…</div>}>
             <MultiplayerWindow
               initialRoomCode={roomCode}
               initialMode={initialMode}
               introStatus={introStatus === "pending" ? "running" : introStatus}
             />
-
           </Suspense>
         </div>
       </div>
+
     </>
   );
 };
