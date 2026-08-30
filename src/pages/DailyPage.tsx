@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { HelpCircle, Moon, Sun, Volume2, VolumeOff } from "lucide-react";
+import { HelpCircle, Settings } from "lucide-react";
 
 import GameCard from "@/components/GameCard";
 import DailyFrame, { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
@@ -10,6 +10,7 @@ import DailyMatchGhost, { type GhostCard } from "@/components/DailyMatchGhost";
 import DailyScreenFade from "@/components/DailyScreenFade";
 
 import DailyLogoLockup from "@/components/DailyLogoLockup";
+import SettingsSheet from "@/components/SettingsSheet";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
 import DailyEmailCapture from "@/components/DailyEmailCapture";
 import DailyRecognition from "@/components/DailyRecognition";
@@ -1143,8 +1144,7 @@ const DailyReadyScreen: React.FC<{
           How to Play
         </button>
         {/* HIDDEN: Groups chip lived here; restore when Groups ships. */}
-        <DailyThemeToggle mobile={mobile} />
-        <DailySoundToggle mobile={mobile} />
+        <DailySettingsButton mobile={mobile} onHowTo={onHowToPlay} />
       </div>
 
       <div className="daily-intro" style={{ width: "100%", animationDelay: "240ms" }}>
