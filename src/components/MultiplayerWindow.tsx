@@ -638,29 +638,16 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   }, []);
 
 
-  // Shell + inner-column geometry live in PreGameShell so every pre-game
-  // screen shares the exact same mobile padding.
-
-
-  // ---- Design-system derived surfaces / controls -------------------------
-  const cardStyle: React.CSSProperties = {
-    ...panelStyle("surface", 8),
-    alignSelf: "stretch",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: SPACE[8],
-    height: "auto",
-  };
-
-  // Legacy card wrapper used by views not yet redesigned in this prompt
-  // (name-prompt, full, host-left, host/joiner lobby). Kept inside the shell.
-  const containerStyle: React.CSSProperties = {
-    ...cardStyle,
-    gap: mobile ? SPACE[5] : SPACE[6],
-    padding: mobile ? SPACE[6] : SPACE[10],
-    justifyContent: "center",
-  };
+  // ---- Entry-screen chrome: the Daily's ready screen, copied ------------
+  // Single centred 402px column on the themed ground, brand pattern strip top
+  // and bottom (both from DailyFrame), the Classic lockup, one hero line, and
+  // the Daily's chip cluster. No header, no stroked containers.
+  const vh = useViewportHeight();
+  const t = compressionFactor(vh);
+  const colGap = lerpCompress(t, 12, 36);
+  const framePad = lerpCompress(t, 12, 24);
+  const railGap = lerpCompress(t, 10, 24);
+  const lockupMax = lerpCompress(t, 120, 251);
 
   const inputStyle: React.CSSProperties = {
     ...textStyle("control", mobile),
@@ -674,7 +661,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     outline: "none",
   };
 
-  /** Section title inside a pre-game card. */
+  /** Section title on an entry screen. */
   const titleStyle: React.CSSProperties = {
     ...textStyle("title", mobile),
     textAlign: "center",
@@ -714,25 +701,86 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     background: COLORS.surface,
   };
 
+  // Same chip base the Daily ready screen uses, same class for hover/focus.
+  const chipButtonBase: React.CSSProperties = {
+    ...textStyle("chip", mobile),
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    boxSizing: "border-box",
+    minHeight: 36,
+    padding: "8px 16px",
+    border: "none",
+    borderRadius: RADIUS.sm,
+  };
 
-  const wrapInShell = (
-    content: React.ReactNode,
-    opts?: { above?: React.ReactNode; gap?: number; nav?: boolean },
-  ) => (
-    <>
-      <PreGameShell
-        mobile={mobile}
-        nav={opts?.nav !== false}
-        gap={opts?.gap ?? 0}
-        onHowTo={openHowToReference}
+  const chipRow = (
+    <div style={{ display: "inline-flex", alignItems: "center", gap: SPACE[3] }}>
+      <button
+        type="button"
+        className="ww-press daily-btn-howto"
+        onClick={openHowToReference}
+        style={chipButtonBase}
       >
-        {opts?.above}
-        {content}
-      </PreGameShell>
-      {howToOverlay}
-    </>
+        <HelpCircle size={16} aria-hidden="true" />
+        How to Play
+      </button>
+      <button
+        type="button"
+        className="ww-press daily-btn-howto"
+        onClick={() => setShowSettings(true)}
+        aria-label="Settings"
+        title="Settings"
+        style={chipButtonBase}
+      >
+        <SettingsIcon size={16} aria-hidden="true" />
+      </button>
+    </div>
   );
 
+  const entryFrame = (opts: {
+    headline?: React.ReactNode;
+    logo?: boolean;
+    fade?: React.CSSProperties;
+    children: React.ReactNode;
+  }) => (
+    <>
+      <DailyFrame gap={colGap} pad={framePad} railGap={railGap}>
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: colGap,
+            ...opts.fade,
+          }}
+        >
+          {opts.logo !== false && (
+            <DailyLogoLockup variant="classic" style={{ maxWidth: lockupMax }} />
+          )}
+          {opts.headline !== undefined && (
+            <div style={{ ...textStyle("hero", mobile), textAlign: "center", color: COLORS.ink }}>
+              {opts.headline}
+            </div>
+          )}
+          {chipRow}
+          {opts.children}
+        </div>
+      </DailyFrame>
+      {howToOverlay}
+      {showSettings && (
+        <SettingsSheet
+          onClose={() => setShowSettings(false)}
+          onHowTo={() => {
+            setShowSettings(false);
+            openHowToReference();
+          }}
+        />
+      )}
+    </>
+  );
 
   // ---------- SOLO ----------
   if (view.kind === "solo") {
