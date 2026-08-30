@@ -73,7 +73,25 @@ const GameCard = ({
 
   const k = cardW > 0 ? cardW / 104.333 : 0;
 
+  // Sticky front face: when the face is taken away (card cleared / returned to
+  // the pile) the flip-down is still mid-rotation, so swapping the front <img>
+  // to the card back immediately shows the back through the front face. Keep
+  // the last known face mounted for the length of the flip instead.
+  const lastFaceRef = useRef<string | null>(card.svgPath || null);
+  if (card.svgPath) lastFaceRef.current = card.svgPath;
+  const [stickyFace, setStickyFace] = useState<string | null>(lastFaceRef.current);
+  useEffect(() => {
+    if (card.svgPath) {
+      setStickyFace(card.svgPath);
+      return;
+    }
+    const t = setTimeout(() => setStickyFace(null), CARD_FLIP_MS);
+    return () => clearTimeout(t);
+  }, [card.svgPath]);
+  const frontFace = card.svgPath || stickyFace;
+
   const boxShadow = undefined;
+
 
   let outerTransform = "";
   let outerTransition = "transform 0.4s ease, opacity 0.4s ease";
@@ -186,16 +204,17 @@ const GameCard = ({
               switches at the 250ms midpoint of the 500ms rotateY so the face
               is visible only while pointing at the viewer, not while edge-on. */}
           <img
-            src={card.svgPath || CARD_BACK_PATH}
-            alt={card.svgPath ? card.id : ""}
-            aria-hidden={card.svgPath ? undefined : true}
+            src={frontFace || CARD_BACK_PATH}
+            alt={frontFace ? card.id : ""}
+            aria-hidden={frontFace ? undefined : true}
             style={{
               width: "100%",
               height: "100%",
               display: "block",
-              opacity: card.svgPath ? 1 : 0,
+              opacity: frontFace ? 1 : 0,
               transition: "opacity 0s linear 250ms",
             }}
+
             draggable={false}
           />
         </div>
