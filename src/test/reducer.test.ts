@@ -67,6 +67,9 @@ function baseState(overrides: Partial<State> = {}): State {
     piles: Array.from({ length: seatCount }, () => [] as Card[]),
     disconnected: Array(seatCount).fill(false),
     flippedThisCycle: new Set<number>(),
+    // v6.7: a turn is two flips. Tests default to "one flip already taken",
+    // so a single FLIP_COMPLETE completes the turn and advances the rotation.
+    flipsThisTurn: 1,
     claimedThisCycle: false,
     drawEmpty: false,
     roundNum: 1,
@@ -270,7 +273,7 @@ describe("FLIP_COMPLETE", () => {
 // PLAYER_ENTER_CLAIM
 // ===========================================================================
 describe("PLAYER_ENTER_CLAIM", () => {
-  it("enters CLAIM_SELECTING from FLIPPING and records the held flip", () => {
+  it("enters CLAIM_SELECTING from FLIPPING without spending a flip", () => {
     const s = baseState({
       phase: "FLIPPING",
       flipper: 0,
@@ -279,16 +282,18 @@ describe("PLAYER_ENTER_CLAIM", () => {
     });
     const next = reducer(s, { type: "PLAYER_ENTER_CLAIM", by: 0 });
     expect(next.phase).toBe("CLAIM_SELECTING");
-    expect(next.flippedThisCycle.has(0)).toBe(true);
+    // v6.7: claiming never consumes a turn.
+    expect(next.flippedThisCycle.has(0)).toBe(false);
+    expect(next.flipsThisTurn).toBe(s.flipsThisTurn);
     expect(next.inFlight).toBeNull();
     expect(next.peekingCard).toBeNull();
     expect(next.selectedCards).toEqual([]);
   });
 
-  it("records the flipper into flippedThisCycle when no flip is in flight", () => {
+  it("leaves flippedThisCycle untouched when no flip is in flight", () => {
     const s = baseState({ phase: "FLIPPING", flipper: 0 });
     const next = reducer(s, { type: "PLAYER_ENTER_CLAIM", by: 0 });
-    expect(next.flippedThisCycle.has(0)).toBe(true);
+    expect(next.flippedThisCycle.has(0)).toBe(false);
   });
 
   it("is a NO-OP outside FLIPPING", () => {
@@ -456,7 +461,7 @@ describe("CLAIM_START", () => {
     const next = reducer(s, { type: "CLAIM_START", by: 1, a: 0, b: 2, token: 7 });
     expect(next.phase).toBe("CLAIM_RESOLVING");
     expect(next.inFlight).toMatchObject({ kind: "claim", token: 7, by: 1, a: 0, b: 2 });
-    expect(next.flippedThisCycle.has(1)).toBe(true);
+    expect(next.flippedThisCycle.has(1)).toBe(false);
     expect(next.peekingCard).toBeNull();
   });
 
@@ -731,7 +736,7 @@ describe("cycle advancement in a 2-player game", () => {
     expect(s.flipper).toBe(1);
     expect(s.phase).toBe("FLIPPING");
     // Opponent flip.
-    s = { ...s, inFlight: { kind: "flip", token: 2, by: 1, idx: 3 }, peekingCard: 3 };
+    s = { ...s, flipsThisTurn: 1, inFlight: { kind: "flip", token: 2, by: 1, idx: 3 }, peekingCard: 3 };
     s = reducer(s, { type: "FLIP_COMPLETE", token: 2 });
     // Cycle complete, deck not empty → new round via startRound (roll passes clockwise).
     expect(s.phase).toBe("AWAITING_ROLL");
@@ -825,6 +830,7 @@ describe("end-game entry conditions (v6.6 — two quiet rotations)", () => {
         flipper: 1,
         claimedThisCycle: false,
         flippedThisCycle: new Set([0]),
+        flipsThisTurn: 1,
         inFlight: { kind: "flip", token: 8, by: 1, idx: 3 },
       },
       { type: "FLIP_COMPLETE", token: 8 },
@@ -942,12 +948,12 @@ describe("N>2 generalization", () => {
     expect(s.phase).toBe("FLIPPING");
     expect(s.flipper).toBe(1);
     // seat 1 flips → flipper becomes 2 (cycle NOT complete yet)
-    s = { ...s, inFlight: { kind: "flip", token: 2, by: 1, idx: 3 }, peekingCard: 3 };
+    s = { ...s, flipsThisTurn: 1, inFlight: { kind: "flip", token: 2, by: 1, idx: 3 }, peekingCard: 3 };
     s = reducer(s, { type: "FLIP_COMPLETE", token: 2 });
     expect(s.phase).toBe("FLIPPING");
     expect(s.flipper).toBe(2);
     // seat 2 flips → cycle complete, roll passes clockwise (no claim)
-    s = { ...s, inFlight: { kind: "flip", token: 3, by: 2, idx: 4 }, peekingCard: 4 };
+    s = { ...s, flipsThisTurn: 1, inFlight: { kind: "flip", token: 3, by: 2, idx: 4 }, peekingCard: 4 };
     s = reducer(s, { type: "FLIP_COMPLETE", token: 3 });
     expect(s.phase).toBe("AWAITING_ROLL");
     expect(s.roller).toBe(1); // (0 + 1) % 3
@@ -958,6 +964,7 @@ describe("N>2 generalization", () => {
     for (let i = 0; i < 4; i++) {
       s = {
         ...s,
+        flipsThisTurn: 1,
         inFlight: { kind: "flip", token: i + 1, by: i, idx: i },
         peekingCard: i,
       };
@@ -966,7 +973,7 @@ describe("N>2 generalization", () => {
       expect(s.flipper).toBe(i + 1);
     }
     // 5th flip completes the cycle → new round
-    s = { ...s, inFlight: { kind: "flip", token: 5, by: 4, idx: 5 }, peekingCard: 5 };
+    s = { ...s, flipsThisTurn: 1, inFlight: { kind: "flip", token: 5, by: 4, idx: 5 }, peekingCard: 5 };
     s = reducer(s, { type: "FLIP_COMPLETE", token: 5 });
     expect(s.phase).toBe("AWAITING_ROLL");
     expect(s.roller).toBe(1);
@@ -1228,12 +1235,14 @@ describe("N=3 seats", () => {
     expect(s.flipper).toBe(1);
     expect(s.roundNum).toBe(5);
     // Flip 2 — seat 1
+    s = { ...s, flipsThisTurn: 1 };
     s = reducer(s, { type: "FLIP_START", by: 1, idx: 3, token: 2 });
     s = reducer(s, { type: "FLIP_COMPLETE", token: 2 });
     expect(s.phase).toBe("FLIPPING");
     expect(s.flipper).toBe(2);
     expect(s.roundNum).toBe(5);
     // Flip 3 — seat 2 completes the rotation → round ends → new AWAITING_ROLL
+    s = { ...s, flipsThisTurn: 1 };
     s = reducer(s, { type: "FLIP_START", by: 2, idx: 4, token: 3 });
     s = reducer(s, { type: "FLIP_COMPLETE", token: 3 });
     expect(s.phase).toBe("AWAITING_ROLL");
@@ -1256,8 +1265,10 @@ describe("N=3 seats", () => {
     });
     s = reducer(s, { type: "FLIP_START", by: 1, idx: 1, token: 1 });
     s = reducer(s, { type: "FLIP_COMPLETE", token: 1 });
+    s = { ...s, flipsThisTurn: 1 };
     s = reducer(s, { type: "FLIP_START", by: 2, idx: 3, token: 2 });
     s = reducer(s, { type: "FLIP_COMPLETE", token: 2 });
+    s = { ...s, flipsThisTurn: 1 };
     s = reducer(s, { type: "FLIP_START", by: 0, idx: 4, token: 3 });
     s = reducer(s, { type: "FLIP_COMPLETE", token: 3 });
     expect(s.phase).toBe("AWAITING_ROLL");
@@ -1393,11 +1404,85 @@ describe("DEBUG_FORCE_END_GAME", () => {
       ...forced,
       claimedThisCycle: false,
       flippedThisCycle: new Set([0]),
+      flipsThisTurn: 1,
       inFlight: { kind: "flip" as const, token: 9, by: 1, idx: 3 },
       peekingCard: 3,
     };
     const next = reducer(s, { type: "FLIP_COMPLETE", token: 9 });
     expect(next.phase).toBe("GAME_OVER");
     window.history.replaceState({}, "", "/");
+  });
+});
+
+// ===========================================================================
+// v6.7 — two flips per turn, claims never consume a turn
+// ===========================================================================
+describe("v6.7 two flips per turn", () => {
+  it("keeps the same flipper after the first flip of a turn", () => {
+    let s = baseState({ phase: "FLIPPING", flipper: 0, flipsThisTurn: 0 });
+    s = reducer(s, { type: "FLIP_START", by: 0, idx: 1, token: 1 });
+    s = reducer(s, { type: "FLIP_COMPLETE", token: 1 });
+    expect(s.phase).toBe("FLIPPING");
+    expect(s.flipper).toBe(0);
+    expect(s.flipsThisTurn).toBe(1);
+    expect(s.inFlight).toBeNull();
+    expect(s.peekingCard).toBeNull();
+    expect(s.flippedThisCycle.has(0)).toBe(false);
+  });
+
+  it("advances the rotation on the second flip and resets flipsThisTurn", () => {
+    let s = baseState({ phase: "FLIPPING", flipper: 0, flipsThisTurn: 0 });
+    s = reducer(s, { type: "FLIP_START", by: 0, idx: 1, token: 1 });
+    s = reducer(s, { type: "FLIP_COMPLETE", token: 1 });
+    s = reducer(s, { type: "FLIP_START", by: 0, idx: 3, token: 2 });
+    s = reducer(s, { type: "FLIP_COMPLETE", token: 2 });
+    expect(s.flipper).toBe(1);
+    expect(s.flipsThisTurn).toBe(0);
+    expect(s.flippedThisCycle.has(0)).toBe(true);
+  });
+
+  it("SKIP_TICK fires for a connected flipper with no legal card left", () => {
+    const s = baseState({
+      phase: "FLIPPING",
+      flipper: 0,
+      flipsThisTurn: 0,
+      wrongBy: [new Set([0, 1, 2, 3, 4, 5]), new Set()],
+    });
+    const next = reducer(s, { type: "SKIP_TICK" });
+    expect(next).not.toBe(s);
+    expect(next.flipper).toBe(1);
+    expect(next.flippedThisCycle.has(0)).toBe(true);
+  });
+
+  it("a wrong claim leaves the flipper and unused flips intact", () => {
+    const s = baseState({
+      phase: "CLAIM_RESOLVING",
+      flipper: 0,
+      flipsThisTurn: 1,
+      rule: ["SHAPE"],
+      claimBy: 0,
+      inFlight: { kind: "claim", token: 3, by: 0, a: 1, b: 3 },
+    });
+    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 3 });
+    expect(next.phase).toBe("FLIPPING");
+    expect(next.flipper).toBe(0);
+    expect(next.flipsThisTurn).toBe(1);
+    expect(next.flippedThisCycle.has(0)).toBe(false);
+  });
+
+  it("a wrong player claim keeps the turn after SETTLING", () => {
+    const s = baseState({
+      phase: "CLAIM_SELECTING",
+      flipper: 0,
+      flipsThisTurn: 0,
+      rule: ["SHAPE"],
+      claimBy: 0,
+      selectedCards: [1, 3],
+    });
+    const settling = reducer(s, { type: "PLAYER_RESOLVE_MATCH", by: 0 });
+    const next = reducer(settling, { type: "SETTLE_COMPLETE", token: settling.settleToken });
+    expect(next.phase).toBe("FLIPPING");
+    expect(next.flipper).toBe(0);
+    expect(next.flipsThisTurn).toBe(0);
   });
 });

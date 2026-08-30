@@ -1,5 +1,5 @@
 // ============================================================================
-// auntieOBrain — pure, fallible memory model for solo play's Auntie O.
+// felixOBrain — pure, fallible memory model for solo play's Felix O.
 //
 // Pure functions only. No React, no timers, no side effects. Every function
 // takes an explicit rng so tests can stub randomness.
@@ -79,7 +79,7 @@ export function corruptCard(card: Card, rng: () => number = Math.random): Card {
 /**
  * Store an observation for a position. Confidence resets to 1.
  * With CORRUPT_CHANCE probability the stored card has one attribute swapped
- * (fallible memory — Auntie thinks she saw a red square, but it was blue).
+ * (fallible memory — Felix thinks he saw a red square, but it was blue).
  */
 export function observe(
   brain: Brain,
@@ -113,7 +113,7 @@ export function decay(brain: Brain): Brain {
 /**
  * Find the best pair of remembered positions that match the active rule.
  * Both positions must have confidence > threshold. Returns null when no
- * pair passes the threshold — Auntie stays quiet.
+ * pair passes the threshold — Felix stays quiet.
  */
 export function findClaim(
   brain: Brain,
@@ -140,7 +140,7 @@ export function findClaim(
 }
 
 /**
- * Choose Auntie's next flip target: prefer never-seen positions, else the
+ * Choose Felix's next flip target: prefer never-seen positions, else the
  * remembered position with the lowest confidence.
  */
 export function pickFlipTarget(
@@ -164,7 +164,7 @@ export function pickFlipTarget(
   return best;
 }
 
-/** Random reaction delay before Auntie fires a claim. */
+/** Random reaction delay before Felix fires a claim. */
 export function pickReactionDelay(rng: () => number = Math.random): number {
   return REACTION_MIN_MS + rng() * (REACTION_MAX_MS - REACTION_MIN_MS);
 }
