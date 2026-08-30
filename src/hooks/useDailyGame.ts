@@ -30,13 +30,17 @@ import {
   type DailyOverride,
 } from "@/lib/daily";
 import { saveDailyResultRemote } from "@/lib/dailyResults";
-import { DAILY_MATCH_SETTLE_MS } from "@/lib/animationTiming";
-import { SETTLE_WRONG_MS } from "@/hooks/useGameState";
+import {
+  DAILY_MATCH_SETTLE_MS,
+  WRONG_ANIM_MS as WRONG_TREATMENT_MS,
+} from "@/lib/animationTiming";
 
 
 const DEAL_MS = 700;      // deal-in settles before the reveal
 const FLIP_MS = 500;      // card flip duration (matches GameCard)
-const WRONG_ANIM_MS = SETTLE_WRONG_MS;
+// The Daily's wrong pair is already on screen when it shakes, so its window is
+// the treatment alone — not multiplayer's reveal + hold + treatment total.
+const WRONG_ANIM_MS = WRONG_TREATMENT_MS;
 const MATCH_ANIM_MS = DAILY_MATCH_SETTLE_MS;
 const WHOOPED_PAUSE_MS = 1200; // beat after a Whooped round before the next roll
 
