@@ -147,7 +147,7 @@ const CHIP: Record<ChipKind, ChipStyle> = {
   EMPTY:        { bg: PANEL,  border: MUTED, nameBg: PANEL,   nameBorder: MUTED, name: MUTED, badgeBg: MUTED, badgeText: PANEL,   label: MUTED,   labelText: null,           italic: false },
 };
 
-interface DerivedChip { kind: ChipKind; name: string; score: number | null; seat: number; }
+export interface DerivedChip { kind: ChipKind; name: string; score: number | null; seat: number; }
 
 // One chip per seat, in seat order, including the human seat (rendered as
 // "YOU"). Seats the host reserved but nobody joined render as EMPTY.
@@ -189,7 +189,7 @@ function deriveChips(
 
 // -------- Small building blocks --------
 
-const ChipCell: React.FC<{ chip: DerivedChip }> = ({ chip }) => {
+export const ChipCell: React.FC<{ chip: DerivedChip }> = ({ chip }) => {
   const c = CHIP[chip.kind];
   const seatColor = SEAT_COLORS[chip.seat % SEAT_COLORS.length];
   const score = chip.score ?? 0;
