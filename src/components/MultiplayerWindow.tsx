@@ -23,8 +23,11 @@ import { trackEvent } from "@/lib/analytics";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
 import { useMultiplayerHost, useMultiplayerJoiner, useTransientEvents, type SeatMapEntry } from "@/hooks/useMultiplayerGame";
 import { useHeartbeatSender, useHeartbeatMonitor } from "@/hooks/useHeartbeat";
-import SiteHeader, { SITE_HEADER_OFFSET } from "@/components/SiteHeader";
-import PreGameShell from "@/components/PreGameShell";
+import DailyFrame from "@/components/DailyFrame";
+import DailyLogoLockup from "@/components/DailyLogoLockup";
+import SettingsSheet from "@/components/SettingsSheet";
+import { HelpCircle, Settings as SettingsIcon } from "lucide-react";
+import { useViewportHeight, compressionFactor, lerpCompress } from "@/hooks/useViewportHeight";
 import MultiplayerGameView from "@/components/MultiplayerGameView";
 import { useSoloGame } from "@/hooks/useSoloGame";
 import GridSizeOption, { GRID_OPTIONS, type GridSizeKey } from "@/components/GridSizeOption";
@@ -82,7 +85,8 @@ type View =
   | { kind: "idle"; error?: string }
   | { kind: "solo"; gridSize: GridSizeKey }
   | { kind: "solo-setup" }
-  | { kind: "name-prompt"; pending: PendingAction; error?: string }
+  /** Display name screen. The table-code field appears on the peeps path only. */
+  | { kind: "name-prompt"; intent: "solo" | "peeps"; via?: "link"; error?: string }
   | { kind: "host"; room: RoomRow }
   | { kind: "joiner"; room: RoomRow }
   | { kind: "full"; code: string }
@@ -108,7 +112,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     // Join-by-link wins over ?mode=; the room-code effect below handles it.
     if (initialRoomCode) return { kind: "idle" };
     if (initialMode === "solo") return { kind: "solo-setup" };
-    if (initialMode === "multiplayer") return { kind: "name-prompt", pending: { kind: "create" } };
+    if (initialMode === "multiplayer") return { kind: "name-prompt", intent: "peeps" };
     return { kind: "idle" };
   });
   const [busy, setBusy] = useState(false);
@@ -133,6 +137,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // How to Play stepper. `gate` fires once per browser on the first play click
   // and carries the action to run when it closes; `reference` is the header link.
   const [howTo, setHowTo] = useState<{ mode: "gate" | "reference"; then?: () => void } | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
   const [soloGrid, setSoloGrid] = useState<GridSizeKey>("3x2");
   const shareFlashTimerRef = useRef<number | null>(null);
   const codeFlashTimerRef = useRef<number | null>(null);
@@ -336,7 +341,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   useEffect(() => {
     if (!initialRoomCode) return;
     const normalized = initialRoomCode.toUpperCase();
-    setView({ kind: "name-prompt", pending: { kind: "join-link", code: normalized } });
+    // Prefill the code so the player can see which table they are joining
+    // before committing to it.
+    setCodeInput(sanitizeCodeInput(normalized));
+    setView({ kind: "name-prompt", intent: "peeps", via: "link" });
   }, [initialRoomCode]);
 
   const enterRoom = useCallback(
@@ -392,12 +400,14 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const startRoomFlow = useCallback(() => {
     setNameInput(getDisplayName());
     setNameTouched(false);
-    setView({ kind: "name-prompt", pending: { kind: "create" } });
+    setView({ kind: "name-prompt", intent: "peeps" });
   }, []);
 
   const startSoloFlow = useCallback(() => {
     unlockAudio();
-    setView({ kind: "solo-setup" });
+    setNameInput(getDisplayName());
+    setNameTouched(false);
+    setView({ kind: "name-prompt", intent: "solo" });
   }, []);
 
   /** First play click of the browser opens the gate; the action runs after. */
@@ -434,18 +444,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   ) : null;
 
 
-  const handleJoinByCode = useCallback(() => {
-    if (busy) return;
-    const normalized = codeInput.toUpperCase();
-    if (!isValidRoomCode(normalized)) {
-      setView({ kind: "idle", error: "That doesn't look like a valid code." });
-      return;
-    }
-    setNameInput(getDisplayName());
-    setNameTouched(false);
-    setView({ kind: "name-prompt", pending: { kind: "join-code", code: normalized } });
-  }, [busy, codeInput]);
-
   const handleConfirmName = useCallback(() => {
     if (view.kind !== "name-prompt" || busy) return;
     unlockAudio();
@@ -456,8 +454,22 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     }
     const stored = setDisplayName(trimmed);
     setNameInput(stored);
-    void enterRoom(view.pending);
-  }, [view, nameInput, busy, enterRoom]);
+    if (view.intent === "solo") {
+      setView({ kind: "solo-setup" });
+      return;
+    }
+    // Peeps path: a code joins that table, an empty field starts a new one.
+    const code = codeInput.toUpperCase();
+    if (code.length === 0) {
+      void enterRoom({ kind: "create" });
+      return;
+    }
+    if (!isValidRoomCode(code)) {
+      setView({ ...view, error: "That doesn't look like a valid table code." });
+      return;
+    }
+    void enterRoom(view.via === "link" ? { kind: "join-link", code } : { kind: "join-code", code });
+  }, [view, nameInput, codeInput, busy, enterRoom]);
 
   // Capacity guard — fixed to `>=` per spec so the "full" state matches
   // rather than admitting a 7th before flipping. (See: prompt 8.1.)
