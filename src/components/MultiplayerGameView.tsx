@@ -24,7 +24,7 @@
 // ============================================================================
 
 import React, { useEffect, useState } from "react";
-import { Settings, X } from "lucide-react";
+import { Settings as SettingsIcon, X } from "lucide-react";
 import SettingsSheet from "@/components/SettingsSheet";
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
 import GameCard from "@/components/GameCard";
