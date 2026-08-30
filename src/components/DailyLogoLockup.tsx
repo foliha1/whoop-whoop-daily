@@ -15,19 +15,39 @@ const Lottie = React.lazy(() =>
 
 // Preload both the player chunk and the animation JSON as soon as this module is
 // imported, so the swap from static to animated happens as early as possible.
-let dataPromise: Promise<unknown> | null = null;
-const loadData = () => {
-  if (!dataPromise) {
+const dataPromises = new Map<string, Promise<unknown>>();
+const loadData = (url: string) => {
+  let p = dataPromises.get(url);
+  if (!p) {
     void import("lottie-react");
-    dataPromise = fetch(animationAsset.url).then((r) =>
-      r.ok ? r.json() : Promise.reject(new Error(String(r.status))),
-    );
+    p = fetch(url).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))));
+    dataPromises.set(url, p);
   }
-  return dataPromise;
+  return p;
 };
-loadData().catch(() => {
+
+/** Animation + static art for each wordmark variant. */
+const VARIANTS = {
+  daily: {
+    animation: animationAsset.url,
+    still: lockupAsset.url,
+    stillCream: lockupCreamAsset.url,
+    alt: "WHOOP! WHOOP! Daily",
+  },
+  classic: {
+    animation: "/whoop-classic-logo.json",
+    still: "/WhoopWhoop_Classic_Lockup.svg",
+    stillCream: "/WhoopWhoop_Classic_Lockup_Cream.svg",
+    alt: "WHOOP! WHOOP! Classic",
+  },
+} as const;
+
+export type LockupVariant = keyof typeof VARIANTS;
+
+loadData(VARIANTS.daily.animation).catch(() => {
   /* static fallback covers it */
 });
+
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
