@@ -1564,7 +1564,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       />
       <div style={{
         display: "flex", flexDirection: "column", gap: 8,
-        width: "100%", height: "auto", maxHeight: "100%",
+        width: "100%", height: mobile ? "100%" : "auto", maxHeight: "100%",
         paddingTop: mobile ? 0 : 8, boxSizing: "border-box",
       }}>
       {header}
@@ -1598,7 +1598,8 @@ const MultiplayerGameView: React.FC<Props> = ({
           position: "relative", background: PANEL, border: BORDER_HEAVY,
           borderRadius: R_BOX,
           padding: 16,
-          boxSizing: "border-box", flex: "0 0 auto",
+          boxSizing: "border-box", flex: mobile ? "1 1 auto" : "0 0 auto",
+          ...(mobile ? { minHeight: 0 } : {}),
           display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "flex-start", gap: 8,
         overflowY: needsScroll ? "auto" : "hidden",
