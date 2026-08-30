@@ -272,7 +272,7 @@ export function initialState(slotCount: number, opts: InitOptions = {}): State {
     drawEmpty: newDeck.length === 0,
     roundNum: 1,
     roundsSinceClaim: 0,
-    quietRotations: 0,
+
 
     allFaceUp: false,
     selectedCards: [],
@@ -393,9 +393,6 @@ function startRound(s: State, winnerIndex: number | null): State {
     peekingCard: null,
     roundNum: s.roundNum + 1,
     roundsSinceClaim: winnerIndex !== null ? 0 : s.roundsSinceClaim,
-    // v6.6: a correct claim always clears the quiet-rotation counter. Any
-    // other route leaves it as cycleAdvance set it — never reset blindly.
-    quietRotations: winnerIndex !== null ? 0 : s.quietRotations,
     claimBy: null,
   };
 }
@@ -419,22 +416,14 @@ function cycleAdvance(s: State, addWho: number): State {
   const conn = Math.max(1, connectedCount(s.seatCount, s.disconnected));
   if (flipped.size >= conn) {
     const noClaim = !s.claimedThisCycle;
-    // v6.6: the rotation backstop no longer ends the game on its own. A quiet
-    // rotation with an empty draw pile increments quietRotations; a quiet
-    // rotation with cards still in the pile resets it. Only the SECOND
-    // consecutive quiet rotation on an empty pile ends the game. Unmatched
-    // cards are stranded and score for nobody.
+    // A rotation with no correct claim simply ends the round and passes the
+    // roll clockwise — same as when the pile still has cards. The game only
+    // ends when a seat reaches TARGET_SCORE (or a startRound safety fires).
     if (noClaim) {
-      const q = s.drawEmpty ? s.quietRotations + 1 : 0;
-      if (q >= 2) {
-        return withGameOverAnnounce({
-          ...s,
-          flippedThisCycle: new Set(),
-          roundsSinceClaim: s.roundsSinceClaim + 1,
-          quietRotations: q,
-        });
-      }
-      return startRound({ ...s, flippedThisCycle: flipped, quietRotations: q }, null);
+      return startRound(
+        { ...s, flippedThisCycle: flipped, roundsSinceClaim: s.roundsSinceClaim + 1 },
+        null,
+      );
     }
     return startRound({ ...s, flippedThisCycle: flipped }, null);
   }
