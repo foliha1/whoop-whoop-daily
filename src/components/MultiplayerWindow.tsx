@@ -901,34 +901,74 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               cursor: "text",
             }}
           >
-            {boxes.map((ch, i) => (
-              <div
-                key={i}
-                style={{
-                  ...textStyle("control", mobile),
-                  flexGrow: 1,
-                  flexBasis: 0,
-                  minWidth: 0,
-                  height: CONTROL_H.lg + SPACE[2],
-                  background: COLORS.surface,
-                  border: BORDER.heavy,
-                  borderRadius: RADIUS.md,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxSizing: "border-box",
-                  color: ch ? COLORS.ink : COLORS.panel,
-                  textAlign: "center",
-                }}
-              >
-                {ch || "•"}
-              </div>
-            ))}
+            {boxes.map((ch, i) => {
+              const isActive = nameFocused && i === activeBox;
+              return (
+                <div
+                  key={i}
+                  aria-hidden="true"
+                  style={{
+                    ...textStyle("control", mobile),
+                    flexGrow: 1,
+                    flexBasis: 0,
+                    minWidth: 0,
+                    height: CONTROL_H.lg + SPACE[2],
+                    background: COLORS.surface,
+                    border: isActive ? `3px solid ${COLORS.red}` : BORDER.heavy,
+                    borderRadius: RADIUS.md,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxSizing: "border-box",
+                    color: ch ? COLORS.ink : COLORS.inkMuted,
+                    textAlign: "center",
+                    position: "relative",
+                  }}
+                >
+                  {ch}
+                  {/* Resting state: a short baseline stroke in empty boxes so the
+                      row reads as an input, not decorative outlines. */}
+                  {!ch && (
+                    <div style={{
+                      position: "absolute",
+                      bottom: SPACE[8],
+                      left: "25%",
+                      right: "25%",
+                      height: 2,
+                      borderRadius: 1,
+                      background: isActive ? COLORS.red : COLORS.inkMuted,
+                      opacity: isActive ? 1 : 0.5,
+                    }} />
+                  )}
+                </div>
+              );
+            })}
             <input
               ref={hiddenNameInputRef}
               value={nameInput}
               onChange={(e) => setNameInput(e.target.value.slice(0, NAME_CAP))}
-              onKeyDown={(e) => { if (e.key === "Enter" && canContinue) handleConfirmName(); }}
+              onKeyDown={(e) => {
+                // First keystroke on an untouched prefill replaces the whole
+                // value: clear before the character lands so typing "ALPHA"
+                // over "BRAVO" yields "ALPHA", not "BRAVOA".
+                if (!nameTouched && nameInput.length > 0) {
+                  if (e.key.length === 1 || e.key === "Backspace" || e.key === "Delete") {
+                    setNameTouched(true);
+                    setNameInput("");
+                    if (e.key === "Backspace" || e.key === "Delete") e.preventDefault();
+                  }
+                }
+                if (e.key === "Enter" && canContinue) handleConfirmName();
+              }}
+              onPaste={(e) => {
+                if (!nameTouched) {
+                  e.preventDefault();
+                  setNameTouched(true);
+                  setNameInput(e.clipboardData.getData("text").slice(0, NAME_CAP));
+                }
+              }}
+              onFocus={() => setNameFocused(true)}
+              onBlur={() => setNameFocused(false)}
               maxLength={NAME_CAP}
               autoFocus
               autoCapitalize="characters"
