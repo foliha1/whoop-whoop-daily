@@ -321,9 +321,11 @@ const EndScreen: React.FC<{
               kind: winners.length === 1 && e.seat === winners[0].seat ? "GREAT_MATCH" : "IDLE",
               name: e.chip.name,
               score: e.score,
+              seat: e.seat,
             }}
           />
         ))}
+
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
