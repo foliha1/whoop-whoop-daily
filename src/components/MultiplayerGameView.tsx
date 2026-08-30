@@ -29,7 +29,7 @@ import SettingsSheet from "@/components/SettingsSheet";
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
 import SiteHeader, { SITE_HEADER_H } from "@/components/SiteHeader";
 import GameCard from "@/components/GameCard";
-import { COLORS, FONT_FAMILY, RAW } from "@/lib/tokens";
+import { COLORS, FONT_FAMILY, RAW, textStyle } from "@/lib/tokens";
 import type { PublicState } from "@/lib/publicState";
 import type { IntentAction, RollAttribute, RollCommitPayload, TransientEvent } from "@/lib/multiplayer";
 import { ROLL_HERO_MS } from "@/lib/multiplayer";
@@ -301,8 +301,8 @@ const EndScreen: React.FC<{
   const btn = (bg: string, fg: string): React.CSSProperties => ({
     all: "unset", cursor: "pointer", textAlign: "center",
     padding: "10px 18px", borderRadius: R_BOX, border: BORDER_HEAVY,
-    background: bg, color: fg, fontFamily: FONT_FAMILY,
-    fontSize: 16, fontWeight: 700,
+    background: bg, color: fg,
+    ...textStyle("control"),
   });
 
   return (
@@ -320,8 +320,8 @@ const EndScreen: React.FC<{
       }}
     >
       <h2 style={{
-        margin: 0, fontFamily: FONT_FAMILY, fontSize: 28, fontWeight: 700,
-        lineHeight: 1.1, color: INK, textAlign: "center",
+        margin: 0, color: INK, textAlign: "center",
+        ...textStyle("heading"),
       }}>
         {headline}
       </h2>
@@ -1505,9 +1505,8 @@ const MultiplayerGameView: React.FC<Props> = ({
         >
           <div style={{
             background: INK, color: SURFACE, border: `2px solid ${SURFACE}`,
-            borderRadius: R_BOX, padding: "14px 22px",
-            fontFamily: FONT_FAMILY, fontSize: 18, fontWeight: 700,
-            letterSpacing: 0.5, textAlign: "center",
+            borderRadius: R_BOX, padding: "14px 22px", textAlign: "center",
+            ...textStyle("label"),
           }}>
             Reconnecting…
           </div>
@@ -1732,7 +1731,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       )}
       {showLeave && (
         <ModalShell titleId="mp-leave-title" onCancel={() => setShowLeave(false)}>
-          <h2 id="mp-leave-title" style={{ margin: 0, fontFamily: FONT_FAMILY, fontSize: 22, fontWeight: 700, color: INK }}>
+          <h2 id="mp-leave-title" style={{ margin: 0, color: INK, ...textStyle("title") }}>
             {isHost ? "End the game?" : "Leave the table?"}
           </h2>
           <p style={{ margin: 0, fontFamily: FONT_FAMILY, fontSize: 15, lineHeight: 1.4, color: INK }}>
@@ -1760,7 +1759,7 @@ const MultiplayerGameView: React.FC<Props> = ({
                 all: "unset", cursor: "pointer",
                 padding: "8px 16px", background: RED, color: SURFACE,
                 border: BORDER_HEAVY, borderRadius: R_BOX,
-                fontFamily: FONT_FAMILY, fontSize: 16, fontWeight: 700,
+                ...textStyle("control"),
               }}
             >
               {isHost ? "End game" : "Leave"}
