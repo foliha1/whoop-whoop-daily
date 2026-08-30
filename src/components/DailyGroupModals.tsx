@@ -15,7 +15,7 @@ import { createPortal } from "react-dom";
 import DailyShapeRule from "@/components/DailyShapeRule";
 import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
-import { getDisplayName, getVisitorId, setDisplayName, NICKNAME_MAX } from "@/lib/visitor";
+import { getDisplayName, getVisitorId, setDisplayName, DISPLAY_NAME_MAX } from "@/lib/visitor";
 import {
   GROUP_CODE_LENGTH,
   GROUP_NAME_MAX,
@@ -128,8 +128,8 @@ const NameField: React.FC<{
     <span style={fieldLabelStyle(mobile)}>Your name</span>
     <input
       value={value}
-      onChange={(e) => onChange(e.target.value.slice(0, NICKNAME_MAX))}
-      maxLength={NICKNAME_MAX}
+      onChange={(e) => onChange(e.target.value.slice(0, DISPLAY_NAME_MAX))}
+      maxLength={DISPLAY_NAME_MAX}
       placeholder="8 letters"
       data-testid="group-name-field"
       style={inputStyle(mobile)}

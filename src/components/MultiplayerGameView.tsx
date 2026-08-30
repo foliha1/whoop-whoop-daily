@@ -24,10 +24,9 @@
 // ============================================================================
 
 import React, { useEffect, useState } from "react";
-import { Settings, X } from "lucide-react";
+import { Settings as SettingsIcon, X } from "lucide-react";
 import SettingsSheet from "@/components/SettingsSheet";
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
-import SiteHeader, { SITE_HEADER_H } from "@/components/SiteHeader";
 import GameCard from "@/components/GameCard";
 import { COLORS, FONT_FAMILY, RAW, textStyle } from "@/lib/tokens";
 import type { PublicState } from "@/lib/publicState";
@@ -372,7 +371,8 @@ const Header: React.FC<{
   round: number;
   deckCount: number;
   onLeave: () => void;
-}> = ({ round, deckCount, onLeave }) => {
+  onSettings: () => void;
+}> = ({ round, deckCount, onLeave, onSettings }) => {
   const half: React.CSSProperties = {
     flex: "1 1 0", display: "flex", alignItems: "center",
     justifyContent: "center", padding: "0 4px", minWidth: 0,
@@ -399,6 +399,22 @@ const Header: React.FC<{
         <div aria-hidden="true" style={{ width: 2, background: SURFACE, alignSelf: "stretch", flex: "none" }} />
         <div style={half}><AutoFitText minScale={0.6} style={text}>{deckCount} Cards Left</AutoFitText></div>
       </div>
+      <button
+        type="button"
+        className="mp-header-btn"
+        onClick={onSettings}
+        aria-label="Settings"
+        style={{
+          all: "unset",
+          boxSizing: "border-box",
+          width: 44, height: 44, flex: "none",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: INK, border: BORDER_HEAVY, borderRadius: R_BOX,
+          cursor: "pointer",
+        }}
+      >
+        <SettingsIcon size={22} color={SURFACE} aria-hidden="true" />
+      </button>
       <button
         type="button"
         className="mp-header-btn"
@@ -1317,6 +1333,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       round={s.roundNum}
       deckCount={s.deckCount}
       onLeave={() => setShowLeave(true)}
+      onSettings={() => setShowSettings(true)}
     />
   );
   const opponentRow = <OpponentRow chips={chips} />;
@@ -1385,13 +1402,8 @@ const MultiplayerGameView: React.FC<Props> = ({
   // The wrapper's 900px ceiling is applied here instead.
   // The fixed site header eats the top of the viewport (bar height + notch
   // inset). Measure the real element so the safe-area inset is included.
-  const readHeaderH = () => {
-    if (typeof document === "undefined") return SITE_HEADER_H;
-    const el = document.getElementById("site-header");
-    return el ? el.getBoundingClientRect().height : SITE_HEADER_H;
-  };
   const readViewportH = () =>
-    Math.min(900, typeof window === "undefined" ? 0 : Math.max(0, window.innerHeight - readHeaderH()));
+    Math.min(900, typeof window === "undefined" ? 0 : Math.max(0, window.innerHeight));
   const [rootH, setRootH] = React.useState(readViewportH);
   React.useEffect(() => {
     const pe = panelRef.current;
@@ -1454,10 +1466,8 @@ const MultiplayerGameView: React.FC<Props> = ({
       padding: mobile
         ? `${MOBILE_SHELL_PAD}px ${MOBILE_SHELL_PAD}px calc(${MOBILE_SHELL_PAD}px + env(safe-area-inset-bottom)) ${MOBILE_SHELL_PAD}px`
         : 8,
-      marginTop: SITE_HEADER_H,
-
       height: "100%",
-      minHeight: mobile ? `calc(var(--ww-vh) - ${SITE_HEADER_H}px)` : undefined,
+      minHeight: mobile ? "var(--ww-vh)" : undefined,
       maxHeight: mobile ? undefined : "100%",
       width: "100%",
       boxSizing: "border-box",
@@ -1478,9 +1488,6 @@ const MultiplayerGameView: React.FC<Props> = ({
         }}
       />
       <style>{HEADER_FOCUS_CSS}</style>
-      <SiteHeader
-        onSettings={() => setShowSettings(true)}
-      />
 
       {activeCommit && heroRects && (
         <RollHeroOverlay

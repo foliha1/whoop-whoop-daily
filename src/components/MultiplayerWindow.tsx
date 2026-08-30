@@ -18,21 +18,50 @@ import {
 
 import { AppButton } from "@/components/ui/AppButton";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getVisitorId, getDisplayName, setDisplayName } from "@/lib/visitor";
+import { getVisitorId, getDisplayName, setDisplayName, DISPLAY_NAME_MAX } from "@/lib/visitor";
 import { trackEvent } from "@/lib/analytics";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
 import { useMultiplayerHost, useMultiplayerJoiner, useTransientEvents, type SeatMapEntry } from "@/hooks/useMultiplayerGame";
 import { useHeartbeatSender, useHeartbeatMonitor } from "@/hooks/useHeartbeat";
-import SiteHeader, { SITE_HEADER_OFFSET } from "@/components/SiteHeader";
-import PreGameShell from "@/components/PreGameShell";
+import DailyFrame from "@/components/DailyFrame";
+import DailyLogoLockup from "@/components/DailyLogoLockup";
+import SettingsSheet from "@/components/SettingsSheet";
+import { HelpCircle, Settings as SettingsIcon } from "lucide-react";
+import { useViewportHeight, compressionFactor, lerpCompress } from "@/hooks/useViewportHeight";
 import MultiplayerGameView from "@/components/MultiplayerGameView";
 import { useSoloGame } from "@/hooks/useSoloGame";
 import GridSizeOption, { GRID_OPTIONS, type GridSizeKey } from "@/components/GridSizeOption";
 import MultiplayerHowToSteps, { hasSeenMpHowTo } from "@/components/MultiplayerHowToSteps";
 
+/**
+ * The in-game column. Multiplayer has no site header any more, so the 420px
+ * cap and the desktop safe-area padding that used to live on the page wrapper
+ * live here, around the board only.
+ */
+const GameShell: React.FC<{ mobile: boolean; children: React.ReactNode }> = ({ mobile, children }) => (
+  <div
+    style={{
+      width: "100%",
+      maxWidth: 420,
+      height: "var(--ww-vh)",
+      margin: "0 auto",
+      padding: mobile
+        ? 0
+        : "calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))",
+      boxSizing: "border-box",
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
+    }}
+  >
+    {children}
+  </div>
+);
+
 const SoloView: React.FC<{ onLeave: () => void; mobile: boolean; gridSize: GridSizeKey }> = ({ onLeave, mobile, gridSize }) => {
   const solo = useSoloGame(gridSize);
   return (
+    <GameShell mobile={mobile}>
     <MultiplayerGameView
       publicState={solo.publicState}
       mySeat={solo.mySeat}
@@ -46,6 +75,7 @@ const SoloView: React.FC<{ onLeave: () => void; mobile: boolean; gridSize: GridS
       isHost={true}
       soloMode={true}
     />
+    </GameShell>
   );
 };
 
@@ -82,7 +112,8 @@ type View =
   | { kind: "idle"; error?: string }
   | { kind: "solo"; gridSize: GridSizeKey }
   | { kind: "solo-setup" }
-  | { kind: "name-prompt"; pending: PendingAction; error?: string }
+  /** Display name screen. The table-code field appears on the peeps path only. */
+  | { kind: "name-prompt"; intent: "solo" | "peeps"; via?: "link"; error?: string }
   | { kind: "host"; room: RoomRow }
   | { kind: "joiner"; room: RoomRow }
   | { kind: "full"; code: string }
@@ -108,7 +139,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     // Join-by-link wins over ?mode=; the room-code effect below handles it.
     if (initialRoomCode) return { kind: "idle" };
     if (initialMode === "solo") return { kind: "solo-setup" };
-    if (initialMode === "multiplayer") return { kind: "name-prompt", pending: { kind: "create" } };
+    if (initialMode === "multiplayer") return { kind: "name-prompt", intent: "peeps" };
     return { kind: "idle" };
   });
   const [busy, setBusy] = useState(false);
@@ -133,6 +164,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // How to Play stepper. `gate` fires once per browser on the first play click
   // and carries the action to run when it closes; `reference` is the header link.
   const [howTo, setHowTo] = useState<{ mode: "gate" | "reference"; then?: () => void } | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
   const [soloGrid, setSoloGrid] = useState<GridSizeKey>("3x2");
   const shareFlashTimerRef = useRef<number | null>(null);
   const codeFlashTimerRef = useRef<number | null>(null);
@@ -336,7 +368,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   useEffect(() => {
     if (!initialRoomCode) return;
     const normalized = initialRoomCode.toUpperCase();
-    setView({ kind: "name-prompt", pending: { kind: "join-link", code: normalized } });
+    // Prefill the code so the player can see which table they are joining
+    // before committing to it.
+    setCodeInput(sanitizeCodeInput(normalized));
+    setView({ kind: "name-prompt", intent: "peeps", via: "link" });
   }, [initialRoomCode]);
 
   const enterRoom = useCallback(
@@ -392,12 +427,14 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const startRoomFlow = useCallback(() => {
     setNameInput(getDisplayName());
     setNameTouched(false);
-    setView({ kind: "name-prompt", pending: { kind: "create" } });
+    setView({ kind: "name-prompt", intent: "peeps" });
   }, []);
 
   const startSoloFlow = useCallback(() => {
     unlockAudio();
-    setView({ kind: "solo-setup" });
+    setNameInput(getDisplayName());
+    setNameTouched(false);
+    setView({ kind: "name-prompt", intent: "solo" });
   }, []);
 
   /** First play click of the browser opens the gate; the action runs after. */
@@ -434,18 +471,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   ) : null;
 
 
-  const handleJoinByCode = useCallback(() => {
-    if (busy) return;
-    const normalized = codeInput.toUpperCase();
-    if (!isValidRoomCode(normalized)) {
-      setView({ kind: "idle", error: "That doesn't look like a valid code." });
-      return;
-    }
-    setNameInput(getDisplayName());
-    setNameTouched(false);
-    setView({ kind: "name-prompt", pending: { kind: "join-code", code: normalized } });
-  }, [busy, codeInput]);
-
   const handleConfirmName = useCallback(() => {
     if (view.kind !== "name-prompt" || busy) return;
     unlockAudio();
@@ -456,8 +481,22 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     }
     const stored = setDisplayName(trimmed);
     setNameInput(stored);
-    void enterRoom(view.pending);
-  }, [view, nameInput, busy, enterRoom]);
+    if (view.intent === "solo") {
+      setView({ kind: "solo-setup" });
+      return;
+    }
+    // Peeps path: a code joins that table, an empty field starts a new one.
+    const code = codeInput.toUpperCase();
+    if (code.length === 0) {
+      void enterRoom({ kind: "create" });
+      return;
+    }
+    if (!isValidRoomCode(code)) {
+      setView({ ...view, error: "That doesn't look like a valid table code." });
+      return;
+    }
+    void enterRoom(view.via === "link" ? { kind: "join-link", code } : { kind: "join-code", code });
+  }, [view, nameInput, codeInput, busy, enterRoom]);
 
   // Capacity guard — fixed to `>=` per spec so the "full" state matches
   // rather than admitting a 7th before flipping. (See: prompt 8.1.)
@@ -626,29 +665,16 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   }, []);
 
 
-  // Shell + inner-column geometry live in PreGameShell so every pre-game
-  // screen shares the exact same mobile padding.
-
-
-  // ---- Design-system derived surfaces / controls -------------------------
-  const cardStyle: React.CSSProperties = {
-    ...panelStyle("surface", 8),
-    alignSelf: "stretch",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: SPACE[8],
-    height: "auto",
-  };
-
-  // Legacy card wrapper used by views not yet redesigned in this prompt
-  // (name-prompt, full, host-left, host/joiner lobby). Kept inside the shell.
-  const containerStyle: React.CSSProperties = {
-    ...cardStyle,
-    gap: mobile ? SPACE[5] : SPACE[6],
-    padding: mobile ? SPACE[6] : SPACE[10],
-    justifyContent: "center",
-  };
+  // ---- Entry-screen chrome: the Daily's ready screen, copied ------------
+  // Single centred 402px column on the themed ground, brand pattern strip top
+  // and bottom (both from DailyFrame), the Classic lockup, one hero line, and
+  // the Daily's chip cluster. No header, no stroked containers.
+  const vh = useViewportHeight();
+  const t = compressionFactor(vh);
+  const colGap = lerpCompress(t, 12, 36);
+  const framePad = lerpCompress(t, 12, 24);
+  const railGap = lerpCompress(t, 10, 24);
+  const lockupMax = lerpCompress(t, 120, 251);
 
   const inputStyle: React.CSSProperties = {
     ...textStyle("control", mobile),
@@ -662,7 +688,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     outline: "none",
   };
 
-  /** Section title inside a pre-game card. */
+  /** Section title on an entry screen. */
   const titleStyle: React.CSSProperties = {
     ...textStyle("title", mobile),
     textAlign: "center",
@@ -702,25 +728,86 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     background: COLORS.surface,
   };
 
+  // Same chip base the Daily ready screen uses, same class for hover/focus.
+  const chipButtonBase: React.CSSProperties = {
+    ...textStyle("chip", mobile),
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    boxSizing: "border-box",
+    minHeight: 36,
+    padding: "8px 16px",
+    border: "none",
+    borderRadius: RADIUS.sm,
+  };
 
-  const wrapInShell = (
-    content: React.ReactNode,
-    opts?: { above?: React.ReactNode; gap?: number; nav?: boolean },
-  ) => (
-    <>
-      <PreGameShell
-        mobile={mobile}
-        nav={opts?.nav !== false}
-        gap={opts?.gap ?? 0}
-        onHowTo={openHowToReference}
+  const chipRow = (
+    <div style={{ display: "inline-flex", alignItems: "center", gap: SPACE[3] }}>
+      <button
+        type="button"
+        className="ww-press daily-btn-howto"
+        onClick={openHowToReference}
+        style={chipButtonBase}
       >
-        {opts?.above}
-        {content}
-      </PreGameShell>
-      {howToOverlay}
-    </>
+        <HelpCircle size={16} aria-hidden="true" />
+        How to Play
+      </button>
+      <button
+        type="button"
+        className="ww-press daily-btn-howto"
+        onClick={() => setShowSettings(true)}
+        aria-label="Settings"
+        title="Settings"
+        style={chipButtonBase}
+      >
+        <SettingsIcon size={16} aria-hidden="true" />
+      </button>
+    </div>
   );
 
+  const entryFrame = (opts: {
+    headline?: React.ReactNode;
+    logo?: boolean;
+    fade?: React.CSSProperties;
+    children: React.ReactNode;
+  }) => (
+    <>
+      <DailyFrame gap={colGap} pad={framePad} railGap={railGap}>
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: colGap,
+            ...opts.fade,
+          }}
+        >
+          {opts.logo !== false && (
+            <DailyLogoLockup variant="classic" style={{ maxWidth: lockupMax }} />
+          )}
+          {opts.headline !== undefined && (
+            <div style={{ ...textStyle("hero", mobile), textAlign: "center", color: COLORS.ink }}>
+              {opts.headline}
+            </div>
+          )}
+          {chipRow}
+          {opts.children}
+        </div>
+      </DailyFrame>
+      {howToOverlay}
+      {showSettings && (
+        <SettingsSheet
+          onClose={() => setShowSettings(false)}
+          onHowTo={() => {
+            setShowSettings(false);
+            openHowToReference();
+          }}
+        />
+      )}
+    </>
+  );
 
   // ---------- SOLO ----------
   if (view.kind === "solo") {
@@ -729,33 +816,22 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
   // ---------- SOLO SETUP (grid-size choice) ----------
   if (view.kind === "solo-setup") {
-    return wrapInShell(
-      <div style={{
-        ...panelStyle("surface", 8),
-        alignSelf: "stretch",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        gap: SPACE[4],
-        height: "auto",
-        justifyContent: "center",
-      }}>
-        <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
-          <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-            <div style={titleStyle}>Choose your grid size</div>
-            <div style={{ display: "flex", gap: SPACE[8], alignSelf: "stretch", alignItems: "stretch" }}>
-              {GRID_OPTIONS.map((opt) => (
-                <GridSizeOption
-                  key={opt.key}
-                  option={opt}
-                  selected={soloGrid === opt.key}
-                  onSelect={setSoloGrid}
-                />
-              ))}
-            </div>
+    return entryFrame({
+      headline: "Choose your grid size",
+      children: (
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+          <div style={{ display: "flex", gap: SPACE[8], alignSelf: "stretch", alignItems: "stretch" }}>
+            {GRID_OPTIONS.map((opt) => (
+              <GridSizeOption
+                key={opt.key}
+                option={opt}
+                selected={soloGrid === opt.key}
+                onSelect={setSoloGrid}
+              />
+            ))}
           </div>
 
-          <div style={{ display: "flex", gap: SPACE[4], height: 80, alignSelf: "stretch" }}>
+          <div style={{ display: "flex", gap: SPACE[4], height: 72, alignSelf: "stretch" }}>
             <button
               type="button"
               onClick={() => setView({ kind: "idle" })}
@@ -774,11 +850,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             </button>
           </div>
         </div>
-      </div>,
-    );
+      ),
+    });
   }
-
-
 
   // ---------- GAME IN PROGRESS: HOST ----------
   if (isHostView && frozenSeats !== null && activeRoom) {
@@ -791,6 +865,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       awaySeats,
     );
     return (
+      <GameShell mobile={mobile}>
       <MultiplayerGameView
         publicState={publicState}
         mySeat={0}
@@ -850,12 +925,14 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         hostDisconnectedSeats={disconnectedSeats}
         presenceStatus={presenceStatus}
       />
+      </GameShell>
     );
   }
 
   // ---------- GAME IN PROGRESS: JOINER ----------
   if (view.kind === "joiner" && joinerPublicState && activeRoom) {
     return (
+      <GameShell mobile={mobile}>
       <MultiplayerGameView
         publicState={joinerPublicState}
         mySeat={joinerSeat}
@@ -871,76 +948,65 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         presenceVisitorIds={participants.map((p) => p.visitor_id)}
         presenceStatus={presenceStatus}
       />
+      </GameShell>
     );
   }
 
   if (view.kind === "host-left") {
-    return wrapInShell(
-      <div style={containerStyle}>
-        <div style={{ ...textStyle("subhead", mobile), fontStyle: "italic", color: COLORS.ink }}>
-          The host left the game.
+    return entryFrame({
+      headline: "The host left the game.",
+      children: (
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+          <div style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, textAlign: "center" }}>
+            Games end when the host leaves. Start your own table to play again.
+          </div>
+          <AppButton variant="primary" tone="red" size="md" onClick={leaveToIdle} fullWidth>
+            Back to lobby
+          </AppButton>
         </div>
-        <div style={{ ...textStyle("body", mobile), color: COLORS.inkMuted }}>
-          Games end when the host leaves. Start your own table to play again.
-        </div>
-        <AppButton variant="primary" tone="red" size="md" onClick={leaveToIdle} fullWidth>
-          Back to lobby
-        </AppButton>
-      </div>,
-    );
+      ),
+    });
   }
 
   if (view.kind === "name-prompt") {
-    const NAME_CAP = 6;
+    const NAME_CAP = DISPLAY_NAME_MAX;
     const chars = nameInput.slice(0, NAME_CAP).split("");
     const boxes = Array.from({ length: NAME_CAP }, (_, i) => chars[i] ?? "");
     const canContinue = !busy && nameInput.trim().length > 0;
     // The box the next character lands in. When full, the last box stays active.
     const activeBox = Math.min(chars.length, NAME_CAP - 1);
+    const showCodeField = view.intent === "peeps";
 
     const focusHiddenInput = () => {
       hiddenNameInputRef.current?.focus();
     };
 
-    const nameCard = (
-      <div style={{
-        ...panelStyle("surface", 8),
-        alignSelf: "stretch",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        gap: SPACE[12],
-        height: "auto",
-        justifyContent: "center",
-      }}>
-        <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-          <div style={{ ...textStyle("hero", mobile), fontStyle: "italic", color: COLORS.ink }}>
-            Pick a nickname
+    return entryFrame({
+      headline: "Pick a display name",
+      children: (
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+          <div style={{ ...textStyle("caption", mobile), color: COLORS.ink, textAlign: "center" }}>
+            Your display name is shown during game play. Up to {NAME_CAP} characters.
           </div>
-          <div style={{ ...textStyle("caption", mobile), color: COLORS.ink }}>
-            Your nickname will be shown during game play. Up to 6 characters.
-          </div>
-        </div>
 
-        {view.error && (
-          <div role="alert" style={alertStyle}>
-            {view.error}
-          </div>
-        )}
+          {view.error && (
+            <div role="alert" style={alertStyle}>
+              {view.error}
+            </div>
+          )}
 
-        <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
-          {/* Character display row — single overlaid input for real keyboard/paste/autofill */}
+          {/* Character display row — one overlaid input so real keyboards,
+              paste and autofill all work. No container stroke: the boxes are
+              the controls. */}
           <div
             onMouseDown={(e) => { e.preventDefault(); focusHiddenInput(); }}
             onTouchStart={() => { focusHiddenInput(); }}
             style={{
-              ...panelStyle("panel", 4),
               position: "relative",
+              alignSelf: "stretch",
               display: "flex",
               alignItems: "center",
               gap: SPACE[4],
-              height: 72,
-              borderRadius: RADIUS.sm,
               cursor: "text",
             }}
           >
@@ -955,7 +1021,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                     flexGrow: 1,
                     flexBasis: 0,
                     minWidth: 0,
-                    height: CONTROL_H.lg + SPACE[2],
+                    height: CONTROL_H.lg,
                     background: COLORS.surface,
                     border: isActive ? `3px solid ${COLORS.blue}` : BORDER.heavy,
                     borderRadius: RADIUS.md,
@@ -969,12 +1035,12 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                   }}
                 >
                   {ch}
-                  {/* Resting state: a short baseline stroke in empty boxes so the
-                      row reads as an input, not decorative outlines. */}
+                  {/* Resting state: a short baseline stroke in empty boxes so
+                      the row reads as an input, not decorative outlines. */}
                   {!ch && (
                     <div style={{
                       position: "absolute",
-                      bottom: SPACE[8],
+                      bottom: SPACE[5],
                       left: "25%",
                       right: "25%",
                       height: 2,
@@ -1017,7 +1083,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               autoCapitalize="characters"
               autoCorrect="off"
               spellCheck={false}
-              aria-label="Nickname"
+              aria-label="Display name"
               style={{
                 position: "absolute",
                 inset: 0,
@@ -1037,20 +1103,45 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             />
           </div>
 
+          {/* Table code — peeps path only. Empty starts a new table; a code
+              joins an existing one. Arriving via /play/:roomCode prefills it. */}
+          {showCodeField && (
+            <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
+              <label
+                htmlFor="table-code"
+                style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}
+              >
+                Already have a table code? Leave it blank to start your own.
+              </label>
+              <input
+                id="table-code"
+                value={codeInput}
+                onChange={(e) => setCodeInput(sanitizeCodeInput(e.target.value))}
+                placeholder="ABC123"
+                inputMode="text"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck={false}
+                maxLength={ROOM_CODE_LENGTH}
+                aria-label="Table code"
+                style={{
+                  ...inputStyle,
+                  minHeight: TOUCH_MIN,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  textAlign: "center",
+                }}
+              />
+            </div>
+          )}
+
           {/* Button row */}
-          <div style={{ alignSelf: "stretch", display: "flex", gap: SPACE[5], height: 71 }}>
+          <div style={{ alignSelf: "stretch", display: "flex", gap: SPACE[5], height: 72 }}>
             <button
               type="button"
               onClick={leaveToIdle}
               disabled={busy}
-              style={{
-                ...buttonStyle("ink", "lg", { mobile, disabled: busy }),
-                width: 87,
-                height: "100%",
-                flexShrink: 0,
-                padding: 0,
-                opacity: 1,
-              }}
+              style={{ ...railButtonStyle(busy), opacity: 1 }}
             >
               <AutoFitText minScale={0.6}>Cancel</AutoFitText>
             </button>
@@ -1058,61 +1149,47 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               type="button"
               onClick={handleConfirmName}
               disabled={!canContinue}
-              style={{
-                ...buttonStyle("primary", "lg", { mobile, disabled: !canContinue }),
-                ...textStyle("action", mobile),
-                flexGrow: 1,
-                height: "100%",
-                padding: 0,
-                opacity: canContinue ? 1 : 0.7,
-              }}
+              className={canContinue ? "ww-press" : undefined}
+              style={{ ...playButtonStyle(!canContinue), opacity: canContinue ? 1 : 0.7 }}
             >
-              <AutoFitText minScale={0.55}>{busy ? "Connecting…" : "Continue"}</AutoFitText>
+              <AutoFitText minScale={0.55}>{busy ? "Connecting…" : "Let's Play!"}</AutoFitText>
             </button>
           </div>
         </div>
-
-      </div>
-    );
-
-    return wrapInShell(nameCard);
+      ),
+    });
   }
 
   if (view.kind === "full") {
-    return wrapInShell(
-      <div style={containerStyle}>
-        <div style={{ ...textStyle("subhead", mobile), fontStyle: "italic", color: COLORS.ink }}>
-          Table "{view.code}" is full.
+    return entryFrame({
+      headline: `Table "${view.code}" is full.`,
+      children: (
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+          <div style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, textAlign: "center" }}>
+            Tables hold up to {ROOM_CAPACITY} players.
+          </div>
+          <AppButton variant="secondary" tone="ink" size="md" onClick={leaveToIdle} fullWidth>
+            Back
+          </AppButton>
         </div>
-        <div style={{ ...textStyle("body", mobile), color: COLORS.inkMuted }}>
-          Tables hold up to {ROOM_CAPACITY} players.
-        </div>
-        <AppButton variant="secondary" tone="ink" size="md" onClick={leaveToIdle} fullWidth>
-          Back
-        </AppButton>
-      </div>,
-    );
+      ),
+    });
   }
 
   if (view.kind === "idle") {
-    const codeEnabled = codeInput.length === ROOM_CODE_LENGTH;
     const introRunning = introStatus === "running";
     const introComplete = introStatus === "complete";
-    // The lobby logo has been removed from this screen — the intro's final
-    // frame masks the logo so the container itself takes that space, centred
-    // on screen. Only the container fades in; nothing else animates.
-    const cardStyleIntro: React.CSSProperties = introRunning
+    // The intro's final frame lands on the lockup, so the column only fades in
+    // once the intro has handed over. Nothing else animates.
+    const fade: React.CSSProperties = introRunning
       ? { opacity: 0, pointerEvents: "none" }
       : introComplete
-      ? { opacity: 1, transition: "opacity 300ms ease 120ms" }
+      ? { opacity: 1, transition: `opacity ${MOTION.base} 120ms` }
       : { opacity: 1 };
-    // Single wrapper: the reveal target IS the intro-hide target. The idle
-    // view intentionally skips wrapInShell's extra inner column so there is
-    // exactly one element sized like the card, and that element carries the
-    // opacity/pointer-events driven by introStatus. See fix note in commit.
+
     const playModeTileStyle = (bg: string): React.CSSProperties => ({
       flex: 1,
-      height: 101,
+      minHeight: 96,
       background: bg,
       border: BORDER.heavy,
       borderRadius: RADIUS.md,
@@ -1133,148 +1210,56 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       textAlign: "center",
     });
 
-    const idleCard = (
-      <div style={{
-        ...panelStyle("surface", 8),
-        width: "100%",
-        maxWidth: 390,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        justifyContent: "center",
-        gap: SPACE[8],
-        height: "auto",
-        ...cardStyleIntro,
-      }}>
-        {view.error && (
-          <div role="alert" style={alertStyle}>
-            {view.error}
-          </div>
-        )}
-
-        <div style={{ ...textStyle("hero", mobile), color: COLORS.ink, textAlign: "center" }}>
-          How do you want to play?
-        </div>
-
-        <p
-          style={{
-            margin: 0,
-            fontFamily: '"Geist", "Geist Sans", system-ui, -apple-system, "Segoe UI", sans-serif',
-            fontWeight: 500,
-            fontSize: 14,
-            lineHeight: 1.45,
-            color: COLORS.inkMuted,
-            textAlign: "center",
-          }}
-        >
-          Different from the Daily: no timer, no peek, and the round keeps going until someone lands a match.
-        </p>
-
-        <div style={{ alignSelf: "stretch", display: "flex", gap: SPACE[8] }}>
-          <button
-            type="button"
-            onClick={handlePlaySolo}
-            disabled={busy}
-            style={playModeTileStyle(COLORS.blue)}
-            aria-label="Play Solo"
-          >
-            <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-              <circle cx="16" cy="11" r="5" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" />
-              <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" strokeLinecap="round" />
-            </svg>
-            <div style={playModeLabelStyle(COLORS.soloTint)}>
-              Play Solo
+    return entryFrame({
+      headline: "How do you want to play today?",
+      fade,
+      children: (
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+          {view.error && (
+            <div role="alert" style={alertStyle}>
+              {view.error}
             </div>
-          </button>
+          )}
 
-          <button
-            type="button"
-            onClick={handleStartRoom}
-            disabled={busy}
-            style={playModeTileStyle(COLORS.red)}
-            aria-label="Play with Peeps"
-          >
-            <svg width="64" height="32" viewBox="0 0 64 32" aria-hidden="true">
-              <circle cx="16" cy="12" r="5" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" />
-              <path d="M6 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
-              <circle cx="48" cy="12" r="5" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" />
-              <path d="M38 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
-            </svg>
-            <div style={playModeLabelStyle(COLORS.peepsTint)}>
-              Play with Peeps
-            </div>
-          </button>
-        </div>
-
-        <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-          <div style={{ ...textStyle("control", mobile), color: COLORS.ink, textAlign: "left" }}>
-            Already have a table code?
-          </div>
-          <div style={{
-            ...panelStyle("panel", 4),
-            display: "flex",
-            alignItems: "center",
-            gap: SPACE[4],
-            borderRadius: RADIUS.sm,
-          }}>
-            <input
-              value={codeInput}
-              onChange={(e) => setCodeInput(sanitizeCodeInput(e.target.value))}
-              placeholder="ABC123"
-              inputMode="text"
-              autoCapitalize="characters"
-              autoCorrect="off"
-              spellCheck={false}
-              maxLength={ROOM_CODE_LENGTH}
-              aria-label="Table code"
-              style={{
-                ...textStyle("control", mobile),
-                flexGrow: 1,
-                minWidth: 0,
-                minHeight: TOUCH_MIN,
-                padding: `${SPACE[4]}px ${SPACE[8]}px`,
-                background: COLORS.surface,
-                border: BORDER.heavy,
-                borderRadius: RADIUS.sm,
-                boxSizing: "border-box",
-                letterSpacing: "0.1em",
-                color: COLORS.ink,
-                textTransform: "uppercase",
-                outline: "none",
-              }}
-            />
+          <div style={{ alignSelf: "stretch", display: "flex", gap: SPACE[8] }}>
             <button
               type="button"
-              onClick={handleJoinByCode}
-              disabled={busy || !codeEnabled}
-              style={{
-                ...buttonStyle("ink", "md", { mobile, disabled: busy || !codeEnabled }),
-                flexShrink: 0,
-                fontStyle: "italic",
-                background: COLORS.inkMuted,
-                color: COLORS.panel,
-                opacity: codeEnabled && !busy ? 1 : 0.7,
-              }}
+              onClick={handlePlaySolo}
+              disabled={busy}
+              style={playModeTileStyle(COLORS.blue)}
+              aria-label="Play Solo"
             >
-              <AutoFitText minScale={0.6}>Join</AutoFitText>
+              <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+                <circle cx="16" cy="11" r="5" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" />
+                <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+              <div style={playModeLabelStyle(COLORS.soloTint)}>Play Solo</div>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleStartRoom}
+              disabled={busy}
+              style={playModeTileStyle(COLORS.red)}
+              aria-label="Play with Peeps"
+            >
+              <svg width="64" height="32" viewBox="0 0 64 32" aria-hidden="true">
+                <circle cx="16" cy="12" r="5" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" />
+                <path d="M6 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx="48" cy="12" r="5" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" />
+                <path d="M38 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+              <div style={playModeLabelStyle(COLORS.peepsTint)}>Play with Peeps</div>
             </button>
           </div>
+
+          <div style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, textAlign: "center" }}>
+            Different from the Daily: no timer, no peek, and the round keeps going until someone lands a match.
+          </div>
         </div>
-      </div>
-    );
-
-
-
-    return (
-      <>
-        <PreGameShell mobile={mobile} bare onHowTo={openHowToReference}>
-          {idleCard}
-        </PreGameShell>
-        {howToOverlay}
-      </>
-    );
+      ),
+    });
   }
-
 
   // Host/Joiner LOBBY view (game not yet started).
   const room = (view as { room: RoomRow }).room;
@@ -1284,13 +1269,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const link = shareUrl(room.room_code);
 
   const sectionTitleStyle = titleStyle;
-
-  const wrapperBase: React.CSSProperties = {
-    background: COLORS.panel,
-    border: BORDER.heavy,
-    borderRadius: RADIUS.sm,
-    boxSizing: "border-box",
-  };
 
   const sectionStyle: React.CSSProperties = {
     alignSelf: "stretch",
@@ -1371,8 +1349,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     <div style={sectionStyle}>
       <div style={sectionTitleStyle}>Players (must have at least 2)</div>
       <div style={{
-        ...wrapperBase,
-        padding: SPACE[4],
         display: "grid",
         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
         gap: SPACE[4],
@@ -1571,35 +1547,21 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     </div>
   ) : null;
 
-  const lobbyCard = (
-    <div style={{
-      ...panelStyle("surface", 8),
-      alignSelf: "stretch",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "stretch",
-      gap: SPACE[8],
-      height: "auto",
-      justifyContent: "center",
-    }}>
-      {joinerStatusBar}
-      {startingBanner}
-      <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+  return entryFrame({
+    logo: false,
+    headline: isHost ? "Your table is ready." : "You're at the table.",
+    children: (
+      <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+        {joinerStatusBar}
+        {startingBanner}
         {tableInfoSection}
         {gridPickerSection}
         {playersSection}
         {buttonsSection}
+        {leaveConfirmDialog}
       </div>
-    </div>
-  );
-
-
-  return wrapInShell(
-    <>
-      {lobbyCard}
-      {leaveConfirmDialog}
-    </>,
-  );
+    ),
+  });
 
 };
 

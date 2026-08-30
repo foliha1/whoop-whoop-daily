@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { HelpCircle, Moon, Sun, Volume2, VolumeOff } from "lucide-react";
+import { HelpCircle, Settings } from "lucide-react";
 
 import GameCard from "@/components/GameCard";
 import DailyFrame, { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
@@ -10,6 +10,7 @@ import DailyMatchGhost, { type GhostCard } from "@/components/DailyMatchGhost";
 import DailyScreenFade from "@/components/DailyScreenFade";
 
 import DailyLogoLockup from "@/components/DailyLogoLockup";
+import SettingsSheet from "@/components/SettingsSheet";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
 import DailyEmailCapture from "@/components/DailyEmailCapture";
 import DailyRecognition from "@/components/DailyRecognition";
@@ -91,8 +92,6 @@ import {
   startTheme,
   stopTheme,
   unlockAudio,
-  getSoundEnabled,
-  setSoundEnabled,
 } from "@/lib/sounds";
 
 import {
@@ -974,54 +973,47 @@ const chipButtonBase = (mobile: boolean): React.CSSProperties => ({
 });
 
 /**
- * Manual light/night switch. Theming only — it writes `data-theme` on <html>,
- * which flips the CSS custom properties the COLORS tokens point at. Until it is
- * touched the theme follows `prefers-color-scheme`.
+ * One gear opens the shared SettingsSheet, which holds Appearance, Sound
+ * effects, Music and How to Play. Two icon buttons for two settings did not
+ * scale; multiplayer carries the identical control.
  */
-const DailyThemeToggle: React.FC<{ mobile?: boolean }> = ({ mobile = false }) => {
-  const { theme, toggle } = useThemeMode();
-  const night = theme === "night";
+const DailySettingsButton: React.FC<{ mobile?: boolean; onHowTo?: () => void }> = ({
+  mobile = false,
+  onHowTo,
+}) => {
+  const [open, setOpen] = useState(false);
   return (
-    <button
-      type="button"
-      className="ww-press daily-btn-howto"
-      onClick={() => {
-        hapticTap();
-        toggle();
-      }}
-      aria-label={night ? "Switch to light mode" : "Switch to night mode"}
-      title={night ? "Switch to light mode" : "Switch to night mode"}
-      style={chipButtonBase(mobile)}
-    >
-      {night ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
-    </button>
+    <>
+      <button
+        type="button"
+        className="ww-press daily-btn-howto"
+        onClick={() => {
+          hapticTap();
+          setOpen(true);
+        }}
+        aria-label="Settings"
+        title="Settings"
+        style={chipButtonBase(mobile)}
+      >
+        <Settings size={16} aria-hidden="true" />
+      </button>
+      {open && (
+        <SettingsSheet
+          onClose={() => setOpen(false)}
+          onHowTo={
+            onHowTo
+              ? () => {
+                  setOpen(false);
+                  onHowTo();
+                }
+              : undefined
+          }
+        />
+      )}
+    </>
   );
 };
 
-/**
- * Master sound toggle — controls both SFX and the background theme.
- */
-const DailySoundToggle: React.FC<{ mobile?: boolean }> = ({ mobile = false }) => {
-  const [on, setOn] = useState(getSoundEnabled());
-  const Icon = on ? Volume2 : VolumeOff;
-  return (
-    <button
-      type="button"
-      className="ww-press daily-btn-howto"
-      onClick={() => {
-        hapticTap();
-        const next = !on;
-        setSoundEnabled(next);
-        setOn(next);
-      }}
-      aria-label={on ? "Mute sound" : "Unmute sound"}
-      title={on ? "Mute sound" : "Unmute sound"}
-      style={chipButtonBase(mobile)}
-    >
-      <Icon size={16} aria-hidden="true" />
-    </button>
-  );
-};
 
 /** Ready screen — logo + daily badge, date, how-to-play chip, play CTA. */
 const DailyReadyScreen: React.FC<{
@@ -1150,8 +1142,7 @@ const DailyReadyScreen: React.FC<{
           How to Play
         </button>
         {/* HIDDEN: Groups chip lived here; restore when Groups ships. */}
-        <DailyThemeToggle mobile={mobile} />
-        <DailySoundToggle mobile={mobile} />
+        <DailySettingsButton mobile={mobile} onHowTo={onHowToPlay} />
       </div>
 
       <div className="daily-intro" style={{ width: "100%", animationDelay: "240ms" }}>
