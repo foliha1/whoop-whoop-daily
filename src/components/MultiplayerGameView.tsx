@@ -1721,10 +1721,11 @@ const MultiplayerGameView: React.FC<Props> = ({
           the play root, above the grid but below modals. It owns the whole
           reveal → hold → ghost timeline. */}
       {ghost.length > 0 && (
+        // No startFaceUp: the claimed pair is face down at claim time, so the
+        // ghosts start face down too and play the real flip-up reveal.
         <DailyMatchGhost
           pair={ghost}
           onDone={() => setGhost([])}
-          startFaceUp
         />
       )}
 
