@@ -121,6 +121,8 @@ const DailySharePreview: React.FC<{
     return () => window.removeEventListener("keydown", trap, true);
   }, [trap]);
 
+  if (!portalHost) return null;
+
   return createPortal(
     <div
       ref={hostRef}
@@ -388,7 +390,7 @@ const DailySharePreview: React.FC<{
 
       <DailyShapeRule />
     </div>,
-    host
+    portalHost
   );
 };
 

@@ -131,6 +131,7 @@ const howToStyle: React.CSSProperties = {
 
 const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, onHowTo }) => {
   const { mode, setMode } = useThemeMode();
+  const portalHost = usePortalHost("settings-sheet");
   const [sfx, setSfx] = useState(() => getSfxEnabled());
   const [music, setMusic] = useState(() => getMusicEnabled());
 
@@ -268,7 +269,7 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, onHowTo }) => {
   );
 
   if (typeof document === "undefined") return sheet;
-  return createPortal(sheet, host);
+  return portalHost ? createPortal(sheet, portalHost) : null;
 };
 
 export default SettingsSheet;

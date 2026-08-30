@@ -66,6 +66,7 @@ const GroupModalShell: React.FC<{
   children: React.ReactNode;
 }> = ({ ariaLabel, testId, onClose, children }) => {
   useDismiss(onClose, { escape: true, returnFocus: true });
+  const portalHost = usePortalHost("group-modal");
   const short =
     typeof window !== "undefined" && window.innerHeight > 0 && window.innerHeight < 560;
   const gutter = short ? SPACE[6] : SPACE[12];
@@ -115,7 +116,7 @@ const GroupModalShell: React.FC<{
       </div>
       {!short && <DailyShapeRule />}
     </div>,
-    host
+    portalHost
   );
 };
 

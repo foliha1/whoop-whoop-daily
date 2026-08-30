@@ -109,6 +109,8 @@ const DailyEmailModal: React.FC<{
     return () => window.removeEventListener("keydown", onKeyDown, true);
   }, [onClose]);
 
+  if (!portalHost) return null;
+
   return createPortal(
     <div
       ref={hostRef}
@@ -188,7 +190,7 @@ const DailyEmailModal: React.FC<{
 
       {!compact && <DailyShapeRule />}
     </div>,
-    host
+    portalHost
   );
 };
 
