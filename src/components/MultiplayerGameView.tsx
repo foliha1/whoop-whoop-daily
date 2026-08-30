@@ -180,7 +180,9 @@ function deriveChips(
       kind,
       name: seat === mySeat ? "YOU" : entry.display_name,
       score: s.scores[seat] ?? 0,
+      seat,
     });
+
   }
   return out;
 }
