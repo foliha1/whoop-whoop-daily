@@ -14,6 +14,8 @@ export const OPPONENT_TUNING = {
   thinkDelayMs: 1400,
 } as const;
 const REVEAL_MS = 2000;
+/** v6.7: a turn is two flips. Same card may not be flipped twice per turn. */
+export const FLIPS_PER_TURN = 2;
 
 function rollRandomAttributes(count: number, rng: Rng = Math.random): string[] {
   const result: string[] = [];
@@ -980,10 +982,13 @@ export function useGameState(
   useEffect(() => {
     if (state.phase !== "FLIPPING") return;
     if (state.inFlight) return;
-    // Auto-tick past a disconnected flipper so the round never hard-stops.
-    if (!state.disconnected[state.flipper]) return;
+    // Auto-tick past a flipper that cannot act — disconnected, or locked out
+    // of every remaining card by earlier wrong claims — so the round never
+    // hard-stops.
+    if (!state.disconnected[state.flipper] && hasLegalCard(state, state.flipper))
+      return;
     dispatch({ type: "SKIP_TICK" });
-  }, [state.phase, state.flipper, state.inFlight, state.disconnected]);
+  }, [state.phase, state.flipper, state.inFlight, state.disconnected, state.grid, state.wrongBy]);
 
   // Bot auto-flip
   const inFlightNullMarker = state.inFlight === null;
