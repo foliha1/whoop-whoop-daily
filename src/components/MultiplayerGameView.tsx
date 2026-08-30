@@ -105,7 +105,10 @@ const BLUE = COLORS.blue;             // #0072B2
 const ORANGE = COLORS.orange;         // #E79024
 const GREEN = COLORS.success;         // #59CD90
 
+const SEAT_COLORS = [RED, BLUE, ORANGE, GREEN, RAW.soloTint, RAW.peepsTint];
+
 const R_CARD = 6.33043;
+
 const R_BOX = 4;
 const R_STRIP = 6.33043;
 const BORDER_HEAVY = `2px solid ${INK}`;
