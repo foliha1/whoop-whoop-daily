@@ -159,6 +159,13 @@ const FIXED_GRID = "3x3" as const;
 
 const ROOM_CAPACITY = 6;
 
+/** Renders children into a stable body-level host so position:fixed overlays
+    escape FitColumn's scaled/transformed column and cover the full screen. */
+const BodyPortal: React.FC<{ name: string; children: React.ReactNode }> = ({ name, children }) => {
+  const host = usePortalHost(name);
+  return host ? createPortal(children, host) : null;
+};
+
 type PendingAction =
   | { kind: "create" }
   | { kind: "join-code"; code: string }
