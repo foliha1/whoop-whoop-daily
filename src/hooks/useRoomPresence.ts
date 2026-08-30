@@ -148,8 +148,56 @@ export function useRoomPresence(
     };
     window.addEventListener("pagehide", onPageHide);
 
+    // Return path: backgrounded tabs come back via pageshow (bfcache restore)
+    // and/or visibilitychange. Re-track with the ORIGINAL meta (same
+    // joined_at) so the player keeps their lobby ordering and seat. Both
+    // events often fire together, and re-tracking while already tracked is a
+    // harmless no-op — Supabase just overwrites the presence entry.
+    let rejoining = false;
+    const rejoin = () => {
+      if (rejoining) return;
+      if (channelRef.current !== ch) return; // superseded by a newer channel
+      rejoining = true;
+      void (async () => {
+        try {
+          // If the socket died while backgrounded, tracking alone won't
+          // reach the server — resubscribe first and wait for it.
+          if (ch.state === "closed" || ch.state === "errored") {
+            await new Promise<void>((resolve) => {
+              ch.subscribe((subStatus) => {
+                if (subStatus === "SUBSCRIBED") resolve();
+                else if (subStatus === "CHANNEL_ERROR" || subStatus === "TIMED_OUT" || subStatus === "CLOSED") resolve();
+              });
+            });
+            if (channelRef.current !== ch) return;
+          }
+          await ch.track({
+            visitor_id: visitorId,
+            display_name: displayNameRef.current,
+            joined_at: joinedAtRef.current,
+            is_host: isHostRef.current,
+          } satisfies PresenceMeta);
+          if (channelRef.current !== ch) return;
+          setChannel(ch);
+          setStatus("connected");
+        } catch (e) {
+          console.warn("[presence] rejoin failed", e);
+        } finally {
+          rejoining = false;
+        }
+      })();
+    };
+    const onPageShow = () => rejoin();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") rejoin();
+    };
+    window.addEventListener("pageshow", onPageShow);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     return () => {
       window.removeEventListener("pagehide", onPageHide);
+      window.removeEventListener("pageshow", onPageShow);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       try {
         ch.untrack();
       } catch {
