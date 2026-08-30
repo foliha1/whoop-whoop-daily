@@ -78,15 +78,10 @@ const MultiplayerPage: React.FC = () => {
     };
   }, [introStatus]);
 
-  // The intro's Lottie is the page background whenever it is/was playing.
-  // The static pattern is ONLY used when the intro never ran at all ("none").
-  // Skip/timeout/complete all persist the Lottie's final frame as the bg.
-  const introMounted =
-    introStatus === "running" ||
-    introStatus === "complete" ||
-    introStatus === "skipped" ||
-    introStatus === "timeout";
-  const showPattern = introStatus === "none";
+  // The intro is a one-shot overlay with its own dark ground. Once it is done
+  // it unmounts: the page ground is the themed solid plus the pattern strips,
+  // with nothing behind the content.
+  const introMounted = introStatus === "running";
   // Hide the lobby entirely until the intro decision has resolved. Otherwise
   // the lobby paints first and gets hidden a frame later when the intro
   // mounts — a visible flash.
