@@ -914,7 +914,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                     minWidth: 0,
                     height: CONTROL_H.lg + SPACE[2],
                     background: COLORS.surface,
-                    border: isActive ? `3px solid ${COLORS.red}` : BORDER.heavy,
+                    border: isActive ? `3px solid ${COLORS.blue}` : BORDER.heavy,
                     borderRadius: RADIUS.md,
                     display: "flex",
                     alignItems: "center",
@@ -936,7 +936,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                       right: "25%",
                       height: 2,
                       borderRadius: 1,
-                      background: isActive ? COLORS.red : COLORS.inkMuted,
+                      background: isActive ? COLORS.blue : COLORS.inkMuted,
                       opacity: isActive ? 1 : 0.5,
                     }} />
                   )}
@@ -992,43 +992,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 cursor: "text",
               }}
             />
-            {/* Clear control — empties the field in one tap. Sits above the
-                overlaid input so it stays clickable. */}
-            {chars.length > 0 && (
-              <button
-                type="button"
-                aria-label="Clear nickname"
-                onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
-                onTouchStart={(e) => { e.stopPropagation(); }}
-                onClick={() => {
-                  setNameTouched(true);
-                  setNameInput("");
-                  focusHiddenInput();
-                }}
-                style={{
-                  position: "relative",
-                  zIndex: 1,
-                  flexShrink: 0,
-                  width: TOUCH_MIN,
-                  height: TOUCH_MIN,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "transparent",
-                  border: BORDER.heavy,
-                  borderRadius: RADIUS.md,
-                  color: COLORS.inkMuted,
-                  fontFamily: FONT_FAMILY,
-                  fontSize: 16,
-                  lineHeight: 1,
-                  cursor: "pointer",
-                  padding: 0,
-                  boxSizing: "border-box",
-                }}
-              >
-                ×
-              </button>
-            )}
           </div>
 
           {/* Button row */}
