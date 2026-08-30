@@ -44,10 +44,10 @@ export function getDisplayName(): string {
   return inMemoryName ?? "";
 }
 
-export const NICKNAME_MAX = 6;
+export const DISPLAY_NAME_MAX = 6;
 
 export function setDisplayName(name: string): string {
-  const trimmed = name.trim().slice(0, NICKNAME_MAX);
+  const trimmed = name.trim().slice(0, DISPLAY_NAME_MAX);
   try {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem(NAME_KEY, trimmed);
