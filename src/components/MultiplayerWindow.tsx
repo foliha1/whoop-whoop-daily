@@ -1034,22 +1034,22 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
   if (view.kind === "name-prompt") {
     const NAME_CAP = DISPLAY_NAME_MAX;
-    const chars = nameInput.slice(0, NAME_CAP).split("");
-    const boxes = Array.from({ length: NAME_CAP }, (_, i) => chars[i] ?? "");
     const canContinue = !busy && nameInput.trim().length > 0;
-    // The box the next character lands in. When full, the last box stays active.
-    const activeBox = Math.min(chars.length, NAME_CAP - 1);
     const showCodeField = view.intent === "peeps";
 
-    const focusHiddenInput = () => {
-      hiddenNameInputRef.current?.focus();
+    // Small copy on Classic follows the Daily's rule: Geist for metadata and
+    // helper lines, Friend for headlines and controls.
+    const smallCopy: React.CSSProperties = {
+      ...textStyle("caption", mobile),
+      fontFamily: FONT_FAMILY_UI,
+      fontWeight: FONT_WEIGHT_UI,
     };
 
     return entryFrame({
       headline: "Pick a display name",
       children: (
         <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
-          <div style={{ ...textStyle("caption", mobile), color: COLORS.ink, textAlign: "center" }}>
+          <div style={{ ...smallCopy, color: COLORS.inkMuted, textAlign: "center" }}>
             Your display name is shown during game play. Up to {NAME_CAP} characters.
           </div>
 
@@ -1059,121 +1059,77 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             </div>
           )}
 
-          {/* Character display row — one overlaid input so real keyboards,
-              paste and autofill all work. No container stroke: the boxes are
-              the controls. */}
-          <div
-            onMouseDown={(e) => { e.preventDefault(); focusHiddenInput(); }}
-            onTouchStart={() => { focusHiddenInput(); }}
-            style={{
-              position: "relative",
-              alignSelf: "stretch",
-              display: "flex",
-              alignItems: "center",
-              gap: SPACE[4],
-              cursor: "text",
-            }}
-          >
-            {boxes.map((ch, i) => {
-              const isActive = nameFocused && i === activeBox;
-              return (
-                <div
-                  key={i}
-                  aria-hidden="true"
-                  style={{
-                    ...textStyle("control", mobile),
-                    flexGrow: 1,
-                    flexBasis: 0,
-                    minWidth: 0,
-                    height: CONTROL_H.lg,
-                    background: COLORS.surface,
-                    border: isActive ? `3px solid ${COLORS.blue}` : BORDER.heavy,
-                    borderRadius: RADIUS.md,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxSizing: "border-box",
-                    color: ch ? COLORS.ink : COLORS.inkMuted,
-                    textAlign: "center",
-                    position: "relative",
-                  }}
-                >
-                  {ch}
-                  {/* Resting state: a short baseline stroke in empty boxes so
-                      the row reads as an input, not decorative outlines. */}
-                  {!ch && (
-                    <div style={{
-                      position: "absolute",
-                      bottom: SPACE[5],
-                      left: "25%",
-                      right: "25%",
-                      height: 2,
-                      borderRadius: 1,
-                      background: isActive ? COLORS.blue : COLORS.inkMuted,
-                      opacity: isActive ? 1 : 0.5,
-                    }} />
-                  )}
-                </div>
-              );
-            })}
-            <input
-              ref={hiddenNameInputRef}
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value.slice(0, NAME_CAP))}
-              onKeyDown={(e) => {
-                // First keystroke on an untouched prefill replaces the whole
-                // value: clear before the character lands so typing "ALPHA"
-                // over "BRAVO" yields "ALPHA", not "BRAVOA".
-                if (!nameTouched && nameInput.length > 0) {
-                  if (e.key.length === 1 || e.key === "Backspace" || e.key === "Delete") {
-                    setNameTouched(true);
-                    setNameInput("");
-                    if (e.key === "Backspace" || e.key === "Delete") e.preventDefault();
-                  }
-                }
-                if (e.key === "Enter" && canContinue) handleConfirmName();
-              }}
-              onPaste={(e) => {
-                if (!nameTouched) {
-                  e.preventDefault();
+          {/* One plain text input. The six-box row read as decoration and hid
+              the caret; a single field with a clear focus ring is honest. */}
+          <input
+            ref={hiddenNameInputRef}
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value.slice(0, NAME_CAP))}
+            onKeyDown={(e) => {
+              // First keystroke on an untouched prefill replaces the whole
+              // value: clear before the character lands so typing "ALPHA"
+              // over "BRAVO" yields "ALPHA", not "BRAVOA".
+              if (!nameTouched && nameInput.length > 0) {
+                if (e.key.length === 1 || e.key === "Backspace" || e.key === "Delete") {
                   setNameTouched(true);
-                  setNameInput(e.clipboardData.getData("text").slice(0, NAME_CAP));
+                  setNameInput("");
+                  if (e.key === "Backspace" || e.key === "Delete") e.preventDefault();
                 }
-              }}
-              onFocus={() => setNameFocused(true)}
-              onBlur={() => setNameFocused(false)}
-              maxLength={NAME_CAP}
-              autoFocus
-              autoCapitalize="characters"
-              autoCorrect="off"
-              spellCheck={false}
-              aria-label="Display name"
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                opacity: 0,
-                border: 0,
-                padding: 0,
-                margin: 0,
-                background: "transparent",
-                color: "transparent",
-                caretColor: "transparent",
-                outline: "none",
-                fontSize: 16, // prevents iOS zoom on focus
-                cursor: "text",
-              }}
-            />
-          </div>
+              }
+              if (e.key === "Enter" && canContinue) handleConfirmName();
+            }}
+            onPaste={(e) => {
+              if (!nameTouched) {
+                e.preventDefault();
+                setNameTouched(true);
+                setNameInput(e.clipboardData.getData("text").slice(0, NAME_CAP));
+              }
+            }}
+            onFocus={() => setNameFocused(true)}
+            onBlur={() => setNameFocused(false)}
+            maxLength={NAME_CAP}
+            autoFocus
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck={false}
+            placeholder="YOU"
+            aria-label="Display name"
+            style={{
+              ...inputStyle,
+              alignSelf: "stretch",
+              flex: "none",
+              width: "100%",
+              boxSizing: "border-box",
+              minHeight: CONTROL_H.lg,
+              textAlign: "center",
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              caretColor: COLORS.blue,
+              border: nameFocused ? `3px solid ${COLORS.blue}` : BORDER.heavy,
+              boxShadow: nameFocused ? `0 0 0 3px rgba(0,114,178,0.18)` : "none",
+              transition: `box-shadow ${MOTION.fast}, border-color ${MOTION.fast}`,
+            }}
+          />
 
           {/* Table code — peeps path only. Empty starts a new table; a code
-              joins an existing one. Arriving via /play/:roomCode prefills it. */}
+              joins an existing one. Arriving via /play/:roomCode prefills it.
+              Brand orange marks it as the "join someone else" lane. */}
           {showCodeField && (
-            <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
+            <div
+              style={{
+                alignSelf: "stretch",
+                display: "flex",
+                flexDirection: "column",
+                gap: SPACE[4],
+                border: `2px solid ${COLORS.orange}`,
+                borderRadius: RADIUS.md,
+                padding: SPACE[6],
+                boxSizing: "border-box",
+              }}
+            >
               <label
                 htmlFor="table-code"
-                style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}
+                style={{ ...smallCopy, color: COLORS.orange, textAlign: "center" }}
               >
                 Already have a table code? Leave it blank to start your own.
               </label>
@@ -1190,10 +1146,17 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 aria-label="Table code"
                 style={{
                   ...inputStyle,
+                  alignSelf: "stretch",
+                  flex: "none",
+                  width: "100%",
+                  boxSizing: "border-box",
                   minHeight: TOUCH_MIN,
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
                   textAlign: "center",
+                  color: COLORS.orange,
+                  caretColor: COLORS.orange,
+                  border: `2px solid ${COLORS.orange}`,
                 }}
               />
             </div>
@@ -1207,7 +1170,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               disabled={busy}
               style={{ ...railButtonStyle(busy), opacity: 1 }}
             >
-              <AutoFitText minScale={0.6}>Cancel</AutoFitText>
+              <AutoFitText minScale={0.6}>Back</AutoFitText>
             </button>
             <button
               type="button"
@@ -1216,7 +1179,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               className={canContinue ? "ww-press" : undefined}
               style={{ ...playButtonStyle(!canContinue), opacity: canContinue ? 1 : 0.7 }}
             >
-              <AutoFitText minScale={0.55}>{busy ? "Connecting…" : "Let's Play!"}</AutoFitText>
+              <AutoFitText minScale={0.55}>
+                {busy ? "Connecting…" : showCodeField ? "Join Table" : "Let's Play!"}
+              </AutoFitText>
             </button>
           </div>
         </div>
