@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
+import { usePortalHost } from "@/hooks/usePortalHost";
 import { toast } from "sonner";
 import AutoFitText from "@/components/AutoFitText";
 import {
@@ -156,6 +158,13 @@ interface MultiplayerWindowProps {
 const FIXED_GRID = "3x3" as const;
 
 const ROOM_CAPACITY = 6;
+
+/** Renders children into a stable body-level host so position:fixed overlays
+    escape FitColumn's scaled/transformed column and cover the full screen. */
+const BodyPortal: React.FC<{ name: string; children: React.ReactNode }> = ({ name, children }) => {
+  const host = usePortalHost(name);
+  return host ? createPortal(children, host) : null;
+};
 
 type PendingAction =
   | { kind: "create" }
@@ -1438,6 +1447,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   ) : null;
 
   const leaveConfirmDialog = showLeaveConfirm ? (
+    <BodyPortal name="mp-leave-confirm">
     <div
       role="dialog"
       aria-modal="true"
@@ -1503,6 +1513,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         </div>
       </div>
     </div>
+    </BodyPortal>
   ) : null;
 
 

@@ -13,7 +13,9 @@
 // ============================================================================
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { usePortalHost } from "@/hooks/usePortalHost";
 import GameCard from "@/components/GameCard";
 import MatchDie from "@/components/MatchDie";
 import { ChipCell } from "@/components/MultiplayerGameView";
@@ -833,6 +835,10 @@ const MultiplayerHowToSteps: React.FC<{
   const [dir, setDir] = useState<1 | -1>(1);
   const drag = useRef<{ x: number; y: number } | null>(null);
   const sz = useStep();
+  // Portalled to body: callers render this inside FitColumn's scaled (and
+  // faded) column, and a transformed ancestor turns position:fixed into a
+  // container-relative box — the modal then covers only the mobile column.
+  const portalHost = usePortalHost("mp-howto");
 
   useEffect(() => {
     markMpHowToSeen();
@@ -1080,7 +1086,8 @@ const MultiplayerHowToSteps: React.FC<{
     );
   };
 
-  return (
+  if (!portalHost) return null;
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -1140,7 +1147,8 @@ const MultiplayerHowToSteps: React.FC<{
       </div>
 
       <DailyShapeRule />
-    </div>
+    </div>,
+    portalHost,
   );
 };
 

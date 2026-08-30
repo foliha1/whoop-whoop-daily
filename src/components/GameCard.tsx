@@ -200,9 +200,13 @@ const GameCard = ({
         >
           {/* Always mounted: unmounting inside a preserve-3d subtree rebuilds
               the compositor layer and hitches the flip. When no card is known
-              we keep a cached image loaded but fully transparent. Opacity
-              switches at the 250ms midpoint of the 500ms rotateY so the face
-              is visible only while pointing at the viewer, not while edge-on. */}
+              we keep a cached image loaded but fully transparent. Opacity must
+              snap ON instantly: the cubic-bezier flip passes edge-on well
+              before the 250ms midpoint, so a delayed fade leaves a window
+              where the front face faces the viewer but is still transparent —
+              the "flash" seen on selection. Hiding while edge-on is already
+              handled by backface-visibility. The delayed fade is kept only for
+              clearing (post flip-down), where timing no longer matters. */}
           <img
             src={frontFace || CARD_BACK_PATH}
             alt={frontFace ? card.id : ""}
@@ -212,7 +216,7 @@ const GameCard = ({
               height: "100%",
               display: "block",
               opacity: frontFace ? 1 : 0,
-              transition: "opacity 0s linear 250ms",
+              transition: frontFace ? "none" : "opacity 0s linear 250ms",
             }}
 
             draggable={false}

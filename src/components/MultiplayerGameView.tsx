@@ -24,7 +24,9 @@
 // ============================================================================
 
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Settings as SettingsIcon, X } from "lucide-react";
+import { usePortalHost } from "@/hooks/usePortalHost";
 import SettingsSheet from "@/components/SettingsSheet";
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
 import GameCard from "@/components/GameCard";
@@ -447,6 +449,10 @@ const ModalShell: React.FC<{
   onCancel: () => void;
   children: React.ReactNode;
 }> = ({ titleId, onCancel, children }) => {
+  // Portalled to body: the game column is capped at 420px (and scaled entry
+  // frames apply transforms), so an in-tree fixed/absolute overlay only ever
+  // covered the mobile-width column. A modal must take over the full screen.
+  const portalHost = usePortalHost("mp-modal");
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") { e.preventDefault(); onCancel(); }
@@ -454,12 +460,13 @@ const ModalShell: React.FC<{
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onCancel]);
-  return (
+  if (!portalHost) return null;
+  return createPortal(
     <div
       role="presentation"
       onClick={onCancel}
       style={{
-        position: "absolute", inset: 0, zIndex: 50,
+        position: "fixed", inset: 0, zIndex: 1000,
         background: "rgba(0,0,0,0.5)",
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 16,
@@ -479,7 +486,36 @@ const ModalShell: React.FC<{
       >
         {children}
       </div>
-    </div>
+    </div>,
+    portalHost,
+  );
+};
+
+/** Full-screen liveness veil. Portalled to body so it covers the whole
+    viewport, not just the width-capped game column. */
+const ReconnectingOverlay: React.FC = () => {
+  const portalHost = usePortalHost("mp-reconnecting");
+  if (!portalHost) return null;
+  return createPortal(
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
+        position: "fixed", inset: 0, zIndex: 1100,
+        background: "rgba(35,31,32,0.85)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 24, pointerEvents: "auto",
+      }}
+    >
+      <div style={{
+        background: INK, color: SURFACE, border: `2px solid ${SURFACE}`,
+        borderRadius: R_BOX, padding: "14px 22px", textAlign: "center",
+        ...textStyle("label"),
+      }}>
+        Reconnecting…
+      </div>
+    </div>,
+    portalHost,
   );
 };
 
@@ -1506,24 +1542,7 @@ const MultiplayerGameView: React.FC<Props> = ({
         />
       )}
       {presenceStatus !== undefined && presenceStatus !== "connected" && (
-        <div
-          role="status"
-          aria-live="polite"
-          style={{
-            position: "absolute", inset: 0, zIndex: 900,
-            background: "rgba(35,31,32,0.85)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            padding: 24, pointerEvents: "auto",
-          }}
-        >
-          <div style={{
-            background: INK, color: SURFACE, border: `2px solid ${SURFACE}`,
-            borderRadius: R_BOX, padding: "14px 22px", textAlign: "center",
-            ...textStyle("label"),
-          }}>
-            Reconnecting…
-          </div>
-        </div>
+        <ReconnectingOverlay />
       )}
       {/* ROLLING scrim — beneath the die overlay (z=30), above the play
           content. Pointer-events none so header controls stay reachable;
