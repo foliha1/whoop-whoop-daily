@@ -789,33 +789,22 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
   // ---------- SOLO SETUP (grid-size choice) ----------
   if (view.kind === "solo-setup") {
-    return wrapInShell(
-      <div style={{
-        ...panelStyle("surface", 8),
-        alignSelf: "stretch",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        gap: SPACE[4],
-        height: "auto",
-        justifyContent: "center",
-      }}>
-        <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
-          <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-            <div style={titleStyle}>Choose your grid size</div>
-            <div style={{ display: "flex", gap: SPACE[8], alignSelf: "stretch", alignItems: "stretch" }}>
-              {GRID_OPTIONS.map((opt) => (
-                <GridSizeOption
-                  key={opt.key}
-                  option={opt}
-                  selected={soloGrid === opt.key}
-                  onSelect={setSoloGrid}
-                />
-              ))}
-            </div>
+    return entryFrame({
+      headline: "Choose your grid size",
+      children: (
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+          <div style={{ display: "flex", gap: SPACE[8], alignSelf: "stretch", alignItems: "stretch" }}>
+            {GRID_OPTIONS.map((opt) => (
+              <GridSizeOption
+                key={opt.key}
+                option={opt}
+                selected={soloGrid === opt.key}
+                onSelect={setSoloGrid}
+              />
+            ))}
           </div>
 
-          <div style={{ display: "flex", gap: SPACE[4], height: 80, alignSelf: "stretch" }}>
+          <div style={{ display: "flex", gap: SPACE[4], height: 72, alignSelf: "stretch" }}>
             <button
               type="button"
               onClick={() => setView({ kind: "idle" })}
@@ -834,11 +823,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             </button>
           </div>
         </div>
-      </div>,
-    );
+      ),
+    });
   }
-
-
 
   // ---------- GAME IN PROGRESS: HOST ----------
   if (isHostView && frozenSeats !== null && activeRoom) {
