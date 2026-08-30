@@ -1461,9 +1461,9 @@ const MultiplayerGameView: React.FC<Props> = ({
       maxHeight: mobile ? undefined : "100%",
       width: "100%",
       boxSizing: "border-box",
-      background: SURFACE, overflow: "hidden", position: "relative",
+      background: PANEL, overflow: "hidden", position: "relative",
     }}>
-      {/* Radial vignette over the persistent intro still. z-index:-1 keeps it
+      {/* Solid panel wash over the persistent intro still. z-index:-1 keeps it
           above the frozen Lottie background and below the game column. */}
       <div
         aria-hidden="true"
@@ -1472,8 +1472,7 @@ const MultiplayerGameView: React.FC<Props> = ({
           inset: 0,
           zIndex: -1,
           pointerEvents: "none",
-          background:
-            "radial-gradient(circle at center, rgba(35,31,32,1) 0%, rgba(35,31,32,1) 55%, rgba(35,31,32,0) 100%)",
+          background: PANEL,
           opacity: bgOverlayVisible ? 1 : 0,
           transition: prefersReducedMotion() ? "none" : "opacity 1200ms cubic-bezier(0.22, 0.61, 0.36, 1)",
         }}
