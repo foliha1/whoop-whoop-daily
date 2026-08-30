@@ -1413,3 +1413,91 @@ describe("DEBUG_FORCE_END_GAME", () => {
     window.history.replaceState({}, "", "/");
   });
 });
+
+// ===========================================================================
+// v6.7 — two flips per turn, claims never consume a turn
+// ===========================================================================
+describe("v6.7 two flips per turn", () => {
+  it("keeps the same flipper after the first flip of a turn", () => {
+    let s = baseState({ phase: "FLIPPING", flipper: 0, flipsThisTurn: 0 });
+    s = reducer(s, { type: "FLIP_START", by: 0, idx: 1, token: 1 });
+    s = reducer(s, { type: "FLIP_COMPLETE", token: 1 });
+    expect(s.phase).toBe("FLIPPING");
+    expect(s.flipper).toBe(0);
+    expect(s.flipsThisTurn).toBe(1);
+    expect(s.inFlight).toBeNull();
+    expect(s.peekingCard).toBeNull();
+    expect(s.flippedThisCycle.has(0)).toBe(false);
+  });
+
+  it("advances the rotation on the second flip and resets flipsThisTurn", () => {
+    let s = baseState({ phase: "FLIPPING", flipper: 0, flipsThisTurn: 0 });
+    s = reducer(s, { type: "FLIP_START", by: 0, idx: 1, token: 1 });
+    s = reducer(s, { type: "FLIP_COMPLETE", token: 1 });
+    s = reducer(s, { type: "FLIP_START", by: 0, idx: 3, token: 2 });
+    s = reducer(s, { type: "FLIP_COMPLETE", token: 2 });
+    expect(s.flipper).toBe(1);
+    expect(s.flipsThisTurn).toBe(0);
+    expect(s.flippedThisCycle.has(0)).toBe(true);
+  });
+
+  it("ends the turn early when no legal card is left for that seat", () => {
+    // Only slot 0 holds a card and it is locked out for seat 0.
+    const grid = baseState().grid.map((c, i) => (i <= 1 ? c : null));
+    let s = baseState({
+      phase: "FLIPPING",
+      flipper: 0,
+      flipsThisTurn: 0,
+      grid,
+      wrongBy: [new Set([1]), new Set()],
+    });
+    s = reducer(s, { type: "FLIP_START", by: 0, idx: 0, token: 1 });
+    s = reducer(s, { type: "FLIP_COMPLETE", token: 1 });
+    expect(s.flipper).toBe(1);
+  });
+
+  it("SKIP_TICK fires for a connected flipper with no legal card left", () => {
+    const s = baseState({
+      phase: "FLIPPING",
+      flipper: 0,
+      flipsThisTurn: 0,
+      wrongBy: [new Set([0, 1, 2, 3, 4, 5]), new Set()],
+    });
+    const next = reducer(s, { type: "SKIP_TICK" });
+    expect(next).not.toBe(s);
+    expect(next.flipper).toBe(1);
+    expect(next.flippedThisCycle.has(0)).toBe(true);
+  });
+
+  it("a wrong claim leaves the flipper and unused flips intact", () => {
+    const s = baseState({
+      phase: "CLAIM_RESOLVING",
+      flipper: 0,
+      flipsThisTurn: 1,
+      rule: ["SHAPE"],
+      claimBy: 0,
+      inFlight: { kind: "claim", token: 3, by: 0, a: 1, b: 3 },
+    });
+    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 3 });
+    expect(next.phase).toBe("FLIPPING");
+    expect(next.flipper).toBe(0);
+    expect(next.flipsThisTurn).toBe(1);
+    expect(next.flippedThisCycle.has(0)).toBe(false);
+  });
+
+  it("a wrong player claim keeps the turn after SETTLING", () => {
+    const s = baseState({
+      phase: "CLAIM_SELECTING",
+      flipper: 0,
+      flipsThisTurn: 0,
+      rule: ["SHAPE"],
+      claimBy: 0,
+      selectedCards: [1, 3],
+    });
+    const settling = reducer(s, { type: "PLAYER_RESOLVE_MATCH", by: 0 });
+    const next = reducer(settling, { type: "SETTLE_COMPLETE", token: settling.settleToken });
+    expect(next.phase).toBe("FLIPPING");
+    expect(next.flipper).toBe(0);
+    expect(next.flipsThisTurn).toBe(0);
+  });
+});
