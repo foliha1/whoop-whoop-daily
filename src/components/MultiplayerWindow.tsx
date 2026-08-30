@@ -1440,6 +1440,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   ) : null;
 
   const leaveConfirmDialog = showLeaveConfirm ? (
+    <BodyPortal name="mp-leave-confirm">
     <div
       role="dialog"
       aria-modal="true"
@@ -1505,6 +1506,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         </div>
       </div>
     </div>
+    </BodyPortal>
   ) : null;
 
 
