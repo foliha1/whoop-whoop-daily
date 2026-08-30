@@ -1233,3 +1233,38 @@ All colors MUST be HSL.
   .ww-sweep-loop { animation: none; opacity: 0; }
 }
 
+
+/* ---------------------------------------------------------------------------
+   Cross-product link ("Looking for Whoop! Whoop! Daily?"). Neutral at rest,
+   fades to brand blue with an underline that grows in from the centre.
+   --------------------------------------------------------------------------- */
+.ww-daily-link {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 2px;
+  transition: color 200ms ease;
+}
+.ww-daily-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1.5px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 200ms ease;
+}
+.ww-daily-link:hover,
+.ww-daily-link:focus-visible {
+  color: var(--ww-daily-link-hover, #0072B2);
+}
+.ww-daily-link:hover::after,
+.ww-daily-link:focus-visible::after {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ww-daily-link,
+  .ww-daily-link::after { transition: none; }
+}

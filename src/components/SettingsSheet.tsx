@@ -12,6 +12,7 @@
 // ============================================================================
 
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { COLORS, FONT_FAMILY, RADIUS, BORDER } from "@/lib/tokens";
 import { useThemeMode, type ThemeMode } from "@/lib/nightMode";
 import {
@@ -140,7 +141,11 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, onHowTo }) => {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  return (
+  // Rendered through a portal: the callers sit inside scaled/faded columns
+  // (FitColumn, DailyScreenFade), and a transformed ancestor turns
+  // `position: fixed` into a container-relative box — which is what squeezed
+  // and clipped this sheet inside the content column.
+  const sheet = (
     <div
       role="dialog"
       aria-modal="true"
@@ -260,6 +265,9 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, onHowTo }) => {
       </div>
     </div>
   );
+
+  if (typeof document === "undefined") return sheet;
+  return createPortal(sheet, document.body);
 };
 
 export default SettingsSheet;
