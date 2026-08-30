@@ -1,8 +1,8 @@
 // ============================================================================
-// useSoloGame — drives a local 2-seat game against Auntie O.
+// useSoloGame — drives a local 2-seat game against Felix O.
 //
 // Wraps useGameState with `botSeats: []` so the built-in bot scheduler stays
-// dormant, then drives seat 1 (Auntie) externally via the pure auntieOBrain
+// dormant, then drives seat 1 (Felix) externally via the pure felixOBrain
 // module. Exposes the same shape MultiplayerGameView needs: a PublicState,
 // an onIntent handler, and a transient event stream.
 // ============================================================================
@@ -32,20 +32,20 @@ import {
   pickFlipTarget,
   pickReactionDelay,
   type Brain,
-} from "@/lib/auntieOBrain";
-const OPPONENT_NAME = "Auntie O.";
+} from "@/lib/felixOBrain";
+const OPPONENT_NAME = "Felix O.";
 
-const AUNTIE_SEAT = 1;
+const FELIX_SEAT = 1;
 const HUMAN_SEAT = 0;
 const REVEAL_MS = 2000;
 const EVENT_LIFETIME_MS = 1400;
-const AUNTIE_ROLL_DELAY_MS = 1200;
-const AUNTIE_FLIP_DELAY_MS = 1400;
+const FELIX_ROLL_DELAY_MS = 1200;
+const FELIX_FLIP_DELAY_MS = 1400;
 const ROLL_ATTRS: readonly RollAttribute[] = ["SHAPE", "NUMBER", "COLOR"] as const;
 
 const SEAT_MAP = [
   { seat: 0, visitor_id: "solo-you", display_name: "You" },
-  { seat: 1, visitor_id: "solo-auntie", display_name: OPPONENT_NAME },
+  { seat: 1, visitor_id: "solo-felix", display_name: OPPONENT_NAME },
 ];
 
 export interface UseSoloGameResult {
@@ -174,31 +174,31 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
     prevWrongRef.current = nw;
   }, [state.scores, state.wrongBy, emit]);
 
-  // ---- Auntie's auto-roll ----
+  // ---- Felix's auto-roll ----
   useEffect(() => {
     if (state.phase !== "AWAITING_ROLL") return;
-    if (state.roller !== AUNTIE_SEAT) return;
+    if (state.roller !== FELIX_SEAT) return;
     if (state.rolling) return;
     const t = setTimeout(() => {
       commitAndRoll();
-    }, AUNTIE_ROLL_DELAY_MS);
+    }, FELIX_ROLL_DELAY_MS);
     return () => clearTimeout(t);
   }, [state.phase, state.roller, state.rolling, commitAndRoll]);
 
-  // ---- Auntie's auto-flip ----
+  // ---- Felix's auto-flip ----
   const flipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (state.phase !== "FLIPPING") return;
-    if (state.flipper !== AUNTIE_SEAT) return;
+    if (state.flipper !== FELIX_SEAT) return;
     if (state.inFlight) return;
-    if (state.disconnected[AUNTIE_SEAT]) return;
+    if (state.disconnected[FELIX_SEAT]) return;
     if (flipTimerRef.current) clearTimeout(flipTimerRef.current);
     flipTimerRef.current = setTimeout(() => {
       flipTimerRef.current = null;
       const s = stateRef.current;
-      if (s.phase !== "FLIPPING" || s.flipper !== AUNTIE_SEAT || s.inFlight) return;
+      if (s.phase !== "FLIPPING" || s.flipper !== FELIX_SEAT || s.inFlight) return;
       const candidates = s.grid
-        .map((c, i) => (c !== null && !s.wrongBy[AUNTIE_SEAT].has(i) ? i : -1))
+        .map((c, i) => (c !== null && !s.wrongBy[FELIX_SEAT].has(i) ? i : -1))
         .filter((i) => i !== -1);
       const pick = pickFlipTarget(brainRef.current, candidates);
       if (pick === null) {
@@ -206,9 +206,9 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
         return;
       }
       const token = nextToken();
-      dispatch({ type: "FLIP_START", by: AUNTIE_SEAT, idx: pick, token });
+      dispatch({ type: "FLIP_START", by: FELIX_SEAT, idx: pick, token });
       setTimeout(() => dispatch({ type: "FLIP_COMPLETE", token }), REVEAL_MS);
-    }, AUNTIE_FLIP_DELAY_MS);
+    }, FELIX_FLIP_DELAY_MS);
     return () => {
       if (flipTimerRef.current) {
         clearTimeout(flipTimerRef.current);
@@ -223,14 +223,14 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
     dispatch,
   ]);
 
-  // ---- Auntie's claim attempts ----
+  // ---- Felix's claim attempts ----
   const claimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (state.phase !== "FLIPPING") return;
     if (state.inFlight) return;
     if (state.claimBy !== null) return;
-    if (state.disconnected[AUNTIE_SEAT]) return;
-    const excluded = new Set<number>(state.wrongBy[AUNTIE_SEAT]);
+    if (state.disconnected[FELIX_SEAT]) return;
+    const excluded = new Set<number>(state.wrongBy[FELIX_SEAT]);
     state.grid.forEach((c, i) => {
       if (c === null) excluded.add(i);
     });
@@ -247,13 +247,13 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
         s.claimBy !== null ||
         s.grid[best.a] === null ||
         s.grid[best.b] === null ||
-        s.wrongBy[AUNTIE_SEAT].has(best.a) ||
-        s.wrongBy[AUNTIE_SEAT].has(best.b)
+        s.wrongBy[FELIX_SEAT].has(best.a) ||
+        s.wrongBy[FELIX_SEAT].has(best.b)
       ) {
         return;
       }
       const token = nextToken();
-      dispatch({ type: "CLAIM_START", by: AUNTIE_SEAT, a: best.a, b: best.b, token });
+      dispatch({ type: "CLAIM_START", by: FELIX_SEAT, a: best.a, b: best.b, token });
       setTimeout(() => dispatch({ type: "CLAIM_RESOLVE", token }), 1600);
     }, delay);
     return () => {
@@ -275,7 +275,7 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
     dispatch,
   ]);
 
-  // Cancel any pending Auntie work on phase/round change.
+  // Cancel any pending Felix work on phase/round change.
   useEffect(() => {
     if (claimTimerRef.current) {
       clearTimeout(claimTimerRef.current);

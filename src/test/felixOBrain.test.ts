@@ -8,7 +8,7 @@ import {
   pickFlipTarget,
   DECAY_RATE,
   CONFIDENCE_THRESHOLD,
-} from "@/lib/auntieOBrain";
+} from "@/lib/felixOBrain";
 import type { Card } from "@/cardData";
 
 function card(shape: Card["shape"], number: Card["number"], color: Card["color"]): Card {
@@ -25,7 +25,7 @@ function seq(values: number[]): () => number {
   return () => values[i++ % values.length];
 }
 
-describe("auntieOBrain", () => {
+describe("felixOBrain", () => {
   it("observe stores a card with full confidence when no corruption fires", () => {
     // First rng call: 0.9 (>= CORRUPT_CHANCE 0.16, so no corruption).
     const rng = seq([0.9]);
