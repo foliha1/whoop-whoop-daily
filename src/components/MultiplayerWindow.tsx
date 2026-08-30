@@ -34,6 +34,55 @@ import GridSizeOption, { GRID_OPTIONS, type GridSizeKey } from "@/components/Gri
 import MultiplayerHowToSteps, { hasSeenMpHowTo } from "@/components/MultiplayerHowToSteps";
 
 /**
+ * Fits an entry screen's column into the frame without scrolling. The column is
+ * measured at its natural size and, when it is taller than the space between
+ * the pattern strips, uniformly scaled down from the top. This is the same
+ * "measure then scale" approach the board uses for cards, and it keeps the
+ * entry screens whole at 390x520 instead of clipping them.
+ */
+const FitColumn: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  const innerRef = useRef<HTMLDivElement | null>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const box = boxRef.current;
+    const inner = innerRef.current;
+    if (!box || !inner) return;
+    const measure = () => {
+      const avail = box.clientHeight;
+      const natural = inner.scrollHeight;
+      if (!avail || !natural) return;
+      setScale(Math.min(1, avail / natural));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(box);
+    ro.observe(inner);
+    return () => ro.disconnect();
+  }, [children]);
+
+  return (
+    <div
+      ref={boxRef}
+      style={{ width: "100%", flex: "1 1 auto", minHeight: 0, display: "flex", justifyContent: "center" }}
+    >
+      <div
+        ref={innerRef}
+        style={{
+          width: "100%",
+          transform: scale < 1 ? `scale(${scale})` : undefined,
+          transformOrigin: "top center",
+          alignSelf: "flex-start",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
+
+/**
  * The in-game column. Multiplayer has no site header any more, so the 420px
  * cap and the desktop safe-area padding that used to live on the page wrapper
  * live here, around the board only.
@@ -675,6 +724,12 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const framePad = lerpCompress(t, 12, 24);
   const railGap = lerpCompress(t, 10, 24);
   const lockupMax = lerpCompress(t, 120, 251);
+  // Lobby / solo-setup: the same compression rhythm applied to the stacked
+  // sections so the whole screen still fits at 390x520 with no scrolling.
+  const sectionGap = lerpCompress(t, 10, SPACE[8]);
+  const innerGap = lerpCompress(t, 6, SPACE[4]);
+  const tileH = lerpCompress(t, 52, 80);
+  const miniScale = lerpCompress(t, 0.58, 1);
 
   const inputStyle: React.CSSProperties = {
     ...textStyle("control", mobile),
@@ -773,7 +828,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     children: React.ReactNode;
   }) => (
     <>
-      <DailyFrame gap={colGap} pad={framePad} railGap={railGap}>
+      <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill>
+        <FitColumn>
         <div
           style={{
             width: "100%",
@@ -795,6 +851,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           {chipRow}
           {opts.children}
         </div>
+        </FitColumn>
       </DailyFrame>
       {howToOverlay}
       {showSettings && (
@@ -819,19 +876,20 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     return entryFrame({
       headline: "Choose your grid size",
       children: (
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
-          <div style={{ display: "flex", gap: SPACE[8], alignSelf: "stretch", alignItems: "stretch" }}>
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: sectionGap }}>
+          <div style={{ display: "flex", gap: sectionGap, alignSelf: "stretch", alignItems: "stretch" }}>
             {GRID_OPTIONS.map((opt) => (
               <GridSizeOption
                 key={opt.key}
                 option={opt}
                 selected={soloGrid === opt.key}
+                scale={miniScale}
                 onSelect={setSoloGrid}
               />
             ))}
           </div>
 
-          <div style={{ display: "flex", gap: SPACE[4], height: 72, alignSelf: "stretch" }}>
+          <div style={{ display: "flex", gap: SPACE[4], height: tileH, alignSelf: "stretch" }}>
             <button
               type="button"
               onClick={() => setView({ kind: "idle" })}
@@ -1274,7 +1332,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     alignSelf: "stretch",
     display: "flex",
     flexDirection: "column",
-    gap: SPACE[4],
+    gap: innerGap,
   };
 
   // ---- Section 1: Your Table Info ----
@@ -1282,7 +1340,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const tableInfoSection = (
     <div style={sectionStyle}>
       <div style={sectionTitleStyle}>Your Table Info</div>
-      <div style={{ display: "flex", gap: SPACE[5], height: 80, alignSelf: "stretch" }}>
+      <div style={{ display: "flex", gap: SPACE[5], height: tileH, alignSelf: "stretch" }}>
         <button
           type="button"
           onClick={() => handleCopyCode(room.room_code)}
@@ -1328,12 +1386,13 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const gridPickerSection = (
     <div style={sectionStyle}>
       <div style={sectionTitleStyle}>Choose your grid size</div>
-      <div style={{ display: "flex", gap: 16, alignSelf: "stretch", alignItems: "stretch" }}>
+      <div style={{ display: "flex", gap: sectionGap, alignSelf: "stretch", alignItems: "stretch" }}>
         {GRID_OPTIONS.map((opt) => (
           <GridSizeOption
             key={opt.key}
             option={opt}
             selected={lobbyGrid === opt.key}
+            scale={miniScale}
             interactive={isHost && !starting}
             onSelect={setLobbyGrid}
           />
@@ -1351,7 +1410,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-        gap: SPACE[4],
+        gap: innerGap,
       }}>
         {seatSlots.map((p, i) => {
           const isYou = !!p && p.visitor_id === visitorId;
@@ -1359,8 +1418,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           const label = p ? (isYou ? `${name} (you)` : name) : "---";
           return (
             <div key={i} style={{
-              height: CONTROL_H.sm,
-              padding: SPACE[4],
+              height: lerpCompress(t, 30, CONTROL_H.sm),
+              padding: innerGap,
               display: "flex",
               alignItems: "center",
               gap: SPACE[4],
@@ -1409,7 +1468,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // ---- Section 4: Buttons ----
   const startDisabled = !canStart || starting;
   const buttonsSection = (
-    <div style={{ display: "flex", gap: SPACE[4], height: 80, alignSelf: "stretch" }}>
+    <div style={{ display: "flex", gap: SPACE[4], height: tileH, alignSelf: "stretch" }}>
       <button
         type="button"
         onClick={() => setShowLeaveConfirm(true)}
@@ -1551,7 +1610,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     logo: false,
     headline: isHost ? "Your table is ready." : "You're at the table.",
     children: (
-      <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+      <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: sectionGap }}>
         {joinerStatusBar}
         {startingBanner}
         {tableInfoSection}

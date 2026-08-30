@@ -23,16 +23,19 @@ const MINI_W = 47.25;
 const MINI_H = 66.15;
 const MINI_GAP = SPACE[2];
 
-const renderGridMini = (cols: number, rows: number) => (
+const renderGridMini = (cols: number, rows: number, scale: number) => {
+  const w = MINI_W * scale;
+  const gap = Math.max(2, MINI_GAP * scale);
+  return (
   <div
     aria-hidden="true"
     style={{
       display: "grid",
-      gridTemplateColumns: `repeat(${cols}, minmax(0, ${MINI_W}px))`,
-      gap: MINI_GAP,
+      gridTemplateColumns: `repeat(${cols}, minmax(0, ${w}px))`,
+      gap,
       justifyContent: "center",
       width: "100%",
-      maxWidth: cols * MINI_W + (cols - 1) * MINI_GAP,
+      maxWidth: cols * w + (cols - 1) * gap,
     }}
   >
     {Array.from({ length: cols * rows }).map((_, i) => (
@@ -51,12 +54,15 @@ const renderGridMini = (cols: number, rows: number) => (
       />
     ))}
   </div>
-);
+  );
+};
 
 interface GridSizeOptionProps {
   option: { key: GridSizeKey; label: string; cols: number; rows: number };
   selected: boolean;
   interactive?: boolean;
+  /** Shrinks the card minis and the panel padding on short viewports. */
+  scale?: number;
   onSelect: (key: GridSizeKey) => void;
 }
 
@@ -64,6 +70,7 @@ const GridSizeOption: React.FC<GridSizeOptionProps> = ({
   option,
   selected,
   interactive = true,
+  scale = 1,
   onSelect,
 }) => (
   <button
@@ -83,16 +90,16 @@ const GridSizeOption: React.FC<GridSizeOptionProps> = ({
       border: BORDER.heavy,
       borderRadius: RADIUS.sm,
       boxSizing: "border-box",
-      padding: SPACE[6],
+      padding: Math.max(SPACE[2], SPACE[6] * scale),
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      gap: SPACE[4],
+      gap: Math.max(SPACE[2], SPACE[4] * scale),
       cursor: interactive ? "pointer" : "default",
     }}
   >
-    {renderGridMini(option.cols, option.rows)}
+    {renderGridMini(option.cols, option.rows, scale)}
   </button>
 );
 
