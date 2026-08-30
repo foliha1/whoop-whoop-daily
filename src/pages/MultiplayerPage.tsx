@@ -122,34 +122,29 @@ const MultiplayerPage: React.FC = () => {
           overflow: "hidden",
           position: "relative",
           isolation: "isolate",
-          backgroundColor: PAGE_BG,
+          backgroundColor: COLORS.surface,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           boxSizing: "border-box",
         }}
       >
-        {showPattern && (
-          <img
-            src="/whoop-pattern-bg.svg"
-            alt=""
-            aria-hidden="true"
-            decoding="async"
-            draggable={false}
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              objectPosition: "center center",
-              opacity: 1,
-              zIndex: -1,
-              pointerEvents: "none",
-              userSelect: "none",
-            }}
-          />
-        )}
+        {/* Brand pattern strip top and bottom, exactly as the Daily frames its
+            screens: solid themed ground, nothing behind the content. */}
+        <div style={{ position: "absolute", top: SPACE.lg, left: SPACE.lg, right: SPACE.lg, pointerEvents: "none" }}>
+          <DailyShapeRule />
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            bottom: `calc(${SPACE.lg}px + env(safe-area-inset-bottom))`,
+            left: SPACE.lg,
+            right: SPACE.lg,
+            pointerEvents: "none",
+          }}
+        >
+          <DailyShapeRule />
+        </div>
 
         {/* IntroAnimation lives INSIDE .mp-page-root so that when it drops to
             z-index:-1 in the persistent phase it paints behind the lobby
