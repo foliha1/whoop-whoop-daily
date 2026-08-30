@@ -1153,7 +1153,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     const fade: React.CSSProperties = introRunning
       ? { opacity: 0, pointerEvents: "none" }
       : introComplete
-      ? { opacity: 1, transition: `opacity ${MOTION.medium} 120ms` }
+      ? { opacity: 1, transition: `opacity ${MOTION.base} 120ms` }
       : { opacity: 1 };
 
     const playModeTileStyle = (bg: string): React.CSSProperties => ({
