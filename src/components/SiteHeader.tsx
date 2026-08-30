@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Settings, X } from "lucide-react";
-import { COLORS, FONT_FAMILY, RADIUS, BORDER } from "@/lib/tokens";
+import { COLORS, FONT_FAMILY } from "@/lib/tokens";
+import SettingsSheet from "@/components/SettingsSheet";
 
 
 const TOUCH = 44;
@@ -108,87 +109,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onSettings, onLeave }) => {
         </nav>
       </header>
 
-      {showSettings && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="site-settings-title"
-          onClick={() => setShowSettings(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 60,
-            background: "rgba(35,31,32,0.6)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "100%",
-              maxWidth: 340,
-              background: COLORS.surface,
-              border: BORDER.heavy,
-              borderRadius: RADIUS.sm,
-              padding: 16,
-              display: "flex",
-              flexDirection: "column",
-              gap: 12,
-              boxSizing: "border-box",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-              <h2
-                id="site-settings-title"
-                style={{ margin: 0, fontFamily: FONT_FAMILY, fontSize: 20, fontWeight: 700, color: COLORS.ink }}
-              >
-                Settings
-              </h2>
-              <button
-                type="button"
-                onClick={() => setShowSettings(false)}
-                aria-label="Close settings"
-                style={{
-                  all: "unset",
-                  cursor: "pointer",
-                  width: TOUCH,
-                  height: TOUCH,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxSizing: "border-box",
-                }}
-              >
-                <X size={20} color={COLORS.ink} aria-hidden="true" />
-              </button>
-            </div>
-            <p style={{ margin: 0, fontFamily: FONT_FAMILY, fontSize: 15, color: COLORS.inkMuted }}>
-              Coming soon.
-            </p>
-            <a
-              href="/about#how-to-play"
-              style={{
-                minHeight: TOUCH,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontFamily: FONT_FAMILY,
-                fontSize: 16,
-                color: COLORS.ink,
-                textDecoration: "none",
-                border: BORDER.heavy,
-                borderRadius: RADIUS.sm,
-                boxSizing: "border-box",
-              }}
-            >
-              How to Play
-            </a>
-          </div>
-        </div>
-      )}
+      {showSettings && <SettingsSheet onClose={() => setShowSettings(false)} />}
     </>
   );
 };
