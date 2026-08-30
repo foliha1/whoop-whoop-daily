@@ -12,6 +12,7 @@
 
 import React from "react";
 import { createPortal } from "react-dom";
+import { usePortalHost } from "@/hooks/usePortalHost";
 import DailyShapeRule from "@/components/DailyShapeRule";
 import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
@@ -114,7 +115,7 @@ const GroupModalShell: React.FC<{
       </div>
       {!short && <DailyShapeRule />}
     </div>,
-    document.body
+    host
   );
 };
 

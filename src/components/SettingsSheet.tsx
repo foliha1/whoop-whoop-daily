@@ -13,6 +13,7 @@
 
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { usePortalHost } from "@/hooks/usePortalHost";
 import { COLORS, FONT_FAMILY, RADIUS, BORDER } from "@/lib/tokens";
 import { useThemeMode, type ThemeMode } from "@/lib/nightMode";
 import {
@@ -267,7 +268,7 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, onHowTo }) => {
   );
 
   if (typeof document === "undefined") return sheet;
-  return createPortal(sheet, document.body);
+  return createPortal(sheet, host);
 };
 
 export default SettingsSheet;

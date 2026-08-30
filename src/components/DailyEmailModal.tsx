@@ -24,6 +24,7 @@
 
 import React from "react";
 import { createPortal } from "react-dom";
+import { usePortalHost } from "@/hooks/usePortalHost";
 import DailyShapeRule from "@/components/DailyShapeRule";
 import DailyEmailCapture from "@/components/DailyEmailCapture";
 import CloseButton from "@/components/CloseButton";
@@ -187,7 +188,7 @@ const DailyEmailModal: React.FC<{
 
       {!compact && <DailyShapeRule />}
     </div>,
-    document.body
+    host
   );
 };
 
