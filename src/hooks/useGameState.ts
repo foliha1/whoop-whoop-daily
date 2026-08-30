@@ -2,6 +2,11 @@ import { useReducer, useCallback, useRef, useEffect, useMemo } from "react";
 import { Card, createDeck, ATTRIBUTES } from "@/cardData";
 import { createOpponentMemory, OpponentMemory } from "@/lib/opponentMemory";
 import { ROLL_HERO_MS } from "@/lib/multiplayer";
+import {
+  DAILY_MATCH_SETTLE_MS,
+  WRONG_SETTLE_TOTAL_MS,
+} from "@/lib/animationTiming";
+
 import { createRng, type Rng } from "@/lib/rng";
 import { computeSafetySwap, rngOf } from "@/lib/rolls";
 
@@ -130,12 +135,15 @@ export type Phase =
 
 // How long the engine holds in SETTLING so feedback animations can finish
 // before the board advances.
-// RULE: each settle constant MUST equal its animation's delay + duration.
-// Retune one and you must retune the other together.
-//   great match = 300ms delay + 1000ms duration = 1300ms
-//   wrong       =   0ms delay +  900ms duration =  900ms
-export const SETTLE_MATCH_MS = 1300;
-export const SETTLE_WRONG_MS = 1000;
+// RULE: each settle constant MUST equal the FULL sequence its board plays.
+// Multiplayer's pair is face down when a claim resolves — exactly like the
+// Daily's — so both settles are reveal (flip) + hold + treatment. The totals
+// live in animationTiming.ts; never restate them as literals here.
+//   match = 500 flip + 100 hold + 1300 ghost = 1900ms
+//   wrong = 500 flip + 100 hold + 1000 shake = 1600ms
+export const SETTLE_MATCH_MS = DAILY_MATCH_SETTLE_MS;
+export const SETTLE_WRONG_MS = WRONG_SETTLE_TOTAL_MS;
+
 
 
 type InFlight =
