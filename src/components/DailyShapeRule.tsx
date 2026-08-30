@@ -35,7 +35,7 @@ const dayCellOffset = (now = new Date()) => {
  * either edge. Each day the tile slides by a whole number of cells.
  *
  * Light and night patterns are rendered as two stacked layers and cross-faded
- * so theme switches feel gentle rather than abrupt.
+ * The tile is theme-agnostic: shape colours are frozen brand literals.
  */
 const DailyShapeRule: React.FC<{ style?: React.CSSProperties }> = ({ style }) => {
   const hostRef = useRef<HTMLDivElement>(null);
