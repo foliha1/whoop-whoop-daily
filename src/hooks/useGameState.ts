@@ -768,8 +768,8 @@ export function reducer(state: State, action: Action): State {
       const deck = [...state.deck];
       const pile: Card[] = [...(state.piles[top] ?? [])];
       while (pile.length < target && deck.length > 0) pile.push(deck.pop()!);
-      while (pile.length < target && pile.length > 0) pile.push(pile[pile.length % Math.max(1, pile.length - 1)] ?? pile[0]);
-      if (pile.length === 0) return state;
+      // Deck exhausted: pad by cycling the pile's own cards (debug-only).
+      for (let i = 0; pile.length < target && pile.length > 0; i++) pile.push(pile[i]);
       const scores = replaceAt(state.scores, top, pile.length);
       const piles = replaceAt(state.piles, top, pile);
       return { ...state, scores, piles, deck, drawEmpty: deck.length === 0 };
