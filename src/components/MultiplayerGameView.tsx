@@ -486,7 +486,8 @@ const ModalShell: React.FC<{
       >
         {children}
       </div>
-    </div>
+    </div>,
+    portalHost,
   );
 };
 
