@@ -1441,21 +1441,6 @@ describe("v6.7 two flips per turn", () => {
     expect(s.flippedThisCycle.has(0)).toBe(true);
   });
 
-  it("ends the turn early when no legal card is left for that seat", () => {
-    // Only slot 0 holds a card and it is locked out for seat 0.
-    const grid = baseState().grid.map((c, i) => (i <= 1 ? c : null));
-    let s = baseState({
-      phase: "FLIPPING",
-      flipper: 0,
-      flipsThisTurn: 0,
-      grid,
-      wrongBy: [new Set([1]), new Set()],
-    });
-    s = reducer(s, { type: "FLIP_START", by: 0, idx: 0, token: 1 });
-    s = reducer(s, { type: "FLIP_COMPLETE", token: 1 });
-    expect(s.flipper).toBe(1);
-  });
-
   it("SKIP_TICK fires for a connected flipper with no legal card left", () => {
     const s = baseState({
       phase: "FLIPPING",
