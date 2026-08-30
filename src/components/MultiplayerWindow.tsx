@@ -32,7 +32,6 @@ import { HelpCircle, Settings as SettingsIcon } from "lucide-react";
 import { useViewportHeight, compressionFactor, lerpCompress } from "@/hooks/useViewportHeight";
 import MultiplayerGameView from "@/components/MultiplayerGameView";
 import { useSoloGame } from "@/hooks/useSoloGame";
-import GridSizeOption, { GRID_OPTIONS, type GridSizeKey } from "@/components/GridSizeOption";
 import MultiplayerHowToSteps, { hasSeenMpHowTo } from "@/components/MultiplayerHowToSteps";
 
 /**
@@ -109,8 +108,9 @@ const GameShell: React.FC<{ mobile: boolean; children: React.ReactNode }> = ({ m
   </div>
 );
 
-const SoloView: React.FC<{ onLeave: () => void; mobile: boolean; gridSize: GridSizeKey }> = ({ onLeave, mobile, gridSize }) => {
-  const solo = useSoloGame(gridSize);
+const SoloView: React.FC<{ onLeave: () => void; mobile: boolean }> = ({ onLeave, mobile }) => {
+  // Every digital game is 3x3. Grid expansion stays a physical-game concept.
+  const solo = useSoloGame(FIXED_GRID);
   return (
     <GameShell mobile={mobile}>
     <MultiplayerGameView
@@ -152,6 +152,9 @@ interface MultiplayerWindowProps {
 }
 
 
+/** The only grid the digital rules are calibrated for. */
+const FIXED_GRID = "3x3" as const;
+
 const ROOM_CAPACITY = 6;
 
 type PendingAction =
@@ -161,8 +164,7 @@ type PendingAction =
 
 type View =
   | { kind: "idle"; error?: string }
-  | { kind: "solo"; gridSize: GridSizeKey }
-  | { kind: "solo-setup" }
+  | { kind: "solo" }
   /** Display name screen. The table-code field appears on the peeps path only. */
   | { kind: "name-prompt"; intent: "solo" | "peeps"; via?: "link"; error?: string }
   | { kind: "host"; room: RoomRow }
@@ -189,7 +191,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const [view, setView] = useState<View>(() => {
     // Join-by-link wins over ?mode=; the room-code effect below handles it.
     if (initialRoomCode) return { kind: "idle" };
-    if (initialMode === "solo") return { kind: "solo-setup" };
+    if (initialMode === "solo") return { kind: "solo" };
     if (initialMode === "multiplayer") return { kind: "name-prompt", intent: "peeps" };
     return { kind: "idle" };
   });
@@ -203,7 +205,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // Game-started state — seat freeze lives here on the HOST. Joiners learn
   // seats from the wire via PublicState.seatMap.
   const [frozenSeats, setFrozenSeats] = useState<SeatMapEntry[] | null>(null);
-  const [frozenGrid, setFrozenGrid] = useState<GridSizeKey | null>(null);
   // Host-minted game id. Scopes the arbiter's UNIQUE (room, game, window)
   // constraint so consecutive games in the same room don't collide.
   const [gameId, setGameId] = useState<string>("");
@@ -211,12 +212,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [shareFlash, setShareFlash] = useState(false);
   const [codeFlash, setCodeFlash] = useState(false);
-  const [lobbyGrid, setLobbyGrid] = useState<"3x2" | "3x3">("3x2");
   // How to Play stepper. `gate` fires once per browser on the first play click
   // and carries the action to run when it closes; `reference` is the header link.
   const [howTo, setHowTo] = useState<{ mode: "gate" | "reference"; then?: () => void } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [soloGrid, setSoloGrid] = useState<GridSizeKey>("3x2");
   const shareFlashTimerRef = useRef<number | null>(null);
   const codeFlashTimerRef = useRef<number | null>(null);
 
@@ -332,7 +331,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     hostVisitorId: visitorId,
     enabled: gameEnabled,
     gameId,
-    gridSize: frozenGrid ?? undefined,
+    gridSize: FIXED_GRID,
     roomId: activeRoom?.id ?? "",
     disconnectedSeats,
     awaySeats,
@@ -533,7 +532,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     const stored = setDisplayName(trimmed);
     setNameInput(stored);
     if (view.intent === "solo") {
-      setView({ kind: "solo-setup" });
+      setView({ kind: "solo" });
       return;
     }
     // Peeps path: a code joins that table, an empty field starts a new one.
@@ -589,40 +588,22 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     }
     setGameId(newGameId);
     setFrozenSeats(seatMap);
-    setFrozenGrid(lobbyGrid);
     completedFiredRef.current = false;
     trackEvent("game_started", {
       roomCode: activeRoom?.room_code,
-      metadata: { player_count: seatMap.length, grid_size: lobbyGrid },
+      metadata: { player_count: seatMap.length, grid_size: FIXED_GRID },
     });
-  }, [isHostView, participants, activeRoom, starting, channel, visitorId, lobbyGrid]);
+  }, [isHostView, participants, activeRoom, starting, channel, visitorId]);
 
-  // Joiner: listen for host's game_starting notice + lobby grid selection.
+  // Joiner: listen for the host's game_starting notice.
   useEffect(() => {
     if (view.kind !== "joiner") return;
     const unsub = onBroadcast(({ payload }) => {
       if (!payload || typeof payload !== "object") return;
-      const kind = (payload as { kind?: string }).kind;
-      if (kind === "game_starting") {
-        setStarting(true);
-      } else if (kind === "lobby_grid") {
-        const size = (payload as { size?: string }).size;
-        if (size === "3x2" || size === "3x3") setLobbyGrid(size);
-      }
+      if ((payload as { kind?: string }).kind === "game_starting") setStarting(true);
     });
     return unsub;
   }, [view.kind, onBroadcast]);
-
-  // Host: broadcast the current lobby grid selection whenever it changes,
-  // and once when a joiner arrives (roster growth) so late joiners sync.
-  useEffect(() => {
-    if (view.kind !== "host" || !channel) return;
-    try {
-      channel.send({ type: "broadcast", event: "msg", payload: { kind: "lobby_grid", size: lobbyGrid } });
-    } catch {
-      /* non-fatal */
-    }
-  }, [view.kind, channel, lobbyGrid, participants.length]);
 
   const shareUrl = (code: string) =>
     typeof window !== "undefined" ? `${window.location.origin}/play/${code}` : `/play/${code}`;
@@ -874,48 +855,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
   // ---------- SOLO ----------
   if (view.kind === "solo") {
-    return <SoloView onLeave={leaveToIdle} mobile={mobile} gridSize={view.gridSize} />;
-  }
-
-  // ---------- SOLO SETUP (grid-size choice) ----------
-  if (view.kind === "solo-setup") {
-    return entryFrame({
-      headline: "Choose your grid size",
-      children: (
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: sectionGap }}>
-          <div style={{ display: "flex", gap: sectionGap, alignSelf: "stretch", alignItems: "stretch" }}>
-            {GRID_OPTIONS.map((opt) => (
-              <GridSizeOption
-                key={opt.key}
-                option={opt}
-                selected={soloGrid === opt.key}
-                scale={miniScale}
-                onSelect={setSoloGrid}
-              />
-            ))}
-          </div>
-
-          <div style={{ display: "flex", gap: SPACE[4], height: tileH, alignSelf: "stretch" }}>
-            <button
-              type="button"
-              onClick={() => setView({ kind: "idle" })}
-              className="ww-press" style={railButtonStyle()}
-            >
-              <AutoFitText minScale={0.6}>BACK</AutoFitText>
-            </button>
-            <button
-              type="button"
-              onClick={() => setView({ kind: "solo", gridSize: soloGrid })}
-              className="ww-press" style={playButtonStyle()}
-            >
-              <span className="ww-shine-thin" aria-hidden="true" style={{ pointerEvents: "none", background: "#F8F2E9", transformOrigin: "0 0" }} />
-              <span className="ww-shine-wide" aria-hidden="true" style={{ pointerEvents: "none", background: "#F8F2E9", transformOrigin: "0 0" }} />
-              <AutoFitText minScale={0.55}>Let's Play!</AutoFitText>
-            </button>
-          </div>
-        </div>
-      ),
-    });
+    return <SoloView onLeave={leaveToIdle} mobile={mobile} />;
   }
 
   // ---------- GAME IN PROGRESS: HOST ----------
@@ -1368,25 +1308,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   );
 
 
-  // ---- Section 2: Choose your grid size ----
-  const gridPickerSection = (
-    <div style={sectionStyle}>
-      <div style={sectionTitleStyle}>Choose your grid size</div>
-      <div style={{ display: "flex", gap: sectionGap, alignSelf: "stretch", alignItems: "stretch" }}>
-        {GRID_OPTIONS.map((opt) => (
-          <GridSizeOption
-            key={opt.key}
-            option={opt}
-            selected={lobbyGrid === opt.key}
-            scale={miniScale}
-            interactive={isHost && !starting}
-            onSelect={setLobbyGrid}
-          />
-        ))}
-      </div>
-    </div>
-  );
-
   // ---- Section 3: Players ----
   const seatSlots = Array.from({ length: ROOM_CAPACITY }, (_, i) => visibleParticipants[i] ?? null);
 
@@ -1600,7 +1521,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         {joinerStatusBar}
         {startingBanner}
         {tableInfoSection}
-        {gridPickerSection}
         {playersSection}
         {buttonsSection}
         {leaveConfirmDialog}
