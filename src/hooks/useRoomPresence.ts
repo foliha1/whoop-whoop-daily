@@ -162,8 +162,7 @@ export function useRoomPresence(
         try {
           // If the socket died while backgrounded, tracking alone won't
           // reach the server — resubscribe first and wait for it.
-          const state = (ch as unknown as { state?: string }).state;
-          if (state === "closed" || state === "errored") {
+          if (ch.state === "closed" || ch.state === "errored") {
             await new Promise<void>((resolve) => {
               ch.subscribe((subStatus) => {
                 if (subStatus === "SUBSCRIBED") resolve();
