@@ -18,7 +18,7 @@ import {
 
 import { AppButton } from "@/components/ui/AppButton";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getVisitorId, getDisplayName, setDisplayName } from "@/lib/visitor";
+import { getVisitorId, getDisplayName, setDisplayName, DISPLAY_NAME_MAX } from "@/lib/visitor";
 import { trackEvent } from "@/lib/analytics";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
 import { useMultiplayerHost, useMultiplayerJoiner, useTransientEvents, type SeatMapEntry } from "@/hooks/useMultiplayerGame";
@@ -938,56 +938,44 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   }
 
   if (view.kind === "name-prompt") {
-    const NAME_CAP = 6;
+    const NAME_CAP = DISPLAY_NAME_MAX;
     const chars = nameInput.slice(0, NAME_CAP).split("");
     const boxes = Array.from({ length: NAME_CAP }, (_, i) => chars[i] ?? "");
     const canContinue = !busy && nameInput.trim().length > 0;
     // The box the next character lands in. When full, the last box stays active.
     const activeBox = Math.min(chars.length, NAME_CAP - 1);
+    const showCodeField = view.intent === "peeps";
 
     const focusHiddenInput = () => {
       hiddenNameInputRef.current?.focus();
     };
 
-    const nameCard = (
-      <div style={{
-        ...panelStyle("surface", 8),
-        alignSelf: "stretch",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        gap: SPACE[12],
-        height: "auto",
-        justifyContent: "center",
-      }}>
-        <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-          <div style={{ ...textStyle("hero", mobile), fontStyle: "italic", color: COLORS.ink }}>
-            Pick a nickname
+    return entryFrame({
+      headline: "Pick a display name",
+      children: (
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+          <div style={{ ...textStyle("caption", mobile), color: COLORS.ink, textAlign: "center" }}>
+            Your display name is shown during game play. Up to {NAME_CAP} characters.
           </div>
-          <div style={{ ...textStyle("caption", mobile), color: COLORS.ink }}>
-            Your nickname will be shown during game play. Up to 6 characters.
-          </div>
-        </div>
 
-        {view.error && (
-          <div role="alert" style={alertStyle}>
-            {view.error}
-          </div>
-        )}
+          {view.error && (
+            <div role="alert" style={alertStyle}>
+              {view.error}
+            </div>
+          )}
 
-        <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
-          {/* Character display row — single overlaid input for real keyboard/paste/autofill */}
+          {/* Character display row — one overlaid input so real keyboards,
+              paste and autofill all work. No container stroke: the boxes are
+              the controls. */}
           <div
             onMouseDown={(e) => { e.preventDefault(); focusHiddenInput(); }}
             onTouchStart={() => { focusHiddenInput(); }}
             style={{
-              ...panelStyle("panel", 4),
               position: "relative",
+              alignSelf: "stretch",
               display: "flex",
               alignItems: "center",
               gap: SPACE[4],
-              height: 72,
-              borderRadius: RADIUS.sm,
               cursor: "text",
             }}
           >
@@ -1002,7 +990,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                     flexGrow: 1,
                     flexBasis: 0,
                     minWidth: 0,
-                    height: CONTROL_H.lg + SPACE[2],
+                    height: CONTROL_H.lg,
                     background: COLORS.surface,
                     border: isActive ? `3px solid ${COLORS.blue}` : BORDER.heavy,
                     borderRadius: RADIUS.md,
@@ -1016,12 +1004,12 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                   }}
                 >
                   {ch}
-                  {/* Resting state: a short baseline stroke in empty boxes so the
-                      row reads as an input, not decorative outlines. */}
+                  {/* Resting state: a short baseline stroke in empty boxes so
+                      the row reads as an input, not decorative outlines. */}
                   {!ch && (
                     <div style={{
                       position: "absolute",
-                      bottom: SPACE[8],
+                      bottom: SPACE[5],
                       left: "25%",
                       right: "25%",
                       height: 2,
@@ -1064,7 +1052,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               autoCapitalize="characters"
               autoCorrect="off"
               spellCheck={false}
-              aria-label="Nickname"
+              aria-label="Display name"
               style={{
                 position: "absolute",
                 inset: 0,
@@ -1084,20 +1072,45 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             />
           </div>
 
+          {/* Table code — peeps path only. Empty starts a new table; a code
+              joins an existing one. Arriving via /play/:roomCode prefills it. */}
+          {showCodeField && (
+            <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
+              <label
+                htmlFor="table-code"
+                style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}
+              >
+                Already have a table code? Leave it blank to start your own.
+              </label>
+              <input
+                id="table-code"
+                value={codeInput}
+                onChange={(e) => setCodeInput(sanitizeCodeInput(e.target.value))}
+                placeholder="ABC123"
+                inputMode="text"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck={false}
+                maxLength={ROOM_CODE_LENGTH}
+                aria-label="Table code"
+                style={{
+                  ...inputStyle,
+                  minHeight: TOUCH_MIN,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  textAlign: "center",
+                }}
+              />
+            </div>
+          )}
+
           {/* Button row */}
-          <div style={{ alignSelf: "stretch", display: "flex", gap: SPACE[5], height: 71 }}>
+          <div style={{ alignSelf: "stretch", display: "flex", gap: SPACE[5], height: 72 }}>
             <button
               type="button"
               onClick={leaveToIdle}
               disabled={busy}
-              style={{
-                ...buttonStyle("ink", "lg", { mobile, disabled: busy }),
-                width: 87,
-                height: "100%",
-                flexShrink: 0,
-                padding: 0,
-                opacity: 1,
-              }}
+              style={{ ...railButtonStyle(busy), opacity: 1 }}
             >
               <AutoFitText minScale={0.6}>Cancel</AutoFitText>
             </button>
@@ -1105,24 +1118,15 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               type="button"
               onClick={handleConfirmName}
               disabled={!canContinue}
-              style={{
-                ...buttonStyle("primary", "lg", { mobile, disabled: !canContinue }),
-                ...textStyle("action", mobile),
-                flexGrow: 1,
-                height: "100%",
-                padding: 0,
-                opacity: canContinue ? 1 : 0.7,
-              }}
+              className={canContinue ? "ww-press" : undefined}
+              style={{ ...playButtonStyle(!canContinue), opacity: canContinue ? 1 : 0.7 }}
             >
-              <AutoFitText minScale={0.55}>{busy ? "Connecting…" : "Continue"}</AutoFitText>
+              <AutoFitText minScale={0.55}>{busy ? "Connecting…" : "Let's Play!"}</AutoFitText>
             </button>
           </div>
         </div>
-
-      </div>
-    );
-
-    return wrapInShell(nameCard);
+      ),
+    });
   }
 
   if (view.kind === "full") {
