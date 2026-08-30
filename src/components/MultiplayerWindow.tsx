@@ -852,6 +852,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     const chars = nameInput.slice(0, NAME_CAP).split("");
     const boxes = Array.from({ length: NAME_CAP }, (_, i) => chars[i] ?? "");
     const canContinue = !busy && nameInput.trim().length > 0;
+    // The box the next character lands in. When full, the last box stays active.
+    const activeBox = Math.min(chars.length, NAME_CAP - 1);
 
     const focusHiddenInput = () => {
       hiddenNameInputRef.current?.focus();
