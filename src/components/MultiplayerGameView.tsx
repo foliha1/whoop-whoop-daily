@@ -38,6 +38,8 @@ import {
   applyAnimationTimingVars,
 } from "@/lib/animationTiming";
 import { serverNow } from "@/hooks/useServerClock";
+import { TARGET_SCORE } from "@/hooks/useGameState";
+
 import RollHeroOverlay from "@/components/RollHeroOverlay";
 import { MATCH_ART_SRC } from "@/components/MatchDie";
 import type { Card } from "@/cardData";
