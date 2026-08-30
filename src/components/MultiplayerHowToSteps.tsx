@@ -30,14 +30,15 @@ import {
   SELECT_ANIM_MS,
 } from "@/lib/animationTiming";
 import { trackEvent } from "@/lib/analytics";
+import DailyShapeRule from "@/components/DailyShapeRule";
 import {
-  BORDER,
-  buttonStyle,
   COLORS,
+  FONT_FAMILY,
+  FONT_FAMILY_UI,
+  FONT_WEIGHT_UI,
   MOTION,
   RADIUS,
   RAW,
-  SHADOW,
   SPACE,
   textStyle,
 } from "@/lib/tokens";
@@ -165,12 +166,20 @@ const CARD_BASE_W = 354;
 const CARD_BASE_H = 569;
 const CARD_RATIO = CARD_BASE_H / CARD_BASE_W;
 
-type Step = { cardMaxW: number; innerMaxW: number; vis: number };
+type Step = {
+  cardMaxW: number;
+  innerMaxW: number;
+  headingBig: number;
+  heading: number;
+  bodyBig: number;
+  body: number;
+  vis: number;
+};
 
 const STEPS: { min: number; step: Step }[] = [
-  { min: 1280, step: { cardMaxW: 520, innerMaxW: 426, vis: 520 / CARD_BASE_W } },
-  { min: 768, step: { cardMaxW: 440, innerMaxW: 360, vis: 440 / CARD_BASE_W } },
-  { min: 0, step: { cardMaxW: CARD_BASE_W, innerMaxW: 290, vis: 1 } },
+  { min: 1280, step: { cardMaxW: 520, innerMaxW: 426, headingBig: 64, heading: 48, bodyBig: 18, body: 16, vis: 520 / CARD_BASE_W } },
+  { min: 768, step: { cardMaxW: 440, innerMaxW: 360, headingBig: 56, heading: 42, bodyBig: 17, body: 15, vis: 440 / CARD_BASE_W } },
+  { min: 0, step: { cardMaxW: CARD_BASE_W, innerMaxW: 290, headingBig: 48, heading: 36, bodyBig: 16, body: 14, vis: 1 } },
 ];
 
 const stepFor = (w: number): Step => STEPS.find((s) => w >= s.min)!.step;
@@ -785,6 +794,25 @@ export const MP_HOWTO_STEP_COUNT = SLIDES.length;
 
 const SWIPE_PX = 40;
 
+/** Step-card button surface, identical to the Daily stepper's. */
+const buttonBase: React.CSSProperties = {
+  height: 43.54,
+  borderRadius: RADIUS.sm,
+  border: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 6,
+  boxSizing: "border-box",
+  fontFamily: FONT_FAMILY,
+  fontWeight: 400,
+  fontSize: 16,
+  letterSpacing: "0.02em",
+  background: INK,
+  color: RAW.cream,
+  cursor: "pointer",
+};
+
 /* ------------------------------------------------------------------ *
  * The stepper.
  *
@@ -871,25 +899,29 @@ const MultiplayerHowToSteps: React.FC<{
   };
 
   const headingStyle = (big: boolean): React.CSSProperties => ({
-    ...textStyle(big ? "hero" : "heading"),
+    fontFamily: FONT_FAMILY,
+    fontWeight: 400,
+    fontStyle: "normal",
+    fontSize: big ? sz.headingBig : sz.heading,
+    lineHeight: 1.05,
+    letterSpacing: "-0.01em",
     color: INK,
     textAlign: "center",
     margin: 0,
   });
 
-  const bodyStyle: React.CSSProperties = {
-    ...textStyle("caption"),
+  const bodyStyle = (big: boolean): React.CSSProperties => ({
+    fontFamily: FONT_FAMILY_UI,
+    fontWeight: FONT_WEIGHT_UI,
+    fontSize: big ? sz.bodyBig : sz.body,
+    lineHeight: 1.2,
     color: INK,
     textAlign: "center",
     margin: 0,
     whiteSpace: "pre-wrap",
-  };
+  });
 
-  const stepButton: React.CSSProperties = {
-    ...buttonStyle("ink", "md"),
-    flex: "1 1 0",
-    minWidth: 0,
-  };
+  const stepButton: React.CSSProperties = { ...buttonBase, flex: "1 1 0" };
 
   const renderSlide = (index: number, entering: boolean, d: 1 | -1) => {
     const s = SLIDES[index];
@@ -906,12 +938,10 @@ const MultiplayerHowToSteps: React.FC<{
             height: "100%",
             background: RAW.khaki,
             borderRadius: RADIUS.sm,
-            border: BORDER.heavy,
-            boxShadow: SHADOW.windowUnfocused,
             /* Vertical padding gives height back on very short viewports
                (in-app browser chrome) and clamps to its authored value on a
                normal phone screen and up. */
-            padding: `min(${SPACE[12]}px, 3.5vh) clamp(${SPACE[8]}px, 9%, ${SPACE[16]}px) min(${SPACE[16]}px, 5vh)`,
+            padding: "min(24px, 3.5vh) clamp(16px, 9%, 32px) min(32px, 5vh)",
             boxSizing: "border-box",
             display: "flex",
             flexDirection: "column",
@@ -934,13 +964,13 @@ const MultiplayerHowToSteps: React.FC<{
             justifyContent: "space-between",
           }}
         >
-          <div style={{ display: "flex", gap: SPACE[2] }} aria-hidden="true">
+          <div style={{ display: "flex", gap: 4 }} aria-hidden="true">
             {SLIDES.map((_, i) => (
               <span
                 key={i}
                 style={{
-                  width: 12,
-                  height: 12,
+                  width: 12.17,
+                  height: 12.17,
                   borderRadius: "50%",
                   background: i === index ? INK : "transparent",
                   border: i === index ? "none" : `2px solid ${INK}`,
@@ -986,13 +1016,13 @@ const MultiplayerHowToSteps: React.FC<{
             flexDirection: "column",
             alignItems: "center",
             justifyContent: s.visual ? "space-between" : "center",
-            gap: s.visual ? 0 : SPACE[10],
+            gap: s.visual ? 0 : 20,
             paddingBottom: s.visual ? STEP_GAP : 0,
           }}
         >
           {s.big ? <h2 style={headingStyle(true)}>{s.heading}</h2> : null}
           {s.visual ? <VisualFit key={`vis-${index}`}>{s.visual(sz, entering)}</VisualFit> : null}
-          <p style={{ ...bodyStyle, flex: "0 0 auto" }}>{s.body}</p>
+          <p style={{ ...bodyStyle(!!s.big), flex: "0 0 auto" }}>{s.body}</p>
         </div>
 
         {/* buttons */}
@@ -1003,7 +1033,7 @@ const MultiplayerHowToSteps: React.FC<{
             flex: "0 0 auto",
             marginTop: STEP_GAP,
             display: "flex",
-            gap: `clamp(${SPACE[8]}px, 16.5%, 48px)`,
+            gap: "clamp(16px, 16.5%, 48px)",
           }}
         >
           {last ? (
@@ -1012,9 +1042,11 @@ const MultiplayerHowToSteps: React.FC<{
               className="ww-press"
               onClick={finish}
               style={{
-                ...buttonStyle("play", "md"),
+                ...buttonBase,
                 flex: "1 1 0",
-                minWidth: 0,
+                background: COLORS.red,
+                border: `2px solid ${INK}`,
+                fontStyle: "italic",
               }}
             >
               Lets Play!
@@ -1065,28 +1097,50 @@ const MultiplayerHowToSteps: React.FC<{
         background: COLORS.surface,
         boxSizing: "border-box",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "space-between",
         overflow: "hidden",
-        padding: SPACE[12],
-        paddingBottom: `calc(${SPACE[12]}px + env(safe-area-inset-bottom))`,
-      }}
+        /* Same 24px frame as the Daily stepper. */
+        gap: 24,
+        padding: 24,
+        paddingBottom: "calc(24px + env(safe-area-inset-bottom))",
+        "--daily-content-max-width": "402px",
+        "--daily-content-padding-x": "24px",
+      } as React.CSSProperties}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
     >
+      <DailyShapeRule />
+
       <div
         style={{
+          flex: "1 1 auto",
+          minHeight: 0,
           width: "100%",
-          maxWidth: sz.cardMaxW,
-          height: "100%",
-          maxHeight: Math.round(sz.cardMaxW * CARD_RATIO),
-          flex: "0 0 auto",
-          position: "relative",
+          padding: 0,
+          boxSizing: "border-box",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        {prev && renderSlide(prev.index, false, prev.dir)}
-        <React.Fragment key={step}>{renderSlide(step, true, dir)}</React.Fragment>
+        <div
+          style={{
+            width: "100%",
+            maxWidth: sz.cardMaxW,
+            height: "100%",
+            maxHeight: Math.round(sz.cardMaxW * CARD_RATIO),
+            flex: "0 0 auto",
+            position: "relative",
+          }}
+        >
+          {prev && renderSlide(prev.index, false, prev.dir)}
+          <React.Fragment key={step}>{renderSlide(step, true, dir)}</React.Fragment>
+        </div>
       </div>
+
+      <DailyShapeRule />
     </div>
   );
 };
