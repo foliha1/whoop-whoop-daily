@@ -1049,8 +1049,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       headline: "Pick a display name",
       children: (
         <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
-          <div style={{ ...smallCopy, color: COLORS.inkMuted, textAlign: "center" }}>
-            Your display name is shown during game play. Up to {NAME_CAP} characters.
+          <div style={{ ...smallCopy, color: COLORS.inkMuted, textAlign: "center", whiteSpace: "pre-line" }}>
+            {`Your display name is shown during game play.\nUp to ${NAME_CAP} characters.`}
           </div>
 
           {view.error && (
@@ -1131,7 +1131,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 htmlFor="table-code"
                 style={{ ...smallCopy, color: COLORS.orange, textAlign: "center" }}
               >
-                Already have a table code? Leave it blank to start your own.
+                {"Already have a table code?\nLeave it blank to start your own."}
               </label>
               <input
                 id="table-code"
