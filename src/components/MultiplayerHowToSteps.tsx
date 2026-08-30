@@ -833,6 +833,10 @@ const MultiplayerHowToSteps: React.FC<{
   const [dir, setDir] = useState<1 | -1>(1);
   const drag = useRef<{ x: number; y: number } | null>(null);
   const sz = useStep();
+  // Portalled to body: callers render this inside FitColumn's scaled (and
+  // faded) column, and a transformed ancestor turns position:fixed into a
+  // container-relative box — the modal then covers only the mobile column.
+  const portalHost = usePortalHost("mp-howto");
 
   useEffect(() => {
     markMpHowToSeen();
