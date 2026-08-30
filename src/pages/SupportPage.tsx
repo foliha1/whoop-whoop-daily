@@ -99,6 +99,7 @@ const SupportPage: React.FC = () => {
         <meta property="og:url" content={url} />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary" />
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <SiteHeader />

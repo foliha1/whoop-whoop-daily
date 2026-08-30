@@ -25,6 +25,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Settings, X } from "lucide-react";
+import SettingsSheet from "@/components/SettingsSheet";
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
 import SiteHeader, { SITE_HEADER_H } from "@/components/SiteHeader";
 import GameCard from "@/components/GameCard";
@@ -1701,43 +1702,7 @@ const MultiplayerGameView: React.FC<Props> = ({
 
 
       {showSettings && (
-        <ModalShell titleId="mp-settings-title" onCancel={() => setShowSettings(false)}>
-          <h2 id="mp-settings-title" style={{ margin: 0, fontFamily: FONT_FAMILY, fontSize: 20, fontWeight: 700, color: INK }}>
-            Settings
-          </h2>
-          <p style={{ margin: 0, fontFamily: FONT_FAMILY, fontSize: 15, color: MUTED }}>
-            Coming soon.
-          </p>
-          <a
-            href="/about#how-to-play"
-            style={{
-              minHeight: 44,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontFamily: FONT_FAMILY, fontSize: 16, color: INK,
-              textDecoration: "none", border: BORDER_HEAVY, borderRadius: R_BOX,
-              boxSizing: "border-box",
-            }}
-          >
-            How to Play
-          </a>
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
-            <button
-              type="button"
-              onClick={() => setShowSettings(false)}
-              style={{
-                all: "unset", cursor: "pointer",
-                  minHeight: 44, minWidth: 44,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                padding: "8px 16px", background: INK, color: SURFACE,
-                border: BORDER_HEAVY, borderRadius: R_BOX,
-                fontFamily: FONT_FAMILY, fontSize: 16,
-              }}
-              aria-label="Close settings"
-            >
-              Close
-            </button>
-          </div>
-        </ModalShell>
+        <SettingsSheet onClose={() => setShowSettings(false)} />
       )}
       {showLeave && (
         <ModalShell titleId="mp-leave-title" onCancel={() => setShowLeave(false)}>

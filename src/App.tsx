@@ -52,16 +52,16 @@ const AnimatedRoutes: React.FC = () => {
             multiplayer push ships; re-enable by moving this back above with
             the open routes. */}
         <Route path="/groups" element={<DebugOnlyRoute><GroupsPage /></DebugOnlyRoute>} />
+        <Route path="/about" element={<SupportPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/admin" element={<AdminPage />} />
 
 
 
-        {/* Debug-gated routes: 404 in production, live under ?debug=1. */}
         <Route path="/play" element={<MultiplayerPage />} />
         <Route path="/play/:roomCode" element={<MultiplayerPage />} />
-        <Route path="/about" element={<DebugOnlyRoute><SupportPage /></DebugOnlyRoute>} />
+        {/* Debug-gated routes: 404 in production, live under ?debug=1. */}
         <Route path="/typography" element={<DebugOnlyRoute><TypographyPage /></DebugOnlyRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
