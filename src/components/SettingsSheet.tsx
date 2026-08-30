@@ -141,7 +141,11 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, onHowTo }) => {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  return (
+  // Rendered through a portal: the callers sit inside scaled/faded columns
+  // (FitColumn, DailyScreenFade), and a transformed ancestor turns
+  // `position: fixed` into a container-relative box — which is what squeezed
+  // and clipped this sheet inside the content column.
+  const sheet = (
     <div
       role="dialog"
       aria-modal="true"
