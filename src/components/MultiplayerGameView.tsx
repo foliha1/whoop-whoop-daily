@@ -1013,7 +1013,11 @@ const MultiplayerGameView: React.FC<Props> = ({
   // ghost copies are the only visible cards for the whole SETTLE_MATCH_MS.
   const matchSettling = s.phase === "SETTLING" && s.settleKind === "MATCH";
   const wrongSettling = s.phase === "SETTLING" && s.settleKind === "WRONG";
-  React.useEffect(() => {
+  // Layout effect: the real cards leave the table in the same commit that
+  // matchSettling turns true, so the ghost copies must be measured and
+  // mounted before the browser paints — otherwise there is one painted frame
+  // of empty slots (the flash). A layout effect re-render lands pre-paint.
+  React.useLayoutEffect(() => {
     if (!matchSettling) return;
     const idxs = lastPairRef.current;
     const copies = idxs.flatMap<GhostCard>((i) => {
@@ -1717,7 +1721,11 @@ const MultiplayerGameView: React.FC<Props> = ({
           the play root, above the grid but below modals. It owns the whole
           reveal → hold → ghost timeline. */}
       {ghost.length > 0 && (
-        <DailyMatchGhost pair={ghost} onDone={() => setGhost([])} />
+        <DailyMatchGhost
+          pair={ghost}
+          onDone={() => setGhost([])}
+          startFaceUp
+        />
       )}
 
 
