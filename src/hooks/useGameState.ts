@@ -2,6 +2,11 @@ import { useReducer, useCallback, useRef, useEffect, useMemo } from "react";
 import { Card, createDeck, ATTRIBUTES } from "@/cardData";
 import { createOpponentMemory, OpponentMemory } from "@/lib/opponentMemory";
 import { ROLL_HERO_MS } from "@/lib/multiplayer";
+import {
+  DAILY_MATCH_SETTLE_MS,
+  WRONG_SETTLE_TOTAL_MS,
+} from "@/lib/animationTiming";
+
 import { createRng, type Rng } from "@/lib/rng";
 import { computeSafetySwap, rngOf } from "@/lib/rolls";
 
