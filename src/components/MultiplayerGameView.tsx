@@ -1686,49 +1686,13 @@ const MultiplayerGameView: React.FC<Props> = ({
       {bottomRow}
       </div>
 
-      {/* Great-match flying copies. Fixed layer, direct child of the play
-          root, above the grid but below modals (z=50). Nothing renders when
-          there is no active great match. */}
-      {flyCards.length > 0 && (
-        <div
-          aria-hidden
-          style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 40 }}
-        >
-          {flyCards.map((f) => (
-            <div
-              key={f.key}
-              className="ww-great"
-              style={{
-                position: "absolute",
-                top: f.rect.top, left: f.rect.left,
-                width: f.rect.width, height: f.rect.height,
-                borderRadius: R_CARD,
-                overflow: "hidden",
-                pointerEvents: "none",
-                ["--ww-k" as string]: String(f.rect.width / 104.333),
-              }}
-            >
-              <img
-                src={f.card.svgPath}
-                alt=""
-                draggable={false}
-                style={{ width: "100%", height: "100%", display: "block", borderRadius: R_CARD }}
-              />
-              {/* The copy carries the entire great-match treatment: wash,
-                  shine, then ring on top. */}
-              <div
-                className="ww-great-wash"
-                style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1 }}
-              />
-              <div className="ww-great-shine" style={{ pointerEvents: "none", zIndex: 2 }} />
-              <div
-                className="ww-great-ring"
-                style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 3 }}
-              />
-            </div>
-          ))}
-        </div>
+      {/* Correct-claim reward. The Daily's own layer: fixed, direct child of
+          the play root, above the grid but below modals. It owns the whole
+          reveal → hold → ghost timeline. */}
+      {ghost.length > 0 && (
+        <DailyMatchGhost pair={ghost} onDone={() => setGhost([])} />
       )}
+
 
 
       {showSettings && (
