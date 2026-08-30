@@ -1146,24 +1146,19 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   }
 
   if (view.kind === "idle") {
-    const codeEnabled = codeInput.length === ROOM_CODE_LENGTH;
     const introRunning = introStatus === "running";
     const introComplete = introStatus === "complete";
-    // The lobby logo has been removed from this screen — the intro's final
-    // frame masks the logo so the container itself takes that space, centred
-    // on screen. Only the container fades in; nothing else animates.
-    const cardStyleIntro: React.CSSProperties = introRunning
+    // The intro's final frame lands on the lockup, so the column only fades in
+    // once the intro has handed over. Nothing else animates.
+    const fade: React.CSSProperties = introRunning
       ? { opacity: 0, pointerEvents: "none" }
       : introComplete
-      ? { opacity: 1, transition: "opacity 300ms ease 120ms" }
+      ? { opacity: 1, transition: `opacity ${MOTION.medium} 120ms` }
       : { opacity: 1 };
-    // Single wrapper: the reveal target IS the intro-hide target. The idle
-    // view intentionally skips wrapInShell's extra inner column so there is
-    // exactly one element sized like the card, and that element carries the
-    // opacity/pointer-events driven by introStatus. See fix note in commit.
+
     const playModeTileStyle = (bg: string): React.CSSProperties => ({
       flex: 1,
-      height: 101,
+      minHeight: 96,
       background: bg,
       border: BORDER.heavy,
       borderRadius: RADIUS.md,
@@ -1184,148 +1179,56 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       textAlign: "center",
     });
 
-    const idleCard = (
-      <div style={{
-        ...panelStyle("surface", 8),
-        width: "100%",
-        maxWidth: 390,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        justifyContent: "center",
-        gap: SPACE[8],
-        height: "auto",
-        ...cardStyleIntro,
-      }}>
-        {view.error && (
-          <div role="alert" style={alertStyle}>
-            {view.error}
-          </div>
-        )}
-
-        <div style={{ ...textStyle("hero", mobile), color: COLORS.ink, textAlign: "center" }}>
-          How do you want to play?
-        </div>
-
-        <p
-          style={{
-            margin: 0,
-            fontFamily: '"Geist", "Geist Sans", system-ui, -apple-system, "Segoe UI", sans-serif',
-            fontWeight: 500,
-            fontSize: 14,
-            lineHeight: 1.45,
-            color: COLORS.inkMuted,
-            textAlign: "center",
-          }}
-        >
-          Different from the Daily: no timer, no peek, and the round keeps going until someone lands a match.
-        </p>
-
-        <div style={{ alignSelf: "stretch", display: "flex", gap: SPACE[8] }}>
-          <button
-            type="button"
-            onClick={handlePlaySolo}
-            disabled={busy}
-            style={playModeTileStyle(COLORS.blue)}
-            aria-label="Play Solo"
-          >
-            <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-              <circle cx="16" cy="11" r="5" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" />
-              <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" strokeLinecap="round" />
-            </svg>
-            <div style={playModeLabelStyle(COLORS.soloTint)}>
-              Play Solo
+    return entryFrame({
+      headline: "How do you want to play today?",
+      fade,
+      children: (
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+          {view.error && (
+            <div role="alert" style={alertStyle}>
+              {view.error}
             </div>
-          </button>
+          )}
 
-          <button
-            type="button"
-            onClick={handleStartRoom}
-            disabled={busy}
-            style={playModeTileStyle(COLORS.red)}
-            aria-label="Play with Peeps"
-          >
-            <svg width="64" height="32" viewBox="0 0 64 32" aria-hidden="true">
-              <circle cx="16" cy="12" r="5" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" />
-              <path d="M6 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
-              <circle cx="48" cy="12" r="5" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" />
-              <path d="M38 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
-            </svg>
-            <div style={playModeLabelStyle(COLORS.peepsTint)}>
-              Play with Peeps
-            </div>
-          </button>
-        </div>
-
-        <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-          <div style={{ ...textStyle("control", mobile), color: COLORS.ink, textAlign: "left" }}>
-            Already have a table code?
-          </div>
-          <div style={{
-            ...panelStyle("panel", 4),
-            display: "flex",
-            alignItems: "center",
-            gap: SPACE[4],
-            borderRadius: RADIUS.sm,
-          }}>
-            <input
-              value={codeInput}
-              onChange={(e) => setCodeInput(sanitizeCodeInput(e.target.value))}
-              placeholder="ABC123"
-              inputMode="text"
-              autoCapitalize="characters"
-              autoCorrect="off"
-              spellCheck={false}
-              maxLength={ROOM_CODE_LENGTH}
-              aria-label="Table code"
-              style={{
-                ...textStyle("control", mobile),
-                flexGrow: 1,
-                minWidth: 0,
-                minHeight: TOUCH_MIN,
-                padding: `${SPACE[4]}px ${SPACE[8]}px`,
-                background: COLORS.surface,
-                border: BORDER.heavy,
-                borderRadius: RADIUS.sm,
-                boxSizing: "border-box",
-                letterSpacing: "0.1em",
-                color: COLORS.ink,
-                textTransform: "uppercase",
-                outline: "none",
-              }}
-            />
+          <div style={{ alignSelf: "stretch", display: "flex", gap: SPACE[8] }}>
             <button
               type="button"
-              onClick={handleJoinByCode}
-              disabled={busy || !codeEnabled}
-              style={{
-                ...buttonStyle("ink", "md", { mobile, disabled: busy || !codeEnabled }),
-                flexShrink: 0,
-                fontStyle: "italic",
-                background: COLORS.inkMuted,
-                color: COLORS.panel,
-                opacity: codeEnabled && !busy ? 1 : 0.7,
-              }}
+              onClick={handlePlaySolo}
+              disabled={busy}
+              style={playModeTileStyle(COLORS.blue)}
+              aria-label="Play Solo"
             >
-              <AutoFitText minScale={0.6}>Join</AutoFitText>
+              <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+                <circle cx="16" cy="11" r="5" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" />
+                <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+              <div style={playModeLabelStyle(COLORS.soloTint)}>Play Solo</div>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleStartRoom}
+              disabled={busy}
+              style={playModeTileStyle(COLORS.red)}
+              aria-label="Play with Peeps"
+            >
+              <svg width="64" height="32" viewBox="0 0 64 32" aria-hidden="true">
+                <circle cx="16" cy="12" r="5" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" />
+                <path d="M6 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx="48" cy="12" r="5" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" />
+                <path d="M38 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+              <div style={playModeLabelStyle(COLORS.peepsTint)}>Play with Peeps</div>
             </button>
           </div>
+
+          <div style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, textAlign: "center" }}>
+            Different from the Daily: no timer, no peek, and the round keeps going until someone lands a match.
+          </div>
         </div>
-      </div>
-    );
-
-
-
-    return (
-      <>
-        <PreGameShell mobile={mobile} bare onHowTo={openHowToReference}>
-          {idleCard}
-        </PreGameShell>
-        {howToOverlay}
-      </>
-    );
+      ),
+    });
   }
-
 
   // Host/Joiner LOBBY view (game not yet started).
   const room = (view as { room: RoomRow }).room;
@@ -1335,13 +1238,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const link = shareUrl(room.room_code);
 
   const sectionTitleStyle = titleStyle;
-
-  const wrapperBase: React.CSSProperties = {
-    background: COLORS.panel,
-    border: BORDER.heavy,
-    borderRadius: RADIUS.sm,
-    boxSizing: "border-box",
-  };
 
   const sectionStyle: React.CSSProperties = {
     alignSelf: "stretch",
@@ -1422,8 +1318,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     <div style={sectionStyle}>
       <div style={sectionTitleStyle}>Players (must have at least 2)</div>
       <div style={{
-        ...wrapperBase,
-        padding: SPACE[4],
         display: "grid",
         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
         gap: SPACE[4],
@@ -1622,35 +1516,21 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     </div>
   ) : null;
 
-  const lobbyCard = (
-    <div style={{
-      ...panelStyle("surface", 8),
-      alignSelf: "stretch",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "stretch",
-      gap: SPACE[8],
-      height: "auto",
-      justifyContent: "center",
-    }}>
-      {joinerStatusBar}
-      {startingBanner}
-      <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+  return entryFrame({
+    logo: false,
+    headline: isHost ? "Your table is ready." : "You're at the table.",
+    children: (
+      <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
+        {joinerStatusBar}
+        {startingBanner}
         {tableInfoSection}
         {gridPickerSection}
         {playersSection}
         {buttonsSection}
+        {leaveConfirmDialog}
       </div>
-    </div>
-  );
-
-
-  return wrapInShell(
-    <>
-      {lobbyCard}
-      {leaveConfirmDialog}
-    </>,
-  );
+    ),
+  });
 
 };
 
