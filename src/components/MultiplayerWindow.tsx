@@ -1079,7 +1079,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             >
               <label
                 htmlFor="table-code"
-                style={{ ...smallCopy, color: RAW.warmBlack, textAlign: "center" }}
+                style={{ ...smallCopy, color: RAW.warmBlack, textAlign: "center", whiteSpace: "pre-line" }}
               >
                 {"Already have a table code?\nLeave it blank to start your own."}
               </label>
