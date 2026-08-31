@@ -1608,7 +1608,7 @@ const MultiplayerGameView: React.FC<Props> = ({
         style={{
           position: "relative", background: PANEL, border: BORDER_HEAVY,
           borderRadius: R_BOX,
-          padding: 16,
+          padding: compact ? 10 : 16,
           boxSizing: "border-box", flex: mobile ? "1 1 auto" : "0 0 auto",
           ...(mobile ? { minHeight: 0 } : {}),
           display: "flex", flexDirection: "column",
