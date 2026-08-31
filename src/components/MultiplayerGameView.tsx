@@ -1384,8 +1384,19 @@ const MultiplayerGameView: React.FC<Props> = ({
     />
   );
   const opponentRow = <OpponentRow chips={chips} />;
+
+  // Viewport height drives both the desktop card-size estimate and the
+  // compact layout for short mobile viewports.
+  const readViewportH = () =>
+    Math.min(900, typeof window === "undefined" ? 0 : Math.max(0, window.innerHeight));
+  const [rootH, setRootH] = React.useState(readViewportH);
+  // Compact mode: short mobile viewports get a slimmer bottom bar, tighter
+  // gaps and smaller minimum cards so the board fits without scrolling.
+  const compact = mobile && rootH > 0 && rootH < 620;
+  const bottomBarH = compact ? 84 : 110.94;
+
   const bottomRow = (
-    <div style={{ display: "flex", flexDirection: "row", gap: 8, height: 110.94, flex: "none" }}>
+    <div style={{ display: "flex", flexDirection: "row", gap: 8, height: bottomBarH, flex: "none" }}>
       <DieBox rule={rule} heroActive={heroActive} waiting={s.phase === "AWAITING_ROLL" && !heroActive && !s.rolling} homeRef={homeRef} />
       {/* Wrap the WHOOP button so AWAITING_ROLL/ROLLING dims it to 40% and
           physically blocks taps. pointerEvents:none guarantees no tap ever
