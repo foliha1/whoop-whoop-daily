@@ -104,7 +104,7 @@ function baseState(overrides: Partial<State> = {}): State {
 // behaviour that used to happen inline.
 function expireWindow(s: State): State {
   if (s.phase !== "CLAIM_WINDOW") return s;
-  return reducer(s, { type: "CLAIM_WINDOW_EXPIRE", token: s.claimWindowToken });
+  return reducer(s, { type: "CLAIM_WINDOW_EXPIRE", token: s.claimWindowToken ?? 0 });
 }
 
 describe("INIT", () => {
