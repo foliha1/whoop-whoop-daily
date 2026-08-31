@@ -2,7 +2,7 @@
 // useSoloGame — drives a local 2-seat game against Felix O.
 //
 // Wraps useGameState with `botSeats: []` so the built-in bot scheduler stays
-// dormant, then drives seat 1 (Felix) externally via the pure felixOBrain
+// dormant, then drives seat 1 (Felix) externally via the pure whoopBrain
 // module. Exposes the same shape MultiplayerGameView needs: a PublicState,
 // an onIntent handler, and a transient event stream.
 // ============================================================================
@@ -32,7 +32,7 @@ import {
   pickFlipTarget,
   pickReactionDelay,
   type Brain,
-} from "@/lib/felixOBrain";
+} from "@/lib/whoopBrain";
 const OPPONENT_NAME = "Felix O.";
 
 const FELIX_SEAT = 1;
