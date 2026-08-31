@@ -409,11 +409,12 @@ export function useMultiplayerHost(opts: {
       // Pre-check reducer acceptance guard. Reducer returns the SAME state
       // reference on refusal, so refusal is NOT distinguishable post-dispatch
       // from a legal no-op. Replicate the guard here to detect refusal
-      // deterministically. PLAYER_ENTER_CLAIM accepts iff phase === "FLIPPING".
+      // deterministically. PLAYER_ENTER_CLAIM accepts in FLIPPING and in the
+      // rotation claim window (CLAIM_WINDOW).
       // The WHOOP button is UI-disabled during AWAITING_ROLL/ROLLING, but a
       // claim can still be in flight when the phase changes — this safety
       // net stays so any refused grant releases its lock.
-      const acceptedFlipping = phase === "FLIPPING";
+      const acceptedFlipping = phase === "FLIPPING" || phase === "CLAIM_WINDOW";
       if (!acceptedFlipping) {
         // Orphaned lock — the arbiter granted but the reducer refuses. Release
         // the row so the (room, game, claim_window) key reopens, and surface

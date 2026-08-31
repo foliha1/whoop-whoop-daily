@@ -969,7 +969,9 @@ const MultiplayerGameView: React.FC<Props> = ({
   const canClaim =
     mySeat !== null &&
     !seatOutOfGame &&
-    s.phase === "FLIPPING" &&
+    // The rotation claim window keeps claims live after the last flip of a
+    // rotation. No countdown UI — the live WHOOP! button is the only signal.
+    (s.phase === "FLIPPING" || s.phase === "CLAIM_WINDOW") &&
     s.claimBy === null;
   const inClaimMode = s.phase === "CLAIM_SELECTING" && s.claimBy === mySeat;
   const [claimBusy, setClaimBusy] = React.useState(false);
