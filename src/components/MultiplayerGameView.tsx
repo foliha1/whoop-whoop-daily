@@ -519,6 +519,49 @@ const ReconnectingOverlay: React.FC = () => {
   );
 };
 
+/** Full-screen dice-roll layer: the ROLLING scrim plus the hero die overlay.
+    Portalled to body with position:fixed so it covers the entire viewport,
+    not just the width-capped game column. home/target rects are measured
+    with getBoundingClientRect (viewport coordinates), so the portal parent
+    rect is a zero-origin rect at the viewport origin. */
+const RollOverlayPortal: React.FC<{
+  isRolling: boolean;
+  activeCommit: RollCommitPayload | null;
+  heroRects: { home: DOMRect; target: DOMRect } | null;
+  onComplete: () => void;
+}> = ({ isRolling, activeCommit, heroRects, onComplete }) => {
+  const portalHost = usePortalHost("mp-roll");
+  if (!portalHost) return null;
+  const zeroParent = new DOMRect(0, 0, window.innerWidth, window.innerHeight);
+  return createPortal(
+    <div style={{ position: "fixed", inset: 0, zIndex: 900, pointerEvents: "none" }}>
+      {/* ROLLING scrim — beneath the die overlay, above the play content.
+          Pointer-events none so header controls stay reachable; the card
+          grid and WHOOP button are blocked independently. */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute", inset: 0,
+          background: "rgba(35,31,32,0.6)",
+          opacity: isRolling ? 1 : 0,
+          pointerEvents: "none",
+          transition: "opacity 250ms ease",
+        }}
+      />
+      {activeCommit && heroRects && (
+        <RollHeroOverlay
+          commit={activeCommit}
+          homeRect={heroRects.home}
+          targetRect={heroRects.target}
+          parentRect={zeroParent}
+          onComplete={onComplete}
+        />
+      )}
+    </div>,
+    portalHost,
+  );
+};
+
 type BannerKind = "YOUR_FLIP" | "TOO_SLOW" | "CLAIM_ERROR" | "PENALTY" | "CANCEL" | null;
 
 const BannerStyles: Record<Exclude<BannerKind, null>, { bg: string; text: string; label: string; icon?: boolean }> = {
@@ -1547,32 +1590,15 @@ const MultiplayerGameView: React.FC<Props> = ({
       />
       <style>{HEADER_FOCUS_CSS}</style>
 
-      {activeCommit && heroRects && (
-        <RollHeroOverlay
-          commit={activeCommit}
-          homeRect={heroRects.home}
-          targetRect={heroRects.target}
-          parentRect={heroRects.parent}
-          onComplete={() => { setActiveCommit(null); setHeroRects(null); }}
-        />
-      )}
+      <RollOverlayPortal
+        isRolling={isRolling}
+        activeCommit={activeCommit}
+        heroRects={heroRects}
+        onComplete={() => { setActiveCommit(null); setHeroRects(null); }}
+      />
       {presenceStatus !== undefined && presenceStatus !== "connected" && (
         <ReconnectingOverlay />
       )}
-      {/* ROLLING scrim — beneath the die overlay (z=30), above the play
-          content. Pointer-events none so header controls stay reachable;
-          the card grid and WHOOP button are blocked independently. */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute", inset: 0,
-          background: "rgba(35,31,32,0.6)",
-          opacity: isRolling ? 1 : 0,
-          pointerEvents: "none",
-          transition: "opacity 250ms ease",
-          zIndex: 20,
-        }}
-      />
       <div style={{
         display: "flex", flexDirection: "column", gap: 8,
         width: "100%", height: mobile ? "100%" : "auto", maxHeight: "100%",
