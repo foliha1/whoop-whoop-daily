@@ -1689,8 +1689,8 @@ const DailyPage: React.FC = () => {
           content="Play the free WHOOP! WHOOP! daily memory game. Nine cards, ten seconds, three rounds, two misses a round. A new memory challenge every day—no signup needed."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://whoop-whoop.lovable.app/today" />
-        <meta property="og:image" content="https://whoop-whoop.lovable.app/og-daily.png" />
+        <meta property="og:url" content="https://whoop-whoop.com/" />
+        <meta property="og:image" content="https://whoop-whoop.com/og-daily.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta
@@ -1698,7 +1698,7 @@ const DailyPage: React.FC = () => {
           content="WHOOP! WHOOP! — Nine cards. Ten seconds. Then the rules change."
         />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://whoop-whoop.lovable.app/og-daily.png" />
+        <meta name="twitter:image" content="https://whoop-whoop.com/og-daily.png" />
       </Helmet>
 
       <DailyScreenFade
