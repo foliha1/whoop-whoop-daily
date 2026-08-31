@@ -63,3 +63,13 @@ export function applyAnimationTimingVars(root: HTMLElement = document.documentEl
   root.style.setProperty("--ww-deal-stagger", `${DEAL_STAGGER_MS}ms`);
   root.style.setProperty("--ww-deal-move", `${DEAL_MOVE_MS}ms`);
 }
+
+// ---- rotation claim window --------------------------------------------------
+/**
+ * After the final flip of a rotation resolves with no correct claim, the board
+ * settles and every seat gets this long to still call WHOOP! before the round
+ * ends and the roll passes clockwise. Host-authoritative: the owner of the
+ * reducer runs the single timer. A wrong claim inside the window does NOT
+ * extend or restart it.
+ */
+export const ROTATION_CLAIM_WINDOW_MS = 2000;

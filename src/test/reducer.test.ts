@@ -87,6 +87,8 @@ function baseState(overrides: Partial<State> = {}): State {
     settleKind: null,
     settleToken: 0,
     settleBy: null,
+    claimWindowOpen: false,
+    claimWindowToken: 0,
     seed: null,
     rng: Math.random,
     wrongCalls: 0,
@@ -98,6 +100,15 @@ function baseState(overrides: Partial<State> = {}): State {
 // ===========================================================================
 // INIT
 // ===========================================================================
+// v6.8: a rotation that completes with no correct claim now opens a 2000ms
+// rotation claim window (phase CLAIM_WINDOW) before the round ends. These
+// characterization tests drive that window to expiry to assert the round-end
+// behaviour that used to happen inline.
+function expireWindow(s: State): State {
+  if (s.phase !== "CLAIM_WINDOW") return s;
+  return reducer(s, { type: "CLAIM_WINDOW_EXPIRE", token: s.claimWindowToken ?? 0 });
+}
+
 describe("INIT", () => {
   it("returns a fresh initialState for the given slotCount", () => {
     const s = baseState({ scores: [7, 3], roundNum: 42 });
@@ -427,7 +438,7 @@ describe("PLAYER_RESOLVE_MATCH", () => {
 describe("SKIP_TICK", () => {
   it("advances the cycle past a disconnected flipper", () => {
     const s = baseState({ phase: "FLIPPING", flipper: 0, disconnected: [true, false] });
-    const next = reducer(s, { type: "SKIP_TICK" });
+    const next = expireWindow(reducer(s, { type: "SKIP_TICK" }));
     expect(next.flipper).toBe(1);
   });
 
@@ -737,7 +748,7 @@ describe("cycle advancement in a 2-player game", () => {
     expect(s.phase).toBe("FLIPPING");
     // Opponent flip.
     s = { ...s, flipsThisTurn: 1, inFlight: { kind: "flip", token: 2, by: 1, idx: 3 }, peekingCard: 3 };
-    s = reducer(s, { type: "FLIP_COMPLETE", token: 2 });
+    s = expireWindow(reducer(s, { type: "FLIP_COMPLETE", token: 2 }));
     // Cycle complete, deck not empty → new round via startRound (roll passes clockwise).
     expect(s.phase).toBe("AWAITING_ROLL");
     expect(s.roller).toBe(1); // roller rotated
@@ -786,7 +797,7 @@ describe("end-game entry conditions (v6.6 — two quiet rotations)", () => {
       peekingCard: 3,
       ...over,
     });
-    return reducer(s, { type: "FLIP_COMPLETE", token: 4 });
+    return expireWindow(reducer(s, { type: "FLIP_COMPLETE", token: 4 }));
   }
 
   it("a quiet rotation never ends the game — it passes the roll clockwise", () => {
@@ -949,7 +960,7 @@ describe("N>2 generalization", () => {
     expect(s.flipper).toBe(2);
     // seat 2 flips → cycle complete, roll passes clockwise (no claim)
     s = { ...s, flipsThisTurn: 1, inFlight: { kind: "flip", token: 3, by: 2, idx: 4 }, peekingCard: 4 };
-    s = reducer(s, { type: "FLIP_COMPLETE", token: 3 });
+    s = expireWindow(reducer(s, { type: "FLIP_COMPLETE", token: 3 }));
     expect(s.phase).toBe("AWAITING_ROLL");
     expect(s.roller).toBe(1); // (0 + 1) % 3
   });
@@ -969,7 +980,7 @@ describe("N>2 generalization", () => {
     }
     // 5th flip completes the cycle → new round
     s = { ...s, flipsThisTurn: 1, inFlight: { kind: "flip", token: 5, by: 4, idx: 5 }, peekingCard: 5 };
-    s = reducer(s, { type: "FLIP_COMPLETE", token: 5 });
+    s = expireWindow(reducer(s, { type: "FLIP_COMPLETE", token: 5 }));
     expect(s.phase).toBe("AWAITING_ROLL");
     expect(s.roller).toBe(1);
   });
@@ -1142,7 +1153,7 @@ describe("SET_DISCONNECTED", () => {
     });
     // Complete flipper 0's flip → should hop over seat 1 to seat 2.
     const withFlight = reducer(s, { type: "FLIP_START", by: 0, idx: 0, token: 1 });
-    const next = reducer(withFlight, { type: "FLIP_COMPLETE", token: 1 });
+    const next = expireWindow(reducer(withFlight, { type: "FLIP_COMPLETE", token: 1 }));
     expect(next.flipper).toBe(2);
   });
 
@@ -1159,7 +1170,7 @@ describe("SET_DISCONNECTED", () => {
     // Seat 0 flips; cycle should end (connectedCount=1) and start next round
     // without spinning. Bound: the advance loop must not exceed seatCount.
     const withFlight = reducer(s, { type: "FLIP_START", by: 0, idx: 0, token: 1 });
-    const next = reducer(withFlight, { type: "FLIP_COMPLETE", token: 1 });
+    const next = expireWindow(reducer(withFlight, { type: "FLIP_COMPLETE", token: 1 }));
     // Cycle-end → startRound → AWAITING_ROLL with roller = next connected = 0.
     expect(next.phase).toBe("AWAITING_ROLL");
     expect(next.roller).toBe(0);
@@ -1239,7 +1250,7 @@ describe("N=3 seats", () => {
     // Flip 3 — seat 2 completes the rotation → round ends → new AWAITING_ROLL
     s = { ...s, flipsThisTurn: 1 };
     s = reducer(s, { type: "FLIP_START", by: 2, idx: 4, token: 3 });
-    s = reducer(s, { type: "FLIP_COMPLETE", token: 3 });
+    s = expireWindow(reducer(s, { type: "FLIP_COMPLETE", token: 3 }));
     expect(s.phase).toBe("AWAITING_ROLL");
     expect(s.roundNum).toBe(6);
     // The next roller is seat 1 ((roller 0 + 1) mod 3).
@@ -1265,7 +1276,7 @@ describe("N=3 seats", () => {
     s = reducer(s, { type: "FLIP_COMPLETE", token: 2 });
     s = { ...s, flipsThisTurn: 1 };
     s = reducer(s, { type: "FLIP_START", by: 0, idx: 4, token: 3 });
-    s = reducer(s, { type: "FLIP_COMPLETE", token: 3 });
+    s = expireWindow(reducer(s, { type: "FLIP_COMPLETE", token: 3 }));
     expect(s.phase).toBe("AWAITING_ROLL");
     expect(s.roller).toBe(2);
   });
@@ -1477,5 +1488,52 @@ describe("v6.7 two flips per turn", () => {
     expect(next.phase).toBe("FLIPPING");
     expect(next.flipper).toBe(0);
     expect(next.flipsThisTurn).toBe(0);
+  });
+});
+
+// ===========================================================================
+// v6.8 rotation claim window
+// ===========================================================================
+describe("rotation claim window", () => {
+  function completedRotation(): State {
+    let s = baseState({
+      phase: "FLIPPING",
+      flipper: 0,
+      flippedThisCycle: new Set<number>(),
+    });
+    s = reducer(s, { type: "FLIP_START", by: 0, idx: 0, token: 1 });
+    s = reducer(s, { type: "FLIP_COMPLETE", token: 1 });
+    s = { ...s, flipsThisTurn: 1 };
+    s = reducer(s, { type: "FLIP_START", by: 1, idx: 1, token: 2 });
+    return reducer(s, { type: "FLIP_COMPLETE", token: 2 });
+  }
+
+  it("opens instead of ending the round when the rotation has no correct claim", () => {
+    const s = completedRotation();
+    expect(s.phase).toBe("CLAIM_WINDOW");
+    expect(s.claimWindowOpen).toBe(true);
+  });
+
+  it("rejects further flips while open, and accepts claims from any seat", () => {
+    const s = completedRotation();
+    expect(reducer(s, { type: "FLIP_START", by: 0, idx: 2, token: 9 })).toBe(s);
+    const claiming = reducer(s, { type: "PLAYER_ENTER_CLAIM", by: 1 });
+    expect(claiming.phase).toBe("CLAIM_SELECTING");
+    expect(claiming.claimBy).toBe(1);
+  });
+
+  it("a wrong claim inside the window cannot extend or restart it", () => {
+    const open = completedRotation();
+    const token = open.claimWindowToken;
+    // Wrong claim resolves through CLAIM_RESOLVE (no settle hold path).
+    let s = reducer(open, { type: "CLAIM_START", by: 1, a: 0, b: 1, token: 21 });
+    s = reducer(s, { type: "CLAIM_RESOLVE", token: 21 });
+    // Back in the window, same token → the pending expiry timer still owns it.
+    expect(s.phase).toBe("CLAIM_WINDOW");
+    expect(s.claimWindowToken).toBe(token);
+    // The ORIGINAL token still ends the round.
+    const ended = reducer(s, { type: "CLAIM_WINDOW_EXPIRE", token });
+    expect(ended.phase).toBe("AWAITING_ROLL");
+    expect(ended.claimWindowOpen).toBe(false);
   });
 });

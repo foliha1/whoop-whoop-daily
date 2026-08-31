@@ -226,7 +226,9 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
   // ---- Felix's claim attempts ----
   const claimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    if (state.phase !== "FLIPPING") return;
+    // Felix claims in the rotation claim window too — including after he took
+    // the final flip of the rotation.
+    if (state.phase !== "FLIPPING" && state.phase !== "CLAIM_WINDOW") return;
     if (state.inFlight) return;
     if (state.claimBy !== null) return;
     if (state.disconnected[FELIX_SEAT]) return;
@@ -242,7 +244,7 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
       claimTimerRef.current = null;
       const s = stateRef.current;
       if (
-        s.phase !== "FLIPPING" ||
+        (s.phase !== "FLIPPING" && s.phase !== "CLAIM_WINDOW") ||
         s.inFlight ||
         s.claimBy !== null ||
         s.grid[best.a] === null ||
