@@ -1029,12 +1029,16 @@ const MultiplayerGameView: React.FC<Props> = ({
   // Remember the last pair of touched cards. The NOPE event lands on the tick
   // after the claim resolves, when selectedCards is already empty — so this
   // ref is never cleared, only overwritten by the next full pair.
+  // Layout effect, and declared BEFORE the settle effects below, so a claim
+  // that lands its pair and its SETTLING phase in the same commit (the bot's
+  // claims do) still has the pair recorded when the reward layer measures.
   const lastPairRef = React.useRef<number[]>([]);
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (s.selectedCards.length === 2) {
       lastPairRef.current = [...s.selectedCards];
     }
   }, [s.selectedCards]);
+
   // Last seat to hold an open claim — the settle state itself no longer
   // carries the claimant once the claim window closes.
   const lastClaimSeatRef = React.useRef<number | null>(null);
