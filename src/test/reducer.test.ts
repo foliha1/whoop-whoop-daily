@@ -26,6 +26,16 @@ afterEach(() => {
 // Test helpers — build fully-controlled states without going through
 // initialState (which owns randomness we want out of these unit tests).
 // ---------------------------------------------------------------------------
+
+// A claim resolved through CLAIM_RESOLVE now holds in SETTLING so every client
+// can play the reveal → hold → treatment sequence. These tests care about the
+// state the board lands in, so drive the settle to completion in one step.
+function resolveClaim(s: State, token: number): State {
+  const mid = reducer(s, { type: "CLAIM_RESOLVE", token });
+  if (mid === s || mid.phase !== "SETTLING") return mid;
+  return reducer(mid, { type: "SETTLE_COMPLETE", token: mid.settleToken });
+}
+
 function card(shape: string, number: number, color: string): Card {
   const id = `${shape}-${number}-${color}`;
   const c = ALL_CARDS.find((x) => x.id === id);
@@ -517,7 +527,7 @@ describe("CLAIM_RESOLVE", () => {
       rule: ["SHAPE"],
       roundNum: 5,
     });
-    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 7 });
+    const next = resolveClaim(s, 7);
     expect(next.scores).toEqual([0, 2]);
     expect(next.phase).toBe("AWAITING_ROLL");
     expect(next.roller).toBe(1);
@@ -535,7 +545,7 @@ describe("CLAIM_RESOLVE", () => {
       flippedThisCycle: new Set([0, 1]), // even with a "complete" cycle, wrong claim must NOT advance
       claimedThisCycle: false,
     });
-    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 7 });
+    const next = resolveClaim(s, 7);
     expect(next.scores).toEqual([0, 0]);
     expect(next.phase).toBe("FLIPPING");
     expect(next.wrongBy[1].has(1)).toBe(true);
@@ -551,7 +561,7 @@ describe("CLAIM_RESOLVE", () => {
       rule: ["SHAPE"],
       flippedThisCycle: new Set(), // cycle NOT complete yet
     });
-    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 7 });
+    const next = resolveClaim(s, 7);
     expect(next.phase).toBe("FLIPPING");
     expect(next.wrongBy[1].has(1)).toBe(true);
     expect(next.wrongBy[1].has(3)).toBe(true);
@@ -562,8 +572,8 @@ describe("CLAIM_RESOLVE", () => {
       phase: "CLAIM_RESOLVING",
       inFlight: { kind: "claim", token: 7, by: 1, a: 0, b: 2 },
     });
-    expect(reducer(s, { type: "CLAIM_RESOLVE", token: 6 })).toBe(s);
-    expect(reducer(s, { type: "CLAIM_RESOLVE", token: 8 })).toBe(s);
+    expect(resolveClaim(s, 6)).toBe(s);
+    expect(resolveClaim(s, 8)).toBe(s);
   });
 
   it("is a NO-OP when inFlight is not a claim", () => {
@@ -571,7 +581,7 @@ describe("CLAIM_RESOLVE", () => {
       phase: "FLIPPING",
       inFlight: { kind: "flip", token: 7, by: 0, idx: 0 },
     });
-    expect(reducer(s, { type: "CLAIM_RESOLVE", token: 7 })).toBe(s);
+    expect(resolveClaim(s, 7)).toBe(s);
   });
 });
 
@@ -653,8 +663,8 @@ describe("stale-token rejection (both flip + claim)", () => {
       inFlight: { kind: "claim", token: 12, by: 1, a: 0, b: 2 },
       rule: ["SHAPE"],
     });
-    expect(reducer(s, { type: "CLAIM_RESOLVE", token: 11 })).toBe(s);
-    const fresh = reducer(s, { type: "CLAIM_RESOLVE", token: 12 });
+    expect(resolveClaim(s, 11)).toBe(s);
+    const fresh = resolveClaim(s, 12);
     expect(fresh.scores).toEqual([0, 2]);
   });
 });
@@ -728,6 +738,7 @@ describe("wrong-claim card return (v6.5)", () => {
       },
       { type: "CLAIM_RESOLVE", token: 99 },
     );
+    s = reducer(s, { type: "SETTLE_COMPLETE", token: s.settleToken });
     expect(s.roundNum).toBe(roundBefore + 1);
     expect(s.wrongBy[0].size).toBe(0);
   });
@@ -779,7 +790,7 @@ describe("winner rolls (v6.2)", () => {
       roller: 0,
       flipper: 0,
     });
-    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 3 });
+    const next = resolveClaim(s, 3);
     expect(next.roller).toBe(1);
     expect(next.flipper).toBe(1);
   });
@@ -815,7 +826,7 @@ describe("end-game entry conditions (v6.6 — two quiet rotations)", () => {
       piles: [Array(TARGET_SCORE - 2).fill(card("circle", 1, "red")), []],
       inFlight: { kind: "claim", token: 7, by: 0, a: 0, b: 2 },
     });
-    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 7 });
+    const next = resolveClaim(s, 7);
     expect(next.phase).toBe("GAME_OVER");
     expect(next.scores[0]).toBe(TARGET_SCORE);
   });
@@ -846,7 +857,7 @@ describe("end-game entry conditions (v6.6 — two quiet rotations)", () => {
       scores: [TARGET_SCORE - 4, 0],
       inFlight: { kind: "claim", token: 7, by: 0, a: 0, b: 2 },
     });
-    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 7 });
+    const next = resolveClaim(s, 7);
     expect(next.phase).toBe("AWAITING_ROLL");
     expect(next.scores[0]).toBe(TARGET_SCORE - 2);
   });
@@ -860,7 +871,7 @@ describe("end-game entry conditions (v6.6 — two quiet rotations)", () => {
       grid: [SHAPE_MATCH_A, null, SHAPE_MATCH_B, null, null, null],
       inFlight: { kind: "claim", token: 9, by: 0, a: 0, b: 2 },
     });
-    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 9 });
+    const next = resolveClaim(s, 9);
     expect(next.phase).toBe("GAME_OVER");
   });
 });
@@ -920,7 +931,7 @@ describe("scoring", () => {
       rule: ["SHAPE"],
       scores: [4, 6],
     });
-    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 1 });
+    const next = resolveClaim(s, 1);
     expect(next.scores).toEqual([4, 8]);
   });
 
@@ -994,7 +1005,7 @@ describe("N>2 generalization", () => {
       flippedThisCycle: new Set(), // mid-cycle so state persists
       claimBy: 2,
     });
-    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 1 });
+    const next = resolveClaim(s, 1);
     expect(next.phase).toBe("FLIPPING");
     expect(next.wrongBy[2].has(1)).toBe(true);
     expect(next.scores).toEqual([0, 0, 0, 0]);
@@ -1009,7 +1020,7 @@ describe("N>2 generalization", () => {
       flippedThisCycle: new Set(),
       claimBy: 2,
     });
-    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 1 });
+    const next = resolveClaim(s, 1);
     expect(next.wrongBy[2].has(1)).toBe(true);
     expect(next.wrongBy[2].has(3)).toBe(true);
     expect(next.wrongBy[0].size).toBe(0);
@@ -1058,7 +1069,7 @@ describe("N>2 generalization", () => {
       flipper: 0,
       claimBy: 2,
     });
-    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 9 });
+    const next = resolveClaim(s, 9);
     expect(next.phase).toBe("AWAITING_ROLL");
     expect(next.roller).toBe(2);
     expect(next.flipper).toBe(2);
@@ -1411,7 +1422,7 @@ describe("DEBUG_FORCE_END_GAME", () => {
       grid: [SHAPE_MATCH_A, null, SHAPE_MATCH_B, null, null, null, null, null, null],
       inFlight: { kind: "claim" as const, token: 9, by: 0, a: 0, b: 2 },
     };
-    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 9 });
+    const next = resolveClaim(s, 9);
     expect(next.phase).toBe("GAME_OVER");
     expect(next.scores[0]).toBe(TARGET_SCORE);
     window.history.replaceState({}, "", "/");
@@ -1467,7 +1478,7 @@ describe("v6.7 two flips per turn", () => {
       claimBy: 0,
       inFlight: { kind: "claim", token: 3, by: 0, a: 1, b: 3 },
     });
-    const next = reducer(s, { type: "CLAIM_RESOLVE", token: 3 });
+    const next = resolveClaim(s, 3);
     expect(next.phase).toBe("FLIPPING");
     expect(next.flipper).toBe(0);
     expect(next.flipsThisTurn).toBe(1);
@@ -1527,7 +1538,7 @@ describe("rotation claim window", () => {
     const token = open.claimWindowToken;
     // Wrong claim resolves through CLAIM_RESOLVE (no settle hold path).
     let s = reducer(open, { type: "CLAIM_START", by: 1, a: 0, b: 1, token: 21 });
-    s = reducer(s, { type: "CLAIM_RESOLVE", token: 21 });
+    s = resolveClaim(s, 21);
     // Back in the window, same token → the pending expiry timer still owns it.
     expect(s.phase).toBe("CLAIM_WINDOW");
     expect(s.claimWindowToken).toBe(token);
