@@ -1,5 +1,5 @@
 // ============================================================================
-// felixOBrain — pure, fallible memory model for solo play's Felix O.
+// whoopBrain — pure, fallible memory model for the solo opponent WHOOP.
 //
 // Pure functions only. No React, no timers, no side effects. Every function
 // takes an explicit rng so tests can stub randomness.
@@ -15,11 +15,16 @@ import {
   COLOR_NAMES,
 } from "@/cardData";
 
+// Difficulty constants — tuned as a set for roughly 20% more pressure on the
+// player. Reaction speed is the dominant knob: a slow claim is wasted inside
+// the 2000ms rotation claim window, so tightening REACTION_* is what actually
+// makes WHOOP harder. CORRUPT_CHANCE is nudged down but must stay visibly
+// non-zero so the bot still misses in front of the player.
 export const DECAY_RATE = 0.97;
-export const CORRUPT_CHANCE = 0.16;
+export const CORRUPT_CHANCE = 0.13;
 export const CONFIDENCE_THRESHOLD = 0.55;
-export const REACTION_MIN_MS = 2500;
-export const REACTION_MAX_MS = 5500;
+export const REACTION_MIN_MS = 2000;
+export const REACTION_MAX_MS = 4200;
 
 export interface Memory {
   card: Card;
@@ -79,7 +84,7 @@ export function corruptCard(card: Card, rng: () => number = Math.random): Card {
 /**
  * Store an observation for a position. Confidence resets to 1.
  * With CORRUPT_CHANCE probability the stored card has one attribute swapped
- * (fallible memory — Felix thinks he saw a red square, but it was blue).
+ * (fallible memory — WHOOP thinks it saw a red square, but it was blue).
  */
 export function observe(
   brain: Brain,
@@ -113,7 +118,7 @@ export function decay(brain: Brain): Brain {
 /**
  * Find the best pair of remembered positions that match the active rule.
  * Both positions must have confidence > threshold. Returns null when no
- * pair passes the threshold — Felix stays quiet.
+ * pair passes the threshold — WHOOP stays quiet.
  */
 export function findClaim(
   brain: Brain,
@@ -140,7 +145,7 @@ export function findClaim(
 }
 
 /**
- * Choose Felix's next flip target: prefer never-seen positions, else the
+ * Choose WHOOP's next flip target: prefer never-seen positions, else the
  * remembered position with the lowest confidence.
  */
 export function pickFlipTarget(
@@ -164,7 +169,7 @@ export function pickFlipTarget(
   return best;
 }
 
-/** Random reaction delay before Felix fires a claim. */
+/** Random reaction delay before WHOOP fires a claim. */
 export function pickReactionDelay(rng: () => number = Math.random): number {
   return REACTION_MIN_MS + rng() * (REACTION_MAX_MS - REACTION_MIN_MS);
 }
