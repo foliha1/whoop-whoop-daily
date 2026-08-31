@@ -87,6 +87,8 @@ function baseState(overrides: Partial<State> = {}): State {
     settleKind: null,
     settleToken: 0,
     settleBy: null,
+    claimWindowOpen: false,
+    claimWindowToken: 0,
     seed: null,
     rng: Math.random,
     wrongCalls: 0,
