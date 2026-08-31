@@ -283,7 +283,7 @@ const OpponentRow: React.FC<{ chips: DerivedChip[] }> = ({ chips }) => (
 // centred column at the Daily's content width and gap rhythm. The winner's
 // row is the largest thing on the screen; everyone else steps down a rung.
 // Friend ships one weight, so hierarchy comes from size and case only.
-export const EndScreen: React.FC<{
+const EndScreen: React.FC<{
   chips: DerivedChip[];
   scores: number[];
   canRematch: boolean;

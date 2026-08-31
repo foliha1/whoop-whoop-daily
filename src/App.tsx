@@ -15,7 +15,6 @@ import TypographyPage from "./pages/TypographyPage.tsx";
 import PrivacyPage from "./pages/PrivacyPage.tsx";
 import TermsPage from "./pages/TermsPage.tsx";
 import DebugOnlyRoute from "./components/DebugOnlyRoute.tsx";
-import EndScreenPreview from "./pages/EndScreenPreview.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 
@@ -64,8 +63,6 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/play/:roomCode" element={<MultiplayerPage />} />
         {/* Debug-gated routes: 404 in production, live under ?debug=1. */}
         <Route path="/typography" element={<DebugOnlyRoute><TypographyPage /></DebugOnlyRoute>} />
-        {/* TEMPORARY: six-player end-screen verification. Delete after. */}
-        <Route path="/end-preview" element={<DebugOnlyRoute><EndScreenPreview /></DebugOnlyRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
