@@ -372,11 +372,35 @@ function withGameOverAnnounce(s: State): State {
   };
 }
 
+/**
+ * True when at least one pair of remaining grid cards shares any attribute
+ * (shape, number or colour). Sharing an attribute is a necessary condition for
+ * any rolled rule to ever match, so when this is false and the draw pile is
+ * empty the table is dead — no seat can ever score again.
+ */
+function hasPossibleMatch(s: State): boolean {
+  const cards = s.grid.filter((c): c is NonNullable<typeof c> => c !== null);
+  for (let i = 0; i < cards.length; i++) {
+    for (let j = i + 1; j < cards.length; j++) {
+      const a = cards[i];
+      const b = cards[j];
+      if (a.shape === b.shape || a.number === b.number || a.color === b.color) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 function startRound(s: State, winnerIndex: number | null): State {
   const hasCards = s.grid.some((c) => c !== null);
   const filled = s.grid.filter((c) => c !== null).length;
   if (!hasCards && s.deck.length === 0) return withGameOverAnnounce(s);
   if (filled < 2 && s.deck.length === 0) return withGameOverAnnounce(s);
+  // Stalemate safety net: draw pile empty and nothing left on the table can
+  // ever be matched. Without this the round loop rotates forever.
+  if (s.deck.length === 0 && !hasPossibleMatch(s)) return withGameOverAnnounce(s);
+
 
   const candidate =
     winnerIndex !== null ? winnerIndex : (s.roller + 1) % s.seatCount;
