@@ -15,6 +15,7 @@ import TypographyPage from "./pages/TypographyPage.tsx";
 import PrivacyPage from "./pages/PrivacyPage.tsx";
 import TermsPage from "./pages/TermsPage.tsx";
 import DebugOnlyRoute from "./components/DebugOnlyRoute.tsx";
+import EndScreenPreview from "./pages/EndScreenPreview.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 
