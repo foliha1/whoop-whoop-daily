@@ -30,7 +30,8 @@ import { usePortalHost } from "@/hooks/usePortalHost";
 import SettingsSheet from "@/components/SettingsSheet";
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
 import GameCard from "@/components/GameCard";
-import { COLORS, FONT_FAMILY, RAW, textStyle } from "@/lib/tokens";
+import { COLORS, FONT_FAMILY, RAW, SPACE, textStyle, buttonStyle } from "@/lib/tokens";
+import { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
 import type { PublicState } from "@/lib/publicState";
 import type { IntentAction, RollAttribute, RollCommitPayload, TransientEvent } from "@/lib/multiplayer";
 import { ROLL_HERO_MS } from "@/lib/multiplayer";
@@ -278,34 +279,29 @@ const OpponentRow: React.FC<{ chips: DerivedChip[] }> = ({ chips }) => (
 
 // -------- End screen --------
 // Presentation only. Covers the card area when the engine reports GAME_OVER.
-// Standings reuse ChipCell: winner in GREAT_MATCH green, everyone else IDLE.
+// Result-scale standings, not the in-game chip: rows sit on the ground in a
+// centred column at the Daily's content width and gap rhythm. The winner's
+// row is the largest thing on the screen; everyone else steps down a rung.
+// Friend ships one weight, so hierarchy comes from size and case only.
 const EndScreen: React.FC<{
   chips: DerivedChip[];
   scores: number[];
-  names: string[];
   canRematch: boolean;
   onPlayAgain: () => void;
   onLeave: () => void;
-}> = ({ chips, scores, canRematch, onPlayAgain, onLeave }) => {
+  mobile?: boolean;
+}> = ({ chips, scores, canRematch, onPlayAgain, onLeave, mobile = false }) => {
   const seats = chips
-    .map((c, seat) => ({ chip: c, seat, score: scores[seat] ?? 0 }))
-    .filter((e) => e.chip.kind !== "EMPTY");
-  const top = seats.reduce((m, e) => Math.max(m, e.score), -Infinity);
-  const winners = seats.filter((e) => e.score === top);
-  const headline =
-    winners.length !== 1
-      ? "It's a draw!"
-      : winners[0].chip.name === "YOU"
-        ? "You win!"
-        : `${winners[0].chip.name} wins!`;
+    .map((c, seat) => ({ name: c.name, seat, score: scores[seat] ?? 0 }))
+    .filter((e) => chips[e.seat].kind !== "EMPTY");
   const ordered = seats.slice().sort((a, b) => b.score - a.score);
-
-  const btn = (bg: string, fg: string): React.CSSProperties => ({
-    all: "unset", cursor: "pointer", textAlign: "center",
-    padding: "10px 18px", borderRadius: R_BOX, border: BORDER_HEAVY,
-    background: bg, color: fg,
-    ...textStyle("control"),
-  });
+  const top = ordered.length > 0 ? ordered[0].score : -Infinity;
+  // Standard competition ranking: equal scores share the position and the
+  // next distinct score skips ahead (1st, 1st, 3rd). Co-leaders both render
+  // at winner scale — the row size follows the position, not the seat order.
+  const rankOf = (score: number) => 1 + ordered.filter((o) => o.score > score).length;
+  const ordinal = (rank: number) =>
+    rank === 1 ? "1st" : rank === 2 ? "2nd" : rank === 3 ? "3rd" : `${rank}th`;
 
   return (
     <div
@@ -314,55 +310,93 @@ const EndScreen: React.FC<{
       aria-label="Game over"
       style={{
         position: "absolute", inset: 0, zIndex: 60,
-        background: PANEL, border: BORDER_HEAVY, borderRadius: R_BOX,
-        boxSizing: "border-box", padding: 16,
+        background: PANEL,
+        boxSizing: "border-box", padding: SPACE[8],
         display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center", gap: 16,
-        overflowY: "auto",
+        alignItems: "center", justifyContent: "center",
       }}
     >
-      <h2 style={{
-        margin: 0, color: INK, textAlign: "center",
-        ...textStyle("heading"),
-      }}>
-        {headline}
-      </h2>
-
       <div style={{
-        display: "flex", flexDirection: "column", gap: 6,
-        width: "100%", maxWidth: 280,
+        width: "100%", maxWidth: DAILY_CONTENT_MAX_W,
+        display: "flex", flexDirection: "column", alignItems: "center",
+        gap: SPACE[12],
       }}>
-        {ordered.map((e) => (
-          <ChipCell
-            key={e.seat}
-            chip={{
-              kind: winners.length === 1 && e.seat === winners[0].seat ? "GREAT_MATCH" : "IDLE",
-              name: e.chip.name,
-              score: e.score,
-              seat: e.seat,
-            }}
-          />
-        ))}
+        <div style={{
+          display: "flex", flexDirection: "column", gap: SPACE[4],
+          width: "100%",
+        }}>
+          {ordered.map((e) => {
+            const winner = e.score === top;
+            return (
+              <div
+                key={e.seat}
+                style={{
+                  display: "flex", alignItems: "baseline", gap: SPACE[6],
+                  width: "100%",
+                }}
+              >
+                {/* Position stays quiet: a muted caption, never a badge. */}
+                <span style={{
+                  ...textStyle("caption", mobile),
+                  color: MUTED, flex: "0 0 auto", width: 28,
+                }}>
+                  {ordinal(rankOf(e.score))}
+                </span>
+                <span style={{
+                  ...textStyle(winner ? "heading" : "subhead", mobile),
+                  color: INK, flex: "1 1 0", minWidth: 0,
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                }}>
+                  {e.name}
+                </span>
+                {/* The score keeps its out-of-10 form — the target is what
+                    the game was about. */}
+                <span style={{
+                  ...textStyle(winner ? "display" : "title", mobile),
+                  color: INK, flex: "0 0 auto",
+                }}>
+                  {e.score}
+                  <span style={{
+                    ...textStyle(winner ? "subhead" : "control", mobile),
+                    color: MUTED,
+                  }}>
+                    /{TARGET_SCORE}
+                  </span>
+                </span>
+              </div>
+            );
+          })}
+        </div>
 
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-        {canRematch ? (
-          <button type="button" onClick={onPlayAgain} style={btn(GREEN, INK)}>
-            Play again
-          </button>
-        ) : (
-          <span
-            role="status"
-            aria-live="polite"
-            style={{ fontFamily: FONT_FAMILY, fontSize: 15, color: MUTED }}
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center",
+          gap: SPACE[4], width: "100%", maxWidth: 280,
+        }}>
+          {canRematch ? (
+            <button
+              type="button"
+              onClick={onPlayAgain}
+              style={buttonStyle("primary", "md", { mobile, fullWidth: true })}
+            >
+              Play again
+            </button>
+          ) : (
+            <span
+              role="status"
+              aria-live="polite"
+              style={{ ...textStyle("caption", mobile), color: MUTED }}
+            >
+              Waiting for the host…
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={onLeave}
+            style={buttonStyle("quiet", "md", { mobile, fullWidth: true })}
           >
-            Waiting for the host…
-          </span>
-        )}
-        <button type="button" onClick={onLeave} style={btn(SURFACE, INK)}>
-          Leave
-        </button>
+            Leave
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1714,10 +1748,10 @@ const MultiplayerGameView: React.FC<Props> = ({
           <EndScreen
             chips={chips}
             scores={s.scores}
-            names={chips.map((c) => c.name)}
             canRematch={soloMode === true || isHost}
             onPlayAgain={() => onIntent({ type: "NEW_GAME" })}
             onLeave={onLeave}
+            mobile={mobile}
           />
         )}
 
