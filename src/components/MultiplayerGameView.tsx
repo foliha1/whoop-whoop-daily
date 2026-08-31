@@ -30,7 +30,8 @@ import { usePortalHost } from "@/hooks/usePortalHost";
 import SettingsSheet from "@/components/SettingsSheet";
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
 import GameCard from "@/components/GameCard";
-import { COLORS, FONT_FAMILY, RAW, textStyle } from "@/lib/tokens";
+import { COLORS, FONT_FAMILY, RAW, SPACE, textStyle, buttonStyle } from "@/lib/tokens";
+import { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
 import type { PublicState } from "@/lib/publicState";
 import type { IntentAction, RollAttribute, RollCommitPayload, TransientEvent } from "@/lib/multiplayer";
 import { ROLL_HERO_MS } from "@/lib/multiplayer";
@@ -1747,10 +1748,10 @@ const MultiplayerGameView: React.FC<Props> = ({
           <EndScreen
             chips={chips}
             scores={s.scores}
-            names={chips.map((c) => c.name)}
             canRematch={soloMode === true || isHost}
             onPlayAgain={() => onIntent({ type: "NEW_GAME" })}
             onLeave={onLeave}
+            mobile={mobile}
           />
         )}
 
