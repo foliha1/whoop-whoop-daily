@@ -1590,32 +1590,15 @@ const MultiplayerGameView: React.FC<Props> = ({
       />
       <style>{HEADER_FOCUS_CSS}</style>
 
-      {activeCommit && heroRects && (
-        <RollHeroOverlay
-          commit={activeCommit}
-          homeRect={heroRects.home}
-          targetRect={heroRects.target}
-          parentRect={heroRects.parent}
-          onComplete={() => { setActiveCommit(null); setHeroRects(null); }}
-        />
-      )}
+      <RollOverlayPortal
+        isRolling={isRolling}
+        activeCommit={activeCommit}
+        heroRects={heroRects}
+        onComplete={() => { setActiveCommit(null); setHeroRects(null); }}
+      />
       {presenceStatus !== undefined && presenceStatus !== "connected" && (
         <ReconnectingOverlay />
       )}
-      {/* ROLLING scrim — beneath the die overlay (z=30), above the play
-          content. Pointer-events none so header controls stay reachable;
-          the card grid and WHOOP button are blocked independently. */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute", inset: 0,
-          background: "rgba(35,31,32,0.6)",
-          opacity: isRolling ? 1 : 0,
-          pointerEvents: "none",
-          transition: "opacity 250ms ease",
-          zIndex: 20,
-        }}
-      />
       <div style={{
         display: "flex", flexDirection: "column", gap: 8,
         width: "100%", height: mobile ? "100%" : "auto", maxHeight: "100%",
