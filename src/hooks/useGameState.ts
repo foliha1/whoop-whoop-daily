@@ -650,9 +650,11 @@ export function reducer(state: State, action: Action): State {
       return {
         ...state,
         phase: state.claimWindowOpen ? "CLAIM_WINDOW" : "FLIPPING",
+        selectedCards: [],
         settleKind: null,
         settleBy: null,
       };
+
     }
 
 
