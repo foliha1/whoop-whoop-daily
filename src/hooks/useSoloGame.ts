@@ -45,7 +45,7 @@ const ROLL_ATTRS: readonly RollAttribute[] = ["SHAPE", "NUMBER", "COLOR"] as con
 
 const SEAT_MAP = [
   { seat: 0, visitor_id: "solo-you", display_name: "You" },
-  { seat: 1, visitor_id: "solo-felix", display_name: OPPONENT_NAME },
+  { seat: 1, visitor_id: "solo-whoop", display_name: OPPONENT_NAME },
 ];
 
 export interface UseSoloGameResult {
