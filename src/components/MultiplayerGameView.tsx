@@ -1384,8 +1384,19 @@ const MultiplayerGameView: React.FC<Props> = ({
     />
   );
   const opponentRow = <OpponentRow chips={chips} />;
+
+  // Viewport height drives both the desktop card-size estimate and the
+  // compact layout for short mobile viewports.
+  const readViewportH = () =>
+    Math.min(900, typeof window === "undefined" ? 0 : Math.max(0, window.innerHeight));
+  const [rootH, setRootH] = React.useState(readViewportH);
+  // Compact mode: short mobile viewports get a slimmer bottom bar, tighter
+  // gaps and smaller minimum cards so the board fits without scrolling.
+  const compact = mobile && rootH > 0 && rootH < 620;
+  const bottomBarH = compact ? 84 : 110.94;
+
   const bottomRow = (
-    <div style={{ display: "flex", flexDirection: "row", gap: 8, height: 110.94, flex: "none" }}>
+    <div style={{ display: "flex", flexDirection: "row", gap: 8, height: bottomBarH, flex: "none" }}>
       <DieBox rule={rule} heroActive={heroActive} waiting={s.phase === "AWAITING_ROLL" && !heroActive && !s.rolling} homeRef={homeRef} />
       {/* Wrap the WHOOP button so AWAITING_ROLL/ROLLING dims it to 40% and
           physically blocks taps. pointerEvents:none guarantees no tap ever
@@ -1443,15 +1454,9 @@ const MultiplayerGameView: React.FC<Props> = ({
   // against the column's genuinely free vertical space.
   const panelRef = React.useRef<HTMLDivElement | null>(null);
   const [panelH, setPanelH] = React.useState(0);
-  // Available vertical space comes from the viewport, not from the root
-  // element: the root now hugs its content, so measuring it would feed its
-  // own height back into the card size (a loop that collapses to MIN_CARD_W).
-  // The wrapper's 900px ceiling is applied here instead.
-  // The fixed site header eats the top of the viewport (bar height + notch
-  // inset). Measure the real element so the safe-area inset is included.
-  const readViewportH = () =>
-    Math.min(900, typeof window === "undefined" ? 0 : Math.max(0, window.innerHeight));
-  const [rootH, setRootH] = React.useState(readViewportH);
+  // Available vertical space: on mobile the flexed card area is measured
+  // directly (box.h); the viewport-based estimate below is the desktop path
+  // and the mobile first-paint fallback.
   React.useEffect(() => {
     const pe = panelRef.current;
     const ro = new ResizeObserver(() => {
@@ -1477,32 +1482,38 @@ const MultiplayerGameView: React.FC<Props> = ({
 
   // Card sizing from the measured content box. 3 columns always; rows follow
   // the host's chosen grid size (6 → 2 rows, 9 → 3 rows).
-  const GAP = 8;
+  const GAP = compact ? 6 : 8;
   const RATIO = 1.4; // design card ratio 146.07 / 104.33
-  const MIN_CARD_W = 64;
-  
+  const MIN_CARD_W = compact ? 52 : 64;
+
   const COLS = 3;
   const ROWS = Math.max(1, Math.ceil(s.grid.length / COLS));
   const availW = Math.max(0, box.w);
-  // Free vertical space for the card area: viewport height (already minus the
-  // fixed header and its safe-area inset via rootH) minus the page wrapper's
-  // top padding, the root's top padding, the inner column's top padding, the
-  // 44px top bar, the player panel, the bottom bar, the three 8px column gaps,
-  // and the card area's own 32px of vertical padding.
+  // Free vertical space for the card area. On mobile the card area flexes
+  // independently of the grid, so its measured content height (box.h) is the
+  // truth — use it. Desktop still hugs content, so it keeps the viewport
+  // estimate: viewport height minus the wrapper/root/inner top paddings, the
+  // 44px top bar, the player panel, the bottom bar, the column gaps, and the
+  // card area's own vertical padding.
   // The banner is an overlay on the player panel, so it needs no reserved height.
   const topReserve = mobile ? MOBILE_SHELL_PAD : 8 + 8 + 8; // mobile root top; desktop wrapper top + root top + inner top
   const bottomReserve = mobile ? MOBILE_SHELL_PAD : 8 + 8;   // mobile root bottom matches side/top; desktop wrapper + root bottom
+  const columnGaps = 24;              // three 8px inner-column gaps
+  const areaVPad = compact ? 20 : 32; // card area vertical padding
 
-  const availH = Math.max(
+  const estimatedH = Math.max(
     0,
-    rootH - topReserve - bottomReserve - 44 - panelH - 110.94 - 24 - 32,
+    rootH - topReserve - bottomReserve - 44 - panelH - bottomBarH - columnGaps - areaVPad,
   );
+  const availH = mobile && box.h > 0 ? box.h : estimatedH;
   const byWidth = (availW - (COLS - 1) * GAP) / COLS;
-  const byHeight = ((availH - (ROWS - 1) * GAP) / ROWS) / RATIO;
+  const maxCardH = (availH - (ROWS - 1) * GAP) / ROWS;
+  const byHeight = maxCardH / RATIO;
   const rawCardW = Math.min(byWidth, byHeight);
   const cardW = Math.floor(Math.max(MIN_CARD_W, isFinite(rawCardW) && rawCardW > 0 ? rawCardW : MIN_CARD_W));
 
-  const cardH = Math.round(cardW * RATIO);
+  // Floor (not round) so rounding can never push the grid past availH.
+  const cardH = Math.floor(cardW * RATIO);
   const gridHeightNeeded = cardH * ROWS + GAP * (ROWS - 1);
   const needsScroll = gridHeightNeeded > availH + 0.5;
 
@@ -1597,7 +1608,7 @@ const MultiplayerGameView: React.FC<Props> = ({
         style={{
           position: "relative", background: PANEL, border: BORDER_HEAVY,
           borderRadius: R_BOX,
-          padding: 16,
+          padding: compact ? 10 : 16,
           boxSizing: "border-box", flex: mobile ? "1 1 auto" : "0 0 auto",
           ...(mobile ? { minHeight: 0 } : {}),
           display: "flex", flexDirection: "column",
