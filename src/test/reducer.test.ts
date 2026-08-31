@@ -1488,3 +1488,50 @@ describe("v6.7 two flips per turn", () => {
     expect(next.flipsThisTurn).toBe(0);
   });
 });
+
+// ===========================================================================
+// v6.8 rotation claim window
+// ===========================================================================
+describe("rotation claim window", () => {
+  function completedRotation(): State {
+    let s = baseState({
+      phase: "FLIPPING",
+      flipper: 0,
+      flippedThisCycle: new Set<number>(),
+    });
+    s = reducer(s, { type: "FLIP_START", by: 0, idx: 0, token: 1 });
+    s = reducer(s, { type: "FLIP_COMPLETE", token: 1 });
+    s = { ...s, flipsThisTurn: 1 };
+    s = reducer(s, { type: "FLIP_START", by: 1, idx: 1, token: 2 });
+    return reducer(s, { type: "FLIP_COMPLETE", token: 2 });
+  }
+
+  it("opens instead of ending the round when the rotation has no correct claim", () => {
+    const s = completedRotation();
+    expect(s.phase).toBe("CLAIM_WINDOW");
+    expect(s.claimWindowOpen).toBe(true);
+  });
+
+  it("rejects further flips while open, and accepts claims from any seat", () => {
+    const s = completedRotation();
+    expect(reducer(s, { type: "FLIP_START", by: 0, idx: 2, token: 9 })).toBe(s);
+    const claiming = reducer(s, { type: "PLAYER_ENTER_CLAIM", by: 1 });
+    expect(claiming.phase).toBe("CLAIM_SELECTING");
+    expect(claiming.claimBy).toBe(1);
+  });
+
+  it("a wrong claim inside the window cannot extend or restart it", () => {
+    const open = completedRotation();
+    const token = open.claimWindowToken;
+    // Wrong claim resolves through CLAIM_RESOLVE (no settle hold path).
+    let s = reducer(open, { type: "CLAIM_START", by: 1, a: 0, b: 1, token: 21 });
+    s = reducer(s, { type: "CLAIM_RESOLVE", token: 21 });
+    // Back in the window, same token → the pending expiry timer still owns it.
+    expect(s.phase).toBe("CLAIM_WINDOW");
+    expect(s.claimWindowToken).toBe(token);
+    // The ORIGINAL token still ends the round.
+    const ended = reducer(s, { type: "CLAIM_WINDOW_EXPIRE", token });
+    expect(ended.phase).toBe("AWAITING_ROLL");
+    expect(ended.claimWindowOpen).toBe(false);
+  });
+});
