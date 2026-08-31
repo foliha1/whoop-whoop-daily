@@ -63,6 +63,8 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/play/:roomCode" element={<MultiplayerPage />} />
         {/* Debug-gated routes: 404 in production, live under ?debug=1. */}
         <Route path="/typography" element={<DebugOnlyRoute><TypographyPage /></DebugOnlyRoute>} />
+        {/* TEMPORARY: six-player end-screen verification. Delete after. */}
+        <Route path="/end-preview" element={<DebugOnlyRoute><EndScreenPreview /></DebugOnlyRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
