@@ -766,23 +766,27 @@ export function reducer(state: State, action: Action): State {
           cardA,
           cardB,
         ]);
-        const { grid: newGrid, deck: newDeck } = refill(state.grid, state.deck, [a, b]);
-        const draining = newDeck.length === 0;
+        // Hold in SETTLING so every client plays the same reveal → hold →
+        // success treatment a human claim gets. SETTLE_COMPLETE refills the
+        // slots, checks the target and starts the next round.
         const post: State = {
           ...state,
+          phase: "SETTLING",
+          settleKind: "MATCH",
+          settleToken: state.settleToken + 1,
+          settleBy: by,
           scores,
           piles,
-          grid: newGrid,
-          deck: newDeck,
+          matchedCards: new Set([a, b]),
+          selectedCards: [a, b],
           claimedThisCycle: true,
-          drawEmpty: state.drawEmpty || draining,
+          claimBy: null,
+          inFlight: null,
+          peekingCard: null,
           message: `${state.names[by]} — match! +2`,
           messageType: "success",
-          inFlight: null,
-          claimBy: null,
         };
-        if (reachedTarget(post)) return withGameOverAnnounce(post);
-        return startRound(post, by);
+        return post;
       }
       const wrongForBy = new Set(state.wrongBy[by] ?? []);
       wrongForBy.add(a);
@@ -793,15 +797,23 @@ export function reducer(state: State, action: Action): State {
 
       const post: State = {
         ...state,
-        phase: state.claimWindowOpen ? "CLAIM_WINDOW" : "FLIPPING",
+        // Same wrong-claim settle a human claim gets: the pair reveals, holds,
+        // then plays the shared `.ww-wrong*` treatment before play resumes.
+        phase: "SETTLING",
+        settleKind: "WRONG",
+        settleToken: state.settleToken + 1,
+        settleBy: by,
         wrongBy: nextWrongBy,
         wrongCalls: state.wrongCalls + 1,
         scores: returned.scores,
         piles: returned.piles,
         deck: returned.deck,
         drawEmpty: returned.drawEmpty,
+        selectedCards: [a, b],
+        matchedCards: new Set(),
         inFlight: null,
         claimBy: null,
+        peekingCard: null,
         message: returned.returnedCard
           ? `${state.names[by]} — no match. One card back to the pile.`
           : `${state.names[by]} — no match.`,
@@ -809,6 +821,7 @@ export function reducer(state: State, action: Action): State {
       };
       return post;
     }
+
 
     case "SAFETY_SWAP":
       return {
