@@ -5,6 +5,7 @@ import { ROLL_HERO_MS } from "@/lib/multiplayer";
 import {
   DAILY_MATCH_SETTLE_MS,
   WRONG_SETTLE_TOTAL_MS,
+  ROTATION_CLAIM_WINDOW_MS,
 } from "@/lib/animationTiming";
 
 import { createRng, type Rng } from "@/lib/rng";
@@ -130,6 +131,10 @@ export type Phase =
   | "FLIPPING"
   | "CLAIM_SELECTING"
   | "CLAIM_RESOLVING"
+  // Rotation claim window: the rotation completed with no correct claim, so
+  // the board is settled, no further flips are possible, and claims stay live
+  // for every seat for ROTATION_CLAIM_WINDOW_MS before the round ends.
+  | "CLAIM_WINDOW"
   | "SETTLING"
   | "GAME_OVER";
 
@@ -192,6 +197,13 @@ export interface State {
   settleKind: "MATCH" | "WRONG" | null;
   settleToken: number;
   settleBy: number | null;
+  // Rotation claim window bookkeeping. `claimWindowOpen` survives a claim
+  // resolving inside the window, so a wrong claim returns the board to
+  // CLAIM_WINDOW instead of FLIPPING. `claimWindowToken` guards the single
+  // owner-side expiry timer — it is bumped ONLY when a window opens, never by
+  // a claim, so a wrong claim can neither extend nor restart the window.
+  claimWindowOpen: boolean;
+  claimWindowToken: number;
   // Deterministic randomness source. When a `seed` was supplied at init this
   // is a seeded PRNG; otherwise it wraps Math.random. Any randomness the
   // reducer needs after init MUST read from here, never Math.random directly.
@@ -227,6 +239,7 @@ export type Action =
   | { type: "FLIP_START"; by: number; idx: number; token: number }
   | { type: "FLIP_COMPLETE"; token: number }
   | { type: "SETTLE_COMPLETE"; token: number }
+  | { type: "CLAIM_WINDOW_EXPIRE"; token: number }
 
   | { type: "SKIP_TICK" }
   | { type: "CLAIM_START"; by: number; a: number; b: number; token: number }
@@ -294,6 +307,8 @@ export function initialState(slotCount: number, opts: InitOptions = {}): State {
     settleKind: null,
     settleToken: 0,
     settleBy: null,
+    claimWindowOpen: false,
+    claimWindowToken: 0,
     seed,
     rng,
     wrongCalls: 0,
@@ -426,6 +441,7 @@ function startRound(s: State, winnerIndex: number | null): State {
     roundNum: s.roundNum + 1,
     roundsSinceClaim: winnerIndex !== null ? 0 : s.roundsSinceClaim,
     claimBy: null,
+    claimWindowOpen: false,
   };
 }
 
@@ -452,10 +468,18 @@ function cycleAdvance(s: State, addWho: number): State {
     // roll clockwise — same as when the pile still has cards. The game only
     // ends when a seat reaches TARGET_SCORE (or a startRound safety fires).
     if (noClaim) {
-      return startRound(
-        { ...s, flippedThisCycle: flipped, roundsSinceClaim: s.roundsSinceClaim + 1 },
-        null,
-      );
+      // v6.8: the final flip of a rotation is the newest information on the
+      // table, so the round does NOT end here. Open a claim window instead.
+      // CLAIM_WINDOW_EXPIRE ends the round when the window elapses.
+      return {
+        ...s,
+        phase: "CLAIM_WINDOW",
+        flippedThisCycle: flipped,
+        claimWindowOpen: true,
+        claimWindowToken: s.claimWindowToken + 1,
+        inFlight: null,
+        peekingCard: null,
+      };
     }
     return startRound({ ...s, flippedThisCycle: flipped }, null);
   }
@@ -504,7 +528,7 @@ export function reducer(state: State, action: Action): State {
     }
 
     case "PLAYER_ENTER_CLAIM": {
-      if (state.phase !== "FLIPPING") return state;
+      if (state.phase !== "FLIPPING" && state.phase !== "CLAIM_WINDOW") return state;
       // v6.7: claiming never consumes a flip. flippedThisCycle and
       // flipsThisTurn are left exactly as they were.
       return {
@@ -620,15 +644,33 @@ export function reducer(state: State, action: Action): State {
         if (reachedTarget(post)) return withGameOverAnnounce(post);
         return startRound(post, state.settleBy);
       }
+      // A wrong claim inside the rotation claim window returns to the window,
+      // NOT to FLIPPING — and without touching claimWindowToken, so the
+      // pending expiry timer still fires on its original schedule.
       return {
         ...state,
-        phase: "FLIPPING",
+        phase: state.claimWindowOpen ? "CLAIM_WINDOW" : "FLIPPING",
         settleKind: null,
         settleBy: null,
       };
     }
 
 
+
+    // Rotation claim window elapsed with no correct claim: end the round and
+    // pass the roll clockwise, exactly as the rotation used to do inline.
+    case "CLAIM_WINDOW_EXPIRE": {
+      if (state.phase !== "CLAIM_WINDOW") return state;
+      if (state.claimWindowToken !== action.token) return state;
+      return startRound(
+        {
+          ...state,
+          claimWindowOpen: false,
+          roundsSinceClaim: state.roundsSinceClaim + 1,
+        },
+        null,
+      );
+    }
 
     case "FLIP_START": {
       if (state.phase !== "FLIPPING") return state;
@@ -681,7 +723,12 @@ export function reducer(state: State, action: Action): State {
     }
 
     case "CLAIM_START": {
-      if (state.phase !== "FLIPPING" && state.phase !== "CLAIM_SELECTING") return state;
+      if (
+        state.phase !== "FLIPPING" &&
+        state.phase !== "CLAIM_WINDOW" &&
+        state.phase !== "CLAIM_SELECTING"
+      )
+        return state;
       if (state.phase === "CLAIM_SELECTING") return state;
       if (state.grid[action.a] === null || state.grid[action.b] === null) return state;
       if (
@@ -746,7 +793,7 @@ export function reducer(state: State, action: Action): State {
 
       const post: State = {
         ...state,
-        phase: "FLIPPING",
+        phase: state.claimWindowOpen ? "CLAIM_WINDOW" : "FLIPPING",
         wrongBy: nextWrongBy,
         wrongCalls: state.wrongCalls + 1,
         scores: returned.scores,
@@ -822,7 +869,7 @@ export function reducer(state: State, action: Action): State {
       if (state.claimBy !== action.by) return state;
       return {
         ...state,
-        phase: "FLIPPING",
+        phase: state.claimWindowOpen ? "CLAIM_WINDOW" : "FLIPPING",
         selectedCards: [],
         matchedCards: new Set(),
         peekingCard: null,
@@ -931,6 +978,31 @@ export function useGameState(
   const rollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const rollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rollSettleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const claimWindowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Token of the window we already scheduled an expiry for. Because we skip
+  // re-scheduling for a token we've already seen, a claim resolving inside the
+  // window (which re-enters CLAIM_WINDOW with the SAME token) cannot restart
+  // the timer.
+  const scheduledClaimWindowRef = useRef<number>(-1);
+
+  useEffect(() => {
+    if (!state.claimWindowOpen) {
+      if (claimWindowTimerRef.current) {
+        clearTimeout(claimWindowTimerRef.current);
+        claimWindowTimerRef.current = null;
+      }
+      scheduledClaimWindowRef.current = -1;
+      return;
+    }
+    const token = state.claimWindowToken;
+    if (scheduledClaimWindowRef.current === token) return;
+    scheduledClaimWindowRef.current = token;
+    if (claimWindowTimerRef.current) clearTimeout(claimWindowTimerRef.current);
+    claimWindowTimerRef.current = setTimeout(() => {
+      claimWindowTimerRef.current = null;
+      dispatch({ type: "CLAIM_WINDOW_EXPIRE", token });
+    }, ROTATION_CLAIM_WINDOW_MS);
+  }, [state.claimWindowOpen, state.claimWindowToken]);
 
   // Re-INIT when EITHER the grid size OR the seat count changes. Multiplayer
   // mounts this hook with seatCount=2 (empty frozenSeats) before "Lets do it!"
