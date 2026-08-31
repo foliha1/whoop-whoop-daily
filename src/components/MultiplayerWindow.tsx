@@ -4,6 +4,7 @@ import { usePortalHost } from "@/hooks/usePortalHost";
 import { toast } from "sonner";
 import AutoFitText from "@/components/AutoFitText";
 import {
+  RAW,
   COLORS,
   SPACE,
   BORDER,
@@ -1069,7 +1070,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 display: "flex",
                 flexDirection: "column",
                 gap: SPACE[4],
-                border: `2px solid ${COLORS.orange}`,
+                background: COLORS.orange,
+                border: `2px solid ${RAW.warmBlack}`,
                 borderRadius: RADIUS.md,
                 padding: SPACE[6],
                 boxSizing: "border-box",
@@ -1077,7 +1079,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             >
               <label
                 htmlFor="table-code"
-                style={{ ...smallCopy, color: COLORS.orange, textAlign: "center" }}
+                style={{ ...smallCopy, color: RAW.warmBlack, textAlign: "center" }}
               >
                 {"Already have a table code?\nLeave it blank to start your own."}
               </label>
@@ -1104,7 +1106,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                   textAlign: "center",
                   color: COLORS.orange,
                   caretColor: COLORS.orange,
-                  border: `2px solid ${COLORS.orange}`,
+                  border: `2px solid ${RAW.warmBlack}`,
                 }}
               />
             </div>
