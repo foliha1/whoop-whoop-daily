@@ -309,7 +309,7 @@ const LandingPage: React.FC = () => {
               className="ww-landing-way-solo"
               background={COLORS.blue}
               color={COLORS.surface}
-              line="Play the full game against Felix O. He remembers. Mostly."
+              line="Play the full game against WHOOP. It remembers. Mostly."
             />
             <SecondaryWay
               label="Multiplayer"

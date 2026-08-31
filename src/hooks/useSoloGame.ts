@@ -1,8 +1,8 @@
 // ============================================================================
-// useSoloGame — drives a local 2-seat game against Felix O.
+// useSoloGame — drives a local 2-seat game against WHOOP
 //
 // Wraps useGameState with `botSeats: []` so the built-in bot scheduler stays
-// dormant, then drives seat 1 (Felix) externally via the pure whoopBrain
+// dormant, then drives seat 1 (WHOOP) externally via the pure whoopBrain
 // module. Exposes the same shape MultiplayerGameView needs: a PublicState,
 // an onIntent handler, and a transient event stream.
 // ============================================================================
@@ -33,14 +33,14 @@ import {
   pickReactionDelay,
   type Brain,
 } from "@/lib/whoopBrain";
-const OPPONENT_NAME = "Felix O.";
+const OPPONENT_NAME = "WHOOP";
 
-const FELIX_SEAT = 1;
+const WHOOP_SEAT = 1;
 const HUMAN_SEAT = 0;
 const REVEAL_MS = 2000;
 const EVENT_LIFETIME_MS = 1400;
-const FELIX_ROLL_DELAY_MS = 1200;
-const FELIX_FLIP_DELAY_MS = 1400;
+const WHOOP_ROLL_DELAY_MS = 1200;
+const WHOOP_FLIP_DELAY_MS = 1400;
 const ROLL_ATTRS: readonly RollAttribute[] = ["SHAPE", "NUMBER", "COLOR"] as const;
 
 const SEAT_MAP = [
@@ -174,31 +174,31 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
     prevWrongRef.current = nw;
   }, [state.scores, state.wrongBy, emit]);
 
-  // ---- Felix's auto-roll ----
+  // ---- WHOOP's auto-roll ----
   useEffect(() => {
     if (state.phase !== "AWAITING_ROLL") return;
-    if (state.roller !== FELIX_SEAT) return;
+    if (state.roller !== WHOOP_SEAT) return;
     if (state.rolling) return;
     const t = setTimeout(() => {
       commitAndRoll();
-    }, FELIX_ROLL_DELAY_MS);
+    }, WHOOP_ROLL_DELAY_MS);
     return () => clearTimeout(t);
   }, [state.phase, state.roller, state.rolling, commitAndRoll]);
 
-  // ---- Felix's auto-flip ----
+  // ---- WHOOP's auto-flip ----
   const flipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (state.phase !== "FLIPPING") return;
-    if (state.flipper !== FELIX_SEAT) return;
+    if (state.flipper !== WHOOP_SEAT) return;
     if (state.inFlight) return;
-    if (state.disconnected[FELIX_SEAT]) return;
+    if (state.disconnected[WHOOP_SEAT]) return;
     if (flipTimerRef.current) clearTimeout(flipTimerRef.current);
     flipTimerRef.current = setTimeout(() => {
       flipTimerRef.current = null;
       const s = stateRef.current;
-      if (s.phase !== "FLIPPING" || s.flipper !== FELIX_SEAT || s.inFlight) return;
+      if (s.phase !== "FLIPPING" || s.flipper !== WHOOP_SEAT || s.inFlight) return;
       const candidates = s.grid
-        .map((c, i) => (c !== null && !s.wrongBy[FELIX_SEAT].has(i) ? i : -1))
+        .map((c, i) => (c !== null && !s.wrongBy[WHOOP_SEAT].has(i) ? i : -1))
         .filter((i) => i !== -1);
       const pick = pickFlipTarget(brainRef.current, candidates);
       if (pick === null) {
@@ -206,9 +206,9 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
         return;
       }
       const token = nextToken();
-      dispatch({ type: "FLIP_START", by: FELIX_SEAT, idx: pick, token });
+      dispatch({ type: "FLIP_START", by: WHOOP_SEAT, idx: pick, token });
       setTimeout(() => dispatch({ type: "FLIP_COMPLETE", token }), REVEAL_MS);
-    }, FELIX_FLIP_DELAY_MS);
+    }, WHOOP_FLIP_DELAY_MS);
     return () => {
       if (flipTimerRef.current) {
         clearTimeout(flipTimerRef.current);
@@ -223,16 +223,16 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
     dispatch,
   ]);
 
-  // ---- Felix's claim attempts ----
+  // ---- WHOOP's claim attempts ----
   const claimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    // Felix claims in the rotation claim window too — including after he took
+    // WHOOP claims in the rotation claim window too — including after he took
     // the final flip of the rotation.
     if (state.phase !== "FLIPPING" && state.phase !== "CLAIM_WINDOW") return;
     if (state.inFlight) return;
     if (state.claimBy !== null) return;
-    if (state.disconnected[FELIX_SEAT]) return;
-    const excluded = new Set<number>(state.wrongBy[FELIX_SEAT]);
+    if (state.disconnected[WHOOP_SEAT]) return;
+    const excluded = new Set<number>(state.wrongBy[WHOOP_SEAT]);
     state.grid.forEach((c, i) => {
       if (c === null) excluded.add(i);
     });
@@ -249,13 +249,13 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
         s.claimBy !== null ||
         s.grid[best.a] === null ||
         s.grid[best.b] === null ||
-        s.wrongBy[FELIX_SEAT].has(best.a) ||
-        s.wrongBy[FELIX_SEAT].has(best.b)
+        s.wrongBy[WHOOP_SEAT].has(best.a) ||
+        s.wrongBy[WHOOP_SEAT].has(best.b)
       ) {
         return;
       }
       const token = nextToken();
-      dispatch({ type: "CLAIM_START", by: FELIX_SEAT, a: best.a, b: best.b, token });
+      dispatch({ type: "CLAIM_START", by: WHOOP_SEAT, a: best.a, b: best.b, token });
       setTimeout(() => dispatch({ type: "CLAIM_RESOLVE", token }), 1600);
     }, delay);
     return () => {
@@ -277,7 +277,7 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
     dispatch,
   ]);
 
-  // Cancel any pending Felix work on phase/round change.
+  // Cancel any pending WHOOP work on phase/round change.
   useEffect(() => {
     if (claimTimerRef.current) {
       clearTimeout(claimTimerRef.current);
