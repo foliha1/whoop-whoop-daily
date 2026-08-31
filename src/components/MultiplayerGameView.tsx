@@ -1454,15 +1454,9 @@ const MultiplayerGameView: React.FC<Props> = ({
   // against the column's genuinely free vertical space.
   const panelRef = React.useRef<HTMLDivElement | null>(null);
   const [panelH, setPanelH] = React.useState(0);
-  // Available vertical space comes from the viewport, not from the root
-  // element: the root now hugs its content, so measuring it would feed its
-  // own height back into the card size (a loop that collapses to MIN_CARD_W).
-  // The wrapper's 900px ceiling is applied here instead.
-  // The fixed site header eats the top of the viewport (bar height + notch
-  // inset). Measure the real element so the safe-area inset is included.
-  const readViewportH = () =>
-    Math.min(900, typeof window === "undefined" ? 0 : Math.max(0, window.innerHeight));
-  const [rootH, setRootH] = React.useState(readViewportH);
+  // Available vertical space: on mobile the flexed card area is measured
+  // directly (box.h); the viewport-based estimate below is the desktop path
+  // and the mobile first-paint fallback.
   React.useEffect(() => {
     const pe = panelRef.current;
     const ro = new ResizeObserver(() => {
