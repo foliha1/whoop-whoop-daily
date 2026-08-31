@@ -85,8 +85,18 @@ const MultiplayerPage: React.FC = () => {
   const lobbyVisible = introStatus !== "pending";
 
   const title = "WHOOP! WHOOP! Classic";
-  const description =
-    "Play WHOOP! WHOOP! Classic online with friends. Start a table, share the link, and match cards under the die.";
+
+  // Set the tab title by mutating the existing <title> element in place —
+  // a Helmet <title> would append a second tag alongside index.html's.
+  // Route meta (description, og:*) is intentionally NOT emitted here: the
+  // static index.html tags are the single set, and this route is noindex.
+  useEffect(() => {
+    const prev = document.title;
+    document.title = title;
+    return () => {
+      document.title = prev;
+    };
+  }, []);
 
   const handleIntroDone = (reason: "complete" | "skip" | "timeout" | "error") => {
     if (reason === "complete") setIntroStatus("complete");
@@ -98,12 +108,7 @@ const MultiplayerPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>{title}</title>
-        <meta name="description" content={description} />
         <meta name="robots" content="noindex, nofollow" />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:type" content="website" />
       </Helmet>
       <div
         className="mp-page-root"
