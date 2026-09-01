@@ -662,16 +662,15 @@ export function reducer(state: State, action: Action): State {
     // Rotation claim window elapsed with no correct claim: end the round and
     // pass the roll clockwise, exactly as the rotation used to do inline.
     case "CLAIM_WINDOW_EXPIRE": {
-      if (state.phase !== "CLAIM_WINDOW") return state;
       if (state.claimWindowToken !== action.token) return state;
-      return startRound(
-        {
-          ...state,
-          claimWindowOpen: false,
-          roundsSinceClaim: state.roundsSinceClaim + 1,
-        },
-        null,
-      );
+      if (!state.claimWindowOpen) return state;
+      // The window elapsed while a claim was still being made/resolved. Record
+      // it so the claim's return path ends the round instead of re-entering a
+      // window that has no live timer left.
+      if (state.phase !== "CLAIM_WINDOW") {
+        return { ...state, claimWindowElapsed: true };
+      }
+      return endClaimWindow(state);
     }
 
     case "FLIP_START": {
