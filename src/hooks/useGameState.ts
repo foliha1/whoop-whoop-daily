@@ -442,7 +442,35 @@ function startRound(s: State, winnerIndex: number | null): State {
     roundsSinceClaim: winnerIndex !== null ? 0 : s.roundsSinceClaim,
     claimBy: null,
     claimWindowOpen: false,
+    claimWindowElapsed: false,
   };
+}
+
+/**
+ * The rotation claim window elapsed: end the round and pass the roll clockwise.
+ */
+function endClaimWindow(s: State): State {
+  return startRound(
+    {
+      ...s,
+      claimWindowOpen: false,
+      claimWindowElapsed: false,
+      roundsSinceClaim: s.roundsSinceClaim + 1,
+    },
+    null,
+  );
+}
+
+/**
+ * Where the board goes when a claim ends without a match (wrong claim settled,
+ * or cancelled). Inside a still-live rotation claim window it returns to the
+ * window; if the window's single timer already elapsed while the claim was in
+ * progress, the round ends now so the game can never stall there.
+ */
+function resumeAfterClaim(s: State): State {
+  if (!s.claimWindowOpen) return { ...s, phase: "FLIPPING" };
+  if (s.claimWindowElapsed) return endClaimWindow(s);
+  return { ...s, phase: "CLAIM_WINDOW" };
 }
 
 /**
