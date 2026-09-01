@@ -646,14 +646,14 @@ export function reducer(state: State, action: Action): State {
       }
       // A wrong claim inside the rotation claim window returns to the window,
       // NOT to FLIPPING — and without touching claimWindowToken, so the
-      // pending expiry timer still fires on its original schedule.
-      return {
+      // pending expiry timer still fires on its original schedule. If that
+      // timer already fired while the claim was resolving, the round ends now.
+      return resumeAfterClaim({
         ...state,
-        phase: state.claimWindowOpen ? "CLAIM_WINDOW" : "FLIPPING",
         selectedCards: [],
         settleKind: null,
         settleBy: null,
-      };
+      });
 
     }
 
