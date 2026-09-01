@@ -882,9 +882,8 @@ export function reducer(state: State, action: Action): State {
     case "CANCEL_CLAIM": {
       if (state.phase !== "CLAIM_SELECTING") return state;
       if (state.claimBy !== action.by) return state;
-      return {
+      const base: State = {
         ...state,
-        phase: state.claimWindowOpen ? "CLAIM_WINDOW" : "FLIPPING",
         selectedCards: [],
         matchedCards: new Set(),
         peekingCard: null,
@@ -893,6 +892,7 @@ export function reducer(state: State, action: Action): State {
         message: `${state.names[action.by]} — cancelled.`,
         messageType: "info",
       };
+      return resumeAfterClaim(base);
     }
 
     // SET_DISCONNECTED uses REPLACE semantics — the payload is the complete
