@@ -203,6 +203,9 @@ export interface State {
   // owner-side expiry timer — it is bumped ONLY when a window opens, never by
   // a claim, so a wrong claim can neither extend nor restart the window.
   claimWindowOpen: boolean;
+  // True when the window's single expiry timer already fired while a claim was
+  // in progress; the claim's return path then ends the round immediately.
+  claimWindowElapsed: boolean;
   claimWindowToken: number;
   // Deterministic randomness source. When a `seed` was supplied at init this
   // is a seeded PRNG; otherwise it wraps Math.random. Any randomness the
@@ -308,6 +311,7 @@ export function initialState(slotCount: number, opts: InitOptions = {}): State {
     settleToken: 0,
     settleBy: null,
     claimWindowOpen: false,
+    claimWindowElapsed: false,
     claimWindowToken: 0,
     seed,
     rng,
@@ -442,7 +446,35 @@ function startRound(s: State, winnerIndex: number | null): State {
     roundsSinceClaim: winnerIndex !== null ? 0 : s.roundsSinceClaim,
     claimBy: null,
     claimWindowOpen: false,
+    claimWindowElapsed: false,
   };
+}
+
+/**
+ * The rotation claim window elapsed: end the round and pass the roll clockwise.
+ */
+function endClaimWindow(s: State): State {
+  return startRound(
+    {
+      ...s,
+      claimWindowOpen: false,
+      claimWindowElapsed: false,
+      roundsSinceClaim: s.roundsSinceClaim + 1,
+    },
+    null,
+  );
+}
+
+/**
+ * Where the board goes when a claim ends without a match (wrong claim settled,
+ * or cancelled). Inside a still-live rotation claim window it returns to the
+ * window; if the window's single timer already elapsed while the claim was in
+ * progress, the round ends now so the game can never stall there.
+ */
+function resumeAfterClaim(s: State): State {
+  if (!s.claimWindowOpen) return { ...s, phase: "FLIPPING" };
+  if (s.claimWindowElapsed) return endClaimWindow(s);
+  return { ...s, phase: "CLAIM_WINDOW" };
 }
 
 /**
@@ -476,6 +508,7 @@ function cycleAdvance(s: State, addWho: number): State {
         phase: "CLAIM_WINDOW",
         flippedThisCycle: flipped,
         claimWindowOpen: true,
+        claimWindowElapsed: false,
         claimWindowToken: (s.claimWindowToken ?? 0) + 1,
         inFlight: null,
         peekingCard: null,
@@ -646,14 +679,14 @@ export function reducer(state: State, action: Action): State {
       }
       // A wrong claim inside the rotation claim window returns to the window,
       // NOT to FLIPPING — and without touching claimWindowToken, so the
-      // pending expiry timer still fires on its original schedule.
-      return {
+      // pending expiry timer still fires on its original schedule. If that
+      // timer already fired while the claim was resolving, the round ends now.
+      return resumeAfterClaim({
         ...state,
-        phase: state.claimWindowOpen ? "CLAIM_WINDOW" : "FLIPPING",
         selectedCards: [],
         settleKind: null,
         settleBy: null,
-      };
+      });
 
     }
 
@@ -662,16 +695,15 @@ export function reducer(state: State, action: Action): State {
     // Rotation claim window elapsed with no correct claim: end the round and
     // pass the roll clockwise, exactly as the rotation used to do inline.
     case "CLAIM_WINDOW_EXPIRE": {
-      if (state.phase !== "CLAIM_WINDOW") return state;
       if (state.claimWindowToken !== action.token) return state;
-      return startRound(
-        {
-          ...state,
-          claimWindowOpen: false,
-          roundsSinceClaim: state.roundsSinceClaim + 1,
-        },
-        null,
-      );
+      if (!state.claimWindowOpen) return state;
+      // The window elapsed while a claim was still being made/resolved. Record
+      // it so the claim's return path ends the round instead of re-entering a
+      // window that has no live timer left.
+      if (state.phase !== "CLAIM_WINDOW") {
+        return { ...state, claimWindowElapsed: true };
+      }
+      return endClaimWindow(state);
     }
 
     case "FLIP_START": {
@@ -882,9 +914,8 @@ export function reducer(state: State, action: Action): State {
     case "CANCEL_CLAIM": {
       if (state.phase !== "CLAIM_SELECTING") return state;
       if (state.claimBy !== action.by) return state;
-      return {
+      const base: State = {
         ...state,
-        phase: state.claimWindowOpen ? "CLAIM_WINDOW" : "FLIPPING",
         selectedCards: [],
         matchedCards: new Set(),
         peekingCard: null,
@@ -893,6 +924,7 @@ export function reducer(state: State, action: Action): State {
         message: `${state.names[action.by]} — cancelled.`,
         messageType: "info",
       };
+      return resumeAfterClaim(base);
     }
 
     // SET_DISCONNECTED uses REPLACE semantics — the payload is the complete
