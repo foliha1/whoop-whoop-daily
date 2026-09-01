@@ -203,6 +203,9 @@ export interface State {
   // owner-side expiry timer — it is bumped ONLY when a window opens, never by
   // a claim, so a wrong claim can neither extend nor restart the window.
   claimWindowOpen: boolean;
+  // True when the window's single expiry timer already fired while a claim was
+  // in progress; the claim's return path then ends the round immediately.
+  claimWindowElapsed: boolean;
   claimWindowToken: number;
   // Deterministic randomness source. When a `seed` was supplied at init this
   // is a seeded PRNG; otherwise it wraps Math.random. Any randomness the
@@ -308,6 +311,7 @@ export function initialState(slotCount: number, opts: InitOptions = {}): State {
     settleToken: 0,
     settleBy: null,
     claimWindowOpen: false,
+    claimWindowElapsed: false,
     claimWindowToken: 0,
     seed,
     rng,
