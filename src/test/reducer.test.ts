@@ -1547,4 +1547,17 @@ describe("rotation claim window", () => {
     expect(ended.phase).toBe("AWAITING_ROLL");
     expect(ended.claimWindowOpen).toBe(false);
   });
+
+  it("a window that expires mid-claim ends the round when the wrong claim resolves", () => {
+    const open = completedRotation();
+    const token = open.claimWindowToken;
+    let s = reducer(open, { type: "CLAIM_START", by: 1, a: 0, b: 1, token: 31 });
+    // The single expiry timer fires while the claim is still resolving.
+    s = reducer(s, { type: "CLAIM_WINDOW_EXPIRE", token });
+    expect(s.phase).not.toBe("AWAITING_ROLL");
+    s = resolveClaim(s, 31);
+    // No live timer remains, so the resolution itself must end the round.
+    expect(s.phase).toBe("AWAITING_ROLL");
+    expect(s.claimWindowOpen).toBe(false);
+  });
 });
