@@ -476,6 +476,7 @@ function cycleAdvance(s: State, addWho: number): State {
         phase: "CLAIM_WINDOW",
         flippedThisCycle: flipped,
         claimWindowOpen: true,
+        claimWindowElapsed: false,
         claimWindowToken: (s.claimWindowToken ?? 0) + 1,
         inFlight: null,
         peekingCard: null,
