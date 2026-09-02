@@ -52,6 +52,7 @@ const GameCard = ({
   shaking,
   fill,
   interactive = true,
+  unavailable = false,
   dealKey,
   dealIndex,
   washRef,
