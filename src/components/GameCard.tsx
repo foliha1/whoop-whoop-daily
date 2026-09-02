@@ -153,15 +153,15 @@ const GameCard = ({
         transformOrigin: "center",
         ["--ww-k" as string]: String(k),
         transform: shrinking ? outerTransform : undefined,
-        opacity: shrinking ? outerOpacity : undefined,
+        opacity: shrinking ? outerOpacity : unavailable ? UNAVAILABLE_OPACITY : undefined,
         transition: shrinking ? outerTransition : undefined,
         animation: animStyle,
         outline: focusVis ? `2px solid ${COLORS.blue}` : "none",
         outlineOffset: 2,
-        WebkitTapHighlightColor: interactive ? undefined : "transparent",
+        WebkitTapHighlightColor: tappable ? undefined : "transparent",
       }}
-      onClick={interactive ? onClick : undefined}
-      onKeyDown={interactive ? (e) => {
+      onClick={tappable ? onClick : undefined}
+      onKeyDown={tappable ? (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onClick?.();
