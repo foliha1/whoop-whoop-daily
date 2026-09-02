@@ -125,15 +125,19 @@ const GameCard = ({
   // immediately with no exit transition.
   const wrapperClass = wrong ? "ww-wrong" : undefined;
 
-
+  // "Not for you": the viewing player already burned this card on a wrong
+  // claim this round. Quiet, static, no animation — it must not read as an
+  // error. Other seats render the very same card fully available.
+  const tappable = interactive && !unavailable;
+  const UNAVAILABLE_OPACITY = 0.4;
 
   return (
     <div
       ref={wrapperRef}
-      role={interactive ? "button" : undefined}
-      tabIndex={interactive ? 0 : -1}
-      aria-label={ariaLabel}
-      aria-disabled={interactive ? undefined : true}
+      role={tappable ? "button" : undefined}
+      tabIndex={tappable ? 0 : -1}
+      aria-label={unavailable ? `${ariaLabel}, unavailable to you` : ariaLabel}
+      aria-disabled={tappable ? undefined : true}
       className={wrapperClass}
 
       style={{
@@ -141,7 +145,7 @@ const GameCard = ({
         width: "100%",
         height: fill ? "100%" : undefined,
         aspectRatio: fill ? undefined : "5/7",
-        cursor: interactive ? "pointer" : "default",
+        cursor: unavailable ? "not-allowed" : interactive ? "pointer" : "default",
         position: "relative",
         overflow: "hidden",
         borderRadius: radius,
