@@ -20,6 +20,10 @@ interface GameCardProps {
    *  feedback, no keyboard/click handling. Used while another seat holds an
    *  open claim so taps read as "not my turn" rather than "game frozen". */
   interactive?: boolean;
+  /** Locked to the viewing player only (wrong-claim lockout). Reads as "not
+   *  for you": quieter face, `not-allowed` cursor, no taps. Other players
+   *  still see the same card as a normal, takeable face-up card. */
+  unavailable?: boolean;
   /** Remount key for the deal-in wrapper; changing it replays the animation. */
   dealKey?: string | number;
   /** Stagger index for the deal-in animation (`--ww-deal-i`). */
