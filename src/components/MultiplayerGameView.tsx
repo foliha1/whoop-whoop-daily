@@ -1731,6 +1731,10 @@ const MultiplayerGameView: React.FC<Props> = ({
                   onClick={cardsInteractive ? () => handleCardClick(i) : undefined}
                   highlighted={selected}
                   wrong={wrongCards.includes(i)}
+                  // Locked to me only: face up and live for everyone else.
+                  // Suppressed while the wrong-claim treatment is still on
+                  // this card so the two states never stack.
+                  unavailable={lockedForMe.has(i) && !wrongCards.includes(i)}
                   shaking={false}
                   fill
                   dealKey={dealInfo.keys[i]}
