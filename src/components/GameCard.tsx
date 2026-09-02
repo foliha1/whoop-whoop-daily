@@ -20,6 +20,10 @@ interface GameCardProps {
    *  feedback, no keyboard/click handling. Used while another seat holds an
    *  open claim so taps read as "not my turn" rather than "game frozen". */
   interactive?: boolean;
+  /** Locked to the viewing player only (wrong-claim lockout). Reads as "not
+   *  for you": quieter face, `not-allowed` cursor, no taps. Other players
+   *  still see the same card as a normal, takeable face-up card. */
+  unavailable?: boolean;
   /** Remount key for the deal-in wrapper; changing it replays the animation. */
   dealKey?: string | number;
   /** Stagger index for the deal-in animation (`--ww-deal-i`). */
@@ -48,6 +52,7 @@ const GameCard = ({
   shaking,
   fill,
   interactive = true,
+  unavailable = false,
   dealKey,
   dealIndex,
   washRef,
@@ -120,15 +125,19 @@ const GameCard = ({
   // immediately with no exit transition.
   const wrapperClass = wrong ? "ww-wrong" : undefined;
 
-
+  // "Not for you": the viewing player already burned this card on a wrong
+  // claim this round. Quiet, static, no animation — it must not read as an
+  // error. Other seats render the very same card fully available.
+  const tappable = interactive && !unavailable;
+  const UNAVAILABLE_OPACITY = 0.4;
 
   return (
     <div
       ref={wrapperRef}
-      role={interactive ? "button" : undefined}
-      tabIndex={interactive ? 0 : -1}
-      aria-label={ariaLabel}
-      aria-disabled={interactive ? undefined : true}
+      role={tappable ? "button" : undefined}
+      tabIndex={tappable ? 0 : -1}
+      aria-label={unavailable ? `${ariaLabel}, unavailable to you` : ariaLabel}
+      aria-disabled={tappable ? undefined : true}
       className={wrapperClass}
 
       style={{
@@ -136,7 +145,7 @@ const GameCard = ({
         width: "100%",
         height: fill ? "100%" : undefined,
         aspectRatio: fill ? undefined : "5/7",
-        cursor: interactive ? "pointer" : "default",
+        cursor: unavailable ? "not-allowed" : interactive ? "pointer" : "default",
         position: "relative",
         overflow: "hidden",
         borderRadius: radius,
@@ -144,15 +153,15 @@ const GameCard = ({
         transformOrigin: "center",
         ["--ww-k" as string]: String(k),
         transform: shrinking ? outerTransform : undefined,
-        opacity: shrinking ? outerOpacity : undefined,
+        opacity: shrinking ? outerOpacity : unavailable ? UNAVAILABLE_OPACITY : undefined,
         transition: shrinking ? outerTransition : undefined,
         animation: animStyle,
         outline: focusVis ? `2px solid ${COLORS.blue}` : "none",
         outlineOffset: 2,
-        WebkitTapHighlightColor: interactive ? undefined : "transparent",
+        WebkitTapHighlightColor: tappable ? undefined : "transparent",
       }}
-      onClick={interactive ? onClick : undefined}
-      onKeyDown={interactive ? (e) => {
+      onClick={tappable ? onClick : undefined}
+      onKeyDown={tappable ? (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onClick?.();
