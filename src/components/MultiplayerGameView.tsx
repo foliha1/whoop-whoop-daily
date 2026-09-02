@@ -993,6 +993,13 @@ const MultiplayerGameView: React.FC<Props> = ({
   const otherSeatClaiming =
     mySeat !== null && s.claimBy !== null && s.claimBy !== mySeat;
   const cardsInteractive = !otherSeatClaiming;
+  // Cards this player burned on a wrong claim this round. Locked for them,
+  // still live for every other seat — so this is derived from MY seat only
+  // and never from the wrongBy union.
+  const lockedForMe = React.useMemo(
+    () => new Set<number>(mySeat === null ? [] : s.wrongBy[mySeat] ?? []),
+    [s.wrongBy, mySeat],
+  );
   // RULES: a player may call out at ANY moment once the round's rule is
   // rolled — during someone else's flip, between turns, before a single card
   // has been turned. There is deliberately NO flip requirement here: the only
