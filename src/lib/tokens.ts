@@ -212,6 +212,14 @@ export const TEXT_ROLES = {
   heading:       { step: "3xl", mobileStep: "2xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.snug, letterSpacing: "-0.015em" },
   /** Screen headlines ("How do you want to play?"). */
   hero:          { step: "5xl", mobileStep: "4xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.snug },
+  /** Classic result headline ("Great Game!") — 72/87 with tight tracking. */
+  resultHero:    { step: "7xl", mobileStep: "6xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.snug, letterSpacing: "-0.02em" },
+  /** Winner standings row (rank / name / score) on the Classic result. */
+  resultWinner:  { step: "5.5xl", mobileStep: "5xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight },
+  /** Remaining standings rows inside the khaki panel. */
+  resultRow:     { step: "2.5xl", mobileStep: "2xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight },
+  /** Classic result buttons (PLAY AGAIN! / INVITE / DONE). */
+  resultButton:  { step: "4.5xl", mobileStep: "4xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight },
   /** Primary CTA lettering ("Let's Play!", table code). Italic needs descender room. */
   action:        { step: "4xl", mobileStep: "3xl", weight: FONT_WEIGHT.regular, italic: true,  lineHeight: LINE_HEIGHT.snug },
   display:       { step: "5xl", mobileStep: "4xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" },
