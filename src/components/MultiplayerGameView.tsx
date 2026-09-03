@@ -1652,6 +1652,8 @@ const MultiplayerGameView: React.FC<Props> = ({
                         // buffered claim locally and replay the cancel if the
                         // grant still lands.
                         cancelPendingRef.current = true;
+                        setPendingCancelled(true);
+
                         setOptimisticSel([]);
                         preGrantPairRef.current = null;
                         return;
