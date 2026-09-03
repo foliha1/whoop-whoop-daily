@@ -906,14 +906,21 @@ const MultiplayerGameView: React.FC<Props> = ({
   // claim is pulled: buffered selections are dropped and nothing was ever
   // sent, so there is no residue to undo.
   const [pendingClaim, setPendingClaim] = React.useState<number | null>(null);
-  const claimPending = pendingClaim !== null;
+  // Cancel pressed while the claim was still in flight: honoured locally at
+  // once (the UI leaves claim mode) and replayed to the host if the grant
+  // still lands, so host and client never diverge.
+  const [pendingCancelled, setPendingCancelled] = React.useState(false);
+  const cancelPendingRef = React.useRef(false);
+  const claimPending = pendingClaim !== null && !pendingCancelled;
   const claimMode = inClaimMode || claimPending;
   // Board lock: from the press until the claim resolves, a seat with a claim
   // in flight (or another seat's open claim) cannot tap or focus any card —
   // and the cards show the `unavailable` treatment so the board visibly reads
   // as "not taking taps" rather than eating them.
-  const boardLocked = otherSeatClaiming || (claimBusy && !claimMode);
+  const boardLocked =
+    otherSeatClaiming || (claimBusy && !claimMode) || (pendingCancelled && claimBusy);
   const cardsInteractive = !boardLocked;
+
   // Cancel pressed while the claim was still in flight: honoured locally at
   // once, then replayed to the host if the grant does land.
   const cancelPendingRef = React.useRef(false);
