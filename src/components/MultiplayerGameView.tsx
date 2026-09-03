@@ -1371,6 +1371,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       setClaimBusy(true);
       // Optimistic entry: claim mode opens now, selections are buffered.
       setPendingClaim(window_);
+      setPendingCancelled(false);
       cancelPendingRef.current = false;
       preGrantPairRef.current = null;
       const result = await callClaimLock({
@@ -1385,20 +1386,24 @@ const MultiplayerGameView: React.FC<Props> = ({
       // distinct banner so players can tell "beaten to it" from "broken".
       // The arbiter is still the only thing that grants a claim; a loss pulls
       // the optimistic claim and nothing was ever sent to the host.
+      const pull = () => {
+        setPendingClaim(null);
+        setPendingCancelled(false);
+        cancelPendingRef.current = false;
+        setOptimisticSel([]);
+        preGrantPairRef.current = null;
+      };
       if (result.outcome === "won") {
         // Claim mode stays open; the host's claim_grant flushes the buffer.
       } else if (result.outcome === "error") {
         console.error("[whoop] claim errored — see claim-lock log above", result.error);
-        setPendingClaim(null);
-        setOptimisticSel([]);
-        preGrantPairRef.current = null;
+        pull();
         setClaimErrAt(Date.now());
       } else {
-        setPendingClaim(null);
-        setOptimisticSel([]);
-        preGrantPairRef.current = null;
+        pull();
         setTooSlowAt(Date.now());
       }
+
     };
   }
 
