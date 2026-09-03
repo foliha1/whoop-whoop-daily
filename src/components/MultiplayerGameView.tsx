@@ -479,7 +479,7 @@ type BannerKind = "YOUR_FLIP" | "TOO_SLOW" | "CLAIM_ERROR" | "PENALTY" | "CANCEL
 
 const BannerStyles: Record<Exclude<BannerKind, null>, { bg: string; text: string; label: string; icon?: boolean }> = {
   YOUR_FLIP:   { bg: BLUE,    text: SURFACE, label: "YOUR FLIP!" },
-  TOO_SLOW:    { bg: INK,     text: SURFACE, label: "TOO SLOW!" },
+  TOO_SLOW:    { bg: INK,     text: SURFACE, label: "SOMEONE BEAT YOU TO IT" },
   CLAIM_ERROR: { bg: RED,     text: SURFACE, label: "CONNECTION ISSUE — TRY AGAIN" },
   PENALTY:     { bg: MUTED,   text: SURFACE, label: "PENALTY" },
   CANCEL:      { bg: SURFACE, text: RED,     label: "Cancel match", icon: true },
@@ -871,7 +871,6 @@ const MultiplayerGameView: React.FC<Props> = ({
   // player taps, nothing happens, and the game reads as frozen.
   const otherSeatClaiming =
     mySeat !== null && s.claimBy !== null && s.claimBy !== mySeat;
-  const cardsInteractive = !otherSeatClaiming;
   // Cards this player burned on a wrong claim this round. Locked for them,
   // still live for every other seat — so this is derived from MY seat only
   // and never from the wrongBy union.
@@ -897,8 +896,41 @@ const MultiplayerGameView: React.FC<Props> = ({
   const [claimBusy, setClaimBusy] = React.useState(false);
   const [tooSlowAt, setTooSlowAt] = React.useState<number | null>(null);
   const [claimErrAt, setClaimErrAt] = React.useState<number | null>(null);
+  // ---- optimistic claim entry -------------------------------------------
+  // The arbiter (claim_locks UNIQUE index) is untouched and still decides who
+  // claimed. What is optimistic is ONLY this client's UI: the claimant opens
+  // claim mode the instant they press and may lock both cards while the
+  // arbiter's answer is in flight. Selections made before the host's grant
+  // arrives are buffered locally and flushed as real intents on grant, so the
+  // host stays the single authority for state. If the arbiter says lost, the
+  // claim is pulled: buffered selections are dropped and nothing was ever
+  // sent, so there is no residue to undo.
+  const [pendingClaim, setPendingClaim] = React.useState<number | null>(null);
+  // Cancel pressed while the claim was still in flight: honoured locally at
+  // once (the UI leaves claim mode) and replayed to the host if the grant
+  // still lands, so host and client never diverge.
+  const [pendingCancelled, setPendingCancelled] = React.useState(false);
+  const cancelPendingRef = React.useRef(false);
+  const claimPending = pendingClaim !== null && !pendingCancelled;
+  const claimMode = inClaimMode || claimPending;
+  // Board lock: from the press until the claim resolves, a seat with a claim
+  // in flight (or another seat's open claim) cannot tap or focus any card —
+  // and the cards show the `unavailable` treatment so the board visibly reads
+  // as "not taking taps" rather than eating them.
+  const boardLocked =
+    otherSeatClaiming || (claimBusy && !claimMode) || (pendingCancelled && claimBusy);
+  const cardsInteractive = !boardLocked;
+
   // Clear transient claim feedback when the claim window rotates.
-  React.useEffect(() => { setTooSlowAt(null); setClaimErrAt(null); }, [s.claimWindow]);
+  React.useEffect(() => {
+    setTooSlowAt(null);
+    setClaimErrAt(null);
+    setPendingClaim(null);
+    setPendingCancelled(false);
+    cancelPendingRef.current = false;
+  }, [s.claimWindow]);
+
+
   // Auto-clear TOO SLOW after a short interval so the banner doesn't stick.
   React.useEffect(() => {
     if (tooSlowAt === null) return;
@@ -925,7 +957,10 @@ const MultiplayerGameView: React.FC<Props> = ({
     lastRejectKeyRef.current = key;
     console.warn("[claim_reject:self]", lastClaimReject);
     setClaimBusy(false);
+    // Pull the optimistic claim: the host never opened one for us.
+    setPendingClaim(null);
     setClaimErrAt(Date.now());
+
   }, [lastClaimReject, mySeat]);
 
   // -------- Sound effects --------
@@ -1108,11 +1143,38 @@ const MultiplayerGameView: React.FC<Props> = ({
 
   const [optimisticSel, setOptimisticSel] = React.useState<number[]>([]);
   React.useEffect(() => {
-    if (!inClaimMode) setOptimisticSel([]);
-  }, [inClaimMode]);
+    if (!claimMode) setOptimisticSel([]);
+  }, [claimMode]);
   React.useEffect(() => {
-    if (s.selectedCards.length === 0) setOptimisticSel([]);
-  }, [s.selectedCards.length]);
+    // While the claim is still in flight the host has no selections yet, so an
+    // empty authoritative list must not wipe the buffered pair.
+    if (!claimPending && s.selectedCards.length === 0) setOptimisticSel([]);
+  }, [s.selectedCards.length, claimPending]);
+
+  // Pair locked before the host's grant arrived: the wash animation already
+  // ran to completion, so the resolve effect must not wait for a second
+  // animationend that will never fire.
+  const preGrantPairRef = React.useRef<string | null>(null);
+
+  // Grant landed: flush the buffered selections (in touch order) as real
+  // intents, or replay a cancel that was pressed while in flight.
+  React.useEffect(() => {
+    if (!inClaimMode || mySeat === null) return;
+    if (pendingClaim === null) return;
+    setPendingClaim(null);
+    setPendingCancelled(false);
+    if (cancelPendingRef.current) {
+      cancelPendingRef.current = false;
+      onIntentRef.current({ type: "CANCEL_CLAIM", by: mySeat });
+      return;
+    }
+    for (const idx of optimisticSel) {
+      onIntentRef.current({ type: "PLAYER_SELECT_CARD", by: mySeat, idx });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inClaimMode, pendingClaim, mySeat]);
+
+
 
   // onIntent is not referentially stable (useCallback deps churn), so hold it
   // in a ref: the resolve effect must not tear down and restart on identity
@@ -1145,7 +1207,11 @@ const MultiplayerGameView: React.FC<Props> = ({
 
     const secondIdx = Number(localPairKey.split(",")[1]);
     let done = false;
-    let animEnded = false;
+    // A pair locked while the arbiter was still deciding has already finished
+    // its wash animation, so treat it as ended and resolve as soon as the
+    // host's selections land — no extra wait.
+    let animEnded = preGrantPairRef.current === localPairKey;
+
     let via: "animationend" | "timer" = "animationend";
     let target: HTMLDivElement | null = null;
     let raf = 0;
@@ -1184,7 +1250,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       animEnded = true;
       via = "timer";
       tryFire();
-    }, 700);
+    }, animEnded ? 2000 : 700);
 
     // The wash for the second card may not be mounted on this render pass;
     // poll on animation frames until it appears (the timer is the backstop).
@@ -1217,14 +1283,26 @@ const MultiplayerGameView: React.FC<Props> = ({
   const handleCardClick = (i: number) => {
     if (mySeat === null) return;
     if (modalOpen) return;
-    if (inClaimMode) {
+    if (claimMode) {
       hapticTap();
-      setOptimisticSel((prev) =>
-        prev.includes(i) ? prev.filter((x) => x !== i) : prev.length >= 2 ? prev : [...prev, i]
-      );
-      onIntent({ type: "PLAYER_SELECT_CARD", by: mySeat, idx: i });
+      setOptimisticSel((prev) => {
+        const next = prev.includes(i)
+          ? prev.filter((x) => x !== i)
+          : prev.length >= 2 ? prev : [...prev, i];
+        // Remember a pair completed before the grant so the resolve effect
+        // does not wait on an animation that has already ended.
+        if (!inClaimMode) {
+          preGrantPairRef.current = next.length === 2 ? next.join(",") : null;
+        }
+        return next;
+      });
+      // Before the host's grant there is no claim to select into: buffer and
+      // flush on grant, so the host is never asked to apply an unclaimed
+      // selection.
+      if (inClaimMode) onIntent({ type: "PLAYER_SELECT_CARD", by: mySeat, idx: i });
       return;
     }
+
 
     if (isMyTurnToFlip) {
       const slot = s.grid[i];
@@ -1239,7 +1317,11 @@ const MultiplayerGameView: React.FC<Props> = ({
   // Score row banner selection. Precedence: cancel-during-claim > penalty >
   // too-slow > your-flip > none.
   let banner: BannerKind = null;
-  const canCancelClaim = inClaimMode && s.selectedCards.length < 2;
+  // Count the buffered pair while the arbiter is still deciding: the host has
+  // no selections for us yet, but the player has visibly locked cards.
+  const mySelCount = claimPending ? optimisticSel.length : s.selectedCards.length;
+  const canCancelClaim = claimMode && mySelCount < 2;
+
   if (canCancelClaim) banner = "CANCEL";
   else if (claimErrAt !== null) banner = "CLAIM_ERROR";
   else if (tooSlowAt !== null) banner = "TOO_SLOW";
@@ -1264,10 +1346,10 @@ const MultiplayerGameView: React.FC<Props> = ({
   let buttonKind: ButtonKind = "DISABLED";
   let buttonOnClick: (() => void) | undefined;
   let buttonLabel: string | undefined;
-  if (inClaimMode) {
+  if (claimMode) {
     // Whether the second touch has locked in (button becomes a passive label).
     buttonKind = "SELECT_MATCH";
-    if (s.selectedCards.length >= 2) {
+    if (mySelCount >= 2) {
       buttonOnClick = undefined;
     }
   } else if (isMyTurnToRoll) {
@@ -1280,33 +1362,51 @@ const MultiplayerGameView: React.FC<Props> = ({
       if (mySeat === null || claimBusy || modalOpen) return;
       unlockAudio();
       if (soloMode) {
-        // No arbiter in solo — enter claim mode directly.
+        // No arbiter in solo — enter claim mode directly. Unchanged: solo has
+        // no optimistic layer because it has no round trip to hide.
         onIntent({ type: "PLAYER_ENTER_CLAIM", by: mySeat });
         return;
       }
+      const window_ = s.claimWindow;
       setClaimBusy(true);
+      // Optimistic entry: claim mode opens now, selections are buffered.
+      setPendingClaim(window_);
+      setPendingCancelled(false);
+      cancelPendingRef.current = false;
+      preGrantPairRef.current = null;
       const result = await callClaimLock({
         room_id: roomId,
         game_id: s.gameId,
-        claim_window: s.claimWindow,
+        claim_window: window_,
         player_seat: mySeat,
         visitor_id: visitorId,
       });
       setClaimBusy(false);
-      // Tri-state: real lost race → TOO SLOW; transport/server error →
+      // Tri-state: real lost race → beaten to it; transport/server error →
       // distinct banner so players can tell "beaten to it" from "broken".
-      // Both fail closed — we never enter claim mode without a server win.
+      // The arbiter is still the only thing that grants a claim; a loss pulls
+      // the optimistic claim and nothing was ever sent to the host.
+      const pull = () => {
+        setPendingClaim(null);
+        setPendingCancelled(false);
+        cancelPendingRef.current = false;
+        setOptimisticSel([]);
+        preGrantPairRef.current = null;
+      };
       if (result.outcome === "won") {
-        // handled server-side via claim_grant broadcast
+        // Claim mode stays open; the host's claim_grant flushes the buffer.
       } else if (result.outcome === "error") {
         console.error("[whoop] claim errored — see claim-lock log above", result.error);
+        pull();
         setClaimErrAt(Date.now());
       } else {
+        pull();
         setTooSlowAt(Date.now());
       }
+
     };
-    if (claimBusy) { buttonKind = "DISABLED"; buttonOnClick = undefined; }
   }
+
 
   // Derive a descriptive label for the muted disabled state so players can
   // tell waiting, rolling, and another player's claim apart from a broken UI.
@@ -1546,9 +1646,23 @@ const MultiplayerGameView: React.FC<Props> = ({
               banner={activeBanner}
               onCancel={
                 canCancelClaim && mySeat !== null
-                  ? () => onIntent({ type: "CANCEL_CLAIM", by: mySeat })
+                  ? () => {
+                      if (claimPending) {
+                        // Nothing has been sent to the host yet: drop the
+                        // buffered claim locally and replay the cancel if the
+                        // grant still lands.
+                        cancelPendingRef.current = true;
+                        setPendingCancelled(true);
+
+                        setOptimisticSel([]);
+                        preGrantPairRef.current = null;
+                        return;
+                      }
+                      onIntent({ type: "CANCEL_CLAIM", by: mySeat });
+                    }
                   : undefined
               }
+
             />
           </div>
         )}
@@ -1619,8 +1733,13 @@ const MultiplayerGameView: React.FC<Props> = ({
                   wrong={wrongCards.includes(i)}
                   // Locked to me only: face up and live for everyone else.
                   // Suppressed while the wrong-claim treatment is still on
-                  // this card so the two states never stack.
-                  unavailable={lockedForMe.has(i) && !wrongCards.includes(i)}
+                  // this card so the two states never stack. `boardLocked`
+                  // adds the same treatment while a claim is being decided,
+                  // so the board reads as inert instead of eating taps.
+                  unavailable={
+                    (boardLocked || lockedForMe.has(i)) && !wrongCards.includes(i)
+                  }
+
                   shaking={false}
                   fill
                   dealKey={dealInfo.keys[i]}
