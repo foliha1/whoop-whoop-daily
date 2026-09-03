@@ -1309,7 +1309,11 @@ const MultiplayerGameView: React.FC<Props> = ({
   // Score row banner selection. Precedence: cancel-during-claim > penalty >
   // too-slow > your-flip > none.
   let banner: BannerKind = null;
-  const canCancelClaim = inClaimMode && s.selectedCards.length < 2;
+  // Count the buffered pair while the arbiter is still deciding: the host has
+  // no selections for us yet, but the player has visibly locked cards.
+  const mySelCount = claimPending ? optimisticSel.length : s.selectedCards.length;
+  const canCancelClaim = claimMode && mySelCount < 2;
+
   if (canCancelClaim) banner = "CANCEL";
   else if (claimErrAt !== null) banner = "CLAIM_ERROR";
   else if (tooSlowAt !== null) banner = "TOO_SLOW";
