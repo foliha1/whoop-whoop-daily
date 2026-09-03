@@ -1338,10 +1338,10 @@ const MultiplayerGameView: React.FC<Props> = ({
   let buttonKind: ButtonKind = "DISABLED";
   let buttonOnClick: (() => void) | undefined;
   let buttonLabel: string | undefined;
-  if (inClaimMode) {
+  if (claimMode) {
     // Whether the second touch has locked in (button becomes a passive label).
     buttonKind = "SELECT_MATCH";
-    if (s.selectedCards.length >= 2) {
+    if (mySelCount >= 2) {
       buttonOnClick = undefined;
     }
   } else if (isMyTurnToRoll) {
@@ -1354,33 +1354,46 @@ const MultiplayerGameView: React.FC<Props> = ({
       if (mySeat === null || claimBusy || modalOpen) return;
       unlockAudio();
       if (soloMode) {
-        // No arbiter in solo — enter claim mode directly.
+        // No arbiter in solo — enter claim mode directly. Unchanged: solo has
+        // no optimistic layer because it has no round trip to hide.
         onIntent({ type: "PLAYER_ENTER_CLAIM", by: mySeat });
         return;
       }
+      const window_ = s.claimWindow;
       setClaimBusy(true);
+      // Optimistic entry: claim mode opens now, selections are buffered.
+      setPendingClaim(window_);
+      cancelPendingRef.current = false;
+      preGrantPairRef.current = null;
       const result = await callClaimLock({
         room_id: roomId,
         game_id: s.gameId,
-        claim_window: s.claimWindow,
+        claim_window: window_,
         player_seat: mySeat,
         visitor_id: visitorId,
       });
       setClaimBusy(false);
-      // Tri-state: real lost race → TOO SLOW; transport/server error →
+      // Tri-state: real lost race → beaten to it; transport/server error →
       // distinct banner so players can tell "beaten to it" from "broken".
-      // Both fail closed — we never enter claim mode without a server win.
+      // The arbiter is still the only thing that grants a claim; a loss pulls
+      // the optimistic claim and nothing was ever sent to the host.
       if (result.outcome === "won") {
-        // handled server-side via claim_grant broadcast
+        // Claim mode stays open; the host's claim_grant flushes the buffer.
       } else if (result.outcome === "error") {
         console.error("[whoop] claim errored — see claim-lock log above", result.error);
+        setPendingClaim(null);
+        setOptimisticSel([]);
+        preGrantPairRef.current = null;
         setClaimErrAt(Date.now());
       } else {
+        setPendingClaim(null);
+        setOptimisticSel([]);
+        preGrantPairRef.current = null;
         setTooSlowAt(Date.now());
       }
     };
-    if (claimBusy) { buttonKind = "DISABLED"; buttonOnClick = undefined; }
   }
+
 
   // Derive a descriptive label for the muted disabled state so players can
   // tell waiting, rolling, and another player's claim apart from a broken UI.
