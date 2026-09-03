@@ -82,4 +82,4 @@ export const ROTATION_CLAIM_WINDOW_MS = 2000;
  * delay of `HEADLINE_CHASE_MS / colours` per position, which is what makes the
  * cycle appear to advance along the string.
  */
-export const HEADLINE_CHASE_MS = 6000;
+export const HEADLINE_CHASE_MS = 2000;

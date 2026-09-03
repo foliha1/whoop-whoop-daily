@@ -1275,14 +1275,16 @@ All colors MUST be HSL.
    HEADLINE_CHASE_MS in src/lib/animationTiming.ts) advances the cycle along
    the string. Colours only — no movement, so the word never wobbles. */
 @keyframes ww-headline-chase {
-  0%,   100% { color: var(--ww-chase-1); }
-  25%        { color: var(--ww-chase-2); }
-  50%        { color: var(--ww-chase-3); }
-  75%        { color: var(--ww-chase-4); }
+  0%    { color: var(--ww-chase-1); }
+  25%   { color: var(--ww-chase-2); }
+  50%   { color: var(--ww-chase-3); }
+  75%   { color: var(--ww-chase-4); }
+  100%  { color: var(--ww-chase-1); }
 }
 
 .ww-chase-letter {
-  animation: ww-headline-chase var(--ww-chase-dur, 6000ms) linear infinite both;
+  /* Marquee bulbs: each stop snaps on instantly and holds, no cross-fade. */
+  animation: ww-headline-chase var(--ww-chase-dur, 6000ms) step-end infinite both;
 }
 
 /* Reduced motion: rest on one representative frame (the letter's own stop in
