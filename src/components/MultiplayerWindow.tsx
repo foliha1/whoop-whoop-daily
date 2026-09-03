@@ -616,7 +616,11 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   }, [view.kind, onBroadcast]);
 
   const shareUrl = (code: string) =>
-    typeof window !== "undefined" ? `${window.location.origin}/play/${code}` : `/play/${code}`;
+    // Query form, NOT /play/CODE: scrapers get the static dist/play/index.html
+    // (Classic tags) for any /play?... URL, while a path segment would fall
+    // back to the Daily shell. The /play/:roomCode route still works for
+    // older links.
+    typeof window !== "undefined" ? `${window.location.origin}/play?r=${code}` : `/play?r=${code}`;
 
   const flashShare = useCallback(() => {
     setShareFlash(true);
