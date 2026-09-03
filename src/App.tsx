@@ -6,7 +6,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-context";
 
-import ResultPreview from "@/pages/ResultPreview";
 import MultiplayerPage from "./pages/MultiplayerPage.tsx";
 import DailyPage from "./pages/DailyPage.tsx";
 import SupportPage from "./pages/SupportPage.tsx";
@@ -60,7 +59,6 @@ const AnimatedRoutes: React.FC = () => {
 
 
 
-        <Route path="/__resultpreview" element={<ResultPreview />} />
         <Route path="/play" element={<MultiplayerPage />} />
         <Route path="/play/:roomCode" element={<MultiplayerPage />} />
         {/* Debug-gated routes: 404 in production, live under ?debug=1. */}
