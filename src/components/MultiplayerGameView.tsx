@@ -30,6 +30,7 @@ import { usePortalHost } from "@/hooks/usePortalHost";
 import SettingsSheet from "@/components/SettingsSheet";
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
 import GameCard from "@/components/GameCard";
+import ClassicResultScreen from "@/components/ClassicResultScreen";
 import { COLORS, FONT_FAMILY, RAW, SPACE, textStyle, buttonStyle } from "@/lib/tokens";
 import { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
 import type { PublicState } from "@/lib/publicState";
@@ -96,6 +97,9 @@ interface Props {
   // Solo bypass: when true, WHOOP dispatches PLAYER_ENTER_CLAIM through
   // onIntent instead of hitting the (nonexistent) claim-lock arbiter.
   soloMode?: boolean;
+  /** Shares the table link the same way the lobby's Share button does.
+   *  Omitted in solo, where there is no table to invite anyone to. */
+  onInvite?: () => void;
 }
 
 // -------- Figma-transcribed constants --------
@@ -276,131 +280,6 @@ const OpponentRow: React.FC<{ chips: DerivedChip[] }> = ({ chips }) => (
 );
 
 
-
-// -------- End screen --------
-// Presentation only. Covers the card area when the engine reports GAME_OVER.
-// Result-scale standings, not the in-game chip: rows sit on the ground in a
-// centred column at the Daily's content width and gap rhythm. The winner's
-// row is the largest thing on the screen; everyone else steps down a rung.
-// Friend ships one weight, so hierarchy comes from size and case only.
-const EndScreen: React.FC<{
-  chips: DerivedChip[];
-  scores: number[];
-  canRematch: boolean;
-  onPlayAgain: () => void;
-  onLeave: () => void;
-  mobile?: boolean;
-}> = ({ chips, scores, canRematch, onPlayAgain, onLeave, mobile = false }) => {
-  const seats = chips
-    .map((c, seat) => ({ name: c.name, seat, score: scores[seat] ?? 0 }))
-    .filter((e) => chips[e.seat].kind !== "EMPTY");
-  const ordered = seats.slice().sort((a, b) => b.score - a.score);
-  const top = ordered.length > 0 ? ordered[0].score : -Infinity;
-  // Standard competition ranking: equal scores share the position and the
-  // next distinct score skips ahead (1st, 1st, 3rd). Co-leaders both render
-  // at winner scale — the row size follows the position, not the seat order.
-  const rankOf = (score: number) => 1 + ordered.filter((o) => o.score > score).length;
-  const ordinal = (rank: number) =>
-    rank === 1 ? "1st" : rank === 2 ? "2nd" : rank === 3 ? "3rd" : `${rank}th`;
-
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Game over"
-      style={{
-        position: "absolute", inset: 0, zIndex: 60,
-        background: PANEL,
-        boxSizing: "border-box", padding: SPACE[8],
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-      }}
-    >
-      <div style={{
-        width: "100%", maxWidth: DAILY_CONTENT_MAX_W,
-        display: "flex", flexDirection: "column", alignItems: "center",
-        gap: SPACE[12],
-      }}>
-        <div style={{
-          display: "flex", flexDirection: "column", gap: SPACE[4],
-          width: "100%",
-        }}>
-          {ordered.map((e) => {
-            const winner = e.score === top;
-            return (
-              <div
-                key={e.seat}
-                style={{
-                  display: "flex", alignItems: "baseline", gap: SPACE[6],
-                  width: "100%",
-                }}
-              >
-                {/* Position stays quiet: a muted caption, never a badge. */}
-                <span style={{
-                  ...textStyle("caption", mobile),
-                  color: MUTED, flex: "0 0 auto", width: 28,
-                }}>
-                  {ordinal(rankOf(e.score))}
-                </span>
-                <span style={{
-                  ...textStyle(winner ? "heading" : "subhead", mobile),
-                  color: INK, flex: "1 1 0", minWidth: 0,
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}>
-                  {e.name}
-                </span>
-                {/* The score keeps its out-of-10 form — the target is what
-                    the game was about. */}
-                <span style={{
-                  ...textStyle(winner ? "display" : "title", mobile),
-                  color: INK, flex: "0 0 auto",
-                }}>
-                  {e.score}
-                  <span style={{
-                    ...textStyle(winner ? "subhead" : "control", mobile),
-                    color: MUTED,
-                  }}>
-                    /{TARGET_SCORE}
-                  </span>
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        <div style={{
-          display: "flex", flexDirection: "column", alignItems: "center",
-          gap: SPACE[4], width: "100%", maxWidth: 280,
-        }}>
-          {canRematch ? (
-            <button
-              type="button"
-              onClick={onPlayAgain}
-              style={buttonStyle("primary", "md", { mobile, fullWidth: true })}
-            >
-              Play again
-            </button>
-          ) : (
-            <span
-              role="status"
-              aria-live="polite"
-              style={{ ...textStyle("caption", mobile), color: MUTED }}
-            >
-              Waiting for the host…
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={onLeave}
-            style={buttonStyle("quiet", "md", { mobile, fullWidth: true })}
-          >
-            Leave
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // Top bar — 30px readout row. Settings and leave now live in the fixed
 // site header, so this bar carries only the round / deck readout.
@@ -921,7 +800,7 @@ const DebugControls: React.FC<{
 
 const MultiplayerGameView: React.FC<Props> = ({
   publicState: s, mySeat, events = [], rollCommit = null, lastClaimReject = null, onIntent, onLeave, mobile = false, roomId, visitorId, isHost, presenceVisitorIds,
-  heartbeatStale, awaySkip, hostDisconnectedSeats, presenceStatus, soloMode = false,
+  heartbeatStale, awaySkip, hostDisconnectedSeats, presenceStatus, soloMode = false, onInvite,
 }) => {
   const [showSettings, setShowSettings] = React.useState(false);
   const [showLeave, setShowLeave] = React.useState(false);
@@ -1756,12 +1635,15 @@ const MultiplayerGameView: React.FC<Props> = ({
 
 
         {s.phase === "GAME_OVER" && (
-          <EndScreen
-            chips={chips}
-            scores={s.scores}
+          <ClassicResultScreen
+            entries={chips
+              .map((c, seat) => ({ seat, name: c.name, score: s.scores[seat] ?? 0 }))
+              .filter((e) => chips[e.seat].kind !== "EMPTY")}
+            target={TARGET_SCORE}
             canRematch={soloMode === true || isHost}
             onPlayAgain={() => onIntent({ type: "NEW_GAME" })}
-            onLeave={onLeave}
+            onInvite={soloMode ? undefined : onInvite}
+            onDone={onLeave}
             mobile={mobile}
           />
         )}

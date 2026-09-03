@@ -32,7 +32,12 @@ export const RAW = {
   offWhite: "#fef9f0",
   soloTint: "#97DAFF",
   peepsTint: "#FFC1C3",
+  /** Blue 2 — the pale blue used for the winner's rank on the Classic result. */
+  blue2: "#97DAFF",
+  /** Mocha — the quiet rank ink inside the khaki standings panel. */
+  mocha: "#544C4A",
 } as const;
+
 
 /* ------------------------------------------------------------------ *
  * COLORS — the themed palette.
@@ -143,11 +148,16 @@ export const FONT_SIZE = {
   lg: 18,
   xl: 21,
   "2xl": 22,
+  "2.5xl": 24,
   "3xl": 26,
   "4xl": 28,
+  "4.5xl": 32,
   "5xl": 34,
+  "5.5xl": 36,
   "6xl": 48,
+  "7xl": 72,
 } as const;
+
 
 export type FontSizeStep = keyof typeof FONT_SIZE;
 
@@ -202,6 +212,14 @@ export const TEXT_ROLES = {
   heading:       { step: "3xl", mobileStep: "2xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.snug, letterSpacing: "-0.015em" },
   /** Screen headlines ("How do you want to play?"). */
   hero:          { step: "5xl", mobileStep: "4xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.snug },
+  /** Classic result headline ("Great Game!") — 72/87 with tight tracking. */
+  resultHero:    { step: "7xl", mobileStep: "6xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.snug, letterSpacing: "-0.02em" },
+  /** Winner standings row (rank / name / score) on the Classic result. */
+  resultWinner:  { step: "5.5xl", mobileStep: "5xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight },
+  /** Remaining standings rows inside the khaki panel. */
+  resultRow:     { step: "2.5xl", mobileStep: "2xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight },
+  /** Classic result buttons (PLAY AGAIN! / INVITE / DONE). */
+  resultButton:  { step: "4.5xl", mobileStep: "4xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight },
   /** Primary CTA lettering ("Let's Play!", table code). Italic needs descender room. */
   action:        { step: "4xl", mobileStep: "3xl", weight: FONT_WEIGHT.regular, italic: true,  lineHeight: LINE_HEIGHT.snug },
   display:       { step: "5xl", mobileStep: "4xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" },

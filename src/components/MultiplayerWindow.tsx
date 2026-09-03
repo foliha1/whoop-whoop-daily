@@ -932,6 +932,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         roomId={activeRoom.id}
         visitorId={visitorId}
         isHost={true}
+        onInvite={() => handleShare(activeRoom.room_code)}
         presenceVisitorIds={participants.map((p) => p.visitor_id)}
         heartbeatStale={heartbeatStaleSeats}
         awaySkip={awaySkipSeats}
@@ -958,6 +959,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         roomId={activeRoom.id}
         visitorId={visitorId}
         isHost={false}
+        onInvite={() => handleShare(activeRoom.room_code)}
         presenceVisitorIds={participants.map((p) => p.visitor_id)}
         presenceStatus={presenceStatus}
       />
