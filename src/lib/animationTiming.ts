@@ -73,3 +73,13 @@ export function applyAnimationTimingVars(root: HTMLElement = document.documentEl
  * extend or restart it.
  */
 export const ROTATION_CLAIM_WINDOW_MS = 2000;
+
+// ---- Classic result headline chase ------------------------------------------
+/**
+ * One full pass of the brand-colour chase through the letters of "Great Game!".
+ * Deliberately slow: the headline must stay comfortably readable, so this is a
+ * gentle travel, not a strobe. Each letter runs the same cycle with a negative
+ * delay of `HEADLINE_CHASE_MS / colours` per position, which is what makes the
+ * cycle appear to advance along the string.
+ */
+export const HEADLINE_CHASE_MS = 6000;
