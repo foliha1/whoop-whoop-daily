@@ -1242,7 +1242,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       animEnded = true;
       via = "timer";
       tryFire();
-    }, 700);
+    }, animEnded ? 2000 : 700);
 
     // The wash for the second card may not be mounted on this render pass;
     // poll on animation frames until it appears (the timer is the backstop).
