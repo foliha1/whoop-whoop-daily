@@ -1633,9 +1633,21 @@ const MultiplayerGameView: React.FC<Props> = ({
               banner={activeBanner}
               onCancel={
                 canCancelClaim && mySeat !== null
-                  ? () => onIntent({ type: "CANCEL_CLAIM", by: mySeat })
+                  ? () => {
+                      if (claimPending) {
+                        // Nothing has been sent to the host yet: drop the
+                        // buffered claim locally and replay the cancel if the
+                        // grant still lands.
+                        cancelPendingRef.current = true;
+                        setOptimisticSel([]);
+                        preGrantPairRef.current = null;
+                        return;
+                      }
+                      onIntent({ type: "CANCEL_CLAIM", by: mySeat });
+                    }
                   : undefined
               }
+
             />
           </div>
         )}
