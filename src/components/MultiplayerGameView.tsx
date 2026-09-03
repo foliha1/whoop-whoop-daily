@@ -1160,8 +1160,9 @@ const MultiplayerGameView: React.FC<Props> = ({
   // intents, or replay a cancel that was pressed while in flight.
   React.useEffect(() => {
     if (!inClaimMode || mySeat === null) return;
-    if (!claimPending) return;
+    if (pendingClaim === null) return;
     setPendingClaim(null);
+    setPendingCancelled(false);
     if (cancelPendingRef.current) {
       cancelPendingRef.current = false;
       onIntentRef.current({ type: "CANCEL_CLAIM", by: mySeat });
@@ -1171,7 +1172,8 @@ const MultiplayerGameView: React.FC<Props> = ({
       onIntentRef.current({ type: "PLAYER_SELECT_CARD", by: mySeat, idx });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inClaimMode, claimPending, mySeat]);
+  }, [inClaimMode, pendingClaim, mySeat]);
+
 
 
   // onIntent is not referentially stable (useCallback deps churn), so hold it
