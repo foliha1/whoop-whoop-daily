@@ -921,16 +921,15 @@ const MultiplayerGameView: React.FC<Props> = ({
     otherSeatClaiming || (claimBusy && !claimMode) || (pendingCancelled && claimBusy);
   const cardsInteractive = !boardLocked;
 
-  // Cancel pressed while the claim was still in flight: honoured locally at
-  // once, then replayed to the host if the grant does land.
-  const cancelPendingRef = React.useRef(false);
   // Clear transient claim feedback when the claim window rotates.
   React.useEffect(() => {
     setTooSlowAt(null);
     setClaimErrAt(null);
     setPendingClaim(null);
+    setPendingCancelled(false);
     cancelPendingRef.current = false;
   }, [s.claimWindow]);
+
 
   // Auto-clear TOO SLOW after a short interval so the banner doesn't stick.
   React.useEffect(() => {
