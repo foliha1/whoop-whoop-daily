@@ -16,7 +16,6 @@ import PrivacyPage from "./pages/PrivacyPage.tsx";
 import TermsPage from "./pages/TermsPage.tsx";
 import DebugOnlyRoute from "./components/DebugOnlyRoute.tsx";
 import NotFound from "./pages/NotFound.tsx";
-import ChasePreview from "./pages/ChasePreview.tsx";
 
 
 
@@ -62,7 +61,6 @@ const AnimatedRoutes: React.FC = () => {
 
         <Route path="/play" element={<MultiplayerPage />} />
         <Route path="/play/:roomCode" element={<MultiplayerPage />} />
-        <Route path="/__chase" element={<ChasePreview />} />
         {/* Debug-gated routes: 404 in production, live under ?debug=1. */}
         <Route path="/typography" element={<DebugOnlyRoute><TypographyPage /></DebugOnlyRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
