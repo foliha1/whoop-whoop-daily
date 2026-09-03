@@ -29,8 +29,8 @@ import { HEADLINE_CHASE_MS } from "@/lib/animationTiming";
 const STRIP_W = 354;
 const STRIP_H = 19;
 
-/** The chase cycle. Four brand stops, all of which read on cream. */
-const CHASE = [RAW.red, RAW.blue, RAW.orange, RAW.warmBlack] as const;
+/** The chase cycle. Four brand stops, in the order they travel across the text. */
+const CHASE = [RAW.warmBlack, RAW.red, RAW.orange, RAW.blue] as const;
 
 const HEADLINE = "Great Game!";
 
