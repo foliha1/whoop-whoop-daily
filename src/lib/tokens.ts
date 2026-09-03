@@ -32,7 +32,12 @@ export const RAW = {
   offWhite: "#fef9f0",
   soloTint: "#97DAFF",
   peepsTint: "#FFC1C3",
+  /** Blue 2 — the pale blue used for the winner's rank on the Classic result. */
+  blue2: "#97DAFF",
+  /** Mocha — the quiet rank ink inside the khaki standings panel. */
+  mocha: "#544C4A",
 } as const;
+
 
 /* ------------------------------------------------------------------ *
  * COLORS — the themed palette.
