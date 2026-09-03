@@ -1733,8 +1733,13 @@ const MultiplayerGameView: React.FC<Props> = ({
                   wrong={wrongCards.includes(i)}
                   // Locked to me only: face up and live for everyone else.
                   // Suppressed while the wrong-claim treatment is still on
-                  // this card so the two states never stack.
-                  unavailable={lockedForMe.has(i) && !wrongCards.includes(i)}
+                  // this card so the two states never stack. `boardLocked`
+                  // adds the same treatment while a claim is being decided,
+                  // so the board reads as inert instead of eating taps.
+                  unavailable={
+                    (boardLocked || lockedForMe.has(i)) && !wrongCards.includes(i)
+                  }
+
                   shaking={false}
                   fill
                   dealKey={dealInfo.keys[i]}
