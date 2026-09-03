@@ -871,7 +871,6 @@ const MultiplayerGameView: React.FC<Props> = ({
   // player taps, nothing happens, and the game reads as frozen.
   const otherSeatClaiming =
     mySeat !== null && s.claimBy !== null && s.claimBy !== mySeat;
-  const cardsInteractive = !otherSeatClaiming;
   // Cards this player burned on a wrong claim this round. Locked for them,
   // still live for every other seat — so this is derived from MY seat only
   // and never from the wrongBy union.
@@ -897,8 +896,35 @@ const MultiplayerGameView: React.FC<Props> = ({
   const [claimBusy, setClaimBusy] = React.useState(false);
   const [tooSlowAt, setTooSlowAt] = React.useState<number | null>(null);
   const [claimErrAt, setClaimErrAt] = React.useState<number | null>(null);
+  // ---- optimistic claim entry -------------------------------------------
+  // The arbiter (claim_locks UNIQUE index) is untouched and still decides who
+  // claimed. What is optimistic is ONLY this client's UI: the claimant opens
+  // claim mode the instant they press and may lock both cards while the
+  // arbiter's answer is in flight. Selections made before the host's grant
+  // arrives are buffered locally and flushed as real intents on grant, so the
+  // host stays the single authority for state. If the arbiter says lost, the
+  // claim is pulled: buffered selections are dropped and nothing was ever
+  // sent, so there is no residue to undo.
+  const [pendingClaim, setPendingClaim] = React.useState<number | null>(null);
+  const claimPending = pendingClaim !== null;
+  const claimMode = inClaimMode || claimPending;
+  // Board lock: from the press until the claim resolves, a seat with a claim
+  // in flight (or another seat's open claim) cannot tap or focus any card —
+  // and the cards show the `unavailable` treatment so the board visibly reads
+  // as "not taking taps" rather than eating them.
+  const boardLocked = otherSeatClaiming || (claimBusy && !claimMode);
+  const cardsInteractive = !boardLocked;
+  // Cancel pressed while the claim was still in flight: honoured locally at
+  // once, then replayed to the host if the grant does land.
+  const cancelPendingRef = React.useRef(false);
   // Clear transient claim feedback when the claim window rotates.
-  React.useEffect(() => { setTooSlowAt(null); setClaimErrAt(null); }, [s.claimWindow]);
+  React.useEffect(() => {
+    setTooSlowAt(null);
+    setClaimErrAt(null);
+    setPendingClaim(null);
+    cancelPendingRef.current = false;
+  }, [s.claimWindow]);
+
   // Auto-clear TOO SLOW after a short interval so the banner doesn't stick.
   React.useEffect(() => {
     if (tooSlowAt === null) return;
