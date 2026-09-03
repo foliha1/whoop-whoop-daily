@@ -1275,14 +1275,26 @@ const MultiplayerGameView: React.FC<Props> = ({
   const handleCardClick = (i: number) => {
     if (mySeat === null) return;
     if (modalOpen) return;
-    if (inClaimMode) {
+    if (claimMode) {
       hapticTap();
-      setOptimisticSel((prev) =>
-        prev.includes(i) ? prev.filter((x) => x !== i) : prev.length >= 2 ? prev : [...prev, i]
-      );
-      onIntent({ type: "PLAYER_SELECT_CARD", by: mySeat, idx: i });
+      setOptimisticSel((prev) => {
+        const next = prev.includes(i)
+          ? prev.filter((x) => x !== i)
+          : prev.length >= 2 ? prev : [...prev, i];
+        // Remember a pair completed before the grant so the resolve effect
+        // does not wait on an animation that has already ended.
+        if (!inClaimMode) {
+          preGrantPairRef.current = next.length === 2 ? next.join(",") : null;
+        }
+        return next;
+      });
+      // Before the host's grant there is no claim to select into: buffer and
+      // flush on grant, so the host is never asked to apply an unclaimed
+      // selection.
+      if (inClaimMode) onIntent({ type: "PLAYER_SELECT_CARD", by: mySeat, idx: i });
       return;
     }
+
 
     if (isMyTurnToFlip) {
       const slot = s.grid[i];
