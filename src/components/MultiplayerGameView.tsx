@@ -1199,7 +1199,11 @@ const MultiplayerGameView: React.FC<Props> = ({
 
     const secondIdx = Number(localPairKey.split(",")[1]);
     let done = false;
-    let animEnded = false;
+    // A pair locked while the arbiter was still deciding has already finished
+    // its wash animation, so treat it as ended and resolve as soon as the
+    // host's selections land — no extra wait.
+    let animEnded = preGrantPairRef.current === localPairKey;
+
     let via: "animationend" | "timer" = "animationend";
     let target: HTMLDivElement | null = null;
     let raf = 0;
