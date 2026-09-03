@@ -42,6 +42,19 @@ Deno.serve(async (req) => {
   } catch {
     return bad(400, "invalid_json");
   }
+
+  // Warm-up path. The host fires one `{ warmup: true }` request at game start
+  // purely to boot this instance. It is distinguished by that explicit flag —
+  // a real claim never sets it — and it returns HERE, before the seat check,
+  // before any client is created, and therefore before any insert or
+  // broadcast can possibly happen. It cannot win a claim window.
+  if ((body as { warmup?: unknown } | null)?.warmup === true) {
+    return new Response(JSON.stringify({ warmed: true }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   const { room_id, game_id, claim_window, player_seat, visitor_id } = body ?? {};
   if (
     typeof room_id !== "string" ||

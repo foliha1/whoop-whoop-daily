@@ -38,6 +38,7 @@ import {
   type TransientEventKind,
 } from "@/lib/multiplayer";
 import { serverNow } from "@/hooks/useServerClock";
+import { warmClaimLock } from "@/lib/claimLock";
 
 export interface SeatMapEntry {
   seat: number;
@@ -150,6 +151,15 @@ export function useMultiplayerHost(opts: {
     prevGameIdRef.current = gameId;
     claimWindowRef.current = 0;
   }
+
+  // Boot the arbiter before anyone can press WHOOP! WHOOP!. One fire-and-
+  // forget call per game, host only (this hook is host-only; solo never
+  // reaches the arbiter). Game start never waits on it and a failure is
+  // invisible to players — it only costs the first claimant a cold boot.
+  useEffect(() => {
+    if (!enabled) return;
+    warmClaimLock();
+  }, [enabled, gameId]);
 
   const awayRef = useRef<number[]>(awaySeats);
   awayRef.current = awaySeats;
