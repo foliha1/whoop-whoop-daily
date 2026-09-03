@@ -1137,11 +1137,36 @@ const MultiplayerGameView: React.FC<Props> = ({
 
   const [optimisticSel, setOptimisticSel] = React.useState<number[]>([]);
   React.useEffect(() => {
-    if (!inClaimMode) setOptimisticSel([]);
-  }, [inClaimMode]);
+    if (!claimMode) setOptimisticSel([]);
+  }, [claimMode]);
   React.useEffect(() => {
-    if (s.selectedCards.length === 0) setOptimisticSel([]);
-  }, [s.selectedCards.length]);
+    // While the claim is still in flight the host has no selections yet, so an
+    // empty authoritative list must not wipe the buffered pair.
+    if (!claimPending && s.selectedCards.length === 0) setOptimisticSel([]);
+  }, [s.selectedCards.length, claimPending]);
+
+  // Pair locked before the host's grant arrived: the wash animation already
+  // ran to completion, so the resolve effect must not wait for a second
+  // animationend that will never fire.
+  const preGrantPairRef = React.useRef<string | null>(null);
+
+  // Grant landed: flush the buffered selections (in touch order) as real
+  // intents, or replay a cancel that was pressed while in flight.
+  React.useEffect(() => {
+    if (!inClaimMode || mySeat === null) return;
+    if (!claimPending) return;
+    setPendingClaim(null);
+    if (cancelPendingRef.current) {
+      cancelPendingRef.current = false;
+      onIntentRef.current({ type: "CANCEL_CLAIM", by: mySeat });
+      return;
+    }
+    for (const idx of optimisticSel) {
+      onIntentRef.current({ type: "PLAYER_SELECT_CARD", by: mySeat, idx });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inClaimMode, claimPending, mySeat]);
+
 
   // onIntent is not referentially stable (useCallback deps churn), so hold it
   // in a ref: the resolve effect must not tear down and restart on identity
