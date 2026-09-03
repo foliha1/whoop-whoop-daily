@@ -148,11 +148,16 @@ export const FONT_SIZE = {
   lg: 18,
   xl: 21,
   "2xl": 22,
+  "2.5xl": 24,
   "3xl": 26,
   "4xl": 28,
+  "4.5xl": 32,
   "5xl": 34,
+  "5.5xl": 36,
   "6xl": 48,
+  "7xl": 72,
 } as const;
+
 
 export type FontSizeStep = keyof typeof FONT_SIZE;
 
