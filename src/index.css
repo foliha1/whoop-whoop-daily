@@ -1270,16 +1270,17 @@ All colors MUST be HSL.
 }
 
 /* ---- Classic result headline: brand-colour chase -------------------------
-   Four brand stops travel through the letters. Every letter shares one
-   keyframe cycle; the per-letter negative delay (set inline from
-   HEADLINE_CHASE_MS in src/lib/animationTiming.ts) advances the cycle along
-   the string. Colours only — no movement, so the word never wobbles. */
+   The four brand stops travel across the letters in order: black, red,
+   orange, blue. Every letter shares one keyframe cycle; the per-letter
+   negative delay advances the cycle along the string so the sequence appears
+   to move from one character to the next. Colours only — no movement, so the
+   word never wobbles. */
 @keyframes ww-headline-chase {
-  0%    { color: var(--ww-chase-1); }
-  25%   { color: var(--ww-chase-2); }
-  50%   { color: var(--ww-chase-3); }
-  75%   { color: var(--ww-chase-4); }
-  100%  { color: var(--ww-chase-1); }
+  0%    { color: var(--ww-chase-1); } /* black */
+  25%   { color: var(--ww-chase-2); } /* red */
+  50%   { color: var(--ww-chase-3); } /* orange */
+  75%   { color: var(--ww-chase-4); } /* blue */
+  100%  { color: var(--ww-chase-1); } /* black */
 }
 
 .ww-chase-letter {
