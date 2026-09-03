@@ -479,7 +479,7 @@ type BannerKind = "YOUR_FLIP" | "TOO_SLOW" | "CLAIM_ERROR" | "PENALTY" | "CANCEL
 
 const BannerStyles: Record<Exclude<BannerKind, null>, { bg: string; text: string; label: string; icon?: boolean }> = {
   YOUR_FLIP:   { bg: BLUE,    text: SURFACE, label: "YOUR FLIP!" },
-  TOO_SLOW:    { bg: INK,     text: SURFACE, label: "TOO SLOW!" },
+  TOO_SLOW:    { bg: INK,     text: SURFACE, label: "SOMEONE BEAT YOU TO IT" },
   CLAIM_ERROR: { bg: RED,     text: SURFACE, label: "CONNECTION ISSUE — TRY AGAIN" },
   PENALTY:     { bg: MUTED,   text: SURFACE, label: "PENALTY" },
   CANCEL:      { bg: SURFACE, text: RED,     label: "Cancel match", icon: true },
