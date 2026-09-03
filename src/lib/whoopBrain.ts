@@ -15,16 +15,18 @@ import {
   COLOR_NAMES,
 } from "@/cardData";
 
-// Difficulty constants — tuned as a set for roughly 20% more pressure on the
-// player. Reaction speed is the dominant knob: a slow claim is wasted inside
-// the 2000ms rotation claim window, so tightening REACTION_* is what actually
-// makes WHOOP harder. CORRUPT_CHANCE is nudged down but must stay visibly
-// non-zero so the bot still misses in front of the player.
+// Difficulty constants — tuned as a set. Reaction speed is the dominant knob:
+// a claim slower than the 2000ms rotation claim window is wasted, so the band
+// straddles that window. The floor (1500ms) leaves the player a real chance to
+// beat WHOOP to an obvious match; the ceiling (3400ms) means slow reads often
+// arrive too late. CORRUPT_CHANCE stays visibly non-zero so WHOOP still misses
+// in front of the player, keeping wrong-claim animations part of the game.
 export const DECAY_RATE = 0.97;
-export const CORRUPT_CHANCE = 0.13;
+export const CORRUPT_CHANCE = 0.15;
 export const CONFIDENCE_THRESHOLD = 0.55;
-export const REACTION_MIN_MS = 2000;
-export const REACTION_MAX_MS = 4200;
+export const REACTION_MIN_MS = 1500;
+export const REACTION_MAX_MS = 3400;
+
 
 export interface Memory {
   card: Card;
