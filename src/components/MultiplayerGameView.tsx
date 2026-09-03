@@ -951,7 +951,10 @@ const MultiplayerGameView: React.FC<Props> = ({
     lastRejectKeyRef.current = key;
     console.warn("[claim_reject:self]", lastClaimReject);
     setClaimBusy(false);
+    // Pull the optimistic claim: the host never opened one for us.
+    setPendingClaim(null);
     setClaimErrAt(Date.now());
+
   }, [lastClaimReject, mySeat]);
 
   // -------- Sound effects --------
