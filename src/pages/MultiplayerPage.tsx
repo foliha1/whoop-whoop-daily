@@ -8,13 +8,19 @@ import { hasSeenIntro, preloadIntroJson } from "@/components/IntroAnimation";
 import whoopLightLogo from "@/assets/WhoopWhoop_Light_Logo.svg.asset.json";
 
 
+// ARCHIVED: the front-loaded Classic logo intro is parked, not deleted.
+// IntroAnimation.tsx, its JSON and the preload plumbing all stay in place.
+// Flip INTRO_ENABLED back to true to bring it back; ?intro=1 plays it on
+// demand in the meantime (handy for QA and for showing it off).
+const INTRO_ENABLED = false;
+
 // TODO: Temporary intro QA override — set to false to restore once-per-visitor behavior.
 const FORCE_INTRO_EVERY_RELOAD_FOR_TESTING = true;
 
 // Kick off the download as early as possible: the moment this module
 // evaluates, before the component mounts. The index.html <link rel="preload">
 // has already started the fetch — this just latches the promise.
-preloadIntroJson();
+if (INTRO_ENABLED) preloadIntroJson();
 
 const prefersReducedMotion = (): boolean => {
   try {
@@ -38,7 +44,10 @@ const MultiplayerPage: React.FC = () => {
   const modeParam = searchParams.get("mode");
   const initialMode = modeParam === "solo" || modeParam === "multiplayer" ? modeParam : undefined;
 
+  const introRequested = INTRO_ENABLED || searchParams.get("intro") === "1";
+
   const initialIntroStatus = (): IntroStatus => {
+    if (!introRequested) return "none";
     const alreadySeen = hasSeenIntro();
     if (!FORCE_INTRO_EVERY_RELOAD_FOR_TESTING && alreadySeen) {
       return "none";
