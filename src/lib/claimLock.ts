@@ -5,14 +5,28 @@
 // at the server wins; losers see { outcome: "lost" }. There is no client-side
 // tie-breaker — arrival order at Postgres is the ordering.
 //
-// Outcomes are tri-state so the UI can distinguish a genuine lost race from
-// a transport/server error. Both fail closed (do NOT enter claim mode), but
-// they surface different feedback to the player.
+// Outcomes are tri-state, and the important distinction is that a transport
+// failure is NEVER a loss:
+//   won     — the arbiter says this seat owns the window (fresh insert, or an
+//             existing row that belongs to this very seat).
+//   lost    — the arbiter explicitly named ANOTHER seat as the winner. Only
+//             this may ever be shown to a player as being beaten to it.
+//   unknown — the call failed, timed out, or came back malformed. We cannot
+//             know whether the insert landed, so the client concludes nothing:
+//             it keeps its claim open and follows the host's state.
+//
+// Because the UNIQUE (room_id, game_id, claim_window) index makes the insert
+// idempotent per window, retrying the identical window and seat is safe and is
+// how "unknown" is resolved into "won" or "lost" whenever the network recovers.
 // ============================================================================
 
 import { supabase } from "@/integrations/supabase/client";
+import {
+  CLAIM_LOCK_RETRIES,
+  CLAIM_LOCK_RETRY_DELAY_MS,
+} from "@/lib/animationTiming";
 
-export type ClaimOutcome = "won" | "lost" | "error";
+export type ClaimOutcome = "won" | "lost" | "unknown";
 
 export interface ClaimLockResult {
   outcome: ClaimOutcome;
@@ -22,42 +36,67 @@ export interface ClaimLockResult {
   error?: unknown;
 }
 
-export async function callClaimLock(input: {
+type Input = {
   room_id: string;
   game_id: string;
   claim_window: number;
   player_seat: number;
   visitor_id: string;
-}): Promise<ClaimLockResult> {
+};
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** One attempt. Returns "unknown" for anything that isn't a clear verdict. */
+async function attempt(input: Input): Promise<ClaimLockResult> {
+  const unknown = (error: unknown): ClaimLockResult => ({
+    outcome: "unknown",
+    won: false,
+    winner_seat: null,
+    claim_window: input.claim_window,
+    error,
+  });
   try {
     const { data, error } = await supabase.functions.invoke("claim-lock", {
       body: input,
     });
     if (error) {
-      console.error("[claim-lock] invoke error — failing closed (error)", error);
-      return { outcome: "error", won: false, winner_seat: null, claim_window: input.claim_window, error };
+      console.warn("[claim-lock] invoke failed — outcome unknown", error);
+      return unknown(error);
     }
     if (!data || typeof data !== "object") {
-      console.error("[claim-lock] malformed response — failing closed (error)", data);
-      return { outcome: "error", won: false, winner_seat: null, claim_window: input.claim_window, error: new Error("malformed_response") };
+      console.warn("[claim-lock] malformed response — outcome unknown", data);
+      return unknown(new Error("malformed_response"));
     }
     const d = data as { won?: boolean; winner_seat?: number; claim_window?: number; error?: string };
     if (d.error) {
-      console.error("[claim-lock] server error — failing closed (error)", d.error);
-      return { outcome: "error", won: false, winner_seat: null, claim_window: input.claim_window, error: d.error };
+      console.warn("[claim-lock] server error — outcome unknown", d.error);
+      return unknown(d.error);
     }
-    const won = !!d.won;
+    const winner_seat = typeof d.winner_seat === "number" ? d.winner_seat : null;
+    // A fresh insert wins. So does finding the existing row already owned by
+    // this seat — that is a retry of a call that actually succeeded.
+    const won = !!d.won || winner_seat === input.player_seat;
     return {
       outcome: won ? "won" : "lost",
       won,
-      winner_seat: typeof d.winner_seat === "number" ? d.winner_seat : null,
+      winner_seat,
       claim_window: typeof d.claim_window === "number" ? d.claim_window : input.claim_window,
     };
   } catch (e) {
-    console.error("[claim-lock] threw — failing closed (error)", e);
-    return { outcome: "error", won: false, winner_seat: null, claim_window: input.claim_window, error: e };
+    console.warn("[claim-lock] threw — outcome unknown", e);
+    return unknown(e);
   }
 }
+
+export async function callClaimLock(input: Input): Promise<ClaimLockResult> {
+  let last = await attempt(input);
+  for (let i = 0; i < CLAIM_LOCK_RETRIES && last.outcome === "unknown"; i++) {
+    await sleep(CLAIM_LOCK_RETRY_DELAY_MS);
+    last = await attempt(input);
+  }
+  return last;
+}
+
 
 // ---------------------------------------------------------------------------
 // Warm-up. Edge functions idle out, so the FIRST claim of a game pays a cold
