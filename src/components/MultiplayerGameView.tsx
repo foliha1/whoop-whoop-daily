@@ -951,6 +951,11 @@ const MultiplayerGameView: React.FC<Props> = ({
     const t = setTimeout(() => setClaimErrAt(null), 1800);
     return () => clearTimeout(t);
   }, [claimErrAt]);
+  // The "unknown" notice clears the moment the host's authoritative claim
+  // arrives for us — the fast path failed but the claim was real.
+  React.useEffect(() => {
+    if (inClaimMode) setClaimWaitAt(null);
+  }, [inClaimMode]);
 
   // Host-dropped claim grant (window mismatch): if the rejected seat is
   // ours, we thought we won but the host discarded the grant. Surface the
