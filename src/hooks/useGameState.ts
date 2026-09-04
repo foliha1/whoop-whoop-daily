@@ -6,6 +6,7 @@ import {
   DAILY_MATCH_SETTLE_MS,
   WRONG_SETTLE_TOTAL_MS,
   ROTATION_CLAIM_WINDOW_MS,
+  CLAIM_ABANDON_MS,
 } from "@/lib/animationTiming";
 
 import { createRng, type Rng } from "@/lib/rng";
