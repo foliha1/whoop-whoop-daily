@@ -828,9 +828,22 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     headline?: React.ReactNode;
     logo?: boolean;
     chips?: boolean;
+    /** Staggered entry reveal (the Daily's treatment), gated on assets/fonts. */
+    reveal?: boolean;
     fade?: React.CSSProperties;
     children: React.ReactNode;
-  }) => (
+  }) => {
+    // Without `reveal` the element renders bare, exactly as before.
+    const step = (index: number, node: React.ReactNode, style?: React.CSSProperties) =>
+      opts.reveal ? (
+        <EntryReveal index={index} ready={entryReady} style={{ width: "100%", ...style }}>
+          {node}
+        </EntryReveal>
+      ) : (
+        node
+      );
+
+    return (
     <>
       <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill>
         <FitColumn>
@@ -844,19 +857,25 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             ...opts.fade,
           }}
         >
-          {opts.logo && (
-            <DailyLogoLockup variant="classic" style={{ maxWidth: lockupMax }} />
-          )}
-          {opts.chips && chipRow}
-          {opts.headline !== undefined && (
-            <div style={{ ...textStyle("hero", mobile), textAlign: "center", color: COLORS.ink }}>
-              {opts.headline}
-            </div>
-          )}
-          {opts.children}
+          {opts.logo &&
+            step(
+              0,
+              <DailyLogoLockup variant="classic" style={{ maxWidth: lockupMax }} />,
+              { display: "flex", justifyContent: "center" },
+            )}
+          {opts.chips && step(1, chipRow, { display: "flex", justifyContent: "center" })}
+          {opts.headline !== undefined &&
+            step(
+              1,
+              <div style={{ ...textStyle("hero", mobile), textAlign: "center", color: COLORS.ink }}>
+                {opts.headline}
+              </div>,
+            )}
+          {step(2, opts.children)}
         </div>
         </FitColumn>
       </DailyFrame>
+
       {howToOverlay}
       {showSettings && (
         <SettingsSheet
