@@ -6,19 +6,20 @@ import LegalPage, {
   MailLink,
 } from "@/components/LegalPage";
 
-const UPDATED = "9 August 2026";
+const UPDATED = "4 September 2026";
 
 const PrivacyPage: React.FC = () => (
   <LegalPage
     title="Privacy"
-    metaTitle="Privacy Policy — WHOOP! WHOOP! Daily"
-    metaDescription="What WHOOP! WHOOP! Daily collects: an email only if you give it, a random visitor ID for your streak, and anonymous gameplay events. No ads, no cross-site tracking."
+    metaTitle="Privacy Policy — WHOOP! WHOOP! Daily and Classic"
+    metaDescription="What WHOOP! WHOOP! Daily and Classic collect: an email only if you give it, a random visitor ID, your Classic display name, and anonymous gameplay events. No ads, no cross-site tracking."
     path="/privacy"
     updated={UPDATED}
   >
     <LegalText>
-      WHOOP! WHOOP! Daily is a free daily memory game. This page describes exactly what the game
-      collects and why. There is no account to create, and you can play without giving us anything.
+      WHOOP! WHOOP! Daily and WHOOP! WHOOP! Classic are free memory games. This page describes
+      exactly what they collect and why. There is no account to create, and you can play without
+      giving us anything.
     </LegalText>
 
     <LegalSection heading="Your email address">
@@ -43,6 +44,31 @@ const PrivacyPage: React.FC = () => (
         If you give us an email address, we link it to that visitor ID so your streak can follow you
         to another device. Clearing your browser storage removes the ID; your streak can be restored
         by entering the same email again.
+      </LegalText>
+    </LegalSection>
+
+    <LegalSection heading="Display names in Classic">
+      <LegalText>
+        WHOOP! WHOOP! Classic asks for a display name so other players at your table know who is
+        who. It is up to six characters and you choose it. It is shown to everyone at your table
+        while you play, so do not use your full name or anything you would not want a stranger to
+        see.
+      </LegalText>
+      <LegalText>
+        We store your display name with your table so the game can show scores. It is not linked to
+        your email address and it is not used for anything else.
+      </LegalText>
+    </LegalSection>
+
+    <LegalSection heading="Tables in Classic">
+      <LegalText>
+        A Classic table has a six-character code. Anyone who has the code can join, so a table is
+        only as private as the code you share. There is no password and no invitation list.
+      </LegalText>
+      <LegalText>
+        While a game is running we store the table, who is sitting at it, and a record of each claim
+        so the game can decide who called a match first. These records exist to make the game work
+        and are not used to build a profile of you.
       </LegalText>
     </LegalSection>
 
