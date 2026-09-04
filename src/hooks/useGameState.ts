@@ -246,6 +246,8 @@ export type Action =
   | { type: "FLIP_COMPLETE"; token: number }
   | { type: "SETTLE_COMPLETE"; token: number }
   | { type: "CLAIM_WINDOW_EXPIRE"; token: number }
+  | { type: "CLAIM_ABANDONED"; seq: number }
+
 
   | { type: "SKIP_TICK" }
   | { type: "CLAIM_START"; by: number; a: number; b: number; token: number }
