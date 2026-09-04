@@ -100,6 +100,7 @@ function baseState(overrides: Partial<State> = {}): State {
     claimWindowOpen: false,
     claimWindowElapsed: false,
     claimWindowToken: 0,
+    claimSeq: 0,
     seed: null,
     rng: Math.random,
     wrongCalls: 0,
