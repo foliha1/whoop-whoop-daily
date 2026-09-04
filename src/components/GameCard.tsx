@@ -123,7 +123,13 @@ const GameCard = ({
   // grid; the real card only keeps its green wash + ring in place.
   // Selection is a one-shot hold animation; removing the class ends it
   // immediately with no exit transition.
-  const wrapperClass = wrong ? "ww-wrong" : undefined;
+  // `ww-no-press` opts the card out of the global coarse-pointer press
+  // treatment (scale 0.95 + 200ms ease back). On a card that press/release
+  // sprung the whole tile right after a claim selection and read as a stray
+  // bounce just before the reveal flip. Cards have their own selection
+  // feedback (wash + ring), so the generic press is redundant here.
+  const wrapperClass = wrong ? "ww-wrong ww-no-press" : "ww-no-press";
+
 
   // "Not for you": the viewing player already burned this card on a wrong
   // claim this round. Quiet, static, no animation — it must not read as an
