@@ -94,3 +94,16 @@ export const ROTATION_CLAIM_WINDOW_MS = 2000;
  * cycle appear to advance along the string.
  */
 export const HEADLINE_CHASE_MS = 2000;
+
+// ---- BrandLoader -------------------------------------------------------------
+/**
+ * One full pass of the loading row: each cell has swapped through all four
+ * brand shapes and returned to its starting one. Deliberately slow — a wait,
+ * not a celebration, so it never reads as a strobe or as urgency.
+ */
+export const LOADER_SHAPE_CYCLE_MS = 3200;
+/**
+ * One full pass of the colour chase through the loading row. Kept off the
+ * shape cycle so shape and colour do not land together every pass.
+ */
+export const LOADER_CHASE_MS = 2400;
