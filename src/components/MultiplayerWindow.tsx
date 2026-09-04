@@ -29,7 +29,14 @@ import { useRoomPresence } from "@/hooks/useRoomPresence";
 import { useMultiplayerHost, useMultiplayerJoiner, useTransientEvents, type SeatMapEntry } from "@/hooks/useMultiplayerGame";
 import { useHeartbeatSender, useHeartbeatMonitor } from "@/hooks/useHeartbeat";
 import DailyFrame from "@/components/DailyFrame";
-import DailyLogoLockup from "@/components/DailyLogoLockup";
+import DailyLogoLockup, { lockupStills } from "@/components/DailyLogoLockup";
+import EntryReveal from "@/components/EntryReveal";
+import { PATTERN_URL } from "@/components/DailyShapeRule";
+import { useEntryReady } from "@/hooks/useEntryReady";
+
+/** Everything the Classic entry screen must have decoded before it appears. */
+const ENTRY_ASSETS = [...lockupStills("classic"), PATTERN_URL] as const;
+
 import SettingsSheet from "@/components/SettingsSheet";
 import { HelpCircle, Settings as SettingsIcon } from "lucide-react";
 import { useViewportHeight, compressionFactor, lerpCompress } from "@/hooks/useViewportHeight";
