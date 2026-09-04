@@ -725,6 +725,11 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const framePad = lerpCompress(t, 12, 24);
   const railGap = lerpCompress(t, 10, 24);
   const lockupMax = lerpCompress(t, 120, 251);
+  // Shared load gate: Friend via document.fonts.ready, plus the Classic lockup
+  // stills and the pattern strip decoded — capped so a slow link costs a beat
+  // of cream ground, not a blank screen.
+  const entryReady = useEntryReady(ENTRY_ASSETS);
+
   // Lobby / solo-setup: the same compression rhythm applied to the stacked
   // sections so the whole screen still fits at 390x520 with no scrolling.
   const sectionGap = lerpCompress(t, 10, SPACE[8]);
