@@ -475,7 +475,8 @@ const RollOverlayPortal: React.FC<{
   );
 };
 
-type BannerKind = "YOUR_FLIP" | "TOO_SLOW" | "CLAIM_ERROR" | "PENALTY" | "CANCEL" | null;
+type BannerKind = "YOUR_FLIP" | "TOO_SLOW" | "CLAIM_ERROR" | "CLAIM_WAIT" | "PENALTY" | "CANCEL" | null;
+
 
 const BannerStyles: Record<Exclude<BannerKind, null>, { bg: string; text: string; label: string; icon?: boolean }> = {
   YOUR_FLIP:   { bg: BLUE,    text: SURFACE, label: "YOUR FLIP!" },
