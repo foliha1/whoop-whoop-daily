@@ -1063,6 +1063,32 @@ export function useGameState(
   // the timer.
   const scheduledClaimWindowRef = useRef<number>(-1);
 
+  // ---- abandoned claim expiry ----------------------------------------------
+  // The owner of the reducer (host, or the solo client) bounds how long an open
+  // claim may sit unresolved. If the claimant never lands two cards, the claim
+  // is dropped and play continues in the same round.
+  const claimAbandonTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (claimAbandonTimerRef.current) {
+      clearTimeout(claimAbandonTimerRef.current);
+      claimAbandonTimerRef.current = null;
+    }
+    if (state.phase !== "CLAIM_SELECTING") return;
+    const seq = state.claimSeq;
+    claimAbandonTimerRef.current = setTimeout(() => {
+      claimAbandonTimerRef.current = null;
+      dispatch({ type: "CLAIM_ABANDONED", seq });
+    }, CLAIM_ABANDON_MS);
+    return () => {
+      if (claimAbandonTimerRef.current) {
+        clearTimeout(claimAbandonTimerRef.current);
+        claimAbandonTimerRef.current = null;
+      }
+    };
+  }, [state.phase, state.claimSeq]);
+
+
+
   useEffect(() => {
     if (!state.claimWindowOpen) {
       if (claimWindowTimerRef.current) {
