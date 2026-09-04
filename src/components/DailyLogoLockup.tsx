@@ -44,6 +44,12 @@ const VARIANTS = {
 
 export type LockupVariant = keyof typeof VARIANTS;
 
+/** Still art for a variant (both themes) — used by the shared entry gate. */
+export const lockupStills = (variant: LockupVariant): readonly string[] => [
+  VARIANTS[variant].still,
+  VARIANTS[variant].stillCream,
+];
+
 loadData(VARIANTS.daily.animation).catch(() => {
   /* static fallback covers it */
 });

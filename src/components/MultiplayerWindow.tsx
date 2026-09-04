@@ -29,7 +29,14 @@ import { useRoomPresence } from "@/hooks/useRoomPresence";
 import { useMultiplayerHost, useMultiplayerJoiner, useTransientEvents, type SeatMapEntry } from "@/hooks/useMultiplayerGame";
 import { useHeartbeatSender, useHeartbeatMonitor } from "@/hooks/useHeartbeat";
 import DailyFrame from "@/components/DailyFrame";
-import DailyLogoLockup from "@/components/DailyLogoLockup";
+import DailyLogoLockup, { lockupStills } from "@/components/DailyLogoLockup";
+import EntryReveal from "@/components/EntryReveal";
+import { PATTERN_URL } from "@/components/DailyShapeRule";
+import { useEntryReady } from "@/hooks/useEntryReady";
+
+/** Everything the Classic entry screen must have decoded before it appears. */
+const ENTRY_ASSETS = [...lockupStills("classic"), PATTERN_URL] as const;
+
 import SettingsSheet from "@/components/SettingsSheet";
 import { HelpCircle, Settings as SettingsIcon } from "lucide-react";
 import { useViewportHeight, compressionFactor, lerpCompress } from "@/hooks/useViewportHeight";
@@ -725,6 +732,11 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const framePad = lerpCompress(t, 12, 24);
   const railGap = lerpCompress(t, 10, 24);
   const lockupMax = lerpCompress(t, 120, 251);
+  // Shared load gate: Friend via document.fonts.ready, plus the Classic lockup
+  // stills and the pattern strip decoded — capped so a slow link costs a beat
+  // of cream ground, not a blank screen.
+  const entryReady = useEntryReady(ENTRY_ASSETS);
+
   // Lobby / solo-setup: the same compression rhythm applied to the stacked
   // sections so the whole screen still fits at 390x520 with no scrolling.
   const sectionGap = lerpCompress(t, 10, SPACE[8]);
@@ -828,9 +840,22 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     headline?: React.ReactNode;
     logo?: boolean;
     chips?: boolean;
+    /** Staggered entry reveal (the Daily's treatment), gated on assets/fonts. */
+    reveal?: boolean;
     fade?: React.CSSProperties;
     children: React.ReactNode;
-  }) => (
+  }) => {
+    // Without `reveal` the element renders bare, exactly as before.
+    const step = (index: number, node: React.ReactNode, style?: React.CSSProperties) =>
+      opts.reveal ? (
+        <EntryReveal index={index} ready={entryReady} style={{ width: "100%", ...style }}>
+          {node}
+        </EntryReveal>
+      ) : (
+        node
+      );
+
+    return (
     <>
       <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill>
         <FitColumn>
@@ -844,19 +869,25 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             ...opts.fade,
           }}
         >
-          {opts.logo && (
-            <DailyLogoLockup variant="classic" style={{ maxWidth: lockupMax }} />
-          )}
-          {opts.chips && chipRow}
-          {opts.headline !== undefined && (
-            <div style={{ ...textStyle("hero", mobile), textAlign: "center", color: COLORS.ink }}>
-              {opts.headline}
-            </div>
-          )}
-          {opts.children}
+          {opts.logo &&
+            step(
+              0,
+              <DailyLogoLockup variant="classic" style={{ maxWidth: lockupMax }} />,
+              { display: "flex", justifyContent: "center" },
+            )}
+          {opts.chips && step(1, chipRow, { display: "flex", justifyContent: "center" })}
+          {opts.headline !== undefined &&
+            step(
+              1,
+              <div style={{ ...textStyle("hero", mobile), textAlign: "center", color: COLORS.ink }}>
+                {opts.headline}
+              </div>,
+            )}
+          {step(2, opts.children)}
         </div>
         </FitColumn>
       </DailyFrame>
+
       {howToOverlay}
       {showSettings && (
         <SettingsSheet
@@ -868,7 +899,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         />
       )}
     </>
-  );
+    );
+  };
+
 
   // ---------- SOLO ----------
   if (view.kind === "solo") {
@@ -1203,7 +1236,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       headline: "How do you want to play today?",
       logo: true,
       chips: true,
+      reveal: true,
       fade,
+
       children: (
         <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
           {view.error && (
@@ -1244,28 +1279,30 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             </button>
           </div>
 
-          <a
-            href="/"
-            className="ww-daily-link"
-            style={{
-              ...textStyle("captionItalic", mobile),
-              fontFamily: FONT_FAMILY_UI,
-              fontWeight: FONT_WEIGHT_UI,
-              color: COLORS.inkMuted,
-              textAlign: "center",
-              alignSelf: "center",
-              marginTop: sectionGap,
-              textDecoration: "none",
-            }}
-          >
-            Looking for Whoop! Whoop! Daily?
-          </a>
+          {/* Quiet tail — the Daily link and the same legal line the Daily
+              ready screen uses. Last step of the entry stagger. */}
+          <EntryReveal index={3} ready={entryReady} style={{ width: "100%" }}>
+            <a
+              href="/"
+              className="ww-daily-link"
+              style={{
+                ...textStyle("captionItalic", mobile),
+                fontFamily: FONT_FAMILY_UI,
+                fontWeight: FONT_WEIGHT_UI,
+                color: COLORS.inkMuted,
+                textAlign: "center",
+                display: "block",
+                marginTop: sectionGap,
+                textDecoration: "none",
+              }}
+            >
+              Looking for Whoop! Whoop! Daily?
+            </a>
+            <div style={{ marginTop: SPACE[4] }}>
+              <DailyLegalFooter />
+            </div>
+          </EntryReveal>
 
-          {/* Same quiet legal line the Daily ready screen uses: Privacy, Terms,
-              contact. One 11px row, so the 390x520 fit is unaffected. */}
-          <div style={{ alignSelf: "stretch", marginTop: SPACE[4] }}>
-            <DailyLegalFooter />
-          </div>
         </div>
 
       ),

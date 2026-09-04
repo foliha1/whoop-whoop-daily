@@ -57,6 +57,17 @@ export const DAILY_FINAL_REVEAL_MS = 1500;
 /** Cross-fade between daily screens (ready, gameplay, reveal, result). */
 export const DAILY_SCREEN_FADE_MS = 250;
 
+// ---- entry / ready screen reveal -------------------------------------------
+// Shared by the Daily ready screen (`.daily-intro`) and the Classic entry
+// screen, so the two products feel identical.
+/** Rise + fade of a single entry element (`daily-intro-up` in index.css). */
+export const ENTRY_RISE_MS = 600;
+/** Stagger delays, top to bottom, for the elements of an entry screen. */
+export const ENTRY_STAGGER_DELAYS_MS = [0, 120, 240, 320] as const;
+/** Ceiling on the font/asset gate before the screen shows regardless. */
+export const ENTRY_ASSET_TIMEOUT_MS = 700;
+
+
 
 export function applyAnimationTimingVars(root: HTMLElement = document.documentElement): void {
   root.style.setProperty("--ww-great-delay", `${GREAT_MATCH_DELAY_MS}ms`);

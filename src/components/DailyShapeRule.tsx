@@ -13,7 +13,7 @@ const SHAPES_PER_TILE = TILE_W / PITCH; // 15
  * (RAW.blue / RAW.red / RAW.orange / RAW.khaki) so no shape can ever dissolve
  * into the ground: khaki reads on cream and on warm black alike.
  */
-const PATTERN_URL = "/WhoopWhoop_Daily_Pattern_Seamless.svg";
+export const PATTERN_URL = "/WhoopWhoop_Daily_Pattern_Seamless.svg";
 
 /**
  * Deterministic per-day shift, in shape cells. Keyed off the same LOCAL
