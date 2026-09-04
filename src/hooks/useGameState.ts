@@ -207,6 +207,9 @@ export interface State {
   // in progress; the claim's return path then ends the round immediately.
   claimWindowElapsed: boolean;
   claimWindowToken: number;
+  // Bumped every time a claim opens. Guards the owner-side abandoned-claim
+  // timer so a stale expiry can never close a newer claim.
+  claimSeq: number;
   // Deterministic randomness source. When a `seed` was supplied at init this
   // is a seeded PRNG; otherwise it wraps Math.random. Any randomness the
   // reducer needs after init MUST read from here, never Math.random directly.
