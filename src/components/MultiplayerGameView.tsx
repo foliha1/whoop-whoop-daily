@@ -39,6 +39,7 @@ import { ROLL_HERO_MS } from "@/lib/multiplayer";
 import {
   GREAT_MATCH_DELAY_MS, DEAL_MOVE_MS, WRONG_ANIM_MS, SETTLE_REVEAL_HOLD_MS,
   applyAnimationTimingVars,
+  CLAIM_ABANDON_MS,
 } from "@/lib/animationTiming";
 import DailyMatchGhost, { type GhostCard } from "@/components/DailyMatchGhost";
 import { serverNow } from "@/hooks/useServerClock";
