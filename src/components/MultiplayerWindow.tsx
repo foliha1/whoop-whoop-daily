@@ -1236,7 +1236,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       headline: "How do you want to play today?",
       logo: true,
       chips: true,
+      reveal: true,
       fade,
+
       children: (
         <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
           {view.error && (
