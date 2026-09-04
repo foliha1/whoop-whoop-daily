@@ -3,6 +3,7 @@ import { ChevronDown, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-rea
 import { COLORS, BORDER, RADIUS, MOTION, FONT_FAMILY, SPACE, TEXT, SHADOW } from "@/lib/tokens";
 import { PLAYLISTS, Playlist } from "@/lib/playlists";
 import { useIsMobile } from "@/hooks/use-mobile";
+import BrandLoader from "@/components/BrandLoader";
 
 declare global {
   interface Window {
@@ -257,12 +258,7 @@ const MusicWindow: React.FC = () => {
             </div>
           </>
         ) : (
-          <div style={{
-            fontFamily: FONT_FAMILY,
-            fontSize: "clamp(16px, 3vw, 28px)",
-            lineHeight: "35px",
-            color: COLORS.ink,
-          }}>Loading...</div>
+          <BrandLoader size={18} />
         )}
       </div>
 

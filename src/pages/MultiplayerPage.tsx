@@ -6,6 +6,7 @@ import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 const IntroAnimation = React.lazy(() => import("@/components/IntroAnimation"));
 import { hasSeenIntro, preloadIntroJson } from "@/components/IntroAnimation";
 import whoopLightLogo from "@/assets/WhoopWhoop_Light_Logo.svg.asset.json";
+import BrandLoader from "@/components/BrandLoader";
 
 
 // ARCHIVED: the front-loaded Classic logo intro is parked, not deleted.
@@ -146,7 +147,13 @@ const MultiplayerPage: React.FC = () => {
         )}
 
         <div style={{ height: "100%", visibility: lobbyVisible ? "visible" : "hidden" }}>
-          <Suspense fallback={<div style={{ margin: "auto", color: COLORS.ink }}>Loading…</div>}>
+          <Suspense
+            fallback={
+              <div style={{ display: "grid", placeItems: "center", height: "100%" }}>
+                <BrandLoader />
+              </div>
+            }
+          >
             <MultiplayerWindow
               initialRoomCode={roomCode}
               initialMode={initialMode}
