@@ -36,6 +36,8 @@ import { useViewportHeight, compressionFactor, lerpCompress } from "@/hooks/useV
 import MultiplayerGameView from "@/components/MultiplayerGameView";
 import { useSoloGame } from "@/hooks/useSoloGame";
 import MultiplayerHowToSteps, { hasSeenMpHowTo } from "@/components/MultiplayerHowToSteps";
+import DailyLegalFooter from "@/components/DailyLegalFooter";
+
 
 /**
  * Fits an entry screen's column into the frame without scrolling. The column is
