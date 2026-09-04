@@ -316,6 +316,7 @@ export function initialState(slotCount: number, opts: InitOptions = {}): State {
     claimWindowOpen: false,
     claimWindowElapsed: false,
     claimWindowToken: 0,
+    claimSeq: 0,
     seed,
     rng,
     wrongCalls: 0,
