@@ -1142,14 +1142,26 @@ const MultiplayerGameView: React.FC<Props> = ({
   // after the intent round-trips back as state.
 
   const [optimisticSel, setOptimisticSel] = React.useState<number[]>([]);
+  // True once the authoritative state has echoed back at least one selection
+  // for this claim. Until then an empty `s.selectedCards` means "host hasn't
+  // caught up yet", not "selection cleared".
+  const sawServerSelRef = React.useRef(false);
   React.useEffect(() => {
-    if (!claimMode) setOptimisticSel([]);
+    if (!claimMode) {
+      setOptimisticSel([]);
+      sawServerSelRef.current = false;
+    }
   }, [claimMode]);
   React.useEffect(() => {
-    // While the claim is still in flight the host has no selections yet, so an
-    // empty authoritative list must not wipe the buffered pair.
-    if (!claimPending && s.selectedCards.length === 0) setOptimisticSel([]);
+    if (s.selectedCards.length > 0) {
+      sawServerSelRef.current = true;
+      return;
+    }
+    // While the claim is still in flight — or granted but not yet echoed by
+    // the host — an empty authoritative list must not wipe the buffered pair.
+    if (!claimPending && sawServerSelRef.current) setOptimisticSel([]);
   }, [s.selectedCards.length, claimPending]);
+
 
   // Pair locked before the host's grant arrived: the wash animation already
   // ran to completion, so the resolve effect must not wait for a second
