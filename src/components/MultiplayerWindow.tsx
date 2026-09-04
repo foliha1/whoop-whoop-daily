@@ -887,7 +887,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         />
       )}
     </>
-  );
+    );
+  };
+
 
   // ---------- SOLO ----------
   if (view.kind === "solo") {
