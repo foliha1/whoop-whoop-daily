@@ -1331,7 +1331,7 @@ const MultiplayerGameView: React.FC<Props> = ({
   let banner: BannerKind = null;
   // Count the buffered pair while the arbiter is still deciding: the host has
   // no selections for us yet, but the player has visibly locked cards.
-  const mySelCount = claimPending ? optimisticSel.length : s.selectedCards.length;
+  const mySelCount = Math.max(optimisticSel.length, s.selectedCards.length);
   const canCancelClaim = claimMode && mySelCount < 2;
 
   if (canCancelClaim) banner = "CANCEL";
