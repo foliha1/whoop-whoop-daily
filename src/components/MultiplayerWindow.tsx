@@ -1279,28 +1279,30 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             </button>
           </div>
 
-          <a
-            href="/"
-            className="ww-daily-link"
-            style={{
-              ...textStyle("captionItalic", mobile),
-              fontFamily: FONT_FAMILY_UI,
-              fontWeight: FONT_WEIGHT_UI,
-              color: COLORS.inkMuted,
-              textAlign: "center",
-              alignSelf: "center",
-              marginTop: sectionGap,
-              textDecoration: "none",
-            }}
-          >
-            Looking for Whoop! Whoop! Daily?
-          </a>
+          {/* Quiet tail — the Daily link and the same legal line the Daily
+              ready screen uses. Last step of the entry stagger. */}
+          <EntryReveal index={3} ready={entryReady} style={{ width: "100%" }}>
+            <a
+              href="/"
+              className="ww-daily-link"
+              style={{
+                ...textStyle("captionItalic", mobile),
+                fontFamily: FONT_FAMILY_UI,
+                fontWeight: FONT_WEIGHT_UI,
+                color: COLORS.inkMuted,
+                textAlign: "center",
+                display: "block",
+                marginTop: sectionGap,
+                textDecoration: "none",
+              }}
+            >
+              Looking for Whoop! Whoop! Daily?
+            </a>
+            <div style={{ marginTop: SPACE[4] }}>
+              <DailyLegalFooter />
+            </div>
+          </EntryReveal>
 
-          {/* Same quiet legal line the Daily ready screen uses: Privacy, Terms,
-              contact. One 11px row, so the 390x520 fit is unaffected. */}
-          <div style={{ alignSelf: "stretch", marginTop: SPACE[4] }}>
-            <DailyLegalFooter />
-          </div>
         </div>
 
       ),
