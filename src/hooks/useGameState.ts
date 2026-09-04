@@ -6,6 +6,7 @@ import {
   DAILY_MATCH_SETTLE_MS,
   WRONG_SETTLE_TOTAL_MS,
   ROTATION_CLAIM_WINDOW_MS,
+  CLAIM_ABANDON_MS,
 } from "@/lib/animationTiming";
 
 import { createRng, type Rng } from "@/lib/rng";
@@ -207,6 +208,9 @@ export interface State {
   // in progress; the claim's return path then ends the round immediately.
   claimWindowElapsed: boolean;
   claimWindowToken: number;
+  // Bumped every time a claim opens. Guards the owner-side abandoned-claim
+  // timer so a stale expiry can never close a newer claim.
+  claimSeq: number;
   // Deterministic randomness source. When a `seed` was supplied at init this
   // is a seeded PRNG; otherwise it wraps Math.random. Any randomness the
   // reducer needs after init MUST read from here, never Math.random directly.
@@ -243,6 +247,8 @@ export type Action =
   | { type: "FLIP_COMPLETE"; token: number }
   | { type: "SETTLE_COMPLETE"; token: number }
   | { type: "CLAIM_WINDOW_EXPIRE"; token: number }
+  | { type: "CLAIM_ABANDONED"; seq: number }
+
 
   | { type: "SKIP_TICK" }
   | { type: "CLAIM_START"; by: number; a: number; b: number; token: number }
@@ -313,6 +319,7 @@ export function initialState(slotCount: number, opts: InitOptions = {}): State {
     claimWindowOpen: false,
     claimWindowElapsed: false,
     claimWindowToken: 0,
+    claimSeq: 0,
     seed,
     rng,
     wrongCalls: 0,
@@ -572,6 +579,7 @@ export function reducer(state: State, action: Action): State {
         selectedCards: [],
         matchedCards: new Set(),
         claimBy: action.by,
+        claimSeq: (state.claimSeq ?? 0) + 1,
         message: "Select 2 cards that match the rule.",
         messageType: "info",
       };
@@ -705,6 +713,30 @@ export function reducer(state: State, action: Action): State {
       }
       return endClaimWindow(state);
     }
+
+    // An abandoned claim: a seat won its window and then never selected two
+    // cards (disconnect, crash, dead tab, or a response that never arrived).
+    // The host expires it and play continues IN THE SAME ROUND: no score
+    // change, no roll advance, no roller change, no penalty, and no settle
+    // animation — nothing that would read as a resolution. Claiming reopens
+    // for every seat (claimBy → null also rotates the claim window), so the
+    // round can still be won. Seq-guarded so a stale timer is inert.
+    case "CLAIM_ABANDONED": {
+      if (state.phase !== "CLAIM_SELECTING") return state;
+      if ((state.claimSeq ?? 0) !== action.seq) return state;
+      return resumeAfterClaim({
+        ...state,
+        selectedCards: [],
+        matchedCards: new Set(),
+        peekingCard: null,
+        inFlight: null,
+        claimBy: null,
+        message: "Claim expired — the round continues.",
+        messageType: "info",
+      });
+    }
+
+
 
     case "FLIP_START": {
       if (state.phase !== "FLIPPING") return state;
@@ -1031,6 +1063,32 @@ export function useGameState(
   // window (which re-enters CLAIM_WINDOW with the SAME token) cannot restart
   // the timer.
   const scheduledClaimWindowRef = useRef<number>(-1);
+
+  // ---- abandoned claim expiry ----------------------------------------------
+  // The owner of the reducer (host, or the solo client) bounds how long an open
+  // claim may sit unresolved. If the claimant never lands two cards, the claim
+  // is dropped and play continues in the same round.
+  const claimAbandonTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (claimAbandonTimerRef.current) {
+      clearTimeout(claimAbandonTimerRef.current);
+      claimAbandonTimerRef.current = null;
+    }
+    if (state.phase !== "CLAIM_SELECTING") return;
+    const seq = state.claimSeq;
+    claimAbandonTimerRef.current = setTimeout(() => {
+      claimAbandonTimerRef.current = null;
+      dispatch({ type: "CLAIM_ABANDONED", seq });
+    }, CLAIM_ABANDON_MS);
+    return () => {
+      if (claimAbandonTimerRef.current) {
+        clearTimeout(claimAbandonTimerRef.current);
+        claimAbandonTimerRef.current = null;
+      }
+    };
+  }, [state.phase, state.claimSeq]);
+
+
 
   useEffect(() => {
     if (!state.claimWindowOpen) {

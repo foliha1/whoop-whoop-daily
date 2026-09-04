@@ -39,6 +39,7 @@ import { ROLL_HERO_MS } from "@/lib/multiplayer";
 import {
   GREAT_MATCH_DELAY_MS, DEAL_MOVE_MS, WRONG_ANIM_MS, SETTLE_REVEAL_HOLD_MS,
   applyAnimationTimingVars,
+  CLAIM_ABANDON_MS,
 } from "@/lib/animationTiming";
 import DailyMatchGhost, { type GhostCard } from "@/components/DailyMatchGhost";
 import { serverNow } from "@/hooks/useServerClock";
@@ -475,12 +476,16 @@ const RollOverlayPortal: React.FC<{
   );
 };
 
-type BannerKind = "YOUR_FLIP" | "TOO_SLOW" | "CLAIM_ERROR" | "PENALTY" | "CANCEL" | null;
+type BannerKind = "YOUR_FLIP" | "TOO_SLOW" | "CLAIM_ERROR" | "CLAIM_WAIT" | "PENALTY" | "CANCEL" | null;
+
 
 const BannerStyles: Record<Exclude<BannerKind, null>, { bg: string; text: string; label: string; icon?: boolean }> = {
   YOUR_FLIP:   { bg: BLUE,    text: SURFACE, label: "YOUR FLIP!" },
   TOO_SLOW:    { bg: INK,     text: SURFACE, label: "SOMEONE BEAT YOU TO IT" },
   CLAIM_ERROR: { bg: RED,     text: SURFACE, label: "CONNECTION ISSUE — TRY AGAIN" },
+  // Unknown, not lost: the arbiter's answer never reached us, so we hold the
+  // claim open and follow the host. Never phrased as being beaten to it.
+  CLAIM_WAIT:  { bg: INK,     text: SURFACE, label: "SLOW CONNECTION — HOLD ON" },
   PENALTY:     { bg: MUTED,   text: SURFACE, label: "PENALTY" },
   CANCEL:      { bg: SURFACE, text: RED,     label: "Cancel match", icon: true },
 };
@@ -896,6 +901,9 @@ const MultiplayerGameView: React.FC<Props> = ({
   const [claimBusy, setClaimBusy] = React.useState(false);
   const [tooSlowAt, setTooSlowAt] = React.useState<number | null>(null);
   const [claimErrAt, setClaimErrAt] = React.useState<number | null>(null);
+  // "Unknown, not lost": the arbiter's answer never reached us. Purely a
+  // message — it never pulls the claim.
+  const [claimWaitAt, setClaimWaitAt] = React.useState<number | null>(null);
   // ---- optimistic claim entry -------------------------------------------
   // The arbiter (claim_locks UNIQUE index) is untouched and still decides who
   // claimed. What is optimistic is ONLY this client's UI: the claimant opens
@@ -925,6 +933,7 @@ const MultiplayerGameView: React.FC<Props> = ({
   React.useEffect(() => {
     setTooSlowAt(null);
     setClaimErrAt(null);
+    setClaimWaitAt(null);
     setPendingClaim(null);
     setPendingCancelled(false);
     cancelPendingRef.current = false;
@@ -943,6 +952,29 @@ const MultiplayerGameView: React.FC<Props> = ({
     const t = setTimeout(() => setClaimErrAt(null), 1800);
     return () => clearTimeout(t);
   }, [claimErrAt]);
+  // The "unknown" notice clears the moment the host's authoritative claim
+  // arrives for us — the fast path failed but the claim was real.
+  React.useEffect(() => {
+    if (inClaimMode) setClaimWaitAt(null);
+  }, [inClaimMode]);
+
+  // Bounded local wait. If our claim is still only optimistic after the host's
+  // own abandon bound, the insert never landed: drop the optimistic claim so
+  // the player can press again. This is a "try again", never a loss.
+  React.useEffect(() => {
+    if (!claimPending || inClaimMode) return;
+    const t = setTimeout(() => {
+      setPendingClaim(null);
+      setPendingCancelled(false);
+      cancelPendingRef.current = false;
+      setOptimisticSel([]);
+      setClaimWaitAt(null);
+      setClaimErrAt(Date.now());
+    }, CLAIM_ABANDON_MS);
+    return () => clearTimeout(t);
+  }, [claimPending, inClaimMode]);
+
+
 
   // Host-dropped claim grant (window mismatch): if the rejected seat is
   // ours, we thought we won but the host discarded the grant. Surface the
@@ -1336,6 +1368,7 @@ const MultiplayerGameView: React.FC<Props> = ({
 
   if (canCancelClaim) banner = "CANCEL";
   else if (claimErrAt !== null) banner = "CLAIM_ERROR";
+  else if (claimWaitAt !== null) banner = "CLAIM_WAIT";
   else if (tooSlowAt !== null) banner = "TOO_SLOW";
   else if (isMyTurnToFlip) banner = "YOUR_FLIP";
 
@@ -1394,10 +1427,11 @@ const MultiplayerGameView: React.FC<Props> = ({
         visitor_id: visitorId,
       });
       setClaimBusy(false);
-      // Tri-state: real lost race → beaten to it; transport/server error →
-      // distinct banner so players can tell "beaten to it" from "broken".
-      // The arbiter is still the only thing that grants a claim; a loss pulls
-      // the optimistic claim and nothing was ever sent to the host.
+      // Tri-state. ONLY an explicit arbiter verdict naming another seat is a
+      // loss. A transport failure is "unknown": we keep our optimistic claim
+      // open and let the host's state decide, because the insert may well have
+      // landed. If it did not, the host's abandoned-claim expiry reopens
+      // claiming for everyone and the round continues untouched.
       const pull = () => {
         setPendingClaim(null);
         setPendingCancelled(false);
@@ -1407,14 +1441,14 @@ const MultiplayerGameView: React.FC<Props> = ({
       };
       if (result.outcome === "won") {
         // Claim mode stays open; the host's claim_grant flushes the buffer.
-      } else if (result.outcome === "error") {
-        console.error("[whoop] claim errored — see claim-lock log above", result.error);
-        pull();
-        setClaimErrAt(Date.now());
+      } else if (result.outcome === "unknown") {
+        console.warn("[whoop] claim outcome unknown — waiting on the host", result.error);
+        setClaimWaitAt(Date.now());
       } else {
         pull();
         setTooSlowAt(Date.now());
       }
+
 
     };
   }
