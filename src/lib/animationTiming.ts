@@ -85,6 +85,29 @@ export function applyAnimationTimingVars(root: HTMLElement = document.documentEl
  */
 export const ROTATION_CLAIM_WINDOW_MS = 2000;
 
+// ---- abandoned claim expiry -------------------------------------------------
+/**
+ * A seat can win a claim window at the arbiter and then never select its two
+ * cards — a disconnect, a crash, a dead tab, or a response that never arrived.
+ * The host expires that claim after this long and returns the board to where it
+ * was: no score change, no roll advance, no roller change, no penalty, and no
+ * success sequence. Claiming reopens (claimBy goes back to null, which rotates
+ * the claim window), so the round can still be won.
+ */
+export const CLAIM_ABANDON_MS = 9000;
+
+// ---- arbiter retry ----------------------------------------------------------
+/**
+ * A transport failure is "unknown", never "lost". The claim_locks UNIQUE key
+ * makes the insert idempotent per (room, game, window), so retrying the exact
+ * same window and seat is safe: if the row already exists and belongs to this
+ * seat, this player won. Total attempts = 1 + retries, spaced by the delay,
+ * i.e. up to ~1.1s of retrying before the client gives up and waits for the
+ * host's state instead.
+ */
+export const CLAIM_LOCK_RETRIES = 2;
+export const CLAIM_LOCK_RETRY_DELAY_MS = 400;
+
 // ---- Classic result headline chase ------------------------------------------
 /**
  * One full pass of the brand-colour chase through the letters of "Great Game!".
