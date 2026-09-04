@@ -1293,27 +1293,3 @@ All colors MUST be HSL.
 @media (prefers-reduced-motion: reduce) {
   .ww-chase-letter { animation: none; }
 }
-
-/* ---- BrandLoader: interchanging shapes -----------------------------------
-   Each cell holds all four brand shapes stacked; one keyframe cycle shows one
-   at a time with `step-end`, so a cell swaps instantly from shape to shape.
-   A negative delay per shape puts each cell on a different starting shape, so
-   the row is always four shapes and never the same four in the same order.
-   Colour comes from the shared `.ww-chase-letter` chase via `currentColor`. */
-@keyframes ww-loader-shape {
-  0%,   100% { opacity: 1; }
-  25%        { opacity: 0; }
-  75%        { opacity: 0; }
-}
-
-.ww-loader-shape {
-  animation: ww-loader-shape var(--ww-shape-dur, 3200ms) step-end infinite both;
-}
-
-/* Reduced motion: rest on the frame each cell shows at t=0 — all four shapes
-   visible, one per cell, in their brand colours. The resting shape is marked
-   with `data-rest`, the rest are hidden outright. */
-@media (prefers-reduced-motion: reduce) {
-  .ww-loader-shape { animation: none; opacity: 0; }
-  .ww-loader-shape[data-rest="true"] { opacity: 1; }
-}

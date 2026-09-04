@@ -36,7 +36,6 @@ import {
   type MyGroup,
 } from "@/lib/dailyGroups";
 import {
-import BrandLoader from "@/components/BrandLoader";
   BORDER,
   COLORS,
   FONT_FAMILY_UI,
@@ -171,7 +170,7 @@ const GroupsPage: React.FC = () => {
               Play the same daily puzzle as your people and see how you all did.
             </p>
 
-            {loading && <BrandLoader size={16} />}
+            {loading && <p style={{ ...metaLabel(mobile), margin: 0 }}>Loading…</p>}
 
             {!loading && groups.length === 0 && (
               <p data-testid="groups-empty" style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, margin: 0 }}>

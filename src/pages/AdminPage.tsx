@@ -33,7 +33,6 @@ import {
   type SubscriberExportRow,
 } from "@/lib/adminExport";
 import {
-import BrandLoader from "@/components/BrandLoader";
   BORDER,
   COLORS,
   FONT_FAMILY,
@@ -682,7 +681,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
           style={inputStyle}
         />
         <button type="button" onClick={() => void load()} style={buttonStyle("secondary", "sm")}>
-          {state === "loading" ? <BrandLoader size={14} /> : "Refresh"}
+          {state === "loading" ? "Loading…" : "Refresh"}
         </button>
       </div>
 

@@ -28,7 +28,6 @@ import {
 } from "@/lib/dailyGroups";
 import { LeaveGroupModal } from "@/components/DailyGroupModals";
 import {
-import BrandLoader from "@/components/BrandLoader";
   BORDER,
   COLORS,
   FONT_FAMILY_UI,
@@ -246,7 +245,7 @@ const DailyGroupBoard: React.FC<{
           data-testid="group-today-board"
           style={{ display: "flex", flexDirection: "column", gap: SPACE[3] }}
         >
-          {today === null && <BrandLoader size={16} />}
+          {today === null && <p style={{ ...metaLabel(mobile), margin: 0 }}>Loading…</p>}
           {todayRows.map((r) => (
             <BoardRow
               key={r.visitor_id}
@@ -280,7 +279,7 @@ const DailyGroupBoard: React.FC<{
           data-testid="group-season-board"
           style={{ display: "flex", flexDirection: "column", gap: SPACE[3] }}
         >
-          {season === null && <BrandLoader size={16} />}
+          {season === null && <p style={{ ...metaLabel(mobile), margin: 0 }}>Loading…</p>}
           {seasonLabel && <p style={{ ...metaLabel(mobile), margin: 0 }}>{seasonLabel}</p>}
           <p style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>
             Points are 3 for 1st, 2 for 2nd, 1 for 3rd.
