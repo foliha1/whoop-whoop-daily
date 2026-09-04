@@ -1563,3 +1563,36 @@ describe("rotation claim window", () => {
     expect(s.claimWindowOpen).toBe(false);
   });
 });
+
+describe("abandoned claim expiry", () => {
+  it("returns play to the same round with no score, roll or penalty change", () => {
+    const base = baseState({ phase: "FLIPPING", roller: 0, flipper: 0 });
+    const claiming = reducer(base, { type: "PLAYER_ENTER_CLAIM", by: 1 });
+    expect(claiming.phase).toBe("CLAIM_SELECTING");
+    const after = reducer(claiming, { type: "CLAIM_ABANDONED", seq: claiming.claimSeq });
+    // Same round, claiming reopened, nothing resolved.
+    expect(after.phase).toBe("FLIPPING");
+    expect(after.claimBy).toBeNull();
+    expect(after.settleKind).toBeNull();
+    expect(after.roundNum).toBe(base.roundNum);
+    expect(after.roller).toBe(base.roller);
+    expect(after.flipper).toBe(base.flipper);
+    expect(after.scores).toEqual(base.scores);
+    expect(after.wrongCalls).toBe(base.wrongCalls);
+  });
+
+  it("ignores a stale expiry for an older claim", () => {
+    const base = baseState({ phase: "FLIPPING" });
+    const claiming = reducer(base, { type: "PLAYER_ENTER_CLAIM", by: 1 });
+    const stale = reducer(claiming, { type: "CLAIM_ABANDONED", seq: claiming.claimSeq - 1 });
+    expect(stale).toBe(claiming);
+  });
+
+  it("inside a rotation claim window it returns to the window, not the next round", () => {
+    const open = completedRotation();
+    const claiming = reducer(open, { type: "PLAYER_ENTER_CLAIM", by: 1 });
+    const after = reducer(claiming, { type: "CLAIM_ABANDONED", seq: claiming.claimSeq });
+    expect(after.phase).toBe("CLAIM_WINDOW");
+    expect(after.claimWindowToken).toBe(open.claimWindowToken);
+  });
+});
