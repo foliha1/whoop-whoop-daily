@@ -713,6 +713,30 @@ export function reducer(state: State, action: Action): State {
       return endClaimWindow(state);
     }
 
+    // An abandoned claim: a seat won its window and then never selected two
+    // cards (disconnect, crash, dead tab, or a response that never arrived).
+    // The host expires it and play continues IN THE SAME ROUND: no score
+    // change, no roll advance, no roller change, no penalty, and no settle
+    // animation — nothing that would read as a resolution. Claiming reopens
+    // for every seat (claimBy → null also rotates the claim window), so the
+    // round can still be won. Seq-guarded so a stale timer is inert.
+    case "CLAIM_ABANDONED": {
+      if (state.phase !== "CLAIM_SELECTING") return state;
+      if ((state.claimSeq ?? 0) !== action.seq) return state;
+      return resumeAfterClaim({
+        ...state,
+        selectedCards: [],
+        matchedCards: new Set(),
+        peekingCard: null,
+        inFlight: null,
+        claimBy: null,
+        message: "Claim expired — the round continues.",
+        messageType: "info",
+      });
+    }
+
+
+
     case "FLIP_START": {
       if (state.phase !== "FLIPPING") return state;
       if (state.flipper !== action.by) return state;
