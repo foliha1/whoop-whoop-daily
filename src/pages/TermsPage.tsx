@@ -1,19 +1,20 @@
 import React from "react";
 import LegalPage, { LegalSection, LegalText, MailLink } from "@/components/LegalPage";
 
-const UPDATED = "9 August 2026";
+const UPDATED = "4 September 2026";
 
 const TermsPage: React.FC = () => (
   <LegalPage
     title="Terms"
-    metaTitle="Terms of Use — WHOOP! WHOOP! Daily"
-    metaDescription="WHOOP! WHOOP! Daily is free to play and provided as is. We may change or stop it at any time. Questions: hello@whoop-whoop.com."
+    metaTitle="Terms of Use — WHOOP! WHOOP! Daily and Classic"
+    metaDescription="WHOOP! WHOOP! Daily and Classic are free to play and provided as is. We may change or stop them at any time. Questions: hello@whoop-whoop.com."
     path="/terms"
     updated={UPDATED}
   >
     <LegalSection heading="The game is free">
       <LegalText>
-        WHOOP! WHOOP! Daily is free to play. There is nothing to buy, and no account is required.
+        WHOOP! WHOOP! Daily and WHOOP! WHOOP! Classic are free to play. There is nothing to buy,
+        and no account is required.
       </LegalText>
     </LegalSection>
 
@@ -22,6 +23,29 @@ const TermsPage: React.FC = () => (
         The game is provided as is, without warranties of any kind. We do our best to keep it working
         and accurate, but we cannot promise it will always be available or free of faults, and we are
         not liable for any loss arising from using it.
+      </LegalText>
+    </LegalSection>
+
+    <LegalSection heading="Playing with other people">
+      <LegalText>
+        Classic is played with other people in real time. Your display name is visible to everyone
+        at your table.
+      </LegalText>
+      <LegalText>
+        Choose a display name that is not offensive, does not impersonate someone else, and does not
+        contain personal information. We may remove a name or block access if it is used to harass
+        people.
+      </LegalText>
+      <LegalText>
+        We cannot control what other players do or say. If a table turns unpleasant, leave it and
+        start a new one.
+      </LegalText>
+    </LegalSection>
+
+    <LegalSection heading="Tables are open to anyone with the code">
+      <LegalText>
+        Table codes are shareable by design. Anyone holding a code can join that table. Do not share
+        a code more widely than you mean to.
       </LegalText>
     </LegalSection>
 
