@@ -957,6 +957,24 @@ const MultiplayerGameView: React.FC<Props> = ({
     if (inClaimMode) setClaimWaitAt(null);
   }, [inClaimMode]);
 
+  // Bounded local wait. If our claim is still only optimistic after the host's
+  // own abandon bound, the insert never landed: drop the optimistic claim so
+  // the player can press again. This is a "try again", never a loss.
+  React.useEffect(() => {
+    if (!claimPending || inClaimMode) return;
+    const t = setTimeout(() => {
+      setPendingClaim(null);
+      setPendingCancelled(false);
+      cancelPendingRef.current = false;
+      setOptimisticSel([]);
+      setClaimWaitAt(null);
+      setClaimErrAt(Date.now());
+    }, CLAIM_ABANDON_MS);
+    return () => clearTimeout(t);
+  }, [claimPending, inClaimMode]);
+
+
+
   // Host-dropped claim grant (window mismatch): if the rejected seat is
   // ours, we thought we won but the host discarded the grant. Surface the
   // CONNECTION ISSUE banner instead of a silent hang. Also clears LOCKING…
