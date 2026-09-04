@@ -1,17 +1,28 @@
 // ============================================================================
-// classicHead — build-time head rewriting for the Classic (/play) routes.
+// classicHead — build-time head rewriting for the Classic route.
 //
 // Scrapers (Facebook, iMessage, WhatsApp, Slack, Twitter) do not run JS, so
 // react-helmet-async can never give an invite link its own preview. Instead we
-// emit an extra STATIC document at dist/play/index.html at build time, derived
-// from the Daily index.html with the Classic tags swapped in. The Daily's
-// dist/index.html is copied, never mutated.
+// emit an extra STATIC document at build time, derived from the Daily
+// index.html with the Classic tags swapped in. The Daily's dist/index.html is
+// copied, never mutated.
+//
+// IMPORTANT hosting note: the previous attempt emitted dist/play/index.html.
+// Lovable hosting's SPA fallback answers extensionless navigations with the
+// root index.html BEFORE resolving a directory index, so that document was
+// never served. A path that ends in `.html` looks like a file to the host and
+// is served directly, so the Classic document lives at dist/classic.html and
+// invite links point at /classic.html?r=CODE. A copy is still emitted at
+// dist/classic/index.html in case directory-index resolution is available.
 // ============================================================================
 
 const ORIGIN = "https://whoop-whoop.com";
 
+/** The URL that actually serves the Classic document (real file, not fallback). */
+export const CLASSIC_DOC_PATH = "/classic.html";
+
 export const CLASSIC_META = {
-  url: `${ORIGIN}/play`,
+  url: `${ORIGIN}${CLASSIC_DOC_PATH}`,
   title: "WHOOP! WHOOP! Classic — Live Multiplayer Memory Game",
   description:
     "Live memory match for 2–6 players. Flip cards, spot the pair, shout WHOOP! WHOOP! first. Join the table—no signup.",
@@ -51,7 +62,7 @@ export function toClassicHtml(dailyHtml) {
   return html;
 }
 
-/** Vite plugin: emit dist/play/index.html alongside the SPA shell. */
+/** Vite plugin: emit the Classic document alongside the SPA shell. */
 export function classicPrerender() {
   return {
     name: "ww-classic-prerender",
@@ -60,11 +71,12 @@ export function classicPrerender() {
     generateBundle(_options, bundle) {
       const shell = bundle["index.html"];
       if (!shell || typeof shell.source !== "string") return;
-      this.emitFile({
-        type: "asset",
-        fileName: "play/index.html",
-        source: toClassicHtml(shell.source),
-      });
+      const source = toClassicHtml(shell.source);
+      // Primary: a real .html file the host serves without directory-index
+      // resolution and without the SPA fallback intercepting it.
+      this.emitFile({ type: "asset", fileName: "classic.html", source });
+      // Secondary, harmless: only reachable if directory indexes resolve.
+      this.emitFile({ type: "asset", fileName: "classic/index.html", source });
     },
   };
 }
