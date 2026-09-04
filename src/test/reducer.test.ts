@@ -1589,10 +1589,15 @@ describe("abandoned claim expiry", () => {
   });
 
   it("inside a rotation claim window it returns to the window, not the next round", () => {
-    const open = completedRotation();
+    const open = baseState({
+      phase: "CLAIM_WINDOW",
+      claimWindowOpen: true,
+      claimWindowElapsed: false,
+      claimWindowToken: 4,
+    });
     const claiming = reducer(open, { type: "PLAYER_ENTER_CLAIM", by: 1 });
     const after = reducer(claiming, { type: "CLAIM_ABANDONED", seq: claiming.claimSeq });
     expect(after.phase).toBe("CLAIM_WINDOW");
-    expect(after.claimWindowToken).toBe(open.claimWindowToken);
+    expect(after.claimWindowToken).toBe(4);
   });
 });
