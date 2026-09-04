@@ -616,11 +616,13 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   }, [view.kind, onBroadcast]);
 
   const shareUrl = (code: string) =>
-    // Query form, NOT /play/CODE: scrapers get the static dist/play/index.html
-    // (Classic tags) for any /play?... URL, while a path segment would fall
-    // back to the Daily shell. The /play/:roomCode route still works for
-    // older links.
-    typeof window !== "undefined" ? `${window.location.origin}/play?r=${code}` : `/play?r=${code}`;
+    // /classic.html?r=CODE, not /classic?r=CODE: the host answers extensionless
+    // navigations with the Daily shell (SPA fallback), so only the .html
+    // document carries the Classic link-preview tags for scrapers. The route
+    // table renders the same page for both paths.
+    typeof window !== "undefined"
+      ? `${window.location.origin}/classic.html?r=${code}`
+      : `/classic.html?r=${code}`;
 
   const flashShare = useCallback(() => {
     setShareFlash(true);
