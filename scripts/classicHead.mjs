@@ -75,8 +75,12 @@ export function classicPrerender() {
       // Primary: a real .html file the host serves without directory-index
       // resolution and without the SPA fallback intercepting it.
       this.emitFile({ type: "asset", fileName: "classic.html", source });
-      // Secondary, harmless: only reachable if directory indexes resolve.
+      // Secondary: reachable when the host resolves directory indexes for
+      // extensionless paths (it does today for /play).
       this.emitFile({ type: "asset", fileName: "classic/index.html", source });
+      // Legacy /play links keep their Classic preview; the SPA redirects them
+      // to /classic on load.
+      this.emitFile({ type: "asset", fileName: "play/index.html", source });
     },
   };
 }
