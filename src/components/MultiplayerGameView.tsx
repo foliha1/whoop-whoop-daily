@@ -900,6 +900,9 @@ const MultiplayerGameView: React.FC<Props> = ({
   const [claimBusy, setClaimBusy] = React.useState(false);
   const [tooSlowAt, setTooSlowAt] = React.useState<number | null>(null);
   const [claimErrAt, setClaimErrAt] = React.useState<number | null>(null);
+  // "Unknown, not lost": the arbiter's answer never reached us. Purely a
+  // message — it never pulls the claim.
+  const [claimWaitAt, setClaimWaitAt] = React.useState<number | null>(null);
   // ---- optimistic claim entry -------------------------------------------
   // The arbiter (claim_locks UNIQUE index) is untouched and still decides who
   // claimed. What is optimistic is ONLY this client's UI: the claimant opens
