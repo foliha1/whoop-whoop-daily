@@ -21,6 +21,16 @@ import NotFound from "./pages/NotFound.tsx";
 
 const FADE_MS = 200;
 
+/** Legacy /play and /play/:roomCode → /classic?r=CODE, code preserved. */
+const ClassicRedirect: React.FC = () => {
+  const { roomCode } = useParams<{ roomCode?: string }>();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  if (roomCode && !params.get("r")) params.set("r", roomCode);
+  const qs = params.toString();
+  return <Navigate to={`/classic${qs ? `?${qs}` : ""}`} replace />;
+};
+
 const AnimatedRoutes: React.FC = () => {
   const location = useLocation();
   const [displayLocation, setDisplayLocation] = useState(location);
