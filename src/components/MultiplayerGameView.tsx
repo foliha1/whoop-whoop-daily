@@ -1349,6 +1349,7 @@ const MultiplayerGameView: React.FC<Props> = ({
 
   if (canCancelClaim) banner = "CANCEL";
   else if (claimErrAt !== null) banner = "CLAIM_ERROR";
+  else if (claimWaitAt !== null) banner = "CLAIM_WAIT";
   else if (tooSlowAt !== null) banner = "TOO_SLOW";
   else if (isMyTurnToFlip) banner = "YOUR_FLIP";
 
