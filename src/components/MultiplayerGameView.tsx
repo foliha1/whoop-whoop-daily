@@ -932,6 +932,7 @@ const MultiplayerGameView: React.FC<Props> = ({
   React.useEffect(() => {
     setTooSlowAt(null);
     setClaimErrAt(null);
+    setClaimWaitAt(null);
     setPendingClaim(null);
     setPendingCancelled(false);
     cancelPendingRef.current = false;
