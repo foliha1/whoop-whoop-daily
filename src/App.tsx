@@ -59,8 +59,15 @@ const AnimatedRoutes: React.FC = () => {
 
 
 
-        <Route path="/play" element={<MultiplayerPage />} />
-        <Route path="/play/:roomCode" element={<MultiplayerPage />} />
+        {/* Classic lives at /classic. The .html twin is the document the host
+            actually serves with Classic link-preview tags (see
+            scripts/classicHead.mjs), so it must render the game too. */}
+        <Route path="/classic" element={<MultiplayerPage />} />
+        <Route path="/classic.html" element={<MultiplayerPage />} />
+        <Route path="/classic/:roomCode" element={<MultiplayerPage />} />
+        {/* Legacy /play links redirect, preserving the room code. */}
+        <Route path="/play" element={<ClassicRedirect />} />
+        <Route path="/play/:roomCode" element={<ClassicRedirect />} />
         {/* Debug-gated routes: 404 in production, live under ?debug=1. */}
         <Route path="/typography" element={<DebugOnlyRoute><TypographyPage /></DebugOnlyRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
