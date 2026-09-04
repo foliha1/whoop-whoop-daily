@@ -1398,10 +1398,11 @@ const MultiplayerGameView: React.FC<Props> = ({
         visitor_id: visitorId,
       });
       setClaimBusy(false);
-      // Tri-state: real lost race → beaten to it; transport/server error →
-      // distinct banner so players can tell "beaten to it" from "broken".
-      // The arbiter is still the only thing that grants a claim; a loss pulls
-      // the optimistic claim and nothing was ever sent to the host.
+      // Tri-state. ONLY an explicit arbiter verdict naming another seat is a
+      // loss. A transport failure is "unknown": we keep our optimistic claim
+      // open and let the host's state decide, because the insert may well have
+      // landed. If it did not, the host's abandoned-claim expiry reopens
+      // claiming for everyone and the round continues untouched.
       const pull = () => {
         setPendingClaim(null);
         setPendingCancelled(false);
@@ -1411,14 +1412,14 @@ const MultiplayerGameView: React.FC<Props> = ({
       };
       if (result.outcome === "won") {
         // Claim mode stays open; the host's claim_grant flushes the buffer.
-      } else if (result.outcome === "error") {
-        console.error("[whoop] claim errored — see claim-lock log above", result.error);
-        pull();
-        setClaimErrAt(Date.now());
+      } else if (result.outcome === "unknown") {
+        console.warn("[whoop] claim outcome unknown — waiting on the host", result.error);
+        setClaimWaitAt(Date.now());
       } else {
         pull();
         setTooSlowAt(Date.now());
       }
+
 
     };
   }
