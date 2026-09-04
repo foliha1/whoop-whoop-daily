@@ -578,6 +578,7 @@ export function reducer(state: State, action: Action): State {
         selectedCards: [],
         matchedCards: new Set(),
         claimBy: action.by,
+        claimSeq: (state.claimSeq ?? 0) + 1,
         message: "Select 2 cards that match the rule.",
         messageType: "info",
       };
