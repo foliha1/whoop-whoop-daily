@@ -305,7 +305,7 @@ const LandingPage: React.FC = () => {
           <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
             <SecondaryWay
               label="Solo"
-              to="/play?mode=solo"
+              to="/classic?mode=solo"
               className="ww-landing-way-solo"
               background={COLORS.blue}
               color={COLORS.surface}
@@ -313,7 +313,7 @@ const LandingPage: React.FC = () => {
             />
             <SecondaryWay
               label="Multiplayer"
-              to="/play?mode=multiplayer"
+              to="/classic?mode=multiplayer"
               className="ww-landing-way-multi"
               background={COLORS.orange}
               color={COLORS.ink}

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -20,6 +20,16 @@ import NotFound from "./pages/NotFound.tsx";
 
 
 const FADE_MS = 200;
+
+/** Legacy /play and /play/:roomCode → /classic?r=CODE, code preserved. */
+const ClassicRedirect: React.FC = () => {
+  const { roomCode } = useParams<{ roomCode?: string }>();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  if (roomCode && !params.get("r")) params.set("r", roomCode);
+  const qs = params.toString();
+  return <Navigate to={`/classic${qs ? `?${qs}` : ""}`} replace />;
+};
 
 const AnimatedRoutes: React.FC = () => {
   const location = useLocation();
@@ -59,8 +69,15 @@ const AnimatedRoutes: React.FC = () => {
 
 
 
-        <Route path="/play" element={<MultiplayerPage />} />
-        <Route path="/play/:roomCode" element={<MultiplayerPage />} />
+        {/* Classic lives at /classic. The .html twin is the document the host
+            actually serves with Classic link-preview tags (see
+            scripts/classicHead.mjs), so it must render the game too. */}
+        <Route path="/classic" element={<MultiplayerPage />} />
+        <Route path="/classic.html" element={<MultiplayerPage />} />
+        <Route path="/classic/:roomCode" element={<MultiplayerPage />} />
+        {/* Legacy /play links redirect, preserving the room code. */}
+        <Route path="/play" element={<ClassicRedirect />} />
+        <Route path="/play/:roomCode" element={<ClassicRedirect />} />
         {/* Debug-gated routes: 404 in production, live under ?debug=1. */}
         <Route path="/typography" element={<DebugOnlyRoute><TypographyPage /></DebugOnlyRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

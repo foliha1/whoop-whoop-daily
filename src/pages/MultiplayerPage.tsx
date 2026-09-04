@@ -32,8 +32,8 @@ const MultiplayerPage: React.FC = () => {
   useBodyScrollLock();
   const { roomCode: roomCodeParam } = useParams<{ roomCode?: string }>();
   const [searchParams] = useSearchParams();
-  // Invite links are /play?r=CODE (see MultiplayerWindow.shareUrl); the legacy
-  // /play/:roomCode path is still honoured.
+  // Invite links are /classic?r=CODE (see MultiplayerWindow.shareUrl); the legacy
+  // /classic/:roomCode path is still honoured.
   const roomCode = roomCodeParam ?? searchParams.get("r") ?? undefined;
   const modeParam = searchParams.get("mode");
   const initialMode = modeParam === "solo" || modeParam === "multiplayer" ? modeParam : undefined;
