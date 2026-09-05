@@ -452,6 +452,39 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     });
   }, [gameEnabled, host.state.phase, host.state.scores, host.state.roundNum, activeRoom]);
 
+  // Record the completed multiplayer game — host only, once per game id.
+  // Joiners pass through here with `enabled: false` and never write.
+  const classicSnapshot = useMemo(
+    () => ({
+      phase: host.state.phase as string,
+      settleKind: host.state.settleKind,
+      scores: host.state.scores,
+      names: (frozenSeats ?? []).length
+        ? (frozenSeats ?? []).map((e) => e.display_name)
+        : host.state.names,
+      roundNum: host.state.roundNum,
+      gameId,
+    }),
+    [
+      host.state.phase,
+      host.state.settleKind,
+      host.state.scores,
+      host.state.names,
+      host.state.roundNum,
+      frozenSeats,
+      gameId,
+    ],
+  );
+  useClassicResultRecorder({
+    snapshot: classicSnapshot,
+    roomCode: activeRoom?.room_code ?? null,
+    isSolo: false,
+    enabled: gameEnabled,
+    hostVisitorId: visitorId,
+  });
+
+
+
   useEffect(() => {
     if (!initialRoomCode) return;
     const normalized = initialRoomCode.toUpperCase();
