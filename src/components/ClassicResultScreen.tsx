@@ -428,7 +428,34 @@ const ClassicResultScreen: React.FC<{
               </button>
             </div>
           </div>
+
+          {/* Quiet footer: the one route out of Classic, to the Daily. No
+              email capture here — Classic is not an acquisition surface. */}
+          <nav
+            aria-label="More from Whoop Whoop"
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginTop: SPACE[2],
+              opacity: 0.85,
+            }}
+          >
+            <a
+              href="/"
+              style={{
+                ...textStyle("caption", mobile),
+                color: RAW.mocha,
+                textDecoration: "none",
+                borderBottom: `1px solid ${RAW.mocha}`,
+                paddingBottom: 1,
+                transition: MOTION.fast,
+              }}
+            >
+              Play today's Daily
+            </a>
+          </nav>
         </div>
+
       </FitScale>
 
       {strip}
