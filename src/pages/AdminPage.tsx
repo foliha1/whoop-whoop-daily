@@ -124,6 +124,17 @@ interface HeadlineRow {
   runs_finished: number;
 }
 
+/** Classic (versus) games. Separate from every Daily metric above. */
+interface ClassicRow {
+  games_completed: number;
+  median_seconds: number;
+  avg_players: number;
+  solo_games: number;
+  multiplayer_games: number;
+  avg_correct_claims: number;
+  avg_wrong_claims: number;
+}
+
 interface DashboardData {
   funnel: FunnelRow | null;
   difficulty: DifficultyRow[];
@@ -134,8 +145,9 @@ interface DashboardData {
   rejections: RejectionRow[];
   headline: HeadlineRow | null;
   nextDay: NextDayRow | null;
-
+  classic: ClassicRow | null;
 }
+
 
 // ---------------------------------------------------------------------------
 // helpers
