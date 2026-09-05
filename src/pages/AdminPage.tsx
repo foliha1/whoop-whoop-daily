@@ -124,6 +124,17 @@ interface HeadlineRow {
   runs_finished: number;
 }
 
+/** Classic (versus) games. Separate from every Daily metric above. */
+interface ClassicRow {
+  games_completed: number;
+  median_seconds: number;
+  avg_players: number;
+  solo_games: number;
+  multiplayer_games: number;
+  avg_correct_claims: number;
+  avg_wrong_claims: number;
+}
+
 interface DashboardData {
   funnel: FunnelRow | null;
   difficulty: DifficultyRow[];
@@ -134,8 +145,9 @@ interface DashboardData {
   rejections: RejectionRow[];
   headline: HeadlineRow | null;
   nextDay: NextDayRow | null;
-
+  classic: ClassicRow | null;
 }
+
 
 // ---------------------------------------------------------------------------
 // helpers
@@ -159,6 +171,14 @@ function pct(part: number, whole: number): string {
   if (!whole) return "—";
   return `${Math.round((part / whole) * 1000) / 10}%`;
 }
+
+/** Seconds → "m:ss" for game lengths. */
+function mmss(seconds: number): string {
+  const s = Math.max(0, Math.round(Number(seconds) || 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+
 
 // ---------------------------------------------------------------------------
 // shared style atoms — dense, legible, no new colours
@@ -507,7 +527,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       }
     };
 
-    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay] =
+    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay, classic] =
       await Promise.all([
         call<FunnelRow>("admin_funnel", args),
         call<DifficultyRow>("admin_difficulty", args),
@@ -518,12 +538,13 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         call<HeadlineRow>("admin_headline", args),
         call<RejectionRow>("admin_rejections", args),
         call<NextDayRow>("admin_next_day_return"),
+        call<ClassicRow>("admin_classic", args),
       ]);
 
     setFailures(failed);
 
     // Every report failing means the fetch itself is broken, not an empty range.
-    if (failed.length === 9) {
+    if (failed.length === 10) {
       setState("error");
       return;
     }
@@ -547,7 +568,9 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       rejections,
       headline: headline[0] ?? null,
       nextDay: nextDay[0] ?? null,
+      classic: classic[0] ?? null,
     });
+
 
     setState("ready");
   }, [from, to]);
@@ -949,6 +972,40 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
             {(data?.subscribers ?? []).reduce((n, r) => n + r.synced, 0)}
           </span>
         </Card>
+
+        {/* Classic (versus). Completely separate from the Daily numbers above:
+            one row per completed Classic game, written by the host. */}
+        <Card title="Classic">
+          {(() => {
+            const c = data?.classic ?? null;
+            const games = c?.games_completed ?? 0;
+            if (!c || games === 0) {
+              return <span style={labelStyle}>No Classic games completed in this range.</span>;
+            }
+            const solo = c.solo_games;
+            const mp = c.multiplayer_games;
+            const share = (v: number) => `${Math.round((v / games) * 100)}%`;
+            return (
+              <>
+                <Table
+                  head={["Metric", "Value"]}
+                  rows={[
+                    ["Games completed", games],
+                    ["Median game length", mmss(c.median_seconds)],
+                    ["Avg players per game", c.avg_players],
+                    ["Solo vs WHOOP", `${solo} · ${share(solo)}`],
+                    ["Multiplayer", `${mp} · ${share(mp)}`],
+                  ]}
+                />
+                <span style={labelStyle}>
+                  Avg claims per game — correct {c.avg_correct_claims} · wrong {c.avg_wrong_claims}
+                </span>
+              </>
+            );
+          })()}
+        </Card>
+
+
 
         {/* Diagnostic: a refused save is silent to the player by design, so the
             reason surfaces here instead. Empty is the healthy state. */}

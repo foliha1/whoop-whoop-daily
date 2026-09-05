@@ -42,6 +42,8 @@ import { HelpCircle, Settings as SettingsIcon } from "lucide-react";
 import { useViewportHeight, compressionFactor, lerpCompress } from "@/hooks/useViewportHeight";
 import MultiplayerGameView from "@/components/MultiplayerGameView";
 import { useSoloGame } from "@/hooks/useSoloGame";
+import { useClassicResultRecorder } from "@/hooks/useClassicResultRecorder";
+
 import MultiplayerHowToSteps, { hasSeenMpHowTo } from "@/components/MultiplayerHowToSteps";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
 
@@ -123,6 +125,22 @@ const GameShell: React.FC<{ mobile: boolean; children: React.ReactNode }> = ({ m
 const SoloView: React.FC<{ onLeave: () => void; mobile: boolean }> = ({ onLeave, mobile }) => {
   // Every digital game is 3x3. Grid expansion stays a physical-game concept.
   const solo = useSoloGame(FIXED_GRID);
+  // Record the finished solo game. Read-only: no dispatch, no reducer change.
+  useClassicResultRecorder({
+    snapshot: {
+      phase: solo.publicState.phase,
+      settleKind: solo.publicState.settleKind,
+      scores: solo.publicState.scores,
+      names: solo.publicState.seatMap.map((e) => e.display_name),
+      roundNum: solo.publicState.roundNum,
+      gameId: solo.gameId,
+    },
+    roomCode: null,
+    isSolo: true,
+    enabled: true,
+    hostVisitorId: getVisitorId(),
+  });
+
   return (
     <GameShell mobile={mobile}>
     <MultiplayerGameView
@@ -433,6 +451,39 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       },
     });
   }, [gameEnabled, host.state.phase, host.state.scores, host.state.roundNum, activeRoom]);
+
+  // Record the completed multiplayer game — host only, once per game id.
+  // Joiners pass through here with `enabled: false` and never write.
+  const classicSnapshot = useMemo(
+    () => ({
+      phase: host.state.phase as string,
+      settleKind: host.state.settleKind,
+      scores: host.state.scores,
+      names: (frozenSeats ?? []).length
+        ? (frozenSeats ?? []).map((e) => e.display_name)
+        : host.state.names,
+      roundNum: host.state.roundNum,
+      gameId,
+    }),
+    [
+      host.state.phase,
+      host.state.settleKind,
+      host.state.scores,
+      host.state.names,
+      host.state.roundNum,
+      frozenSeats,
+      gameId,
+    ],
+  );
+  useClassicResultRecorder({
+    snapshot: classicSnapshot,
+    roomCode: activeRoom?.room_code ?? null,
+    isSolo: false,
+    enabled: gameEnabled,
+    hostVisitorId: visitorId,
+  });
+
+
 
   useEffect(() => {
     if (!initialRoomCode) return;

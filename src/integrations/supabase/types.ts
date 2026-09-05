@@ -136,6 +136,63 @@ export type Database = {
           },
         ]
       }
+      classic_results: {
+        Row: {
+          app_version: string
+          correct_claims: number
+          created_at: string
+          duration_ms: number
+          ended_at: string
+          game_id: string
+          host_visitor_id: string | null
+          id: string
+          is_solo: boolean
+          player_count: number
+          room_code: string | null
+          rounds_played: number
+          seats: Json
+          started_at: string
+          updated_at: string
+          wrong_claims: number
+        }
+        Insert: {
+          app_version?: string
+          correct_claims?: number
+          created_at?: string
+          duration_ms?: number
+          ended_at: string
+          game_id: string
+          host_visitor_id?: string | null
+          id?: string
+          is_solo?: boolean
+          player_count?: number
+          room_code?: string | null
+          rounds_played?: number
+          seats?: Json
+          started_at: string
+          updated_at?: string
+          wrong_claims?: number
+        }
+        Update: {
+          app_version?: string
+          correct_claims?: number
+          created_at?: string
+          duration_ms?: number
+          ended_at?: string
+          game_id?: string
+          host_visitor_id?: string | null
+          id?: string
+          is_solo?: boolean
+          player_count?: number
+          room_code?: string | null
+          rounds_played?: number
+          seats?: Json
+          started_at?: string
+          updated_at?: string
+          wrong_claims?: number
+        }
+        Relationships: []
+      }
       daily_events: {
         Row: {
           created_at: string
@@ -445,6 +502,18 @@ export type Database = {
         }[]
       }
       admin_backup_status: { Args: never; Returns: Json }
+      admin_classic: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          avg_correct_claims: number
+          avg_players: number
+          avg_wrong_claims: number
+          games_completed: number
+          median_seconds: number
+          multiplayer_games: number
+          solo_games: number
+        }[]
+      }
       admin_difficulty: {
         Args: { p_from: string; p_to: string }
         Returns: {
@@ -545,6 +614,19 @@ export type Database = {
           collisions: number
           updated_rows: number
         }[]
+      }
+      classic_result_reject_reason: {
+        Args: {
+          p_correct_claims: number
+          p_ended_at: string
+          p_is_solo: boolean
+          p_player_count: number
+          p_rounds_played: number
+          p_seats: Json
+          p_started_at: string
+          p_wrong_claims: number
+        }
+        Returns: string
       }
       create_daily_group: {
         Args: { p_display_name: string; p_name: string; p_visitor_id: string }
@@ -730,6 +812,23 @@ export type Database = {
       request_ip: { Args: never; Returns: string }
       rl_hit: {
         Args: { p_bucket: string; p_key: string; p_max: number }
+        Returns: boolean
+      }
+      save_classic_result: {
+        Args: {
+          p_app_version: string
+          p_correct_claims: number
+          p_ended_at: string
+          p_game_id: string
+          p_host_visitor_id: string
+          p_is_solo: boolean
+          p_player_count: number
+          p_room_code: string
+          p_rounds_played: number
+          p_seats: Json
+          p_started_at: string
+          p_wrong_claims: number
+        }
         Returns: boolean
       }
       save_daily_result: {
