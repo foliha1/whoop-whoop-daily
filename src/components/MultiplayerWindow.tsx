@@ -123,6 +123,22 @@ const GameShell: React.FC<{ mobile: boolean; children: React.ReactNode }> = ({ m
 const SoloView: React.FC<{ onLeave: () => void; mobile: boolean }> = ({ onLeave, mobile }) => {
   // Every digital game is 3x3. Grid expansion stays a physical-game concept.
   const solo = useSoloGame(FIXED_GRID);
+  // Record the finished solo game. Read-only: no dispatch, no reducer change.
+  useClassicResultRecorder({
+    snapshot: {
+      phase: solo.publicState.phase,
+      settleKind: solo.publicState.settleKind,
+      scores: solo.publicState.scores,
+      names: solo.publicState.seatMap.map((e) => e.display_name),
+      roundNum: solo.publicState.roundNum,
+      gameId: solo.gameId,
+    },
+    roomCode: null,
+    isSolo: true,
+    enabled: true,
+    hostVisitorId: getVisitorId(),
+  });
+
   return (
     <GameShell mobile={mobile}>
     <MultiplayerGameView
