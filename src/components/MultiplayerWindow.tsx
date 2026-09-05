@@ -42,6 +42,8 @@ import { HelpCircle, Settings as SettingsIcon } from "lucide-react";
 import { useViewportHeight, compressionFactor, lerpCompress } from "@/hooks/useViewportHeight";
 import MultiplayerGameView from "@/components/MultiplayerGameView";
 import { useSoloGame } from "@/hooks/useSoloGame";
+import { useClassicResultRecorder } from "@/hooks/useClassicResultRecorder";
+
 import MultiplayerHowToSteps, { hasSeenMpHowTo } from "@/components/MultiplayerHowToSteps";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
 
