@@ -172,6 +172,14 @@ function pct(part: number, whole: number): string {
   return `${Math.round((part / whole) * 1000) / 10}%`;
 }
 
+/** Seconds → "m:ss" for game lengths. */
+function mmss(seconds: number): string {
+  const s = Math.max(0, Math.round(Number(seconds) || 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+
+
 // ---------------------------------------------------------------------------
 // shared style atoms — dense, legible, no new colours
 // ---------------------------------------------------------------------------
