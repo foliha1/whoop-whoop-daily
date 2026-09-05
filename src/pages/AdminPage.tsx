@@ -519,7 +519,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       }
     };
 
-    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay] =
+    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay, classic] =
       await Promise.all([
         call<FunnelRow>("admin_funnel", args),
         call<DifficultyRow>("admin_difficulty", args),
@@ -530,12 +530,13 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         call<HeadlineRow>("admin_headline", args),
         call<RejectionRow>("admin_rejections", args),
         call<NextDayRow>("admin_next_day_return"),
+        call<ClassicRow>("admin_classic", args),
       ]);
 
     setFailures(failed);
 
     // Every report failing means the fetch itself is broken, not an empty range.
-    if (failed.length === 9) {
+    if (failed.length === 10) {
       setState("error");
       return;
     }
@@ -559,7 +560,9 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       rejections,
       headline: headline[0] ?? null,
       nextDay: nextDay[0] ?? null,
+      classic: classic[0] ?? null,
     });
+
 
     setState("ready");
   }, [from, to]);
