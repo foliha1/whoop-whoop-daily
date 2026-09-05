@@ -965,6 +965,40 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
           </span>
         </Card>
 
+        {/* Classic (versus). Completely separate from the Daily numbers above:
+            one row per completed Classic game, written by the host. */}
+        <Card title="Classic">
+          {(() => {
+            const c = data?.classic ?? null;
+            const games = c?.games_completed ?? 0;
+            if (!c || games === 0) {
+              return <span style={labelStyle}>No Classic games completed in this range.</span>;
+            }
+            const solo = c.solo_games;
+            const mp = c.multiplayer_games;
+            const share = (v: number) => `${Math.round((v / games) * 100)}%`;
+            return (
+              <>
+                <Table
+                  head={["Metric", "Value"]}
+                  rows={[
+                    ["Games completed", games],
+                    ["Median game length", mmss(c.median_seconds)],
+                    ["Avg players per game", c.avg_players],
+                    ["Solo vs WHOOP", `${solo} · ${share(solo)}`],
+                    ["Multiplayer", `${mp} · ${share(mp)}`],
+                  ]}
+                />
+                <span style={labelStyle}>
+                  Avg claims per game — correct {c.avg_correct_claims} · wrong {c.avg_wrong_claims}
+                </span>
+              </>
+            );
+          })()}
+        </Card>
+
+
+
         {/* Diagnostic: a refused save is silent to the player by design, so the
             reason surfaces here instead. Empty is the healthy state. */}
         <Card title="Refused results">
