@@ -5,6 +5,7 @@ import DailyShapeRule from "@/components/DailyShapeRule";
 import { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
 import {
   BORDER,
+  MOTION,
   RADIUS,
   RAW,
   SPACE,
@@ -12,6 +13,7 @@ import {
   panelStyle,
   textStyle,
 } from "@/lib/tokens";
+
 import { HEADLINE_CHASE_MS } from "@/lib/animationTiming";
 
 /**
