@@ -23,7 +23,7 @@ import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
 import { ALL_CARDS, type Card } from "@/cardData";
 import type { RollAttribute } from "@/lib/multiplayer";
-import { SETTLE_MATCH_MS, SETTLE_WRONG_MS } from "@/hooks/useGameState";
+import { SETTLE_MATCH_MS, SETTLE_WRONG_MS, TARGET_SCORE } from "@/hooks/useGameState";
 import {
   CARD_FLIP_MS,
   DEAL_MOVE_MS,
