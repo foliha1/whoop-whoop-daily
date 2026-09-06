@@ -552,3 +552,164 @@ describe("Classic reducer fuzz", () => {
     expect(games).toBeGreaterThan(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Play-experience probe (not an invariant test).
+//
+// The fuzzer plays randomly, which says nothing about pacing. This sweep plays
+// COMPETENTLY: a seat claims when it can see a legal matching pair, with a
+// small miss rate, and every seat takes its two flips otherwise. It reports
+// rounds, claims and a rough wall-clock estimate so pacing problems surface.
+// ---------------------------------------------------------------------------
+
+const TIME_MODEL = {
+  rollMs: 2000,      // roll hero
+  flipMs: 900,       // one flip + read beat
+  claimMs: 2600,     // press + two selections + settle
+  windowMs: 2000,    // rotation claim window
+};
+
+function matchingPair(s: State, seat: number): [number, number] | null {
+  const idxs: number[] = [];
+  for (let i = 0; i < s.grid.length; i++) {
+    if (s.grid[i] !== null && !s.wrongBy[seat]?.has(i)) idxs.push(i);
+  }
+  for (let i = 0; i < idxs.length; i++) {
+    for (let j = i + 1; j < idxs.length; j++) {
+      const a = s.grid[idxs[i]]!, b = s.grid[idxs[j]]!;
+      const attr = s.rule[0];
+      const same =
+        attr === "SHAPE" ? a.shape === b.shape :
+        attr === "NUMBER" ? a.number === b.number :
+        a.color === b.color;
+      if (same) return [idxs[i], idxs[j]];
+    }
+  }
+  return null;
+}
+
+function playCompetently(seed: string, seatCount: number) {
+  const rng = mulberry32(
+    [...seed].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) | 0, 11) >>> 0,
+  );
+  let s = initialState(9, { seatCount, seed: `${seed}:deck` });
+  let token = 1;
+  let ms = 0;
+  let claims = 0;
+  let wrongs = 0;
+  let steps = 0;
+  const perSeatIdle: number[] = Array(seatCount).fill(0);
+
+  while (s.phase !== "GAME_OVER" && steps < 20000) {
+    steps++;
+    if (s.phase === "AWAITING_ROLL") {
+      if (!s.rolling) s = reducer(s, { type: "ROLL_START" });
+      else {
+        const attr = ["SHAPE", "NUMBER", "COLOR"][Math.floor(rng() * 3)];
+        s = reducer(s, { type: "ROLL_LAND", values: [attr], rule: [attr] });
+        s = reducer(s, { type: "ROLL_SETTLE" });
+        ms += TIME_MODEL.rollMs;
+      }
+      continue;
+    }
+    if (s.phase === "FLIPPING" || s.phase === "CLAIM_WINDOW") {
+      // Someone spots the pair. 85% of the time they claim it correctly.
+      let claimed = false;
+      for (let k = 0; k < seatCount; k++) {
+        const by = (s.flipper + k) % seatCount;
+        if (s.disconnected[by]) continue;
+        const pair = matchingPair(s, by);
+        if (pair && rng() < 0.85) {
+          s = reducer(s, { type: "CLAIM_START", by, a: pair[0], b: pair[1], token: token++ });
+          s = reducer(s, { type: "CLAIM_RESOLVE", token: token - 1 });
+          ms += TIME_MODEL.claimMs;
+          claims++;
+          claimed = true;
+          break;
+        }
+      }
+      if (claimed) continue;
+      if (s.phase === "CLAIM_WINDOW") {
+        s = reducer(s, { type: "CLAIM_WINDOW_EXPIRE", token: s.claimWindowToken });
+        ms += TIME_MODEL.windowMs;
+        continue;
+      }
+      // Occasional wrong claim so penalties and locks are exercised.
+      if (rng() < 0.08) {
+        const idxs: number[] = [];
+        for (let i = 0; i < s.grid.length; i++) {
+          if (s.grid[i] !== null && !s.wrongBy[s.flipper]?.has(i)) idxs.push(i);
+        }
+        if (idxs.length >= 2) {
+          s = reducer(s, { type: "CLAIM_START", by: s.flipper, a: idxs[0], b: idxs[1], token: token++ });
+          s = reducer(s, { type: "CLAIM_RESOLVE", token: token - 1 });
+          ms += TIME_MODEL.claimMs;
+          wrongs++;
+          continue;
+        }
+      }
+      const who = s.flipper;
+      const cards: number[] = [];
+      for (let i = 0; i < s.grid.length; i++) {
+        if (s.grid[i] !== null && !s.wrongBy[who]?.has(i)) cards.push(i);
+      }
+      if (s.disconnected[who] || cards.length === 0) {
+        s = reducer(s, { type: "SKIP_TICK" });
+        continue;
+      }
+      const idx = cards[Math.floor(rng() * cards.length)];
+      s = reducer(s, { type: "FLIP_START", by: who, idx, token: token++ });
+      s = reducer(s, { type: "FLIP_COMPLETE", token: token - 1 });
+      ms += TIME_MODEL.flipMs;
+      for (let i = 0; i < seatCount; i++) perSeatIdle[i] += i === who ? 0 : TIME_MODEL.flipMs;
+      continue;
+    }
+    if (s.phase === "SETTLING") {
+      s = reducer(s, { type: "SETTLE_COMPLETE", token: s.settleToken });
+      continue;
+    }
+    if (s.phase === "CLAIM_SELECTING") {
+      s = reducer(s, { type: "CANCEL_CLAIM", by: s.claimBy! });
+      continue;
+    }
+    if (s.phase === "CLAIM_RESOLVING") {
+      s = reducer(s, { type: "CLAIM_RESOLVE", token: (s.inFlight as { token: number }).token });
+      continue;
+    }
+    break;
+  }
+  return {
+    minutes: ms / 60000,
+    rounds: s.roundNum,
+    claims,
+    wrongs,
+    finished: s.phase === "GAME_OVER",
+    winnerScore: Math.max(...s.scores),
+    overshoot: Math.max(...s.scores) - TARGET_SCORE,
+    maxIdleMs: Math.max(...perSeatIdle),
+  };
+}
+
+describe("Classic pacing probe", () => {
+  it("reports realistic game length per table size", () => {
+    const lines: string[] = [];
+    for (const seatCount of [2, 3, 4, 5, 6]) {
+      const runs = Array.from({ length: 400 }, (_, g) =>
+        playCompetently(`pace${seatCount}#${g}`, seatCount),
+      );
+      const mins = runs.map((r) => r.minutes).sort((a, b) => a - b);
+      const med = mins[Math.floor(mins.length / 2)];
+      const p95 = mins[Math.floor(mins.length * 0.95)];
+      const unfinished = runs.filter((r) => !r.finished).length;
+      const inBand = runs.filter((r) => r.minutes >= 15 && r.minutes <= 20).length;
+      const overshoot = runs.filter((r) => r.overshoot > 0).length;
+      lines.push(
+        `${seatCount}p median=${med.toFixed(1)}min p95=${p95.toFixed(1)}min ` +
+          `min=${mins[0].toFixed(1)} max=${mins[mins.length - 1].toFixed(1)} ` +
+          `in15-20band=${inBand}/400 overshot10=${overshoot}/400 unfinished=${unfinished}`,
+      );
+    }
+    console.log(`\n=== pacing probe ===\n${lines.join("\n")}\n`);
+    expect(lines.length).toBe(5);
+  }, 120000);
+});
