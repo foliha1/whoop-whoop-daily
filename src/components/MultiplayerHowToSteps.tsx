@@ -23,7 +23,7 @@ import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
 import { ALL_CARDS, type Card } from "@/cardData";
 import type { RollAttribute } from "@/lib/multiplayer";
-import { SETTLE_MATCH_MS, SETTLE_WRONG_MS } from "@/hooks/useGameState";
+import { SETTLE_MATCH_MS, SETTLE_WRONG_MS, TARGET_SCORE } from "@/hooks/useGameState";
 import {
   CARD_FLIP_MS,
   DEAL_MOVE_MS,
@@ -617,10 +617,14 @@ const MatchVisual: React.FC<{ sz: Step; active: boolean }> = ({ sz, active }) =>
 };
 
 /* ------------------------------------------------------------------ *
- * Slide 7 — First to 10. The real score chip, so the target reads as a
+ * Slide 7 — First to TARGET_SCORE. The real score chip, so the target reads as a
  * finish line.
  * ------------------------------------------------------------------ */
-const CHIP_SCORES: number[] = [6, 8, 10];
+const CHIP_SCORES: number[] = [
+  TARGET_SCORE - 6,
+  TARGET_SCORE - 4,
+  TARGET_SCORE,
+];
 
 const ChipVisual: React.FC<{ sz: Step; active: boolean }> = ({ sz, active }) => {
   const v = sz.vis;
@@ -778,9 +782,9 @@ const SLIDES: Slide[] = [
     visual: (sz, active) => <MatchVisual sz={sz} active={active} />,
   },
   {
-    heading: "First to 10",
+    heading: `First to ${TARGET_SCORE}`,
     body:
-      "Every chip shows a score out of ten. The first player to ten cards wins the game on the spot.",
+      `Every chip shows a score out of ${TARGET_SCORE}. The first player to ${TARGET_SCORE} cards wins the game on the spot.`,
     visual: (sz, active) => <ChipVisual sz={sz} active={active} />,
   },
   {
