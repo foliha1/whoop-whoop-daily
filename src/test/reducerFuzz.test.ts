@@ -416,11 +416,18 @@ function checkTransition(prev: State, next: State, action: Action): string | nul
         return `roller did not pass to claimant ${prev.settleBy} (got ${next.roller})`;
       }
     } else {
-      // No correct claim: the roll passes clockwise to the next connected seat.
-      if (next.roller === prev.roller && next.seatCount > 1 && !prev.disconnected.every(Boolean)) {
-        return `roller did not advance after a no-claim rotation (stayed ${next.roller})`;
+      // No correct claim: the roll passes clockwise to the next connected
+      // seat. With only one connected seat there is nowhere for it to go, so
+      // it legitimately stays put.
+      const conn = connectedSeats(next);
+      if (conn.length >= 2 && next.roller === prev.roller) {
+        return `roller did not advance after a no-claim rotation (stayed ${next.roller}, connected ${conn.join(",")})`;
+      }
+      if (conn.length >= 1 && !conn.includes(next.roller)) {
+        return `roll passed to disconnected seat ${next.roller}`;
       }
     }
+
   }
 
   // 9. Game end causes.
