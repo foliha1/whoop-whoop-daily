@@ -173,13 +173,13 @@ Either way, face-up cards from wrong claims turn back over, the locks clear, and
 
 ## Winning
 
-**The first player to 10 cards wins.** The game ends the instant somebody gets there.
+**The first player to 12 cards wins.** The game ends the instant somebody gets there.
 
-Every card in your pile counts as one. Two cards per correct claim. Five clean claims and you are done.
+Every card in your pile counts as one. Two cards per correct claim. Six clean claims and you are done.
 
 The target is visible the whole way, so you always know how close everybody is. Losing a card to a wrong claim near the finish line is agony, and that is the point.
 
-> **Why ten?** It was chosen by running thousands of simulated games. Ten is the only target that reliably finishes at every table size. Higher targets stall at five and six players, because there are only 48 cards to go around and one player rarely gets that far ahead.
+> **Why twelve?** It was chosen by measuring targets 10 through 18 across every table size, from solo up to six players. Twelve finishes reliably everywhere. Higher targets stall at five and six players, because there are only 48 cards to go around and the deck runs out before that many cards can be banked.
 
 ---
 
@@ -208,7 +208,7 @@ The bigger grid also works as a **handicap for mixed tables.** With more positio
 | You forgot what a card was | Tough. Remembering is the game. |
 | No valid pair exists this round | Fine. The rotation runs out, the die passes, a new rule arrives. |
 | The draw pile cannot refill every space | Fill what you can. The grid shrinks. |
-| The draw pile empties before anyone reaches 10 | Keep playing on a shrinking grid. Wrong claims put cards back, so it rarely runs dry. |
+| The draw pile empties before anyone reaches 12 | Keep playing on a shrinking grid. Wrong claims put cards back, so it rarely runs dry. |
 | Only one face-down card is left on your turn | Flip it and pass. You take what flips are available. |
 | You lock yourself out of every card | Your turn passes. You cannot flip cards you have locked. |
 
@@ -249,7 +249,7 @@ Your two flips come back to back, so you can hold them against each other. Two c
 
 **Round ends** on a correct claim, or when everyone has taken their two-flip turn with no correct claim.
 
-**Game ends** when someone reaches **10 cards.** First to 10 wins.
+**Game ends** when someone reaches **12 cards.** First to 12 wins.
 
 **Difficulty:** 3×3 is standard. 4×3 for experienced or mixed tables.
 
@@ -319,12 +319,14 @@ Two digital products share this brand. Neither is a demo of the physical game.
 - **v6.1:** Core game reduced to a single die. Two-dice play moved to an optional extension.
 - **v6.2:** Winner Rolls. A correct claim ends the round and seizes the die.
 - **v6.3:** Rotation backstop. A round also ends on a completed rotation with no claim.
-- **v7.0 (Current) — Race to Ten.** Four changes, all validated in play or by simulation.
+- **v7.0 — Race to Ten.** Four changes, all validated in play or by simulation.
   - **Two flips per turn at every table size.** Replaces one flip per turn. At two players a rotation was only two flips, so the die re-rolled before anyone could learn anything. Applying it at every table size rather than only at two keeps the rulebook to a single rule with no player-count clause.
   - **The wrong-claim penalty is a returned card.** You put one card from your pile back into the draw pile. Replaces the skip-a-flip penalty, which was invisible, arrived late, and required tracking a debt across rounds. A player with an empty pile returns nothing; this hole is accepted rather than patched, because covering it would reintroduce the bookkeeping the change removed.
   - **Claiming never costs a flip.** Previously a claim consumed the claimant's turn, so the same mistake cost a different amount depending on when it was made, and the cheapest moment to call was after your turn. In a game named after calling out at any moment, the penalty structure was quietly teaching players not to.
   - **Race to 10 cards.** Replaces the empty-pile-plus-quiet-rotations ending, which was invisible to players, arbitrary, anticlimactic, and unstable — returned cards refilled the draw pile and reset the counter, so bad play made the game longer. Simulation across table sizes and skill levels found 10 to be the only target that reliably finishes at every table size. Higher targets stall at five and six players.
   - **Retired in this version:** Last Call, Double Jeopardy, the two-dice alternation and its Standard and Cutthroat tiers, and the digital-only 3×2 grid.
+
+- **v7.1 (Current) — Target Twelve.** The win target moves from 10 cards to 12. A measured sweep of targets 10 through 18 across solo and two- to six-player tables (500 games per cell) showed 10 ending too quickly, while 12 runs about 40% longer and still completes 99.8% of the time at every table size. 14 and above were rejected: they buy little extra time and leave roughly one in twenty-six six-player games unable to finish, because the 48-card deck runs out before that many cards can be banked. Note that the 15–20 minute play time in the header describes the physical game, including shuffling, dealing and table talk; the digital build is a short, replayable game and is not measured against that figure.
 
 ---
 

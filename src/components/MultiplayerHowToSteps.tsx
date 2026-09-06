@@ -780,7 +780,7 @@ const SLIDES: Slide[] = [
   {
     heading: "First to 10",
     body:
-      "Every chip shows a score out of ten. The first player to ten cards wins the game on the spot.",
+      `Every chip shows a score out of ${TARGET_SCORE}. The first player to ${TARGET_SCORE} cards wins the game on the spot.`,
     visual: (sz, active) => <ChipVisual sz={sz} active={active} />,
   },
   {

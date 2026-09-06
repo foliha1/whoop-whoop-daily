@@ -23,10 +23,15 @@ export const OPPONENT_TUNING = {
 const REVEAL_MS = 2000;
 /** v6.7: a turn is two flips. Same card may not be flipped twice per turn. */
 export const FLIPS_PER_TURN = 2;
-/** First seat to reach this score wins immediately. 10 was chosen by
- * simulation: it is the only target that reliably finishes at every table
- * size from two to six players. */
-export const TARGET_SCORE = 10;
+/** First seat to reach this score wins immediately.
+ *
+ * 12 was chosen by a measured sweep (500 games per cell, competent probe)
+ * across targets 10, 12, 14, 16 and 18 and table sizes solo through six
+ * players. 12 keeps completion at 99.8% or better at every table size, while
+ * 14 and above stall at five and six players: the 48-card deck runs out before
+ * that many cards can be banked, so games terminate on a degenerate-state
+ * safety instead of a win. */
+export const TARGET_SCORE = 12;
 
 /** Has any seat reached the target score? Checked wherever a score rises. */
 function reachedTarget(s: State): boolean {
