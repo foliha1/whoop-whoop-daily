@@ -224,72 +224,75 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
     dispatch,
   ]);
 
-  // ---- WHOOP's claim attempts ----
-  const claimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // ---- WHOOP's claim attempts -------------------------------------------
+  // A persistent 200ms scheduler, deliberately NOT a dependency-driven effect.
+  // The previous implementation armed the reaction timer inside an effect whose
+  // deps included peekingCard/inFlight/grid, so React's cleanup cancelled the
+  // pending reaction on the very next flip — measured at 100% of scheduled
+  // claims being destroyed before they could fire. WHOOP now behaves like a
+  // person at the table: once it believes it can see a pair it starts reacting,
+  // and the reaction survives cards turning, animations and settle holds. The
+  // intent is re-validated against live state at fire time, and reset when the
+  // round (and therefore the rule) changes.
+  const fireAtRef = useRef<number | null>(null);
+  const armedRoundRef = useRef<number>(-1);
   useEffect(() => {
-    // WHOOP claims in the rotation claim window too — including after he took
-    // the final flip of the rotation.
-    if (state.phase !== "FLIPPING" && state.phase !== "CLAIM_WINDOW") return;
-    if (state.inFlight) return;
-    if (state.claimBy !== null) return;
-    if (state.disconnected[WHOOP_SEAT]) return;
-    // v7.2: WHOOP obeys the same two-calls-per-round cap the human does.
-    if ((state.missesThisRound[WHOOP_SEAT] ?? 0) >= MAX_WRONG_CLAIMS_PER_ROUND)
-      return;
-    const excluded = new Set<number>(state.wrongBy[WHOOP_SEAT]);
-    state.grid.forEach((c, i) => {
-      if (c === null) excluded.add(i);
-    });
-    const best = findClaim(brainRef.current, state.rule, excluded);
-    if (!best) return;
-    if (claimTimerRef.current) clearTimeout(claimTimerRef.current);
-    const delay = pickReactionDelay();
-    claimTimerRef.current = setTimeout(() => {
-      claimTimerRef.current = null;
+    const claimable = (p: string) => p === "FLIPPING" || p === "CLAIM_WINDOW";
+    const tick = () => {
       const s = stateRef.current;
-      if (
-        (s.phase !== "FLIPPING" && s.phase !== "CLAIM_WINDOW") ||
-        s.inFlight ||
-        s.claimBy !== null ||
-        s.grid[best.a] === null ||
-        s.grid[best.b] === null ||
-        s.wrongBy[WHOOP_SEAT].has(best.a) ||
-        s.wrongBy[WHOOP_SEAT].has(best.b) ||
-        (s.missesThisRound[WHOOP_SEAT] ?? 0) >= MAX_WRONG_CLAIMS_PER_ROUND
-      ) {
+      if (s.phase === "GAME_OVER") return;
+      if (armedRoundRef.current !== s.roundNum) {
+        armedRoundRef.current = s.roundNum;
+        fireAtRef.current = null;
+      }
+      if (s.disconnected[WHOOP_SEAT]) return;
+      // v7.2 cap: WHOOP obeys the same two-calls-per-round limit the human does.
+      if ((s.missesThisRound[WHOOP_SEAT] ?? 0) >= MAX_WRONG_CLAIMS_PER_ROUND) {
+        fireAtRef.current = null;
         return;
       }
+      const excluded = new Set<number>(s.wrongBy[WHOOP_SEAT]);
+      s.grid.forEach((c, i) => {
+        if (c === null) excluded.add(i);
+      });
+      const best = findClaim(brainRef.current, s.rule, excluded);
+      if (!best) {
+        fireAtRef.current = null;
+        return;
+      }
+      // Start reacting as soon as the pair is believed, even mid-animation.
+      if (fireAtRef.current === null) {
+        fireAtRef.current = Date.now() + pickReactionDelay();
+        return;
+      }
+      if (Date.now() < fireAtRef.current) return;
+      // Reaction elapsed — only the board's own legality gates it now.
+      if (!claimable(s.phase) || s.inFlight || s.claimBy !== null) return;
+      fireAtRef.current = null;
       const token = nextToken();
       dispatch({ type: "CLAIM_START", by: WHOOP_SEAT, a: best.a, b: best.b, token });
       setTimeout(() => dispatch({ type: "CLAIM_RESOLVE", token }), 1600);
-    }, delay);
-    return () => {
-      if (claimTimerRef.current) {
-        clearTimeout(claimTimerRef.current);
-        claimTimerRef.current = null;
-      }
     };
-  }, [
-    state.peekingCard,
-    state.phase,
-    state.inFlight,
-    state.claimBy,
-    
-    state.disconnected,
-    state.wrongBy,
-    state.missesThisRound,
-    state.rule,
-    state.grid,
-    dispatch,
-  ]);
+    const id = setInterval(tick, 200);
+    return () => clearInterval(id);
+  }, [dispatch]);
 
-  // Cancel any pending WHOOP work on phase/round change.
+
+  // A wrong claim turns both cards face up for the rest of the round — public
+  // information at a real table, so WHOOP reads them the same way it reads a
+  // flip. Only fires once per settle, guarded by settleToken.
+  const seenSettleRef = useRef(-1);
   useEffect(() => {
-    if (claimTimerRef.current) {
-      clearTimeout(claimTimerRef.current);
-      claimTimerRef.current = null;
+    if (state.phase !== "SETTLING" || state.settleKind !== "WRONG") return;
+    if (seenSettleRef.current === state.settleToken) return;
+    seenSettleRef.current = state.settleToken;
+    for (const idx of state.selectedCards) {
+      const card = state.grid[idx];
+      if (card) brainRef.current = observe(brainRef.current, idx, card);
     }
-  }, [state.roundNum, state.phase]);
+  }, [state.phase, state.settleKind, state.settleToken, state.selectedCards, state.grid]);
+
+
 
   // ---- intent handler for the player (seat 0) ----
   const onIntent = useCallback(
