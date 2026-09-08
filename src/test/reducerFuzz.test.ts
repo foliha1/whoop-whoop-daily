@@ -713,3 +713,186 @@ describe("Classic pacing probe", () => {
     expect(lines.length).toBe(5);
   }, 120000);
 });
+
+// ---------------------------------------------------------------------------
+// REGRESSION CLASS: claiming from the seat that currently has a flip in
+// flight. The interface allows it (the WHOOP button is always pressable) and
+// the rules require it (a claim never costs a flip), but the original suite
+// only ever drove claims and flips as separate, tidy actions — so the state
+// "claim dispatched while THIS seat's flip animation is still running" was
+// never reached. These cases dispatch a claim from the current flipper at
+// every point in its turn, at every table size and in solo, asserting the
+// full invariant set after every dispatch.
+// ---------------------------------------------------------------------------
+
+/** Drive a fresh game to FLIPPING with a known rule. */
+function atFlipping(seed: string, seatCount: number, attr = "SHAPE"): State {
+  let s = initialState(9, { seatCount, seed });
+  s = reducer(s, { type: "ROLL_START" });
+  s = reducer(s, { type: "ROLL_LAND", values: [attr], rule: [attr] });
+  s = reducer(s, { type: "ROLL_SETTLE" });
+  return s;
+}
+
+type ClaimPoint =
+  | "before-flip-one"
+  | "during-flip-one"
+  | "between-flips"
+  | "during-flip-two"
+  | "after-both-flips";
+
+const CLAIM_POINTS: ClaimPoint[] = [
+  "before-flip-one",
+  "during-flip-one",
+  "between-flips",
+  "during-flip-two",
+  "after-both-flips",
+];
+
+describe("claim from the seat with a flip in flight", () => {
+  it("is legal, cancels the flip cleanly, and preserves remaining flips", () => {
+    const failures: string[] = [];
+    let cases = 0;
+    let dispatches = 0;
+
+    // seatCount 2 is also the solo table (human + WHOOP), driven explicitly
+    // below as `solo` so the label appears in any failure.
+    const tables: Array<{ label: string; seatCount: number }> = [
+      { label: "solo", seatCount: 2 },
+      ...[2, 3, 4, 5, 6].map((n) => ({ label: `${n}p`, seatCount: n })),
+    ];
+
+    for (const { label, seatCount } of tables) {
+      for (const point of CLAIM_POINTS) {
+        for (const finish of ["match", "wrong", "cancel"] as const) {
+          for (let g = 0; g < 24; g++) {
+            cases++;
+            const tag = `${label}/${point}/${finish}#${g}`;
+            let s = atFlipping(`whoop-inflight:${tag}`, seatCount);
+            let prev: State = s;
+            let token = 100;
+            let staleFlipToken: number | null = null;
+
+            const step = (a: Action) => {
+              prev = s;
+              s = reducer(s, a);
+              dispatches++;
+              const bad = checkInvariants(s, { prev, action: a });
+              if (bad) failures.push(`${tag} after ${a.type}: ${bad}`);
+            };
+
+            const seat = s.flipper;
+            const freeIdxs = s.grid
+              .map((c, i) => (c === null ? -1 : i))
+              .filter((i) => i >= 0);
+
+            // Walk the flipper's turn up to the chosen claim point.
+            if (point !== "before-flip-one") {
+              staleFlipToken = token++;
+              step({ type: "FLIP_START", by: seat, idx: freeIdxs[0], token: staleFlipToken });
+              if (point !== "during-flip-one") {
+                step({ type: "FLIP_COMPLETE", token: staleFlipToken });
+                staleFlipToken = null;
+                if (point === "during-flip-two" || point === "after-both-flips") {
+                  if (s.phase === "FLIPPING" && s.flipper === seat) {
+                    staleFlipToken = token++;
+                    step({ type: "FLIP_START", by: seat, idx: freeIdxs[1], token: staleFlipToken });
+                    if (point === "after-both-flips") {
+                      step({ type: "FLIP_COMPLETE", token: staleFlipToken });
+                      staleFlipToken = null;
+                    }
+                  }
+                }
+              }
+            }
+
+            // The claim itself, from the seat mid-turn.
+            const claimant = s.phase === "CLAIM_WINDOW" ? seat : s.flipper;
+            const flipsBefore = s.flipsThisTurn;
+            const inFlightBefore = s.inFlight;
+            const claimable = s.phase === "FLIPPING" || s.phase === "CLAIM_WINDOW";
+            if (!claimable) continue; // rotation ended on the last flip
+
+            step({ type: "PLAYER_ENTER_CLAIM", by: claimant });
+
+            if (s.phase !== "CLAIM_SELECTING") {
+              failures.push(`${tag}: claim refused (phase ${s.phase})`);
+              continue;
+            }
+            if (s.claimBy !== claimant) failures.push(`${tag}: claimBy ${s.claimBy} != ${claimant}`);
+            // The in-flight flip is CANCELLED cleanly: no half-applied flip
+            // and no card left mid-reveal.
+            if (s.inFlight !== null) failures.push(`${tag}: inFlight survived the claim`);
+            if (s.peekingCard !== null) failures.push(`${tag}: peekingCard survived the claim`);
+            // A claim never costs a flip.
+            if (s.flipsThisTurn !== flipsBefore) {
+              failures.push(`${tag}: flipsThisTurn ${flipsBefore} -> ${s.flipsThisTurn}`);
+            }
+
+            // The orphaned FLIP_COMPLETE timer still fires: it must be a
+            // total no-op, not a rewind of the board.
+            if (staleFlipToken !== null && inFlightBefore) {
+              const before = s;
+              step({ type: "FLIP_COMPLETE", token: staleFlipToken });
+              if (s !== before) failures.push(`${tag}: stale FLIP_COMPLETE mutated state`);
+            }
+
+            // Finish the claim three different ways.
+            if (finish === "cancel") {
+              step({ type: "CANCEL_CLAIM", by: claimant });
+            } else {
+              const pair =
+                finish === "match"
+                  ? matchingPair(s, claimant)
+                  : (() => {
+                      const idxs = s.grid
+                        .map((c, i) => (c === null ? -1 : i))
+                        .filter((i) => i >= 0 && !s.wrongBy[claimant]?.has(i));
+                      const good = matchingPair(s, claimant);
+                      const wrong = idxs.filter(
+                        (i) => !good || (i !== good[0] && i !== good[1]),
+                      );
+                      return wrong.length >= 2 ? ([wrong[0], wrong[1]] as [number, number]) : null;
+                    })();
+              if (!pair) {
+                step({ type: "CANCEL_CLAIM", by: claimant });
+              } else {
+                step({ type: "PLAYER_SELECT_CARD", by: claimant, idx: pair[0] });
+                step({ type: "PLAYER_SELECT_CARD", by: claimant, idx: pair[1] });
+                step({ type: "PLAYER_RESOLVE_MATCH", by: claimant });
+                if (s.phase === "SETTLING") step({ type: "SETTLE_COMPLETE", token: s.settleToken });
+              }
+            }
+
+            // If the round is still live, the seat keeps the flips it had.
+            if (s.phase === "FLIPPING" && s.flipper === claimant) {
+              if (s.flipsThisTurn !== flipsBefore) {
+                failures.push(
+                  `${tag}: flips lost after resolve (${flipsBefore} -> ${s.flipsThisTurn})`,
+                );
+              }
+              if (s.flipsThisTurn < FLIPS_PER_TURN) {
+                // ...and can actually still flip.
+                const idx = s.grid.findIndex(
+                  (c, i) => c !== null && !s.wrongBy[claimant]?.has(i),
+                );
+                if (idx >= 0) {
+                  const t = token++;
+                  step({ type: "FLIP_START", by: claimant, idx, token: t });
+                  if (s.inFlight === null) failures.push(`${tag}: could not flip after claim`);
+                  step({ type: "FLIP_COMPLETE", token: t });
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    console.log(
+      `\n=== claim-during-own-flip ===\ncases=${cases} dispatches=${dispatches} failures=${failures.length}`,
+    );
+    if (failures.length) console.log(failures.slice(0, 20).join("\n"));
+    expect(failures).toEqual([]);
+  }, 60000);
+});
