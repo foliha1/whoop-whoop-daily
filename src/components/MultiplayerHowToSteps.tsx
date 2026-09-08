@@ -877,8 +877,11 @@ const MultiplayerHowToSteps: React.FC<{
   const finish = useCallback(() => {
     markMpHowToSeen();
     trackEvent("mp_howto_finished", { metadata: { mode } });
-    onStart();
-  }, [onStart, mode]);
+    // A seated player's only correct destination is their own table.
+    if (mode === "in-game") onClose();
+    else onStart();
+  }, [onStart, onClose, mode]);
+
 
   const dismiss = useCallback(() => {
     markMpHowToSeen();
