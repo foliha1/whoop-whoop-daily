@@ -39,7 +39,7 @@ import { serverNow } from "@/hooks/useServerClock";
 
 const HOME_SIZE = 80;         // 80×80 cream home box
 const LIFT_SCALE = 2.5;
-const TUMBLE_MS = 800;
+export const TUMBLE_MS = 800;
 const LAND_START = ROLL_HERO_MS - 250; // 1750
 const LAND_MS = 250;
 

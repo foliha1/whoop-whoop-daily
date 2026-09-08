@@ -587,6 +587,34 @@ All colors MUST be HSL.
   to   { box-shadow: inset 0 0 0 calc(2px * var(--ww-k)) #0072B2; }
 }
 
+/* ── First card picked during a claim: looping border pulse ──
+   The card stays face down and never moves — only the inset border ramps
+   cream → pale blue → full brand blue, thickening as it saturates, then back.
+   Colours come from RAW via applySelectionPulseVars(); the literals here are
+   only fallbacks. Duration comes from SELECT_PULSE_MS. */
+.ww-select-pulse {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  animation: ww-select-pulse var(--ww-select-pulse, 1030ms) linear infinite both;
+}
+
+@keyframes ww-select-pulse {
+  0%     { box-shadow: inset 0 0 0 calc(1.5px * var(--ww-k)) var(--ww-sel-cream, #F8F2E9); }
+  9.7%   { box-shadow: inset 0 0 0 calc(2px * var(--ww-k))   var(--ww-sel-blue2, #97DAFF); }
+  19.4%  { box-shadow: inset 0 0 0 calc(3px * var(--ww-k))   var(--ww-sel-blue, #0072B2); }
+  58.3%  { box-shadow: inset 0 0 0 calc(3px * var(--ww-k))   var(--ww-sel-blue, #0072B2); }
+  77.7%  { box-shadow: inset 0 0 0 calc(2px * var(--ww-k))   var(--ww-sel-blue2, #97DAFF); }
+  97.1%  { box-shadow: inset 0 0 0 calc(1.5px * var(--ww-k)) var(--ww-sel-cream, #F8F2E9); }
+  100%   { box-shadow: inset 0 0 0 calc(1.5px * var(--ww-k)) var(--ww-sel-cream, #F8F2E9); }
+}
+
+/* Reduced motion: rest at full blue, so the pick is still unmistakable. */
+@media (prefers-reduced-motion: reduce) {
+  .ww-select-pulse {
+    animation: none;
+    box-shadow: inset 0 0 0 calc(3px * var(--ww-k)) var(--ww-sel-blue, #0072B2);
+  }
+}
+
 
 
 

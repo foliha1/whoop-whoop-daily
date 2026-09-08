@@ -24,6 +24,8 @@ interface GameCardProps {
    *  for you": quieter face, `not-allowed` cursor, no taps. Other players
    *  still see the same card as a normal, takeable face-up card. */
   unavailable?: boolean;
+  /** Loops the claim selection pulse (first of the two picks). */
+  pulsing?: boolean;
   /** Remount key for the deal-in wrapper; changing it replays the animation. */
   dealKey?: string | number;
   /** Stagger index for the deal-in animation (`--ww-deal-i`). */
@@ -51,6 +53,7 @@ const GameCard = ({
   enterDelay = 0,
   shaking,
   fill,
+  pulsing = false,
   interactive = true,
   unavailable = false,
   dealKey,
@@ -264,6 +267,10 @@ const GameCard = ({
         <>
           <div ref={washRef} className="ww-select-wash" style={{ zIndex: 2 }} />
           <div className="ww-select-ring" style={{ zIndex: 3 }} />
+          {/* Looping border pulse on the first of the two picks. Sits on top
+              of the wash/ring: the wash's animationend is what drives the
+              claim-resolve handshake, so it must stay. */}
+          {pulsing && <div className="ww-select-pulse" style={{ zIndex: 4 }} />}
         </>
       )}
 

@@ -19,6 +19,12 @@ export const DEAL_MOVE_MS = 900;
 export const CARD_FLIP_MS = 500;
 /** Selection wash + ring one-shot (`.ww-select-*`). */
 export const SELECT_ANIM_MS = 120;
+/**
+ * One full cycle of the looping selection pulse on the first card picked
+ * during a claim (`.ww-select-pulse`): ~200ms ramp cream → blue, ~400ms held
+ * at full brand blue, ~400ms ramp back, then a short rest at cream.
+ */
+export const SELECT_PULSE_MS = 1030;
 /** Wrong-claim shake + red wash + ring one-shot (`.ww-wrong*`). */
 export const WRONG_ANIM_MS = 1000;
 /** Programmatic press treatment (`.ww-press` / `.ww-press-on`). */
@@ -73,6 +79,7 @@ export function applyAnimationTimingVars(root: HTMLElement = document.documentEl
   root.style.setProperty("--ww-great-delay", `${GREAT_MATCH_DELAY_MS}ms`);
   root.style.setProperty("--ww-deal-stagger", `${DEAL_STAGGER_MS}ms`);
   root.style.setProperty("--ww-deal-move", `${DEAL_MOVE_MS}ms`);
+  root.style.setProperty("--ww-select-pulse", `${SELECT_PULSE_MS}ms`);
 }
 
 // ---- rotation claim window --------------------------------------------------
