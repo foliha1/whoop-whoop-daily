@@ -960,6 +960,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       {howToOverlay}
       {showSettings && (
         <SettingsSheet
+          product="classic"
           onClose={() => setShowSettings(false)}
           onHowTo={() => {
             setShowSettings(false);

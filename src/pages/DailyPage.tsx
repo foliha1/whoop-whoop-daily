@@ -999,6 +999,7 @@ const DailySettingsButton: React.FC<{ mobile?: boolean; onHowTo?: () => void }> 
       </button>
       {open && (
         <SettingsSheet
+          product="daily"
           onClose={() => setOpen(false)}
           onHowTo={
             onHowTo

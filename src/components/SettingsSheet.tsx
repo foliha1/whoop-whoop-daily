@@ -2,9 +2,9 @@
 // SettingsSheet — the one settings modal, shared by the site header and the
 // multiplayer in-game view.
 //
-// Contents: Appearance (Light / Night / System), Sound effects toggle, Music
-// toggle, a How to Play link, and a close control. Escape and a backdrop
-// click both close it.
+// Contents: Appearance (Light / Night / System), Sound effects, an optional
+// Daily-only Music toggle, a How to Play link, and a close control. Escape and
+// a backdrop click both close it.
 //
 // Note on type: Friend ships a single weight, so nothing here uses
 // fontWeight: 700 — the browser would fake it and smear the letters. Contrast
@@ -14,7 +14,7 @@
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePortalHost } from "@/hooks/usePortalHost";
-import { COLORS, FONT_FAMILY, RADIUS, BORDER } from "@/lib/tokens";
+import { BORDER, COLORS, FONT_FAMILY, MOTION, RADIUS } from "@/lib/tokens";
 import { useThemeMode, type ThemeMode } from "@/lib/nightMode";
 import {
   getSfxEnabled,
@@ -89,7 +89,7 @@ const Toggle: React.FC<{
           height: 20,
           borderRadius: 10,
           background: checked ? COLORS.surface : COLORS.ink,
-          transition: "left 150ms ease",
+          transition: `left ${MOTION.fast}`,
         }}
       />
       {/* invisible 44px hit surface */}
@@ -110,6 +110,8 @@ const Toggle: React.FC<{
 
 export interface SettingsSheetProps {
   onClose: () => void;
+  /** Classic has no music. Daily keeps its working recorded-loop control. */
+  product: "classic" | "daily";
   /** When provided, How to Play opens the in-app stepper instead of /about. */
   onHowTo?: () => void;
 }
@@ -129,7 +131,7 @@ const howToStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
-const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, onHowTo }) => {
+const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo }) => {
   const { mode, setMode } = useThemeMode();
   const portalHost = usePortalHost("settings-sheet");
   const [sfx, setSfx] = useState(() => getSfxEnabled());
@@ -245,15 +247,16 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, onHowTo }) => {
           }}
         />
 
-        {/* Music */}
-        <Toggle
-          label="Music"
-          checked={music}
-          onChange={(next) => {
-            setMusicEnabled(next);
-            setMusic(next);
-          }}
-        />
+        {product === "daily" && (
+          <Toggle
+            label="Music"
+            checked={music}
+            onChange={(next) => {
+              setMusicEnabled(next);
+              setMusic(next);
+            }}
+          />
+        )}
 
         {onHowTo ? (
           <button type="button" onClick={onHowTo} style={{ ...howToStyle, cursor: "pointer", background: "transparent" }}>
