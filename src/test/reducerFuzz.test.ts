@@ -253,6 +253,17 @@ function noiseActions(s: State, token: number, rng: Rng): Action[] {
     }
   }
 
+  // The regression that shipped: a claim from the seat whose OWN flip is still
+  // animating, and the orphaned FLIP_COMPLETE that fires afterwards.
+  if (s.inFlight?.kind === "flip") {
+    out.push({ type: "PLAYER_ENTER_CLAIM", by: s.inFlight.by });
+    out.push({ type: "FLIP_COMPLETE", token: s.inFlight.token });
+  }
+  if (s.phase === "CLAIM_SELECTING" || s.phase === "SETTLING") {
+    // Stale flip completions arriving after the claim took over.
+    out.push({ type: "FLIP_COMPLETE", token });
+  }
+
   // Rapid repeats / illegal-timing presses. The reducer must ignore these.
   if (s.phase === "CLAIM_SELECTING" && s.selectedCards.length > 0) {
     out.push({ type: "PLAYER_SELECT_CARD", by: s.claimBy!, idx: s.selectedCards[0] });
