@@ -264,6 +264,10 @@ const GameCard = ({
         <>
           <div ref={washRef} className="ww-select-wash" style={{ zIndex: 2 }} />
           <div className="ww-select-ring" style={{ zIndex: 3 }} />
+          {/* Looping border pulse on the first of the two picks. Sits on top
+              of the wash/ring: the wash's animationend is what drives the
+              claim-resolve handshake, so it must stay. */}
+          {pulsing && <div className="ww-select-pulse" style={{ zIndex: 4 }} />}
         </>
       )}
 
