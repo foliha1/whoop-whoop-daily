@@ -20,11 +20,12 @@ export const CARD_FLIP_MS = 500;
 /** Selection wash + ring one-shot (`.ww-select-*`). */
 export const SELECT_ANIM_MS = 120;
 /**
- * One full cycle of the looping selection pulse on the first card picked
- * during a claim (`.ww-select-pulse`): ~200ms ramp cream → blue, ~400ms held
- * at full brand blue, ~400ms ramp back, then a short rest at cream.
+ * One full cycle of the breathing selection pulse on the first card picked
+ * during a claim (`.ww-select-pulse`): scale 1 → 0.96 → 1, stroke width
+ * 0 → 2px → 0, glow blur 0 → 2.5px → 0, all reversing at the 50% midpoint
+ * with cubic-bezier(0.5, 0, 0.5, 1) on both halves.
  */
-export const SELECT_PULSE_MS = 1030;
+export const SELECT_PULSE_MS = 999.9;
 /** Wrong-claim shake + red wash + ring one-shot (`.ww-wrong*`). */
 export const WRONG_ANIM_MS = 1000;
 /** Programmatic press treatment (`.ww-press` / `.ww-press-on`). */

@@ -184,7 +184,11 @@ const GameCard = ({
           element (position + hit area) never moves mid-deal. */}
       <div
         key={dealKey}
-        className={dealIndex !== undefined ? "ww-deal" : undefined}
+        className={
+          [dealIndex !== undefined ? "ww-deal" : "", pulsing ? "ww-select-pulse-scale" : ""]
+            .filter(Boolean)
+            .join(" ") || undefined
+        }
         style={{
           position: "absolute",
           inset: 0,
@@ -267,9 +271,10 @@ const GameCard = ({
         <>
           <div ref={washRef} className="ww-select-wash" style={{ zIndex: 2 }} />
           <div className="ww-select-ring" style={{ zIndex: 3 }} />
-          {/* Looping border pulse on the first of the two picks. Sits on top
-              of the wash/ring: the wash's animationend is what drives the
-              claim-resolve handshake, so it must stay. */}
+          {/* Breathing pulse (scale + stroke + glow) on the first of the two
+              picks. Lives inside the inner wrapper so it scales with the card.
+              Sits on top of the wash/ring: the wash's animationend is what
+              drives the claim-resolve handshake, so it must stay. */}
           {pulsing && <div className="ww-select-pulse" style={{ zIndex: 4 }} />}
         </>
       )}
