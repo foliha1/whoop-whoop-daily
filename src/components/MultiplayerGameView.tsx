@@ -1866,7 +1866,7 @@ const MultiplayerGameView: React.FC<Props> = ({
             // The pulse belongs to the FIRST of the two picks only, and only
             // while the pair is still incomplete — once the second card lands
             // the claim locks and the wash carries the resolve.
-            const pulsing = selected && pulseIdx === i;
+            const pulsing = selected && pulseIdx === i && !lockedForMe.has(i);
             return (
               <div key={i}
                 ref={(el) => { cellRefs.current[i] = el; }}
