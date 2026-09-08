@@ -46,6 +46,7 @@ import {
 import DailyMatchGhost, { type GhostCard } from "@/components/DailyMatchGhost";
 import { serverNow } from "@/hooks/useServerClock";
 import { TARGET_SCORE, MAX_WRONG_CLAIMS_PER_ROUND } from "@/hooks/useGameState";
+import { applySelectionPulseVars } from "@/lib/tokens";
 
 import RollHeroOverlay, { TUMBLE_MS } from "@/components/RollHeroOverlay";
 import { MATCH_ART_SRC } from "@/components/MatchDie";
