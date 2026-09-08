@@ -659,21 +659,39 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     setGameId(newGameId);
     setFrozenSeats(seatMap);
     completedFiredRef.current = false;
+    // The reducer lives for the lifetime of this component, so after a first
+    // game it is still sitting in GAME_OVER with the old scores. The re-INIT
+    // on seat-count change does NOT fire when the same people play again, so
+    // a fresh start must reset exactly like the rematch path does — otherwise
+    // the new game opens on the previous game's results screen.
+    host.dispatch({
+      type: "INIT",
+      slotCount: host.state.slotCount,
+      seatCount: seatMap.length,
+      names: seatMap.map((e) => e.display_name),
+    });
     trackEvent("game_started", {
       roomCode: activeRoom?.room_code,
       metadata: { player_count: seatMap.length, grid_size: FIXED_GRID },
     });
-  }, [isHostView, participants, activeRoom, starting, channel, visitorId]);
+  }, [isHostView, participants, activeRoom, starting, channel, visitorId, host.dispatch, host.state.slotCount]);
+
 
   // Joiner: listen for the host's game_starting notice.
   useEffect(() => {
     if (view.kind !== "joiner") return;
     const unsub = onBroadcast(({ payload }) => {
       if (!payload || typeof payload !== "object") return;
-      if ((payload as { kind?: string }).kind === "game_starting") setStarting(true);
+      if ((payload as { kind?: string }).kind === "game_starting") {
+        setStarting(true);
+        // Drop the finished game's payload so the joiner can never render the
+        // previous results screen while waiting for the first new broadcast.
+        joiner.reset();
+      }
     });
     return unsub;
-  }, [view.kind, onBroadcast]);
+  }, [view.kind, onBroadcast, joiner.reset]);
+
 
   const shareUrl = (code: string) =>
     // /classic.html?r=CODE, not /classic?r=CODE: the host answers extensionless
