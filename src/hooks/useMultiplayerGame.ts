@@ -730,7 +730,16 @@ export function useMultiplayerJoiner(opts: {
     [channel, mySeat, visitorId],
   );
 
-  return { publicState, sendIntent, events, mySeat, rollCommit, lastClaimReject };
+  // Called when the host announces a new game: clears the finished game's
+  // payload so the joiner never renders stale results in a fresh game.
+  const reset = useCallback(() => {
+    setPublicState(null);
+    setRollCommit(null);
+    setLastClaimReject(null);
+  }, []);
+
+  return { publicState, sendIntent, events, mySeat, rollCommit, lastClaimReject, reset };
+
 }
 
 
