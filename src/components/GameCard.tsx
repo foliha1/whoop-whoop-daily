@@ -184,7 +184,11 @@ const GameCard = ({
           element (position + hit area) never moves mid-deal. */}
       <div
         key={dealKey}
-        className={dealIndex !== undefined ? "ww-deal" : undefined}
+        className={
+          [dealIndex !== undefined ? "ww-deal" : "", pulsing ? "ww-select-pulse-scale" : ""]
+            .filter(Boolean)
+            .join(" ") || undefined
+        }
         style={{
           position: "absolute",
           inset: 0,
