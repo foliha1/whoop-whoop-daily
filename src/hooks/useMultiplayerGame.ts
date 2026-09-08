@@ -13,6 +13,7 @@ import {
   useGameState,
   SETTLE_MATCH_MS,
   SETTLE_WRONG_MS,
+  MAX_WRONG_CLAIMS_PER_ROUND,
   type Action,
 } from "@/hooks/useGameState";
 
@@ -473,6 +474,11 @@ export function useMultiplayerHost(opts: {
         refuseGrant(d, d.key, hostWindow, d.claim_window < hostWindow ? "STALE_WINDOW" : "FUTURE_WINDOW");
         return;
       }
+      if ((s.missesThisRound[d.seat] ?? 0) >= MAX_WRONG_CLAIMS_PER_ROUND) {
+        clearDeferred();
+        refuseGrant(d, d.key, hostWindow, "NO_CALLS_LEFT");
+        return;
+      }
       if (claimablePhase(s.phase) && s.claimBy === null && !s.rolling) {
         clearDeferred();
         grantedRef.current.add(d.key);
@@ -521,6 +527,14 @@ export function useMultiplayerHost(opts: {
       }
 
       const s = latestStateRef.current;
+      // v7.2: a seat that has spent both of its wrong calls this round cannot
+      // claim through ANY path. Refuse and release the arbiter row so the
+      // window is not consumed for everyone else.
+      if ((s.missesThisRound[grant.seat] ?? 0) >= MAX_WRONG_CLAIMS_PER_ROUND) {
+        console.warn("[claim_grant:no-calls-left]", { seat: grant.seat, round: s.roundNum });
+        refuseGrant(grant, dedupeKey, hostWindow, "NO_CALLS_LEFT");
+        return;
+      }
       if (claimablePhase(s.phase) && s.claimBy === null && !s.rolling) {
         grantedRef.current.add(dedupeKey);
         // PLAYER_ENTER_CLAIM cancels any flip in flight for us: it clears
