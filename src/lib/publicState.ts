@@ -52,6 +52,9 @@ export interface PublicState {
   // already visible in `grid` above; the per-seat sets tell clients who owes
   // which wrong-claim penalty. Serialized as arrays.
   wrongBy: number[][];
+  // v7.2: wrong claims each seat has spent this round. UI reads ONLY its own
+  // entry — a player never sees another seat's remaining calls.
+  missesThisRound: number[];
   // Frozen seat map — host's authoritative visitor_id → seat mapping. Joiners
   // learn their own seat by looking themselves up here.
   seatMap: Array<{ seat: number; visitor_id: string; display_name: string }>;
@@ -124,6 +127,7 @@ export function toPublicState(
     grid,
     rolling: state.rolling,
     wrongBy: state.wrongBy.map((s) => Array.from(s)),
+    missesThisRound: state.missesThisRound.slice(),
     seatMap: seatMap.slice(),
     claimWindow,
     gameId,

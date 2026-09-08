@@ -12,6 +12,7 @@ import {
   useGameState,
   SETTLE_MATCH_MS,
   SETTLE_WRONG_MS,
+  MAX_WRONG_CLAIMS_PER_ROUND,
 } from "@/hooks/useGameState";
 
 import { pickRoll, pickTumbleSeed, rngOf } from "@/lib/rolls";
@@ -232,6 +233,9 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
     if (state.inFlight) return;
     if (state.claimBy !== null) return;
     if (state.disconnected[WHOOP_SEAT]) return;
+    // v7.2: WHOOP obeys the same two-calls-per-round cap the human does.
+    if ((state.missesThisRound[WHOOP_SEAT] ?? 0) >= MAX_WRONG_CLAIMS_PER_ROUND)
+      return;
     const excluded = new Set<number>(state.wrongBy[WHOOP_SEAT]);
     state.grid.forEach((c, i) => {
       if (c === null) excluded.add(i);
@@ -250,7 +254,8 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
         s.grid[best.a] === null ||
         s.grid[best.b] === null ||
         s.wrongBy[WHOOP_SEAT].has(best.a) ||
-        s.wrongBy[WHOOP_SEAT].has(best.b)
+        s.wrongBy[WHOOP_SEAT].has(best.b) ||
+        (s.missesThisRound[WHOOP_SEAT] ?? 0) >= MAX_WRONG_CLAIMS_PER_ROUND
       ) {
         return;
       }
@@ -272,6 +277,7 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
     
     state.disconnected,
     state.wrongBy,
+    state.missesThisRound,
     state.rule,
     state.grid,
     dispatch,

@@ -137,12 +137,15 @@ export interface RollRejectEnvelope {
 //                   closed by a resolution or round advance)
 //   FUTURE_WINDOW — grant.claim_window > host's current (should not happen;
 //                   surfaced explicitly rather than swallowed)
+//   NO_CALLS_LEFT — v7.2: the seat has already used its two wrong claims this
+//                   round. Refused WITHOUT consuming the window: the host
+//                   releases the arbiter row so other seats can still claim.
 export interface ClaimRejectPayload {
   grant_claim_window: number;
   host_claim_window: number;
   seat: number;
   visitor_id: string;
-  reason: "STALE_WINDOW" | "FUTURE_WINDOW";
+  reason: "STALE_WINDOW" | "FUTURE_WINDOW" | "NO_CALLS_LEFT";
 }
 export interface ClaimRejectEnvelope {
   v: number;

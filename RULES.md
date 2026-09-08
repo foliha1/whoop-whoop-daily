@@ -146,15 +146,16 @@ Winning a match seizes the die. You set the next rule and you flip first. But yo
 
 ## If You Are Wrong
 
-Three things happen, and none of them is losing a flip.
+Four things happen, and none of them is losing a flip.
 
 - **Return one card** from your pile to the draw pile. If your pile is empty, you return nothing.
 - **Both cards stay face up** for the rest of the round. Everyone can see them now.
 - **Those two cards are locked to you.** You may not claim them again this round. Everybody else still can.
+- **You have used one of your two calls.** Each player gets **two wrong calls per round.** After your second miss you cannot call again until the round ends. Nothing else changes: you still take your flips, you still hold your place in the rotation, and the round still waits for you.
 
 Play continues. A wrong claim does not end the round.
 
-> A wrong claim is a gift to the table and a hole in your own board. Guess late, not early.
+> A wrong claim is a gift to the table and a hole in your own board. Guess late, not early. And you only get two guesses, so make them count.
 
 ---
 
@@ -203,7 +204,8 @@ The bigger grid also works as a **handicap for mixed tables.** With more positio
 | Two people call at once for the same pair | First voice wins. Truly can't tell? The player whose turn it is, or just was, gets it. |
 | Someone's pointing is unclear | Anyone may ask them to touch the actual cards. Refusing voids the claim, with no penalty. |
 | Touched one card, hesitating on the second | Nothing is locked until the second touch. Back out freely, but you may not flip anything. |
-| You claim wrong with an empty pile | You return nothing. The face-up cards and the lock are your whole penalty. |
+| You claim wrong with an empty pile | You return nothing. The face-up cards, the lock and the used call are your whole penalty. |
+| You have used both of your calls this round | You cannot call again until the round ends. You still flip, you still keep your place in the rotation. Your calls come back with the new rule. |
 | A flip was too fast | Any player may say "slow down" and ask for a re-flip. |
 | You forgot what a card was | Tough. Remembering is the game. |
 | No valid pair exists this round | Fine. The rotation runs out, the die passes, a new rule arrives. |
@@ -245,7 +247,9 @@ Your two flips come back to back, so you can hold them against each other. Two c
 **WHOOP! WHOOP!** — shout any time, touch two cards, second touch locks it.
 
 - **Right:** take the pair, refill, round ends, you become the Roller.
-- **Wrong:** return one card to the draw pile, those two cards stay face up and are locked to you for the round. You keep your flips.
+- **Wrong:** return one card to the draw pile, those two cards stay face up and are locked to you for the round, and you use one of your two calls. You keep your flips.
+
+**Two wrong calls per round, per player.** Miss twice and you cannot call again until the round ends.
 
 **Round ends** on a correct claim, or when everyone has taken their two-flip turn with no correct claim.
 
@@ -326,7 +330,9 @@ Two digital products share this brand. Neither is a demo of the physical game.
   - **Race to 10 cards.** Replaces the empty-pile-plus-quiet-rotations ending, which was invisible to players, arbitrary, anticlimactic, and unstable — returned cards refilled the draw pile and reset the counter, so bad play made the game longer. Simulation across table sizes and skill levels found 10 to be the only target that reliably finishes at every table size. Higher targets stall at five and six players.
   - **Retired in this version:** Last Call, Double Jeopardy, the two-dice alternation and its Standard and Cutthroat tiers, and the digital-only 3×2 grid.
 
-- **v7.1 (Current) — Target Twelve.** The win target moves from 10 cards to 12. A measured sweep of targets 10 through 18 across solo and two- to six-player tables (500 games per cell) showed 10 ending too quickly, while 12 runs about 40% longer and still completes 99.8% of the time at every table size. 14 and above were rejected: they buy little extra time and leave roughly one in twenty-six six-player games unable to finish, because the 48-card deck runs out before that many cards can be banked. Note that the 15–20 minute play time in the header describes the physical game, including shuffling, dealing and table talk; the digital build is a short, replayable game and is not measured against that figure.
+- **v7.1 — Target Twelve.** The win target moves from 10 cards to 12. A measured sweep of targets 10 through 18 across solo and two- to six-player tables (500 games per cell) showed 10 ending too quickly, while 12 runs about 40% longer and still completes 99.8% of the time at every table size. 14 and above were rejected: they buy little extra time and leave roughly one in twenty-six six-player games unable to finish, because the 48-card deck runs out before that many cards can be banked. Note that the 15–20 minute play time in the header describes the physical game, including shuffling, dealing and table talk; the digital build is a short, replayable game and is not measured against that figure.
+
+- **v7.2 (Current) — Two Calls a Round.** Each player now gets **two wrong claims per round**; after the second miss, claiming is closed to that player until the round ends. This closes an exploit found in live testing on the digital build: because a wrong claim leaves its two cards face up and nothing limited how often you could claim, a player could call repeatedly and turn almost the whole board face up. It was free at the start of a round, when an empty pile returns no card. At a physical table shouting WHOOP! WHOOP! eight times in a row is socially expensive and self-corrects; on a screen it costs one tap. The count is per player, per round, and resets for everyone when the round ends by either route. Correct claims never count against it. Nothing else changes: the returned card, the face-up pair, the lock and the free-of-flips claim all stand.
 
 ---
 

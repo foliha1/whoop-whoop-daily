@@ -33,6 +33,14 @@ export const FLIPS_PER_TURN = 2;
  * safety instead of a win. */
 export const TARGET_SCORE = 12;
 
+/** v7.2 — wrong-claim cap. Each player gets this many wrong claims per round;
+ * after that, claiming is closed to them until the round ends (by either
+ * route: a correct claim, or a completed rotation with no claim). Closes the
+ * self-serve reveal exploit, where a player could miss repeatedly to turn
+ * almost the whole board face up at no cost. Nothing else about a capped
+ * seat changes: they keep their flips and their place in the rotation. */
+export const MAX_WRONG_CLAIMS_PER_ROUND = 2;
+
 /** Has any seat reached the target score? Checked wherever a score rises. */
 function reachedTarget(s: State): boolean {
   return s.scores.some((v) => v >= TARGET_SCORE);
@@ -175,6 +183,9 @@ export interface State {
   rule: string[];
   dieValues: string[];
   wrongBy: Set<number>[];
+  // v7.2: wrong claims made by each seat THIS round. Reset every round start.
+  // A seat at MAX_WRONG_CLAIMS_PER_ROUND cannot claim again this round.
+  missesThisRound: number[];
   // v6.5: cards won by each seat. Length always equals that seat's score.
   // A wrong claim returns one of these to the bottom of the draw pile.
   piles: Card[][];
@@ -299,6 +310,7 @@ export function initialState(slotCount: number, opts: InitOptions = {}): State {
     rule,
     dieValues: values,
     wrongBy: emptyWrongBy(seatCount),
+    missesThisRound: Array(seatCount).fill(0),
     piles: Array.from({ length: seatCount }, () => [] as Card[]),
     disconnected: Array(seatCount).fill(false),
     flippedThisCycle: new Set(),
@@ -446,6 +458,7 @@ function startRound(s: State, winnerIndex: number | null): State {
     roller: nextRoller,
     flipper: nextRoller,
     wrongBy: emptyWrongBy(s.seatCount),
+    missesThisRound: Array(s.seatCount).fill(0),
     // `disconnected` is persistent — do NOT reset it here.
     flippedThisCycle: new Set(),
     flipsThisTurn: 0,
@@ -574,6 +587,9 @@ export function reducer(state: State, action: Action): State {
 
     case "PLAYER_ENTER_CLAIM": {
       if (state.phase !== "FLIPPING" && state.phase !== "CLAIM_WINDOW") return state;
+      // v7.2: two wrong calls per round and you are out of calls for the round.
+      if ((state.missesThisRound[action.by] ?? 0) >= MAX_WRONG_CLAIMS_PER_ROUND)
+        return state;
       // v6.7: claiming never consumes a flip. flippedThisCycle and
       // flipsThisTurn are left exactly as they were.
       return {
@@ -653,6 +669,7 @@ export function reducer(state: State, action: Action): State {
         settleToken: state.settleToken + 1,
         settleBy: by,
         wrongBy: nextWrongBy,
+        missesThisRound: replaceAt(state.missesThisRound, by, (state.missesThisRound[by] ?? 0) + 1),
         wrongCalls: state.wrongCalls + 1,
         scores: returned.scores,
         piles: returned.piles,
@@ -801,6 +818,9 @@ export function reducer(state: State, action: Action): State {
       )
         return state;
       if (state.phase === "CLAIM_SELECTING") return state;
+      // v7.2 cap applies to every claim path, bot claims included.
+      if ((state.missesThisRound[action.by] ?? 0) >= MAX_WRONG_CLAIMS_PER_ROUND)
+        return state;
       if (state.grid[action.a] === null || state.grid[action.b] === null) return state;
       if (
         state.wrongBy[action.by]?.has(action.a) ||
@@ -875,6 +895,7 @@ export function reducer(state: State, action: Action): State {
         settleToken: state.settleToken + 1,
         settleBy: by,
         wrongBy: nextWrongBy,
+        missesThisRound: replaceAt(state.missesThisRound, by, (state.missesThisRound[by] ?? 0) + 1),
         wrongCalls: state.wrongCalls + 1,
         scores: returned.scores,
         piles: returned.piles,

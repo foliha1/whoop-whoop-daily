@@ -23,7 +23,7 @@ import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
 import { ALL_CARDS, type Card } from "@/cardData";
 import type { RollAttribute } from "@/lib/multiplayer";
-import { SETTLE_MATCH_MS, SETTLE_WRONG_MS, TARGET_SCORE } from "@/hooks/useGameState";
+import { SETTLE_MATCH_MS, SETTLE_WRONG_MS, TARGET_SCORE, MAX_WRONG_CLAIMS_PER_ROUND } from "@/hooks/useGameState";
 import {
   CARD_FLIP_MS,
   DEAL_MOVE_MS,
@@ -778,7 +778,7 @@ const SLIDES: Slide[] = [
   {
     heading: "Match or Miss",
     body:
-      "A match takes the pair, scores you two, and hands you the die so you set the next rule.\n\nA miss leaves those two cards face up for the rest of the round, costs you one card back to the draw pile, and locks that pair for you until the round ends. A miss never costs you a flip.",
+      `A match takes the pair, scores you two, and hands you the die so you set the next rule.\n\nA miss leaves those two cards face up for the rest of the round, costs you one card back to the draw pile, and locks that pair for you until the round ends. A miss never costs you a flip.\n\nYou get ${MAX_WRONG_CLAIMS_PER_ROUND} calls a round. Miss twice and you cannot call again until the round ends.`,
     visual: (sz, active) => <MatchVisual sz={sz} active={active} />,
   },
   {

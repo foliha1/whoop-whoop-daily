@@ -66,6 +66,7 @@ function baseState(overrides: Partial<State> = {}): State {
     phase: "FLIPPING",
     slotCount: 6,
     seatCount,
+    missesThisRound: Array(seatCount).fill(0),
     names: Array.from({ length: seatCount }, (_, i) => ["you", "opponent"][i] ?? `p${i}`),
     roller: 0,
     flipper: 0,

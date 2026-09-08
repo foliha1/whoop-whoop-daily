@@ -43,7 +43,7 @@ import {
 } from "@/lib/animationTiming";
 import DailyMatchGhost, { type GhostCard } from "@/components/DailyMatchGhost";
 import { serverNow } from "@/hooks/useServerClock";
-import { TARGET_SCORE } from "@/hooks/useGameState";
+import { TARGET_SCORE, MAX_WRONG_CLAIMS_PER_ROUND } from "@/hooks/useGameState";
 
 import RollHeroOverlay from "@/components/RollHeroOverlay";
 import { MATCH_ART_SRC } from "@/components/MatchDie";
@@ -895,9 +895,14 @@ const MultiplayerGameView: React.FC<Props> = ({
   // over, and a seat that is out of the game.
   const seatOutOfGame =
     mySeat !== null && (s.disconnectedSeats?.includes(mySeat) ?? false);
+  // v7.2: two wrong calls per round and this seat is out of calls until the
+  // round ends. Derived from MY seat only — never shown for anyone else.
+  const myMisses = mySeat === null ? 0 : s.missesThisRound?.[mySeat] ?? 0;
+  const outOfCalls = myMisses >= MAX_WRONG_CLAIMS_PER_ROUND;
   const canClaim =
     mySeat !== null &&
     !seatOutOfGame &&
+    !outOfCalls &&
     // The rotation claim window keeps claims live after the last flip of a
     // rotation. No countdown UI — the live WHOOP! button is the only signal.
     (s.phase === "FLIPPING" || s.phase === "CLAIM_WINDOW") &&
@@ -1472,7 +1477,9 @@ const MultiplayerGameView: React.FC<Props> = ({
   // Derive a descriptive label for the muted disabled state so players can
   // tell waiting, rolling, and another player's claim apart from a broken UI.
   if (buttonKind === "DISABLED") {
-    if (claimBusy) {
+    if (outOfCalls && (s.phase === "FLIPPING" || s.phase === "CLAIM_WINDOW")) {
+      buttonLabel = "NO CALLS LEFT";
+    } else if (claimBusy) {
       buttonLabel = "LOCKING…";
     } else if (mySeat !== null && s.claimBy !== null && s.claimBy !== mySeat) {
       buttonLabel = "CLAIMING…";

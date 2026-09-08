@@ -18,6 +18,7 @@ import {
   TARGET_SCORE,
   type Action,
   type State,
+  MAX_WRONG_CLAIMS_PER_ROUND,
 } from "@/hooks/useGameState";
 import { ALL_CARDS } from "@/cardData";
 import type { Card } from "@/cardData";
@@ -906,4 +907,183 @@ describe("claim from the seat with a flip in flight", () => {
     if (failures.length) console.log(failures.slice(0, 20).join("\n"));
     expect(failures).toEqual([]);
   }, 60000);
+});
+
+// ---------------------------------------------------------------------------
+// v7.2 REGRESSION CLASS: the two-wrong-claims-per-round cap. A seat that has
+// missed twice must be unable to claim again this round through ANY action —
+// PLAYER_ENTER_CLAIM (human path) or CLAIM_START (bot / direct path) — and its
+// count must reset at round end via BOTH routes: a correct claim, and a
+// completed rotation with no claim. Asserted at every table size and in solo.
+// ---------------------------------------------------------------------------
+describe("v7.2 wrong-claim cap", () => {
+  it("closes claiming after two misses and resets it at round end", () => {
+    const failures: string[] = [];
+    let cases = 0;
+    let dispatches = 0;
+
+    const tables: Array<{ label: string; seatCount: number }> = [
+      { label: "solo", seatCount: 2 },
+      ...[2, 3, 4, 5, 6].map((n) => ({ label: `${n}p`, seatCount: n })),
+    ];
+
+    for (const { label, seatCount } of tables) {
+      for (const endRoute of ["match", "rotation"] as const) {
+        for (let g = 0; g < 40; g++) {
+          cases++;
+          const tag = `${label}/${endRoute}#${g}`;
+          let s = atFlipping(`misscap:${tag}`, seatCount);
+          let prev: State = s;
+          let token = 500;
+          const step = (a: Action) => {
+            prev = s;
+            s = reducer(s, a);
+            dispatches++;
+            const bad = checkInvariants(s, { prev, action: a });
+            if (bad) failures.push(`${tag} after ${a.type}: ${bad}`);
+          };
+
+          const seat = s.flipper;
+          const round = s.roundNum;
+
+          // Force `MAX_WRONG_CLAIMS_PER_ROUND` wrong claims from one seat.
+          let misses = 0;
+          while (misses < MAX_WRONG_CLAIMS_PER_ROUND && (s.phase as string) === "FLIPPING") {
+            const good = matchingPair(s, seat);
+            const idxs = s.grid
+              .map((c, i) => (c === null ? -1 : i))
+              .filter((i) => i >= 0 && !s.wrongBy[seat]?.has(i))
+              .filter((i) => !good || (i !== good[0] && i !== good[1]));
+            if (idxs.length < 2) break;
+            step({ type: "PLAYER_ENTER_CLAIM", by: seat });
+            if ((s.phase as string) !== "CLAIM_SELECTING") break;
+            step({ type: "PLAYER_SELECT_CARD", by: seat, idx: idxs[0] });
+            step({ type: "PLAYER_SELECT_CARD", by: seat, idx: idxs[1] });
+            step({ type: "PLAYER_RESOLVE_MATCH", by: seat });
+            if ((s.phase as string) === "SETTLING") {
+              step({ type: "SETTLE_COMPLETE", token: s.settleToken });
+            }
+            misses++;
+          }
+          if (misses < MAX_WRONG_CLAIMS_PER_ROUND) continue; // board ran out; skip
+          // A wrong claim landing inside the rotation claim window ends the
+          // round by design; that case has nothing left to assert here.
+          if (s.roundNum !== round) continue;
+          if (s.missesThisRound[seat] !== MAX_WRONG_CLAIMS_PER_ROUND) {
+            failures.push(
+              `${tag}: miss count ${s.missesThisRound[seat]} != ${MAX_WRONG_CLAIMS_PER_ROUND}`,
+            );
+          }
+
+          // 1. The capped seat cannot claim through the human path...
+          step({ type: "PLAYER_ENTER_CLAIM", by: seat });
+          if ((s.phase as string) === "CLAIM_SELECTING") {
+            failures.push(`${tag}: capped seat entered claim mode`);
+          }
+          // ...nor through a direct/bot CLAIM_START, even on a real pair.
+          const pair = matchingPair(s, seat) ?? ([
+            s.grid.findIndex((c) => c !== null),
+            s.grid.map((c, i) => (c === null ? -1 : i)).filter((i) => i >= 0)[1],
+          ] as [number, number]);
+          if (pair[0] >= 0 && pair[1] >= 0) {
+            step({ type: "CLAIM_START", by: seat, a: pair[0], b: pair[1], token: token++ });
+            if ((s.phase as string) === "CLAIM_RESOLVING") {
+              failures.push(`${tag}: capped seat opened a CLAIM_START`);
+            }
+          }
+          // Rapid double press must not sneak through either.
+          step({ type: "PLAYER_ENTER_CLAIM", by: seat });
+          step({ type: "PLAYER_ENTER_CLAIM", by: seat });
+          if (s.claimBy === seat) failures.push(`${tag}: capped seat holds a claim`);
+
+          // The capped seat still has its flips and its place in the rotation.
+          if (s.flipper === seat && (s.phase as string) === "FLIPPING") {
+            const idx = s.grid.findIndex((c, i) => c !== null && !s.wrongBy[seat]?.has(i));
+            if (idx >= 0 && s.flipsThisTurn < FLIPS_PER_TURN) {
+              const t = token++;
+              step({ type: "FLIP_START", by: seat, idx, token: t });
+              if (s.inFlight === null) failures.push(`${tag}: capped seat could not flip`);
+              step({ type: "FLIP_COMPLETE", token: t });
+            }
+          }
+
+          // 2. Round end resets the count — by both routes.
+          let guard = 0;
+          // Drive the table one legal step: flip if the flipper can, otherwise
+          // skip; expire an open claim window; complete any settle.
+          const advance = () => {
+            if ((s.phase as string) === "SETTLING") {
+              step({ type: "SETTLE_COMPLETE", token: s.settleToken });
+              return;
+            }
+            if ((s.phase as string) === "CLAIM_WINDOW") {
+              step({ type: "CLAIM_WINDOW_EXPIRE", token: s.claimWindowToken });
+              return;
+            }
+            if ((s.phase as string) !== "FLIPPING") return;
+            const f = s.flipper;
+            const idx = s.grid.findIndex((c, i) => c !== null && !s.wrongBy[f]?.has(i));
+            if (idx < 0) {
+              step({ type: "SKIP_TICK" });
+              return;
+            }
+            const t = token++;
+            step({ type: "FLIP_START", by: f, idx, token: t });
+            step({ type: "FLIP_COMPLETE", token: t });
+          };
+          if (endRoute === "match") {
+            // Some OTHER seat claims correctly.
+            while ((s.phase as string) !== "GAME_OVER" && s.roundNum === round && guard++ < 200) {
+              const other = (seat + 1) % seatCount;
+              const good = matchingPair(s, other);
+              if (
+                good &&
+                ((s.phase as string) === "FLIPPING" || (s.phase as string) === "CLAIM_WINDOW") &&
+                s.claimBy === null
+              ) {
+                step({ type: "PLAYER_ENTER_CLAIM", by: other });
+                step({ type: "PLAYER_SELECT_CARD", by: other, idx: good[0] });
+                step({ type: "PLAYER_SELECT_CARD", by: other, idx: good[1] });
+                step({ type: "PLAYER_RESOLVE_MATCH", by: other });
+                if ((s.phase as string) === "SETTLING") {
+                  step({ type: "SETTLE_COMPLETE", token: s.settleToken });
+                }
+                continue;
+              }
+              advance();
+            }
+          } else {
+            // Rotation completes with nobody claiming.
+            while ((s.phase as string) !== "GAME_OVER" && s.roundNum === round && guard++ < 400) {
+              advance();
+            }
+          }
+          if ((s.phase as string) === "GAME_OVER") continue;
+          if (s.roundNum === round) {
+            failures.push(`${tag}: round never ended (guard=${guard})`);
+            continue;
+          }
+          for (let i = 0; i < s.seatCount; i++) {
+            if (s.missesThisRound[i] !== 0) {
+              failures.push(`${tag}: seat ${i} miss count ${s.missesThisRound[i]} after round end`);
+            }
+          }
+          // ...and the previously capped seat can claim again.
+          s = reducer(s, { type: "ROLL_START" });
+          s = reducer(s, { type: "ROLL_LAND", values: ["SHAPE"], rule: ["SHAPE"] });
+          s = reducer(s, { type: "ROLL_SETTLE" });
+          const after = reducer(s, { type: "PLAYER_ENTER_CLAIM", by: seat });
+          if ((after.phase as string) !== "CLAIM_SELECTING") {
+            failures.push(`${tag}: seat still capped in the next round`);
+          }
+        }
+      }
+    }
+
+    console.log(
+      `\n=== v7.2 wrong-claim cap ===\ncases=${cases} dispatches=${dispatches} failures=${failures.length}`,
+    );
+    if (failures.length) console.log(failures.slice(0, 20).join("\n"));
+    expect(failures).toEqual([]);
+  }, 120000);
 });
