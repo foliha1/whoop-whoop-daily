@@ -871,12 +871,12 @@ describe("claim from the seat with a flip in flight", () => {
                 step({ type: "PLAYER_SELECT_CARD", by: claimant, idx: pair[0] });
                 step({ type: "PLAYER_SELECT_CARD", by: claimant, idx: pair[1] });
                 step({ type: "PLAYER_RESOLVE_MATCH", by: claimant });
-                if (s.phase === "SETTLING") step({ type: "SETTLE_COMPLETE", token: s.settleToken });
+                if ((s.phase as string) === "SETTLING") step({ type: "SETTLE_COMPLETE", token: s.settleToken });
               }
             }
 
             // If the round is still live, the seat keeps the flips it had.
-            if (s.phase === "FLIPPING" && s.flipper === claimant) {
+            if ((s.phase as string) === "FLIPPING" && s.flipper === claimant) {
               if (s.flipsThisTurn !== flipsBefore) {
                 failures.push(
                   `${tag}: flips lost after resolve (${flipsBefore} -> ${s.flipsThisTurn})`,
