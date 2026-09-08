@@ -587,31 +587,59 @@ All colors MUST be HSL.
   to   { box-shadow: inset 0 0 0 calc(2px * var(--ww-k)) #0072B2; }
 }
 
-/* ── First card picked during a claim: looping border pulse ──
-   The card stays face down and never moves — only the inset border ramps
-   cream → pale blue → full brand blue, thickening as it saturates, then back.
-   Colours come from RAW via applySelectionPulseVars(); the literals here are
-   only fallbacks. Duration comes from SELECT_PULSE_MS. */
+/* ── First card picked during a claim: breathing pulse ──
+   Three properties animate together on a single 999.9ms loop, all reversing
+   at the 50% midpoint with cubic-bezier(0.5, 0, 0.5, 1) on both halves:
+     1. scale 1 → 0.96 → 1     (on .ww-select-pulse-scale, the inner wrapper —
+        purely visual; the grid cell and hit area never move)
+     2. stroke width 0 → 2px → 0 at constant full brand blue, sitting just
+        outside the card (corner radius 6.83 against the card's 6.33)
+     3. drop-shadow glow, zero offset, blur 0 → 2.5px → 0, same brand blue
+   Colour comes from RAW via applySelectionPulseVars(); the literal here is
+   only a fallback. Duration comes from SELECT_PULSE_MS. */
+.ww-select-pulse-scale {
+  transform-origin: center;
+  animation: ww-select-pulse-scale var(--ww-select-pulse, 999.9ms) linear infinite both;
+}
 .ww-select-pulse {
-  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  animation: ww-select-pulse var(--ww-select-pulse, 1030ms) linear infinite both;
+  position: absolute;
+  inset: calc(-2.5px * var(--ww-k));
+  border-radius: calc(6.83px * var(--ww-k));
+  border: 0 solid var(--ww-sel-blue, #0072B2);
+  pointer-events: none;
+  animation: ww-select-pulse var(--ww-select-pulse, 999.9ms) linear infinite both;
+}
+
+@keyframes ww-select-pulse-scale {
+  0%   { animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
+         transform: scale(1);
+         filter: drop-shadow(0 0 0 rgb(0, 114, 178)); }
+  50%  { animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
+         transform: scale(0.96);
+         filter: drop-shadow(0 0 calc(2.5px * var(--ww-k)) rgb(0, 114, 178)); }
+  100% { transform: scale(1);
+         filter: drop-shadow(0 0 0 rgb(0, 114, 178)); }
 }
 
 @keyframes ww-select-pulse {
-  0%     { box-shadow: inset 0 0 0 calc(1.5px * var(--ww-k)) var(--ww-sel-cream, #F8F2E9); }
-  9.7%   { box-shadow: inset 0 0 0 calc(2px * var(--ww-k))   var(--ww-sel-blue2, #97DAFF); }
-  19.4%  { box-shadow: inset 0 0 0 calc(3px * var(--ww-k))   var(--ww-sel-blue, #0072B2); }
-  58.3%  { box-shadow: inset 0 0 0 calc(3px * var(--ww-k))   var(--ww-sel-blue, #0072B2); }
-  77.7%  { box-shadow: inset 0 0 0 calc(2px * var(--ww-k))   var(--ww-sel-blue2, #97DAFF); }
-  97.1%  { box-shadow: inset 0 0 0 calc(1.5px * var(--ww-k)) var(--ww-sel-cream, #F8F2E9); }
-  100%   { box-shadow: inset 0 0 0 calc(1.5px * var(--ww-k)) var(--ww-sel-cream, #F8F2E9); }
+  0%   { animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
+         border-width: 0; }
+  50%  { animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
+         border-width: calc(2px * var(--ww-k)); }
+  100% { border-width: 0; }
 }
 
-/* Reduced motion: rest at full blue, so the pick is still unmistakable. */
+/* Reduced motion: rest at the midpoint — full 2px stroke, full glow — so
+   the pick stays unmistakable without animating. Scale rests at 1. */
 @media (prefers-reduced-motion: reduce) {
+  .ww-select-pulse-scale {
+    animation: none;
+    transform: none;
+    filter: drop-shadow(0 0 calc(2.5px * var(--ww-k)) rgb(0, 114, 178));
+  }
   .ww-select-pulse {
     animation: none;
-    box-shadow: inset 0 0 0 calc(3px * var(--ww-k)) var(--ww-sel-blue, #0072B2);
+    border-width: calc(2px * var(--ww-k));
   }
 }
 
