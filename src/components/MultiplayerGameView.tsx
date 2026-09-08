@@ -28,6 +28,8 @@ import { createPortal } from "react-dom";
 import { Settings as SettingsIcon, X } from "lucide-react";
 import { usePortalHost } from "@/hooks/usePortalHost";
 import SettingsSheet from "@/components/SettingsSheet";
+import MultiplayerHowToSteps from "@/components/MultiplayerHowToSteps";
+
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
 import GameCard from "@/components/GameCard";
 import ClassicResultScreen from "@/components/ClassicResultScreen";
@@ -814,7 +816,9 @@ const MultiplayerGameView: React.FC<Props> = ({
 }) => {
   const [showSettings, setShowSettings] = React.useState(false);
   const [showLeave, setShowLeave] = React.useState(false);
-  const modalOpen = showSettings || showLeave;
+  const [showHowTo, setShowHowTo] = React.useState(false);
+  const modalOpen = showSettings || showLeave || showHowTo;
+
 
   // Fade in a radial vignette over the persistent intro-animation still once
   // gameplay mounts, softening the background pattern behind the board.
@@ -1890,8 +1894,25 @@ const MultiplayerGameView: React.FC<Props> = ({
 
 
       {showSettings && (
-        <SettingsSheet onClose={() => setShowSettings(false)} />
+        <SettingsSheet
+          onClose={() => setShowSettings(false)}
+          // In-game How to Play MUST stay in the game: this hands the sheet an
+          // in-app handler so it never falls back to the /about link, which
+          // would walk a seated player off their table to the Daily.
+          onHowTo={() => {
+            setShowSettings(false);
+            setShowHowTo(true);
+          }}
+        />
       )}
+      {showHowTo && (
+        <MultiplayerHowToSteps
+          mode="in-game"
+          onStart={() => setShowHowTo(false)}
+          onClose={() => setShowHowTo(false)}
+        />
+      )}
+
       {showLeave && (
         <ModalShell titleId="mp-leave-title" onCancel={() => setShowLeave(false)}>
           <h2 id="mp-leave-title" style={{ margin: 0, color: INK, ...textStyle("title") }}>

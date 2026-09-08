@@ -823,17 +823,21 @@ const buttonBase: React.CSSProperties = {
  *
  * `gate` mode is the first-run interstitial: SKIP and the final button
  * both proceed to the action the player asked for. `reference` mode is
- * the header link: close just closes.
+ * the entry-screen link: close just closes. `in-game` mode is opened by a
+ * SEATED player from the in-game settings sheet — EVERY exit must return
+ * that player to their table, so both the skip control and the final
+ * button close the overlay and nothing may navigate.
  * ------------------------------------------------------------------ */
 let lastOpen: { mode: string; at: number } = { mode: "", at: 0 };
 
 const MultiplayerHowToSteps: React.FC<{
-  mode: "gate" | "reference";
+  mode: "gate" | "reference" | "in-game";
   /** Proceed to the action the player clicked (gate), or start play. */
   onStart: () => void;
-  /** Dismiss without proceeding (reference mode only). */
+  /** Dismiss without proceeding (reference and in-game modes). */
   onClose: () => void;
 }> = ({ mode, onStart, onClose }) => {
+
   const [step, setStep] = useState(0);
   const [prev, setPrev] = useState<{ index: number; dir: 1 | -1 } | null>(null);
   const [dir, setDir] = useState<1 | -1>(1);
@@ -873,8 +877,11 @@ const MultiplayerHowToSteps: React.FC<{
   const finish = useCallback(() => {
     markMpHowToSeen();
     trackEvent("mp_howto_finished", { metadata: { mode } });
-    onStart();
-  }, [onStart, mode]);
+    // A seated player's only correct destination is their own table.
+    if (mode === "in-game") onClose();
+    else onStart();
+  }, [onStart, onClose, mode]);
+
 
   const dismiss = useCallback(() => {
     markMpHowToSeen();
@@ -989,9 +996,16 @@ const MultiplayerHowToSteps: React.FC<{
             ))}
           </div>
           <CloseButton
-            label="SKIP"
+            label={mode === "in-game" ? "BACK" : "SKIP"}
             onClick={dismiss}
-            ariaLabel={mode === "gate" ? "Skip how to play and start" : "Close how to play"}
+            ariaLabel={
+              mode === "gate"
+                ? "Skip how to play and start"
+                : mode === "in-game"
+                  ? "Back to game"
+                  : "Close how to play"
+            }
+
             data-testid="mp-htp-skip"
             hitTestId="mp-htp-skip-hit"
             style={{ zIndex: 3 }}
@@ -1058,7 +1072,7 @@ const MultiplayerHowToSteps: React.FC<{
                 fontStyle: "italic",
               }}
             >
-              Lets Play!
+              {mode === "in-game" ? "Back to Game" : "Lets Play!"}
               <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />
             </button>
           ) : (
