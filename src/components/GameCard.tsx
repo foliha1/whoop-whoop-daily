@@ -53,6 +53,7 @@ const GameCard = ({
   enterDelay = 0,
   shaking,
   fill,
+  pulsing = false,
   interactive = true,
   unavailable = false,
   dealKey,
