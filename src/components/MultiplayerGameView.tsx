@@ -1890,8 +1890,25 @@ const MultiplayerGameView: React.FC<Props> = ({
 
 
       {showSettings && (
-        <SettingsSheet onClose={() => setShowSettings(false)} />
+        <SettingsSheet
+          onClose={() => setShowSettings(false)}
+          // In-game How to Play MUST stay in the game: this hands the sheet an
+          // in-app handler so it never falls back to the /about link, which
+          // would walk a seated player off their table to the Daily.
+          onHowTo={() => {
+            setShowSettings(false);
+            setShowHowTo(true);
+          }}
+        />
       )}
+      {showHowTo && (
+        <MultiplayerHowToSteps
+          mode="in-game"
+          onStart={() => setShowHowTo(false)}
+          onClose={() => setShowHowTo(false)}
+        />
+      )}
+
       {showLeave && (
         <ModalShell titleId="mp-leave-title" onCancel={() => setShowLeave(false)}>
           <h2 id="mp-leave-title" style={{ margin: 0, color: INK, ...textStyle("title") }}>

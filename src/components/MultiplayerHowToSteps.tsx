@@ -996,7 +996,7 @@ const MultiplayerHowToSteps: React.FC<{
             ))}
           </div>
           <CloseButton
-            label="SKIP"
+            label={mode === "in-game" ? "BACK" : "SKIP"}
             onClick={dismiss}
             ariaLabel={
               mode === "gate"
