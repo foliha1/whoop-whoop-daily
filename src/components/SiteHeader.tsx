@@ -119,7 +119,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onSettings, onLeave, onHowTo })
       </header>
 
       {showSettings && (
-        <SettingsSheet onClose={() => setShowSettings(false)} onHowTo={onHowTo} />
+        <SettingsSheet product="daily" onClose={() => setShowSettings(false)} onHowTo={onHowTo} />
       )}
     </>
   );

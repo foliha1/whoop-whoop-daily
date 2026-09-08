@@ -776,6 +776,17 @@ All colors MUST be HSL.
   .ww-deal { animation: ww-deal-fade 300ms linear 0ms both; }
 }
 
+/* The caller announcement occupies the existing player-status strip, never
+   the board. Reduced-motion users get the same signal without movement. */
+@keyframes mp-caller-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-caller-signal { animation: none !important; }
+}
+
 /* ── Grid-size picker selection ── */
 .ww-grid-option {
   transform-origin: center;

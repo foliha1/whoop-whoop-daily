@@ -41,6 +41,7 @@ import {
   MOTION,
   RADIUS,
   RAW,
+  SPACE,
   textStyle,
 } from "@/lib/tokens";
 
@@ -324,6 +325,8 @@ const DieVisual: React.FC<{ sz: Step; active: boolean }> = ({ sz, active }) => {
           key={ex.attribute}
           style={{
             flex: "0 0 auto",
+            padding: SPACE[8] * v,
+            boxSizing: "content-box",
             // A hard cut with a small landing punch — the die has already rolled.
             animation: reduce
               ? undefined
@@ -677,8 +680,24 @@ const VisualFit: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       raf = 0;
       const bw = b.clientWidth;
       const bh = b.clientHeight;
-      const iw = i.offsetWidth;
-      const ih = i.offsetHeight;
+      // Include transformed/animated descendants (the die and cards) rather
+      // than measuring only the untransformed wrapper box. Their painted
+      // bounds are what must fit inside the clipped viewport.
+      const own = i.getBoundingClientRect();
+      let minX = own.left;
+      let minY = own.top;
+      let maxX = own.right;
+      let maxY = own.bottom;
+      for (const node of Array.from(i.querySelectorAll<HTMLElement>("*"))) {
+        const rect = node.getBoundingClientRect();
+        minX = Math.min(minX, rect.left);
+        minY = Math.min(minY, rect.top);
+        maxX = Math.max(maxX, rect.right);
+        maxY = Math.max(maxY, rect.bottom);
+      }
+      const currentScale = s || 1;
+      const iw = Math.max(i.offsetWidth, (maxX - minX) / currentScale);
+      const ih = Math.max(i.offsetHeight, (maxY - minY) / currentScale);
       if (!iw || !ih) return;
       const next = bw > 0 && bh > 0 ? Math.min(1, bw / iw, bh / ih) : 0;
       setS((prev) => (Math.abs(prev - next) < 0.004 ? prev : next));
@@ -754,7 +773,7 @@ const SLIDES: Slide[] = [
   {
     heading: "The Table",
     body:
-      "Six or nine cards, face down. There is no free look here — you only ever learn a card by watching it flip.",
+      "Nine cards, face down in a 3 × 3 grid. There is no free look here — you only ever learn a card by watching it flip.",
     visual: (sz, active) => <TableVisual sz={sz} active={active} />,
   },
   {
@@ -778,7 +797,7 @@ const SLIDES: Slide[] = [
   {
     heading: "Match or Miss",
     body:
-      `A match takes the pair, scores you two, and hands you the die so you set the next rule.\n\nA miss leaves those two cards face up for the rest of the round, costs you one card back to the draw pile, and locks that pair for you until the round ends. A miss never costs you a flip.\n\nYou get ${MAX_WRONG_CLAIMS_PER_ROUND} calls a round. Miss twice and you cannot call again until the round ends.`,
+      `A correct match ends the round. You take the pair, score two cards, and roll for the next rule.\n\nIf you miss, one card from the cards you have already won goes back into the draw pile. No card is taken from the table as a penalty. The two missed cards stay face up, and you cannot call that pair again this round.\n\nMissing does not use up a flip you still had. You get ${MAX_WRONG_CLAIMS_PER_ROUND} calls per round. After your second miss, you cannot call again until the next round.`,
     visual: (sz, active) => <MatchVisual sz={sz} active={active} />,
   },
   {

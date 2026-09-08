@@ -33,7 +33,7 @@ import MultiplayerHowToSteps from "@/components/MultiplayerHowToSteps";
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
 import GameCard from "@/components/GameCard";
 import ClassicResultScreen from "@/components/ClassicResultScreen";
-import { COLORS, FONT_FAMILY, RAW, SPACE, textStyle, buttonStyle } from "@/lib/tokens";
+import { BORDER, COLORS, FONT_FAMILY, MOTION, RADIUS, RAW, SHADOW, SPACE, textStyle, buttonStyle, panelStyle } from "@/lib/tokens";
 import { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
 import type { PublicState } from "@/lib/publicState";
 import type { IntentAction, RollAttribute, RollCommitPayload, TransientEvent } from "@/lib/multiplayer";
@@ -279,6 +279,40 @@ const OpponentRow: React.FC<{ chips: DerivedChip[] }> = ({ chips }) => (
     boxSizing: "border-box",
   }}>
     {chips.map((c) => <ChipCell key={c.seat} chip={c} />)}
+  </div>
+);
+
+const CallerSignal: React.FC<{ name: string }> = ({ name }) => (
+  <div
+    role="status"
+    aria-live="assertive"
+    className="mp-caller-signal"
+    style={{
+      ...panelStyle("surface", 4),
+      position: "absolute",
+      inset: 0,
+      zIndex: 9,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      minWidth: 0,
+      background: RAW.red,
+      color: RAW.cream,
+      border: BORDER.heavy,
+      borderRadius: RADIUS.sm,
+      boxShadow: SHADOW.windowFocused,
+      pointerEvents: "none",
+      overflow: "hidden",
+      animation: `mp-caller-in ${MOTION.fast} both`,
+      transition: `opacity ${MOTION.fast}`,
+    }}
+  >
+    <AutoFitText
+      minScale={0.72}
+      style={{ ...textStyle("control"), width: "100%", minWidth: 0, textAlign: "center", fontStyle: "italic" }}
+    >
+      {name} CALLED WHOOP! WHOOP!
+    </AutoFitText>
   </div>
 );
 
@@ -643,8 +677,9 @@ const ActionButton: React.FC<{
     animationPlayState: shineOn ? "running" : "paused",
     opacity: shineOn ? 1 : 0,
   };
-  // Text starts at the ideal size and AutoFitText shrinks it to the measured
-  // width — so long labels ("WHOOP! WHOOP!") never clip at any breakpoint.
+  // Text starts at the action role and AutoFitText only gives up a modest
+  // amount of scale. Its explicit flexible width leaves room for italic glyph
+  // overhang, so every state fits without making WHOOP! WHOOP! timid.
   const text = label ?? s.label;
   return (
     <button
@@ -657,13 +692,13 @@ const ActionButton: React.FC<{
         flex: "1 1 0", minWidth: 0, alignSelf: "stretch", background: s.bg, color: s.text,
         border: BORDER_HEAVY, borderRadius: R_BOX, boxSizing: "border-box",
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontFamily: FONT_FAMILY, fontStyle: "italic", fontWeight: 400,
-        fontSize: "clamp(19px, 6.4vw, 32px)", lineHeight: 1.15, textAlign: "center",
-        padding: "10px 6px",
+        ...textStyle("action", true),
+        textAlign: "center",
+        padding: `0 ${SPACE[4]}px`,
         position: "relative", overflow: "hidden",
       }}
     >
-      <AutoFitText minScale={0.55} style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
+      <AutoFitText minScale={0.72} style={{ position: "relative", zIndex: 1, width: "100%", minWidth: 0, textAlign: "center" }}>
         {text}
       </AutoFitText>
 
@@ -1151,14 +1186,22 @@ const MultiplayerGameView: React.FC<Props> = ({
   // Deal-in bookkeeping. A slot that newly becomes occupied gets a fresh
   // remount key (so the deal animation replays) and a stagger index: reading
   // order on the initial deal, 0/1 on a refill regardless of grid position.
-  const dealRef = React.useRef<{ occ: boolean[]; keys: number[]; idx: number[]; seq: number }>({
-    occ: [], keys: [], idx: [], seq: 0,
+  const dealRef = React.useRef<{ occ: boolean[]; matched: number[]; keys: number[]; idx: number[]; seq: number }>({
+    occ: [], matched: [], keys: [], idx: [], seq: 0,
   });
   const dealInfo = React.useMemo(() => {
     const st = dealRef.current;
     const occ = s.grid.map((sl) => sl.occupied);
     const newly: number[] = [];
     for (let i = 0; i < occ.length; i++) if (occ[i] && !st.occ[i]) newly.push(i);
+    // Match settling deliberately keeps occupied=true while the flying copies
+    // leave, so occupancy alone cannot detect the refill. When the matched
+    // marks clear, those exact positions received the two replacement cards.
+    if (st.matched.length > 0 && s.matchedCards.length === 0) {
+      for (const slot of st.matched) {
+        if (occ[slot] && !newly.includes(slot)) newly.push(slot);
+      }
+    }
     const initial = st.occ.length === 0 || st.occ.every((o) => !o) || newly.length > 2;
     newly.forEach((slot, n) => {
       st.seq += 1;
@@ -1166,8 +1209,9 @@ const MultiplayerGameView: React.FC<Props> = ({
       st.idx[slot] = initial ? slot : n;
     });
     st.occ = occ;
+    st.matched = [...s.matchedCards];
     return { keys: [...st.keys], idx: [...st.idx] };
-  }, [s.grid]);
+  }, [s.grid, s.matchedCards]);
 
 
   // Deal sound when the grid refills after a claim. Watch occupied count
@@ -1509,6 +1553,11 @@ const MultiplayerGameView: React.FC<Props> = ({
 
 
   const chips = deriveChips(s, mySeat, events, penaltySeat);
+  const callerName = s.claimBy === null
+    ? null
+    : (s.claimBy === mySeat
+      ? "YOU"
+      : (s.seatMap.find((entry) => entry.seat === s.claimBy)?.display_name ?? "PLAYER"));
 
   const myScore = mySeat !== null ? (s.scores[mySeat] ?? 0) : 0;
   const rule = s.rule[0] ?? "SHAPE";
@@ -1705,6 +1754,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       {header}
       <div ref={panelRef} style={{ position: "relative", flex: "none" }}>
         {opponentRow}
+        {callerName && <CallerSignal name={callerName} />}
         {activeBanner && (
           <div style={{
             position: "absolute", inset: 0, zIndex: 10,
@@ -1895,6 +1945,7 @@ const MultiplayerGameView: React.FC<Props> = ({
 
       {showSettings && (
         <SettingsSheet
+          product="classic"
           onClose={() => setShowSettings(false)}
           // In-game How to Play MUST stay in the game: this hands the sheet an
           // in-app handler so it never falls back to the /about link, which
