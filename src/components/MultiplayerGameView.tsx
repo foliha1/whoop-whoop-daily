@@ -33,7 +33,7 @@ import MultiplayerHowToSteps from "@/components/MultiplayerHowToSteps";
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
 import GameCard from "@/components/GameCard";
 import ClassicResultScreen from "@/components/ClassicResultScreen";
-import { BORDER, COLORS, FONT_FAMILY, MOTION, RADIUS, RAW, SHADOW, SPACE, textStyle, buttonStyle, panelStyle } from "@/lib/tokens";
+import { BORDER, COLORS, FONT_FAMILY, MOTION, RADIUS, RAW, SHADOW, SPACE, textStyle, buttonStyle, panelStyle, applySelectionPulseVars } from "@/lib/tokens";
 import { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
 import type { PublicState } from "@/lib/publicState";
 import type { IntentAction, RollAttribute, RollCommitPayload, TransientEvent } from "@/lib/multiplayer";
@@ -46,7 +46,6 @@ import {
 import DailyMatchGhost, { type GhostCard } from "@/components/DailyMatchGhost";
 import { serverNow } from "@/hooks/useServerClock";
 import { TARGET_SCORE, MAX_WRONG_CLAIMS_PER_ROUND } from "@/hooks/useGameState";
-import { applySelectionPulseVars } from "@/lib/tokens";
 
 import RollHeroOverlay, { TUMBLE_MS } from "@/components/RollHeroOverlay";
 import { MATCH_ART_SRC } from "@/components/MatchDie";
@@ -862,6 +861,14 @@ const MultiplayerGameView: React.FC<Props> = ({
   // Fade it back out when the game ends so the background returns cleanly.
   const isGameOver = s.phase === "GAME_OVER";
   const [bgOverlayVisible, setBgOverlayVisible] = useState(false);
+  // End of game. Fires on the transition only, and the ref is seeded from the
+  // phase at mount, so joining a finished table plays nothing.
+  const wasGameOverRef = React.useRef(isGameOver);
+  useEffect(() => {
+    const was = wasGameOverRef.current;
+    wasGameOverRef.current = isGameOver;
+    if (!was && isGameOver) playRoundAdvance();
+  }, [isGameOver]);
   useEffect(() => {
     if (isGameOver) {
       setBgOverlayVisible(false);
@@ -1444,6 +1451,11 @@ const MultiplayerGameView: React.FC<Props> = ({
   // Count the buffered pair while the arbiter is still deciding: the host has
   // no selections for us yet, but the player has visibly locked cards.
   const mySelCount = Math.max(optimisticSel.length, s.selectedCards.length);
+  // Index of MY first pick while the pair is still incomplete — the only card
+  // that pulses. Optimistic order first: it is the touch order.
+  const pulseIdx = mySelCount === 1
+    ? (optimisticSel[0] ?? s.selectedCards[0] ?? null)
+    : null;
   const canCancelClaim = claimMode && mySelCount < 2;
 
   if (canCancelClaim) banner = "CANCEL";
