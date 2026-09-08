@@ -47,13 +47,14 @@ import DailyMatchGhost, { type GhostCard } from "@/components/DailyMatchGhost";
 import { serverNow } from "@/hooks/useServerClock";
 import { TARGET_SCORE, MAX_WRONG_CLAIMS_PER_ROUND } from "@/hooks/useGameState";
 
-import RollHeroOverlay from "@/components/RollHeroOverlay";
+import RollHeroOverlay, { TUMBLE_MS } from "@/components/RollHeroOverlay";
 import { MATCH_ART_SRC } from "@/components/MatchDie";
 import type { Card } from "@/cardData";
 import { preloadGameArt } from "@/lib/preloadArt";
 import { callClaimLock } from "@/lib/claimLock";
 import {
   playFlip, playDiceRoll, playWhoopCall, playCorrect, playWrong, playDeal,
+  playSelect, playDeselect, playDieLand, playRoundAdvance,
   unlockAudio,
 } from "@/lib/sounds";
 import AutoFitText from "@/components/AutoFitText";
@@ -886,6 +887,7 @@ const MultiplayerGameView: React.FC<Props> = ({
   const soundTimersRef = React.useRef<ReturnType<typeof setTimeout>[]>([]);
   React.useEffect(() => {
     applyAnimationTimingVars();
+    applySelectionPulseVars();
     return () => { soundTimersRef.current.forEach(clearTimeout); soundTimersRef.current = []; };
   }, []);
 
@@ -906,6 +908,11 @@ const MultiplayerGameView: React.FC<Props> = ({
     setHeroRects({ home, target, parent });
     setActiveCommit(rollCommit);
     playDiceRoll();
+    // The cube settles onto its landed face at TUMBLE_MS; the landing thud is
+    // scheduled against the same server clock, so a client that joined the
+    // roll late never hears a landing that already happened.
+    const landAt = setTimeout(() => playDieLand(), Math.max(0, TUMBLE_MS - elapsed));
+    soundTimersRef.current.push(landAt);
     hapticImpact();
     // cardAreaRef is declared below; the ref itself is stable so eslint's
     // dependency check is not helpful here.
@@ -1061,7 +1068,10 @@ const MultiplayerGameView: React.FC<Props> = ({
   React.useEffect(() => {
     const prev = prevPeekForSoundRef.current;
     prevPeekForSoundRef.current = s.peekingCard;
+    // Same near-subliminal cue both ways: a card flipping up, and the same
+    // card flipping back down when the peek ends.
     if (prev === null && s.peekingCard !== null) playFlip();
+    else if (prev !== null && s.peekingCard === null) playFlip();
   }, [s.peekingCard]);
 
   const prevClaimByRef = React.useRef<number | null>(s.claimBy);
@@ -1397,6 +1407,8 @@ const MultiplayerGameView: React.FC<Props> = ({
     if (claimMode) {
       hapticTap();
       setOptimisticSel((prev) => {
+        if (prev.includes(i)) playDeselect();
+        else if (prev.length < 2) playSelect();
         const next = prev.includes(i)
           ? prev.filter((x) => x !== i)
           : prev.length >= 2 ? prev : [...prev, i];
@@ -1838,6 +1850,10 @@ const MultiplayerGameView: React.FC<Props> = ({
               ({ id: `hidden-${i}`, shape: "circle", number: 1, color: "red", svgPath: "" } as Card);
             const selected =
               s.selectedCards.includes(i) || optimisticSel.includes(i);
+            // The pulse belongs to the FIRST of the two picks only, and only
+            // while the pair is still incomplete — once the second card lands
+            // the claim locks and the wash carries the resolve.
+            const pulsing = selected && pulseIdx === i;
             return (
               <div key={i}
                 ref={(el) => { cellRefs.current[i] = el; }}
@@ -1852,6 +1868,7 @@ const MultiplayerGameView: React.FC<Props> = ({
                   interactive={cardsInteractive}
                   onClick={cardsInteractive ? () => handleCardClick(i) : undefined}
                   highlighted={selected}
+                  pulsing={pulsing}
                   wrong={wrongCards.includes(i)}
                   // Locked to me only: face up and live for everyone else.
                   // Suppressed while the wrong-claim treatment is still on
