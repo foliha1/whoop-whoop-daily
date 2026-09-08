@@ -823,17 +823,21 @@ const buttonBase: React.CSSProperties = {
  *
  * `gate` mode is the first-run interstitial: SKIP and the final button
  * both proceed to the action the player asked for. `reference` mode is
- * the header link: close just closes.
+ * the entry-screen link: close just closes. `in-game` mode is opened by a
+ * SEATED player from the in-game settings sheet — EVERY exit must return
+ * that player to their table, so both the skip control and the final
+ * button close the overlay and nothing may navigate.
  * ------------------------------------------------------------------ */
 let lastOpen: { mode: string; at: number } = { mode: "", at: 0 };
 
 const MultiplayerHowToSteps: React.FC<{
-  mode: "gate" | "reference";
+  mode: "gate" | "reference" | "in-game";
   /** Proceed to the action the player clicked (gate), or start play. */
   onStart: () => void;
-  /** Dismiss without proceeding (reference mode only). */
+  /** Dismiss without proceeding (reference and in-game modes). */
   onClose: () => void;
 }> = ({ mode, onStart, onClose }) => {
+
   const [step, setStep] = useState(0);
   const [prev, setPrev] = useState<{ index: number; dir: 1 | -1 } | null>(null);
   const [dir, setDir] = useState<1 | -1>(1);
