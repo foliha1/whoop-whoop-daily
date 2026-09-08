@@ -79,6 +79,7 @@ export function applyAnimationTimingVars(root: HTMLElement = document.documentEl
   root.style.setProperty("--ww-great-delay", `${GREAT_MATCH_DELAY_MS}ms`);
   root.style.setProperty("--ww-deal-stagger", `${DEAL_STAGGER_MS}ms`);
   root.style.setProperty("--ww-deal-move", `${DEAL_MOVE_MS}ms`);
+  root.style.setProperty("--ww-select-pulse", `${SELECT_PULSE_MS}ms`);
 }
 
 // ---- rotation claim window --------------------------------------------------
