@@ -374,6 +374,125 @@ export function useMultiplayerHost(opts: {
   const grantedRef = useRef<Set<string>>(new Set());
   const [lastClaimReject, setLastClaimReject] = useState<ClaimRejectPayload | null>(null);
   useEffect(() => { setLastClaimReject(null); }, [gameId]);
+
+  // Broadcast a rejection AND surface it locally. Every refusal path must go
+  // through this — a joiner that never hears about a refused grant hangs until
+  // its abandon timer and mislabels the hang as a connection failure.
+  const emitClaimReject = useCallback((payload: ClaimRejectPayload) => {
+    seqRef.current += 1;
+    const env: ClaimRejectEnvelope = {
+      v: PROTOCOL_VERSION,
+      type: "claim_reject",
+      seq: seqRef.current,
+      payload,
+    };
+    channelRef.current?.send({ type: "broadcast", event: "msg", payload: env }).catch(() => {});
+    // Host doesn't receive its own broadcasts.
+    setLastClaimReject(payload);
+  }, []);
+
+  // Delete the arbiter row for a window we are NOT honouring. Invariant: a
+  // claim that does not resolve must never leave a claim_locks row behind, or
+  // that window is consumed forever and nobody can claim in it again.
+  const releaseClaimLock = useCallback(
+    (claim_window: number, seat: number, visitor_id: string, reason: string) => {
+      if (!roomId) return;
+      void (async () => {
+        try {
+          const { supabase } = await import("@/integrations/supabase/client");
+          await supabase.functions.invoke("release-lock", {
+            body: {
+              room_id: roomId,
+              game_id: gameIdRef.current,
+              claim_window,
+              seat,
+              visitor_id,
+              reason,
+            },
+          });
+        } catch (e) {
+          console.error("[release-lock] invoke failed", e);
+        }
+      })();
+    },
+    [roomId],
+  );
+
+  // ---- deferred grants ----
+  // A grant can legitimately arrive while the board is momentarily NOT in a
+  // claimable phase — most often because the claimant's OWN flip resolved
+  // between their press and the grant's arrival (SETTLING, or a roll about to
+  // start). Refusing those was the bug: the claim is valid, it just landed a
+  // few hundred milliseconds early. So we HOLD it for a bounded time and apply
+  // it the moment the phase becomes claimable again, as long as the claim
+  // window has not moved on.
+  const DEFER_MS = 2600;
+  const deferredRef = useRef<
+    | { claim_window: number; seat: number; visitor_id: string; key: string; timer: ReturnType<typeof setTimeout> }
+    | null
+  >(null);
+  const clearDeferred = useCallback(() => {
+    if (deferredRef.current) clearTimeout(deferredRef.current.timer);
+    deferredRef.current = null;
+  }, []);
+  useEffect(() => clearDeferred, [clearDeferred]);
+  useEffect(() => { clearDeferred(); }, [gameId, clearDeferred]);
+
+  // Refuse a grant for good: mark it consumed, release its row, tell the seat.
+  const refuseGrant = useCallback(
+    (
+      grant: { claim_window: number; seat: number; visitor_id: string },
+      key: string,
+      hostWindow: number,
+      reason: ClaimRejectPayload["reason"],
+    ) => {
+      grantedRef.current.add(key);
+      emitClaimReject({
+        grant_claim_window: grant.claim_window,
+        host_claim_window: hostWindow,
+        seat: grant.seat,
+        visitor_id: grant.visitor_id,
+        reason,
+      });
+      releaseClaimLock(grant.claim_window, grant.seat, grant.visitor_id, reason);
+    },
+    [emitClaimReject, releaseClaimLock],
+  );
+
+  const claimablePhase = (phase: string) => phase === "FLIPPING" || phase === "CLAIM_WINDOW";
+
+  // Try to settle whatever is deferred against the CURRENT state.
+  const pumpDeferred = useCallback(
+    (expired: boolean) => {
+      const d = deferredRef.current;
+      if (!d) return;
+      const s = latestStateRef.current;
+      const hostWindow = claimWindowRef.current;
+      if (d.claim_window !== hostWindow) {
+        clearDeferred();
+        refuseGrant(d, d.key, hostWindow, d.claim_window < hostWindow ? "STALE_WINDOW" : "FUTURE_WINDOW");
+        return;
+      }
+      if (claimablePhase(s.phase) && s.claimBy === null && !s.rolling) {
+        clearDeferred();
+        grantedRef.current.add(d.key);
+        g.dispatch({ type: "PLAYER_ENTER_CLAIM", by: d.seat });
+        return;
+      }
+      if (expired) {
+        console.warn("[claim_grant:deferred-expired]", { ...d, phase: s.phase, claimBy: s.claimBy });
+        clearDeferred();
+        refuseGrant(d, d.key, hostWindow, "STALE_WINDOW");
+      }
+    },
+    [clearDeferred, refuseGrant, g.dispatch],
+  );
+
+  // Any state change may make a deferred grant applicable.
+  useEffect(() => {
+    if (deferredRef.current) pumpDeferred(false);
+  }, [g.state.phase, g.state.claimBy, g.state.rolling, pumpDeferred]);
+
   useEffect(() => {
     if (!enabled || !channel) return;
     const handler = (msg: { payload: unknown }) => {
@@ -381,6 +500,10 @@ export function useMultiplayerHost(opts: {
       if (!env || env.v !== PROTOCOL_VERSION || env.type !== "claim_grant") return;
       const grant = (env as ClaimGrantEnvelope).payload;
       const hostWindow = claimWindowRef.current;
+      const dedupeKey = `${grant.claim_window}:${grant.seat}`;
+      if (grantedRef.current.has(dedupeKey)) return;
+      if (deferredRef.current?.key === dedupeKey) return;
+
       if (grant.claim_window !== hostWindow) {
         const reason: ClaimRejectPayload["reason"] =
           grant.claim_window < hostWindow ? "STALE_WINDOW" : "FUTURE_WINDOW";
@@ -393,84 +516,39 @@ export function useMultiplayerHost(opts: {
           phase: latestStateRef.current.phase,
           claimBy: latestStateRef.current.claimBy,
         });
-        const rejectPayload: ClaimRejectPayload = {
-          grant_claim_window: grant.claim_window,
-          host_claim_window: hostWindow,
-          seat: grant.seat,
-          visitor_id: grant.visitor_id,
-          reason,
-        };
-        seqRef.current += 1;
-        const rejectEnv: ClaimRejectEnvelope = {
-          v: PROTOCOL_VERSION,
-          type: "claim_reject",
-          seq: seqRef.current,
-          payload: rejectPayload,
-        };
-        channelRef.current?.send({ type: "broadcast", event: "msg", payload: rejectEnv }).catch(() => {});
-        // Host surfaces locally too — host doesn't receive its own broadcasts.
-        setLastClaimReject(rejectPayload);
+        refuseGrant(grant, dedupeKey, hostWindow, reason);
         return;
       }
-      const dedupeKey = `${grant.claim_window}:${grant.seat}`;
-      if (grantedRef.current.has(dedupeKey)) return;
-      const phase = latestStateRef.current.phase;
+
       const s = latestStateRef.current;
-      // Pre-check reducer acceptance guard. Reducer returns the SAME state
-      // reference on refusal, so refusal is NOT distinguishable post-dispatch
-      // from a legal no-op. Replicate the guard here to detect refusal
-      // deterministically. PLAYER_ENTER_CLAIM accepts in FLIPPING and in the
-      // rotation claim window (CLAIM_WINDOW).
-      // The WHOOP button is UI-disabled during AWAITING_ROLL/ROLLING, but a
-      // claim can still be in flight when the phase changes — this safety
-      // net stays so any refused grant releases its lock.
-      const acceptedFlipping = phase === "FLIPPING" || phase === "CLAIM_WINDOW";
-      if (!acceptedFlipping) {
-        // Orphaned lock — the arbiter granted but the reducer refuses. Release
-        // the row so the (room, game, claim_window) key reopens, and surface
-        // a reject to the pressing player so they exit LOCKING….
-        console.warn("[claim_grant:refused-by-reducer] releasing lock", {
-          claim_window: grant.claim_window,
-          seat: grant.seat,
-          visitor_id: grant.visitor_id,
-          phase,
-          roller: s.roller,
-        });
+      if (claimablePhase(s.phase) && s.claimBy === null && !s.rolling) {
         grantedRef.current.add(dedupeKey);
-        const rejectPayload: ClaimRejectPayload = {
-          grant_claim_window: grant.claim_window,
-          host_claim_window: hostWindow,
-          seat: grant.seat,
-          visitor_id: grant.visitor_id,
-          reason: "STALE_WINDOW",
-        };
-        setLastClaimReject(rejectPayload);
-        if (roomId) {
-          void (async () => {
-            try {
-              const { supabase } = await import("@/integrations/supabase/client");
-              await supabase.functions.invoke("release-lock", {
-                body: {
-                  room_id: roomId,
-                  game_id: gameIdRef.current,
-                  claim_window: grant.claim_window,
-                  seat: grant.seat,
-                  visitor_id: grant.visitor_id,
-                  reason: "STALE_WINDOW",
-                },
-              });
-            } catch (e) {
-              console.error("[release-lock] invoke failed", e);
-            }
-          })();
-        }
+        // PLAYER_ENTER_CLAIM cancels any flip in flight for us: it clears
+        // inFlight and peekingCard, leaves flipsThisTurn untouched, and the
+        // orphaned FLIP_COMPLETE timer no-ops on its token guard.
+        g.dispatch({ type: "PLAYER_ENTER_CLAIM", by: grant.seat });
         return;
       }
-      grantedRef.current.add(dedupeKey);
-      g.dispatch({ type: "PLAYER_ENTER_CLAIM", by: grant.seat });
+
+      // Valid window, momentarily unclaimable board — hold it.
+      console.warn("[claim_grant:deferred]", {
+        claim_window: grant.claim_window,
+        seat: grant.seat,
+        phase: s.phase,
+        claimBy: s.claimBy,
+        rolling: s.rolling,
+      });
+      clearDeferred();
+      deferredRef.current = {
+        claim_window: grant.claim_window,
+        seat: grant.seat,
+        visitor_id: grant.visitor_id,
+        key: dedupeKey,
+        timer: setTimeout(() => pumpDeferred(true), DEFER_MS),
+      };
     };
     return onBroadcast(handler);
-  }, [enabled, channel, onBroadcast, g.dispatch, commitAndRoll, roomId]);
+  }, [enabled, channel, onBroadcast, g.dispatch, commitAndRoll, refuseGrant, clearDeferred, pumpDeferred]);
 
   // ---- transient event emission ----
   // The host observes reducer transitions and emits transient events on the

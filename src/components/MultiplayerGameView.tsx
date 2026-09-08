@@ -476,13 +476,18 @@ const RollOverlayPortal: React.FC<{
   );
 };
 
-type BannerKind = "YOUR_FLIP" | "TOO_SLOW" | "CLAIM_ERROR" | "CLAIM_WAIT" | "PENALTY" | "CANCEL" | null;
+type BannerKind = "YOUR_FLIP" | "TOO_SLOW" | "CLAIM_ERROR" | "CLAIM_LATE" | "CLAIM_WAIT" | "PENALTY" | "CANCEL" | null;
 
 
 const BannerStyles: Record<Exclude<BannerKind, null>, { bg: string; text: string; label: string; icon?: boolean }> = {
   YOUR_FLIP:   { bg: BLUE,    text: SURFACE, label: "YOUR FLIP!" },
   TOO_SLOW:    { bg: INK,     text: SURFACE, label: "SOMEONE BEAT YOU TO IT" },
+  // GENUINE transport failure only: the arbiter never answered and the host
+  // never spoke either. A claim the host explicitly refused is CLAIM_LATE.
   CLAIM_ERROR: { bg: RED,     text: SURFACE, label: "CONNECTION ISSUE — TRY AGAIN" },
+  // The host refused the claim (its window had already moved on). The network
+  // was fine, so this must never be dressed up as a connection problem.
+  CLAIM_LATE:  { bg: INK,     text: SURFACE, label: "JUST MISSED IT — TRY AGAIN" },
   // Unknown, not lost: the arbiter's answer never reached us, so we hold the
   // claim open and follow the host. Never phrased as being beaten to it.
   CLAIM_WAIT:  { bg: INK,     text: SURFACE, label: "SLOW CONNECTION — HOLD ON" },
@@ -901,6 +906,8 @@ const MultiplayerGameView: React.FC<Props> = ({
   const [claimBusy, setClaimBusy] = React.useState(false);
   const [tooSlowAt, setTooSlowAt] = React.useState<number | null>(null);
   const [claimErrAt, setClaimErrAt] = React.useState<number | null>(null);
+  // Host said no (its claim window had moved on). Not a transport failure.
+  const [claimLateAt, setClaimLateAt] = React.useState<number | null>(null);
   // "Unknown, not lost": the arbiter's answer never reached us. Purely a
   // message — it never pulls the claim.
   const [claimWaitAt, setClaimWaitAt] = React.useState<number | null>(null);
@@ -933,6 +940,7 @@ const MultiplayerGameView: React.FC<Props> = ({
   React.useEffect(() => {
     setTooSlowAt(null);
     setClaimErrAt(null);
+    setClaimLateAt(null);
     setClaimWaitAt(null);
     setPendingClaim(null);
     setPendingCancelled(false);
@@ -952,6 +960,11 @@ const MultiplayerGameView: React.FC<Props> = ({
     const t = setTimeout(() => setClaimErrAt(null), 1800);
     return () => clearTimeout(t);
   }, [claimErrAt]);
+  React.useEffect(() => {
+    if (claimLateAt === null) return;
+    const t = setTimeout(() => setClaimLateAt(null), 1800);
+    return () => clearTimeout(t);
+  }, [claimLateAt]);
   // The "unknown" notice clears the moment the host's authoritative claim
   // arrives for us — the fast path failed but the claim was real.
   React.useEffect(() => {
@@ -976,10 +989,10 @@ const MultiplayerGameView: React.FC<Props> = ({
 
 
 
-  // Host-dropped claim grant (window mismatch): if the rejected seat is
-  // ours, we thought we won but the host discarded the grant. Surface the
-  // CONNECTION ISSUE banner instead of a silent hang. Also clears LOCKING…
-  // if we happen to still be mid-request.
+  // Host refused our claim grant (its claim window had already moved on, or
+  // the board never became claimable in time). The connection was fine — the
+  // claim simply did not stick — so this shows JUST MISSED IT, never the
+  // CONNECTION ISSUE banner, which is reserved for real transport silence.
   const lastRejectKeyRef = React.useRef<string | null>(null);
   React.useEffect(() => {
     if (!lastClaimReject || mySeat === null) return;
@@ -991,7 +1004,8 @@ const MultiplayerGameView: React.FC<Props> = ({
     setClaimBusy(false);
     // Pull the optimistic claim: the host never opened one for us.
     setPendingClaim(null);
-    setClaimErrAt(Date.now());
+    setClaimWaitAt(null);
+    setClaimLateAt(Date.now());
 
   }, [lastClaimReject, mySeat]);
 
@@ -1368,6 +1382,7 @@ const MultiplayerGameView: React.FC<Props> = ({
 
   if (canCancelClaim) banner = "CANCEL";
   else if (claimErrAt !== null) banner = "CLAIM_ERROR";
+  else if (claimLateAt !== null) banner = "CLAIM_LATE";
   else if (claimWaitAt !== null) banner = "CLAIM_WAIT";
   else if (tooSlowAt !== null) banner = "TOO_SLOW";
   else if (isMyTurnToFlip) banner = "YOUR_FLIP";
