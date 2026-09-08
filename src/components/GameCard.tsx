@@ -24,6 +24,8 @@ interface GameCardProps {
    *  for you": quieter face, `not-allowed` cursor, no taps. Other players
    *  still see the same card as a normal, takeable face-up card. */
   unavailable?: boolean;
+  /** Loops the claim selection pulse (first of the two picks). */
+  pulsing?: boolean;
   /** Remount key for the deal-in wrapper; changing it replays the animation. */
   dealKey?: string | number;
   /** Stagger index for the deal-in animation (`--ww-deal-i`). */
