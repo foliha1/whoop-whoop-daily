@@ -402,3 +402,17 @@ export function panelStyle(
   };
 }
 
+
+/**
+ * Publishes the three fixed brand colours the looping selection pulse ramps
+ * through onto :root, so the CSS keyframes never hardcode a value. RAW, not
+ * COLORS — the pulse must look identical in both themes, like the card and
+ * die artwork.
+ */
+export function applySelectionPulseVars(
+  root: HTMLElement = document.documentElement,
+): void {
+  root.style.setProperty("--ww-sel-cream", RAW.cream);
+  root.style.setProperty("--ww-sel-blue2", RAW.blue2);
+  root.style.setProperty("--ww-sel-blue", RAW.blue);
+}
