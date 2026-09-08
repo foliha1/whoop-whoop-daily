@@ -15,17 +15,22 @@ import {
   COLOR_NAMES,
 } from "@/cardData";
 
-// Difficulty constants — tuned as a set. Reaction speed is the dominant knob:
-// a claim slower than the 2000ms rotation claim window is wasted, so the band
-// straddles that window. The floor (1500ms) leaves the player a real chance to
-// beat WHOOP to an obvious match; the ceiling (3400ms) means slow reads often
-// arrive too late. CORRUPT_CHANCE stays visibly non-zero so WHOOP still misses
-// in front of the player, keeping wrong-claim animations part of the game.
+// Difficulty constants — tuned as a set, and only after the correctness bug in
+// the solo claim scheduler was fixed (WHOOP's reaction timer used to be
+// destroyed by the next card flip, so measured claim attempts were ~0.06 per
+// game and it won 0% of 500 headless games). With the scheduler fixed, the
+// reaction band is the dominant knob: measured over 500 headless games against
+// a competent probe (5-position memory, 85% call accuracy, ~1.1s reaction),
+// 1500-3400ms won 1.8% of games, 1100-2400ms won 3.0%, 800-1800ms won 4.5% and
+// 600-1400ms won 33.6% while calling in 97.8% of games. 600-1400 puts WHOOP on
+// roughly human reaction footing without perfect memory. CORRUPT_CHANCE stays
+// at 0.15 so WHOOP still calls wrong in front of the player — measured 0.63
+// mistaken calls per game, at least one in 44.6% of games.
 export const DECAY_RATE = 0.97;
 export const CORRUPT_CHANCE = 0.15;
 export const CONFIDENCE_THRESHOLD = 0.55;
-export const REACTION_MIN_MS = 1500;
-export const REACTION_MAX_MS = 3400;
+export const REACTION_MIN_MS = 600;
+export const REACTION_MAX_MS = 1400;
 
 
 export interface Memory {

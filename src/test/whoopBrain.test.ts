@@ -6,6 +6,9 @@ import {
   corruptCard,
   findClaim,
   pickFlipTarget,
+  pickReactionDelay,
+  REACTION_MIN_MS,
+  REACTION_MAX_MS,
   DECAY_RATE,
   CONFIDENCE_THRESHOLD,
 } from "@/lib/whoopBrain";
@@ -94,5 +97,13 @@ describe("whoopBrain", () => {
     b = observe(b, 1, card("star", 3, "yellow"), seq([0.9]));
     const pick = pickFlipTarget(b, [0, 1]);
     expect(pick).toBe(0); // lower confidence wins
+  });
+
+  it("pickReactionDelay stays inside the tuned band and can beat a human reaction", () => {
+    expect(pickReactionDelay(() => 0)).toBe(REACTION_MIN_MS);
+    expect(pickReactionDelay(() => 0.999)).toBeLessThan(REACTION_MAX_MS);
+    // Regression guard for the silent-WHOOP bug: a band whose floor sits above
+    // a competent human's ~1.1s call means WHOOP loses every race it enters.
+    expect(REACTION_MIN_MS).toBeLessThan(1100);
   });
 });
