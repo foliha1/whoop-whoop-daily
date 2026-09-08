@@ -998,7 +998,14 @@ const MultiplayerHowToSteps: React.FC<{
           <CloseButton
             label="SKIP"
             onClick={dismiss}
-            ariaLabel={mode === "gate" ? "Skip how to play and start" : "Close how to play"}
+            ariaLabel={
+              mode === "gate"
+                ? "Skip how to play and start"
+                : mode === "in-game"
+                  ? "Back to game"
+                  : "Close how to play"
+            }
+
             data-testid="mp-htp-skip"
             hitTestId="mp-htp-skip-hit"
             style={{ zIndex: 3 }}
@@ -1065,7 +1072,7 @@ const MultiplayerHowToSteps: React.FC<{
                 fontStyle: "italic",
               }}
             >
-              Lets Play!
+              {mode === "in-game" ? "Back to Game" : "Lets Play!"}
               <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />
             </button>
           ) : (
