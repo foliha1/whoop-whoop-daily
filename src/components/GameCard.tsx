@@ -189,11 +189,7 @@ const GameCard = ({
           element (position + hit area) never moves mid-deal. */}
       <div
         key={dealKey}
-        className={
-          [dealIndex !== undefined ? "ww-deal" : "", pulsing ? "ww-select-pulse-scale" : ""]
-            .filter(Boolean)
-            .join(" ") || undefined
-        }
+        className={dealIndex !== undefined ? "ww-deal" : undefined}
         style={{
           position: "absolute",
           inset: 0,
@@ -201,6 +197,13 @@ const GameCard = ({
             ? { ["--ww-deal-i" as string]: String(dealIndex) }
             : {}),
         }}
+      >
+      {/* Deal-in and claim breathing need separate transform layers. Both can
+          be active on a freshly refilled card; sharing one element lets the
+          later animation declaration replace the other one's transform. */}
+      <div
+        className={pulsing ? "ww-select-pulse-scale" : undefined}
+        style={{ position: "absolute", inset: 0, transformOrigin: "center" }}
       >
       <div
 
@@ -278,6 +281,7 @@ const GameCard = ({
       {pulsing && !wrong && !matched && (
         <div className="ww-select-pulse" style={{ zIndex: 4 }} />
       )}
+      </div>
       </div>
 
       {highlighted && !wrong && !matched && (
