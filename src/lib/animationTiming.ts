@@ -26,7 +26,7 @@ export const SELECT_ANIM_MS = 120;
  * cubic-bezier(0.5, 0, 0.5, 1) on both halves. The optional card scale was
  * removed after nine simultaneous instances dropped frames under CPU throttle.
  */
-export const SELECT_PULSE_MS = 999.9;
+export const SELECT_PULSE_MS = 999.885;
 /** Wrong-claim shake + red wash + ring one-shot (`.ww-wrong*`). */
 export const WRONG_ANIM_MS = 1000;
 /** Programmatic press treatment (`.ww-press` / `.ww-press-on`). */
