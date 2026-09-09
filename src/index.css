@@ -588,9 +588,8 @@ All colors MUST be HSL.
 }
 
 /* ── Active claim: every available card breathes in phase ──
-   Faithful to the source SVG: one 999.885ms loop, three properties, all
-   reversing at the 50% midpoint with cubic-bezier(0.5, 0, 0.5, 1) on both
-   halves:
+   One 1000ms loop, three properties, all reversing at the 50% midpoint with
+   cubic-bezier(0.5, 0, 0.5, 1) on both halves (ease in, ease out):
      1. scale 1 → 0.96 → 1 about the card centre
      2. stroke width 0 → 2px → 0 at constant RAW blue, centred on the card's
         outer edge (radius 6.83 against the card's 6.33)
@@ -603,7 +602,7 @@ All colors MUST be HSL.
 .ww-select-pulse-scale {
   will-change: transform, filter;
   transform-origin: center;
-  animation: ww-select-pulse-scale var(--ww-select-pulse, 999.885ms)
+  animation: ww-select-pulse-scale var(--ww-select-pulse, 1000ms)
              cubic-bezier(0.5, 0, 0.5, 1) infinite both;
 }
 .ww-select-pulse {
@@ -613,7 +612,7 @@ All colors MUST be HSL.
   border: 0 solid var(--ww-sel-blue, #0072B2);
   pointer-events: none;
   will-change: border-width;
-  animation: ww-select-pulse var(--ww-select-pulse, 999.885ms)
+  animation: ww-select-pulse var(--ww-select-pulse, 1000ms)
              cubic-bezier(0.5, 0, 0.5, 1) infinite both;
 }
 
