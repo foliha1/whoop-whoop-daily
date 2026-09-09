@@ -1862,10 +1862,10 @@ const MultiplayerGameView: React.FC<Props> = ({
               ({ id: `hidden-${i}`, shape: "circle", number: 1, color: "red", svgPath: "" } as Card);
             const selected =
               s.selectedCards.includes(i) || optimisticSel.includes(i);
-            // Every available card shares the same class and animation start
-            // commit: no delay, stagger, or per-card phase offset. Cards this
-            // viewer burned on an earlier miss stay dim and still.
-            const pulsing = activeClaimPulse && !lockedForMe.has(i);
+            // Every occupied card shares the same class and animation-start
+            // commit: no delay, stagger, or per-card phase offset. Lock and
+            // unavailable treatments remain layered above this shared pulse.
+            const pulsing = activeClaimPulse;
             return (
               <div key={i}
                 ref={(el) => { cellRefs.current[i] = el; }}
@@ -1883,12 +1883,10 @@ const MultiplayerGameView: React.FC<Props> = ({
                   pulsing={pulsing}
                   wrong={wrongCards.includes(i)}
                   // Locked to me only: face up and live for everyone else.
-                  // Suppressed while the wrong-claim treatment is still on
-                  // this card so the two states never stack. A pending/open
-                  // board lock is interaction-only; the board pulse communicates
-                  // that lock without muting its own glow.
+                  // The pending-board and claimant-specific dimming remains
+                  // above the shared pulse, which continues underneath it.
                   unavailable={
-                    lockedForMe.has(i) && !wrongCards.includes(i)
+                    (boardLocked || lockedForMe.has(i)) && !wrongCards.includes(i)
                   }
 
                   shaking={false}
