@@ -21,9 +21,10 @@ export const CARD_FLIP_MS = 500;
 export const SELECT_ANIM_MS = 120;
 /**
  * One full cycle of the board-wide breathing pulse during an active claim
- * (`.ww-select-pulse`): scale 1 → 0.96 → 1, stroke width
- * 0 → 2px → 0, glow blur 0 → 2.5px → 0, all reversing at the 50% midpoint
- * with cubic-bezier(0.5, 0, 0.5, 1) on both halves.
+ * (`.ww-select-pulse`): stroke width 0 → 2px → 0 and glow blur
+ * 0 → 2.5px → 0, both reversing at the 50% midpoint with
+ * cubic-bezier(0.5, 0, 0.5, 1) on both halves. The optional card scale was
+ * removed after nine simultaneous instances dropped frames under CPU throttle.
  */
 export const SELECT_PULSE_MS = 999.9;
 /** Wrong-claim shake + red wash + ring one-shot (`.ww-wrong*`). */
