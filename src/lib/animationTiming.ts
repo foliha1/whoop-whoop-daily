@@ -20,8 +20,8 @@ export const CARD_FLIP_MS = 500;
 /** Selection wash + ring one-shot (`.ww-select-*`). */
 export const SELECT_ANIM_MS = 120;
 /**
- * One full cycle of the breathing selection pulse on the first card picked
- * during a claim (`.ww-select-pulse`): scale 1 → 0.96 → 1, stroke width
+ * One full cycle of the board-wide breathing pulse during an active claim
+ * (`.ww-select-pulse`): scale 1 → 0.96 → 1, stroke width
  * 0 → 2px → 0, glow blur 0 → 2.5px → 0, all reversing at the 50% midpoint
  * with cubic-bezier(0.5, 0, 0.5, 1) on both halves.
  */

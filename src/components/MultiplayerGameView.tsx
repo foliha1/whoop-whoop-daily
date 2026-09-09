@@ -287,7 +287,6 @@ const CallerSignal: React.FC<{ name: string }> = ({ name }) => (
   <div
     role="status"
     aria-live="assertive"
-    className="mp-caller-signal"
     style={{
       ...panelStyle("surface", 4),
       position: "absolute",
@@ -297,15 +296,12 @@ const CallerSignal: React.FC<{ name: string }> = ({ name }) => (
       alignItems: "center",
       justifyContent: "center",
       minWidth: 0,
-      background: RAW.red,
-      color: RAW.cream,
+      background: PANEL,
+      color: TEXT,
       border: BORDER.heavy,
       borderRadius: RADIUS.sm,
-      boxShadow: SHADOW.windowFocused,
       pointerEvents: "none",
       overflow: "hidden",
-      animation: `mp-caller-in ${MOTION.fast} both`,
-      transition: `opacity ${MOTION.fast}`,
     }}
   >
     <AutoFitText
@@ -988,9 +984,10 @@ const MultiplayerGameView: React.FC<Props> = ({
   const claimPending = pendingClaim !== null && !pendingCancelled;
   const claimMode = inClaimMode || claimPending;
   // Board lock: from the press until the claim resolves, a seat with a claim
-  // in flight (or another seat's open claim) cannot tap or focus any card —
-  // and the cards show the `unavailable` treatment so the board visibly reads
-  // as "not taking taps" rather than eating them.
+  // in flight (or another seat's open claim) cannot tap or focus any card.
+  // During an authoritative claim the shared pulse is the visible lock signal;
+  // dimming would fight its stroke/glow. Claimant-specific wrong-card locks
+  // remain dimmed independently below.
   const boardLocked =
     otherSeatClaiming || (claimBusy && !claimMode) || (pendingCancelled && claimBusy);
   const cardsInteractive = !boardLocked;
@@ -1451,11 +1448,6 @@ const MultiplayerGameView: React.FC<Props> = ({
   // Count the buffered pair while the arbiter is still deciding: the host has
   // no selections for us yet, but the player has visibly locked cards.
   const mySelCount = Math.max(optimisticSel.length, s.selectedCards.length);
-  // Index of MY first pick while the pair is still incomplete — the only card
-  // that pulses. Optimistic order first: it is the touch order.
-  const pulseIdx = mySelCount === 1
-    ? (optimisticSel[0] ?? s.selectedCards[0] ?? null)
-    : null;
   const canCancelClaim = claimMode && mySelCount < 2;
 
   if (canCancelClaim) banner = "CANCEL";
@@ -1583,6 +1575,10 @@ const MultiplayerGameView: React.FC<Props> = ({
     : (s.claimBy === mySeat
       ? "YOU"
       : (s.seatMap.find((entry) => entry.seat === s.claimBy)?.display_name ?? "PLAYER"));
+  // `phase` and `claimBy` are both part of PublicState, so this is identical
+  // on claimant, host, and every observing client. It ends in the same
+  // broadcast commit that resolves, cancels, or pulls the claim.
+  const activeClaimPulse = s.phase === "CLAIM_SELECTING" && s.claimBy !== null;
 
   const myScore = mySeat !== null ? (s.scores[mySeat] ?? 0) : 0;
   const rule = s.rule[0] ?? "SHAPE";
@@ -1863,10 +1859,10 @@ const MultiplayerGameView: React.FC<Props> = ({
               ({ id: `hidden-${i}`, shape: "circle", number: 1, color: "red", svgPath: "" } as Card);
             const selected =
               s.selectedCards.includes(i) || optimisticSel.includes(i);
-            // The pulse belongs to the FIRST of the two picks only, and only
-            // while the pair is still incomplete — once the second card lands
-            // the claim locks and the wash carries the resolve.
-            const pulsing = selected && pulseIdx === i && !lockedForMe.has(i);
+            // Every available card shares the same class and animation start
+            // commit: no delay, stagger, or per-card phase offset. Cards this
+            // viewer burned on an earlier miss stay dim and still.
+            const pulsing = activeClaimPulse && !lockedForMe.has(i);
             return (
               <div key={i}
                 ref={(el) => { cellRefs.current[i] = el; }}
@@ -1885,11 +1881,11 @@ const MultiplayerGameView: React.FC<Props> = ({
                   wrong={wrongCards.includes(i)}
                   // Locked to me only: face up and live for everyone else.
                   // Suppressed while the wrong-claim treatment is still on
-                  // this card so the two states never stack. `boardLocked`
-                  // adds the same treatment while a claim is being decided,
-                  // so the board reads as inert instead of eating taps.
+                  // this card so the two states never stack. A pending/open
+                  // board lock is interaction-only; the board pulse communicates
+                  // that lock without muting its own glow.
                   unavailable={
-                    (boardLocked || lockedForMe.has(i)) && !wrongCards.includes(i)
+                    lockedForMe.has(i) && !wrongCards.includes(i)
                   }
 
                   shaking={false}

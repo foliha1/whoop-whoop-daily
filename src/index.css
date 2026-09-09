@@ -587,7 +587,7 @@ All colors MUST be HSL.
   to   { box-shadow: inset 0 0 0 calc(2px * var(--ww-k)) #0072B2; }
 }
 
-/* ── First card picked during a claim: breathing pulse ──
+/* ── Active claim: every available card breathes in phase ──
    Three properties animate together on a single 999.9ms loop, all reversing
    at the 50% midpoint with cubic-bezier(0.5, 0, 0.5, 1) on both halves:
      1. scale 1 → 0.96 → 1     (on .ww-select-pulse-scale, the inner wrapper —
@@ -599,6 +599,7 @@ All colors MUST be HSL.
    only a fallback. Duration comes from SELECT_PULSE_MS. */
 .ww-select-pulse-scale {
   transform-origin: center;
+  will-change: transform, filter;
   animation: ww-select-pulse-scale var(--ww-select-pulse, 999.9ms) linear infinite both;
 }
 .ww-select-pulse {
@@ -607,6 +608,7 @@ All colors MUST be HSL.
   border-radius: calc(6.83px * var(--ww-k));
   border: 0 solid var(--ww-sel-blue, #0072B2);
   pointer-events: none;
+  will-change: border-width;
   animation: ww-select-pulse var(--ww-select-pulse, 999.9ms) linear infinite both;
 }
 
@@ -629,8 +631,8 @@ All colors MUST be HSL.
   100% { border-width: 0; }
 }
 
-/* Reduced motion: rest at the midpoint — full 2px stroke, full glow — so
-   the pick stays unmistakable without animating. Scale rests at 1. */
+/* Reduced motion: rest at the midpoint — full 2px stroke and full glow — so
+   the active claim stays unmistakable without animating. Scale rests at 1. */
 @media (prefers-reduced-motion: reduce) {
   .ww-select-pulse-scale {
     animation: none;
@@ -830,17 +832,6 @@ All colors MUST be HSL.
 
 @media (prefers-reduced-motion: reduce) {
   .ww-deal { animation: ww-deal-fade 300ms linear 0ms both; }
-}
-
-/* The caller announcement occupies the existing player-status strip, never
-   the board. Reduced-motion users get the same signal without movement. */
-@keyframes mp-caller-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mp-caller-signal { animation: none !important; }
 }
 
 /* ── Grid-size picker selection ── */

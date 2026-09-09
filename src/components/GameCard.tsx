@@ -24,7 +24,8 @@ interface GameCardProps {
    *  for you": quieter face, `not-allowed` cursor, no taps. Other players
    *  still see the same card as a normal, takeable face-up card. */
   unavailable?: boolean;
-  /** Loops the claim selection pulse (first of the two picks). */
+  /** Loops the shared active-claim pulse. The parent enables it for every
+   *  available card so the grid breathes as one board. */
   pulsing?: boolean;
   /** Remount key for the deal-in wrapper; changing it replays the animation. */
   dealKey?: string | number;
@@ -271,12 +272,14 @@ const GameCard = ({
         <>
           <div ref={washRef} className="ww-select-wash" style={{ zIndex: 2 }} />
           <div className="ww-select-ring" style={{ zIndex: 3 }} />
-          {/* Breathing pulse (scale + stroke + glow) on the first of the two
-              picks. Lives inside the inner wrapper so it scales with the card.
-              Sits on top of the wash/ring: the wash's animationend is what
-              drives the claim-resolve handshake, so it must stay. */}
-          {pulsing && <div className="ww-select-pulse" style={{ zIndex: 4 }} />}
         </>
+      )}
+
+      {/* Shared active-claim pulse. It is independent of `highlighted`, so all
+          available cards breathe while the claimant's wash remains a distinct
+          selection marker. */}
+      {pulsing && !wrong && !matched && (
+        <div className="ww-select-pulse" style={{ zIndex: 4 }} />
       )}
 
       {wrong && (
