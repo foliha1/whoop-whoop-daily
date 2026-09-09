@@ -297,7 +297,7 @@ const CallerSignal: React.FC<{ name: string }> = ({ name }) => (
       justifyContent: "center",
       minWidth: 0,
       background: PANEL,
-      color: TEXT,
+      color: COLORS.ink,
       border: BORDER.heavy,
       borderRadius: RADIUS.sm,
       pointerEvents: "none",
