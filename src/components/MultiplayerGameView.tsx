@@ -1580,8 +1580,12 @@ const MultiplayerGameView: React.FC<Props> = ({
   // claimant also sees it immediately during the optimistic arbiter wait; all
   // other seats begin together when the host broadcasts the grant. It ends on
   // the resolve/cancel broadcast, or immediately if the pending claim is pulled.
+  // Solo WHOOP enters CLAIM_RESOLVING directly with its chosen pair, so that
+  // existing active-claim phase belongs to the same presentation interval.
   const activeClaimPulse =
-    (s.phase === "CLAIM_SELECTING" && s.claimBy !== null) || claimPending;
+    ((s.phase === "CLAIM_SELECTING" || s.phase === "CLAIM_RESOLVING") &&
+      s.claimBy !== null) ||
+    claimPending;
 
   const myScore = mySeat !== null ? (s.scores[mySeat] ?? 0) : 0;
   const rule = s.rule[0] ?? "SHAPE";
