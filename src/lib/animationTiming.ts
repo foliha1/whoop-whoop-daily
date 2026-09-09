@@ -23,10 +23,10 @@ export const SELECT_ANIM_MS = 120;
  * One full cycle of the board-wide breathing pulse during an active claim
  * (`.ww-select-pulse`): stroke width 0 → 2px → 0 and glow blur
  * 0 → 2.5px → 0, both reversing at the 50% midpoint with
- * cubic-bezier(0.5, 0, 0.5, 1) on both halves. The optional card scale was
- * removed after nine simultaneous instances dropped frames under CPU throttle.
+ * cubic-bezier(0.5, 0, 0.5, 1) on both halves. The card scales 1 → 0.96 → 1
+ * about its centre on the same element, so the glow never drifts.
  */
-export const SELECT_PULSE_MS = 999.885;
+export const SELECT_PULSE_MS = 1000;
 /** Wrong-claim shake + red wash + ring one-shot (`.ww-wrong*`). */
 export const WRONG_ANIM_MS = 1000;
 /** Programmatic press treatment (`.ww-press` / `.ww-press-on`). */
