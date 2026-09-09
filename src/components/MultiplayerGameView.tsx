@@ -1575,10 +1575,13 @@ const MultiplayerGameView: React.FC<Props> = ({
     : (s.claimBy === mySeat
       ? "YOU"
       : (s.seatMap.find((entry) => entry.seat === s.claimBy)?.display_name ?? "PLAYER"));
-  // `phase` and `claimBy` are both part of PublicState, so this is identical
-  // on claimant, host, and every observing client. It ends in the same
-  // broadcast commit that resolves, cancels, or pulls the claim.
-  const activeClaimPulse = s.phase === "CLAIM_SELECTING" && s.claimBy !== null;
+  // `phase` and `claimBy` are both part of PublicState, so the authoritative
+  // interval is identical on claimant, host, and every observing client. The
+  // claimant also sees it immediately during the optimistic arbiter wait; all
+  // other seats begin together when the host broadcasts the grant. It ends on
+  // the resolve/cancel broadcast, or immediately if the pending claim is pulled.
+  const activeClaimPulse =
+    (s.phase === "CLAIM_SELECTING" && s.claimBy !== null) || claimPending;
 
   const myScore = mySeat !== null ? (s.scores[mySeat] ?? 0) : 0;
   const rule = s.rule[0] ?? "SHAPE";
