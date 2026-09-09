@@ -309,7 +309,6 @@ const GameCard = ({
           />
         </>
       )}
-      </div>
 
 
 
