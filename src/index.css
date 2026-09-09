@@ -587,18 +587,18 @@ All colors MUST be HSL.
   to   { box-shadow: inset 0 0 0 calc(2px * var(--ww-k)) #0072B2; }
 }
 
-/* ── First card picked during a claim: breathing pulse ──
-   Three properties animate together on a single 999.9ms loop, all reversing
+/* ── Active claim: every available card breathes in phase ──
+     Stroke and glow animate together on a single 999.9ms loop, both reversing
    at the 50% midpoint with cubic-bezier(0.5, 0, 0.5, 1) on both halves:
-     1. scale 1 → 0.96 → 1     (on .ww-select-pulse-scale, the inner wrapper —
-        purely visual; the grid cell and hit area never move)
-     2. stroke width 0 → 2px → 0 at constant full brand blue, sitting just
+      1. stroke width 0 → 2px → 0 at constant full brand blue, sitting just
         outside the card (corner radius 6.83 against the card's 6.33)
-     3. drop-shadow glow, zero offset, blur 0 → 2.5px → 0, same brand blue
+      2. drop-shadow glow, zero offset, blur 0 → 2.5px → 0, same brand blue
+   Nine simultaneous scale/filter animations dropped frames under a 4× CPU
+   throttle, so the optional scale was removed per the performance fallback.
    Colour comes from RAW via applySelectionPulseVars(); the literal here is
    only a fallback. Duration comes from SELECT_PULSE_MS. */
 .ww-select-pulse-scale {
-  transform-origin: center;
+  will-change: filter;
   animation: ww-select-pulse-scale var(--ww-select-pulse, 999.9ms) linear infinite both;
 }
 .ww-select-pulse {
@@ -607,18 +607,16 @@ All colors MUST be HSL.
   border-radius: calc(6.83px * var(--ww-k));
   border: 0 solid var(--ww-sel-blue, #0072B2);
   pointer-events: none;
+  will-change: border-width;
   animation: ww-select-pulse var(--ww-select-pulse, 999.9ms) linear infinite both;
 }
 
 @keyframes ww-select-pulse-scale {
   0%   { animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
-         transform: scale(1);
          filter: drop-shadow(0 0 0 rgb(0, 114, 178)); }
   50%  { animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
-         transform: scale(0.96);
          filter: drop-shadow(0 0 calc(2.5px * var(--ww-k)) rgb(0, 114, 178)); }
-  100% { transform: scale(1);
-         filter: drop-shadow(0 0 0 rgb(0, 114, 178)); }
+  100% { filter: drop-shadow(0 0 0 rgb(0, 114, 178)); }
 }
 
 @keyframes ww-select-pulse {
@@ -629,12 +627,11 @@ All colors MUST be HSL.
   100% { border-width: 0; }
 }
 
-/* Reduced motion: rest at the midpoint — full 2px stroke, full glow — so
-   the pick stays unmistakable without animating. Scale rests at 1. */
+/* Reduced motion: rest at the midpoint — full 2px stroke and full glow — so
+   the active claim stays unmistakable without animating. Scale rests at 1. */
 @media (prefers-reduced-motion: reduce) {
   .ww-select-pulse-scale {
     animation: none;
-    transform: none;
     filter: drop-shadow(0 0 calc(2.5px * var(--ww-k)) rgb(0, 114, 178));
   }
   .ww-select-pulse {
@@ -830,17 +827,6 @@ All colors MUST be HSL.
 
 @media (prefers-reduced-motion: reduce) {
   .ww-deal { animation: ww-deal-fade 300ms linear 0ms both; }
-}
-
-/* The caller announcement occupies the existing player-status strip, never
-   the board. Reduced-motion users get the same signal without movement. */
-@keyframes mp-caller-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mp-caller-signal { animation: none !important; }
 }
 
 /* ── Grid-size picker selection ── */
