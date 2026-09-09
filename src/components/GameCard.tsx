@@ -272,6 +272,14 @@ const GameCard = ({
         </div>
       </div>
 
+      {/* Shared active-claim stroke. Nested inside the scaled + glowing
+          wrapper (as the SVG's single filtered <g>) so stroke, glow and scale
+          stay locked together. */}
+      {pulsing && !wrong && !matched && (
+        <div className="ww-select-pulse" style={{ zIndex: 4 }} />
+      )}
+      </div>
+
       {highlighted && !wrong && !matched && (
         <>
           <div ref={washRef} className="ww-select-wash" style={{ zIndex: 2 }} />
@@ -279,12 +287,7 @@ const GameCard = ({
         </>
       )}
 
-      {/* Shared active-claim pulse. It is independent of `highlighted`, so all
-          available cards breathe while the claimant's wash remains a distinct
-          selection marker. */}
-      {pulsing && !wrong && !matched && (
-        <div className="ww-select-pulse" style={{ zIndex: 4 }} />
-      )}
+
 
       {wrong && (
         <>
