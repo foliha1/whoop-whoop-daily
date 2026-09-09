@@ -157,7 +157,11 @@ const GameCard = ({
         aspectRatio: fill ? undefined : "5/7",
         cursor: unavailable ? "not-allowed" : interactive ? "pointer" : "default",
         position: "relative",
-        overflow: "hidden",
+        // Claim pulse stroke/glow extends just beyond the card edge. Clipping
+        // here made the whole-board pulse effectively invisible; each face
+        // already owns its rounded clipping, so the outer hit-area can safely
+        // allow the presentational layers to paint without affecting layout.
+        overflow: "visible",
         borderRadius: radius,
         boxShadow,
         transformOrigin: "center",
