@@ -9,9 +9,12 @@ export type AnalyticsEventType =
   | "game_completed"
   | "room_replayed"
   | "email_captured"
-  | "mp_howto_opened"
-  | "mp_howto_finished"
-  | "mp_howto_skipped";
+  // Classic How to Play. Renamed with the surface: the scripted demo replaced
+  // the prose stepper, and the opened / finished / skipped shape is kept so the
+  // numbers stay comparable to the stepper's.
+  | "classic_demo_opened"
+  | "classic_demo_finished"
+  | "classic_demo_skipped";
 
 interface TrackOpts {
   roomCode?: string;
