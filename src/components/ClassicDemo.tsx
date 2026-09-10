@@ -505,24 +505,26 @@ const useReducedMotion = (): boolean => {
 const GRID_GAP = SPACE[3];
 const CARD_RATIO = 7 / 5;
 
-const useCardWidth = (): [React.RefObject<HTMLDivElement>, number] => {
-  const ref = useRef<HTMLDivElement>(null);
+// The board mounts inside a portal, so the node arrives after the first render.
+// A callback ref in state is what makes the measurement wait for it instead of
+// reading null once and never trying again.
+const useCardWidth = (): [(el: HTMLDivElement | null) => void, number] => {
+  const [node, setNode] = useState<HTMLDivElement | null>(null);
   const [w, setW] = useState(0);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    if (!node) return;
     const measure = () => {
-      const box = el.getBoundingClientRect();
+      const box = node.getBoundingClientRect();
       const byWidth = (box.width - 2 * GRID_GAP) / 3;
       const byHeight = (box.height - 2 * GRID_GAP) / 3 / CARD_RATIO;
       setW(Math.max(0, Math.floor(Math.min(byWidth, byHeight))));
     };
     measure();
     const ro = new ResizeObserver(measure);
-    ro.observe(el);
+    ro.observe(node);
     return () => ro.disconnect();
-  }, []);
-  return [ref, w];
+  }, [node]);
+  return [setNode, w];
 };
 
 const dieRotation = (rule: RollAttribute | null, rolls: number): string => {
