@@ -44,7 +44,7 @@ import MultiplayerGameView from "@/components/MultiplayerGameView";
 import { useSoloGame } from "@/hooks/useSoloGame";
 import { useClassicResultRecorder } from "@/hooks/useClassicResultRecorder";
 
-import MultiplayerHowToSteps, { hasSeenMpHowTo } from "@/components/MultiplayerHowToSteps";
+import ClassicDemo, { hasSeenClassicDemo } from "@/components/ClassicDemo";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
 
 
@@ -559,7 +559,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
   /** First play click of the browser opens the gate; the action runs after. */
   const gateOr = useCallback((run: () => void) => {
-    if (hasSeenMpHowTo()) {
+    if (hasSeenClassicDemo()) {
       run();
       return;
     }
@@ -579,7 +579,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const openHowToReference = useCallback(() => setHowTo({ mode: "reference" }), []);
 
   const howToOverlay = howTo ? (
-    <MultiplayerHowToSteps
+    <ClassicDemo
       mode={howTo.mode}
       onStart={() => {
         const run = howTo.then;
@@ -587,6 +587,14 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         run?.();
       }}
       onClose={() => setHowTo(null)}
+      onPlaySolo={() => {
+        setHowTo(null);
+        startSoloFlow();
+      }}
+      onPlayPeeps={() => {
+        setHowTo(null);
+        startRoomFlow();
+      }}
     />
   ) : null;
 

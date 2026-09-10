@@ -126,3 +126,18 @@ export const CLAIM_LOCK_RETRY_DELAY_MS = 400;
  * cycle appear to advance along the string.
  */
 export const HEADLINE_CHASE_MS = 2000;
+
+// ---- Classic scripted demo (How to Play) ------------------------------------
+// The demo plays a fixed game *to* the player with the real board pieces, so
+// every treatment duration comes from the constants above. Only the dwell beats
+// between scripted moments live here.
+/** Pause between two scripted beats inside one step. */
+export const DEMO_BEAT_MS = 500;
+/** How long a revealed card is held before it flips back. */
+export const DEMO_HOLD_MS = 1200;
+/** The die's tumble on the demo's two rolls. */
+export const DEMO_DIE_ROLL_MS = 900;
+/** Easing of that tumble — a fast throw settling into its landing. */
+export const DEMO_DIE_EASE = "cubic-bezier(0.2, 0.75, 0.2, 1)";
+/** Beat between the two ticks of a score chip counting up. */
+export const DEMO_SCORE_TICK_MS = 320;

@@ -28,7 +28,9 @@ import { createPortal } from "react-dom";
 import { Settings as SettingsIcon, X } from "lucide-react";
 import { usePortalHost } from "@/hooks/usePortalHost";
 import SettingsSheet from "@/components/SettingsSheet";
-import MultiplayerHowToSteps from "@/components/MultiplayerHowToSteps";
+// Lazy: ClassicDemo shows this file's real board pieces, so a static import
+// here would be a cycle.
+const ClassicDemo = React.lazy(() => import("@/components/ClassicDemo"));
 
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
 import GameCard from "@/components/GameCard";
@@ -601,7 +603,8 @@ const ScoreRow: React.FC<{
   );
 };
 
-type ButtonKind = "WHOOP" | "YOUR_ROLL" | "SELECT_MATCH" | "DISABLED";
+/** Exported so the scripted How to Play demo can show the real call button. */
+export type ButtonKind = "WHOOP" | "YOUR_ROLL" | "SELECT_MATCH" | "DISABLED";
 const ButtonStyles: Record<ButtonKind, { bg: string; text: string; label: string }> = {
   WHOOP:        { bg: RED,    text: SURFACE, label: "WHOOP! WHOOP!" },
   YOUR_ROLL:    { bg: ORANGE, text: INK,     label: "YOUR ROLL!" },
@@ -660,7 +663,7 @@ const DieBox: React.FC<{
   </div>
 );
 
-const ActionButton: React.FC<{
+export const ActionButton: React.FC<{
   kind: ButtonKind; disabled?: boolean; onClick?: () => void; label?: string;
 }> = ({ kind, disabled, onClick, label }) => {
   const s = ButtonStyles[kind];
@@ -1987,12 +1990,17 @@ const MultiplayerGameView: React.FC<Props> = ({
           }}
         />
       )}
+      {/* Seated player: this is the ONLY caller that passes mode="in-game", so
+          the demo knows by construction that the player has a table to go back
+          to. Every exit closes the overlay; the seat is never touched. */}
       {showHowTo && (
-        <MultiplayerHowToSteps
-          mode="in-game"
-          onStart={() => setShowHowTo(false)}
-          onClose={() => setShowHowTo(false)}
-        />
+        <React.Suspense fallback={null}>
+          <ClassicDemo
+            mode="in-game"
+            onStart={() => setShowHowTo(false)}
+            onClose={() => setShowHowTo(false)}
+          />
+        </React.Suspense>
       )}
 
       {showLeave && (
