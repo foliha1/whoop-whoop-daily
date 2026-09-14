@@ -31,7 +31,7 @@ import GameCard from "@/components/GameCard";
 import MatchDie, { landedComponentsFor } from "@/components/MatchDie";
 import { ActionButton, ChipCell, type ButtonKind, type DerivedChip } from "@/components/MultiplayerGameView";
 import CloseButton from "@/components/CloseButton";
-import DemoSpotlight, { type SpotPlacement } from "@/components/DemoSpotlight";
+import DemoSpotlight from "@/components/DemoSpotlight";
 import { ALL_CARDS, type Card } from "@/cardData";
 import type { RollAttribute } from "@/lib/multiplayer";
 import { TARGET_SCORE } from "@/hooks/useGameState";
@@ -49,17 +49,24 @@ import {
 import {
   CARD_FLIP_MS,
   DAILY_MATCH_GREAT_MS,
+  DEAL_MOVE_MS,
+  DEAL_STAGGER_MS,
   DEMO_BEAT_MS,
   DEMO_DIE_EASE,
   DEMO_DIE_ROLL_MS,
   DEMO_HOLD_MS,
   DEMO_SCORE_TICK_MS,
+  DEMO_COPY_FADE_MS,
+  DEMO_COPY_SETTLE_MS,
+  DEMO_TELL_LEAD_MS,
   SETTLE_REVEAL_HOLD_MS,
   WRONG_ANIM_MS,
 } from "@/lib/animationTiming";
 import {
   BORDER,
   COLORS,
+  FONT_FAMILY_UI,
+  FONT_WEIGHT_UI,
   MOTION,
   RADIUS,
   RAW,
@@ -182,9 +189,11 @@ interface Beat {
 
 interface Step {
   copy: string;
-  /** Region the tooltip hangs off, and which side it sits on. */
+  /** Region the fixed bubble's pointer aims toward. */
   anchor: Exclude<SpotKey, "all">;
-  placement: SpotPlacement;
+  order?: "tell-show";
+  /** When every visual treatment triggered by this step has fully settled. */
+  settlesAt?: number;
   enter: Partial<Scene>;
   beats: Beat[];
 }
@@ -200,27 +209,26 @@ const SCRIPT: Step[] = [
   {
     copy: "Nine cards, face down. Two to six players. You do not know what any of them are yet.",
     anchor: "grid",
-    placement: "bottom",
     enter: { spot: ["grid"], lit: [], deal: dealAll() },
     beats: [{ at: 0, patch: {}, sound: playDeal }],
+    settlesAt: 8 * DEAL_STAGGER_MS + DEAL_MOVE_MS,
   },
   // 2 — The die decides.
   {
     copy:
       "This die decides what counts as a match. This round it says colour, so you are hunting two cards that share one. It changes every round.",
     anchor: "die",
-    placement: "top",
     enter: { spot: ["die"], lit: [] },
     beats: [
       { at: DEMO_BEAT_MS, patch: { rule: "COLOR", rolls: 1 }, sound: playDiceRoll },
       { at: DEMO_BEAT_MS + DEMO_DIE_ROLL_MS, patch: {}, sound: playDieLand },
     ],
+    settlesAt: DEMO_BEAT_MS + DEMO_DIE_ROLL_MS,
   },
   // 3 — Your first flip.
   {
     copy: "On your turn you flip a card so everyone can see it. Red Circle 3. Remember where it is.",
     anchor: "grid",
-    placement: "bottom",
     enter: { spot: ["grid"], lit: [1], myChip: "FLIPPING" },
     beats: [
       { at: DEMO_BEAT_MS, patch: { faceUp: [1] }, sound: playFlip },
@@ -230,12 +238,12 @@ const SCRIPT: Step[] = [
         sound: playFlip,
       },
     ],
+    settlesAt: DEMO_BEAT_MS + CARD_FLIP_MS + DEMO_HOLD_MS + CARD_FLIP_MS,
   },
   // 4 — Your second flip.
   {
     copy: "You get two flips on your turn. Red Square 1. That is your turn done.",
     anchor: "grid",
-    placement: "bottom",
     enter: { spot: ["grid"], lit: [5], myChip: "FLIPPING" },
     beats: [
       { at: DEMO_BEAT_MS, patch: { faceUp: [5] }, sound: playFlip },
@@ -245,13 +253,13 @@ const SCRIPT: Step[] = [
         sound: playFlip,
       },
     ],
+    settlesAt: DEMO_BEAT_MS + CARD_FLIP_MS + DEMO_HOLD_MS + CARD_FLIP_MS,
   },
   // 5 — WHOOP's turn.
   {
     copy:
       "Now it is WHOOP's turn. Watch their flips too — every flip is public. Blue Square 3. Red Star 4.",
     anchor: "grid",
-    placement: "bottom",
     enter: { spot: ["chipWhoop"], lit: [], whoopChip: "FLIPPING" },
     beats: [
       {
@@ -270,20 +278,20 @@ const SCRIPT: Step[] = [
         sound: playFlip,
       },
     ],
+    settlesAt: DEMO_BEAT_MS + 2 * (CARD_FLIP_MS + DEMO_HOLD_MS) + CARD_FLIP_MS,
   },
   // 6 — Call it.
   {
     copy: "Spotted a match? Call it. You can call at any moment — on your turn, on someone else's, whenever.",
     anchor: "button",
-    placement: "top",
-    enter: { spot: ["button"], lit: [], button: "WHOOP", buttonLabel: undefined },
-    beats: [],
+    order: "tell-show",
+    enter: { spot: ["button"], lit: [], button: "DISABLED", buttonLabel: undefined },
+    beats: [{ at: 0, patch: { button: "WHOOP" } }],
   },
   // 7 — The call.
   {
     copy: "When anyone calls, the whole board lights up blue. Everyone at the table knows a call is happening.",
     anchor: "grid",
-    placement: "bottom",
     enter: {
       spot: ["grid"],
       lit: [],
@@ -295,9 +303,8 @@ const SCRIPT: Step[] = [
   },
   // 8 — Pick two.
   {
-    copy: "Tap two cards. The second tap locks it in. Two reds. The die said colour. That is a match.",
+    copy: "You chose two cards; the second tap locked the call in. Both were red, and the die said colour. That was a match.",
     anchor: "grid",
-    placement: "bottom",
     enter: { spot: ["grid"], lit: [1, 5], pulsing: true },
     beats: [
       { at: DEMO_BEAT_MS, patch: { selected: [1] }, sound: playSelect },
@@ -317,13 +324,13 @@ const SCRIPT: Step[] = [
         patch: { matched: [], faceUp: [], removed: [1, 5], myChip: "GREAT_MATCH" },
       },
     ],
+    settlesAt: 3 * DEMO_BEAT_MS + SETTLE_REVEAL_HOLD_MS + DAILY_MATCH_GREAT_MS,
   },
   // 9 — What you won.
   {
     copy:
       "Both cards go to you. Two points. First to twelve cards wins. Two new cards fill the gaps — only those two. Everything else stays exactly where it was.",
     anchor: "grid",
-    placement: "bottom",
     enter: { spot: ["chipYou"], lit: [] },
     beats: [
       { at: DEMO_BEAT_MS, patch: { myScore: 1 } },
@@ -345,25 +352,25 @@ const SCRIPT: Step[] = [
         sound: playDeal,
       },
     ],
+    settlesAt: 2 * DEMO_BEAT_MS + DEMO_SCORE_TICK_MS + 8 * 60 + 900,
   },
   // 10 — You take the die.
   {
     copy:
       "Winning a match hands you the die. You roll the next rule and you flip first. It says shape now. The cards did not move, but what matters about them just changed.",
     anchor: "die",
-    placement: "top",
     enter: { spot: ["die"], lit: [], myChip: "ROLLING" },
     beats: [
       { at: DEMO_BEAT_MS, patch: { rule: "SHAPE", rolls: 2 }, sound: playDiceRoll },
       { at: DEMO_BEAT_MS + DEMO_DIE_ROLL_MS, patch: { myChip: "IDLE" }, sound: playDieLand },
     ],
+    settlesAt: DEMO_BEAT_MS + DEMO_DIE_ROLL_MS,
   },
   // 11 — Getting it wrong.
   {
     copy:
       "Blue Star and Blue Triangle. Both blue — but the die says shape now, and a star is not a triangle. That is a miss.",
     anchor: "grid",
-    placement: "bottom",
     enter: {
       spot: ["grid"],
       lit: [2, 4],
@@ -389,13 +396,13 @@ const SCRIPT: Step[] = [
         patch: { wrong: [], faceUp: [2, 4], myChip: "PENALTY", button: "WHOOP" },
       },
     ],
+    settlesAt: 3 * DEMO_BEAT_MS + SETTLE_REVEAL_HOLD_MS + WRONG_ANIM_MS,
   },
   // 12 — What a miss costs.
   {
     copy:
-      "Three things happen. One card goes back to the deck, from the cards you already won. Those two stay face up for the rest of the round, so everyone can see them. And you cannot use those two again this round — everybody else still can.\nMissing does not use up a flip. If you had one left, you still do.",
+      "A miss returns one card you already won to the deck. The pair stays face up, and only you cannot choose it again this round.\nYou keep any unused flip.",
     anchor: "grid",
-    placement: "bottom",
     enter: { spot: ["chipYou"], lit: [] },
     beats: [
       { at: DEMO_BEAT_MS, patch: { myScore: 1 } },
@@ -408,21 +415,21 @@ const SCRIPT: Step[] = [
         patch: { burned: [2, 4], myChip: "IDLE" },
       },
     ],
+    settlesAt: 2 * DEMO_BEAT_MS + DEMO_HOLD_MS,
   },
   // 13 — Two calls each.
   {
     copy: "You get two calls per round. Use both and you sit out the rest of the round. Your flips still count.",
     anchor: "button",
-    placement: "top",
     enter: { spot: ["button"], lit: [], button: "WHOOP", buttonLabel: "1 CALL LEFT" },
     beats: [],
+    settlesAt: DEMO_BEAT_MS,
   },
   // 14 — WHOOP calls.
   {
     copy:
       "Anyone can call, not just you. Orange Square and Blue Square — both squares, so WHOOP takes the pair and the die. Now they set the next rule.",
     anchor: "grid",
-    placement: "bottom",
     enter: { spot: ["chipWhoop"], lit: [], whoopChip: "WHOOP", button: "DISABLED", buttonLabel: undefined },
     beats: [
       { at: 0, patch: {}, sound: playWhoopCall },
@@ -453,12 +460,13 @@ const SCRIPT: Step[] = [
         },
       },
     ],
+    settlesAt: 3 * DEMO_BEAT_MS + SETTLE_REVEAL_HOLD_MS + DAILY_MATCH_GREAT_MS,
   },
   // 15 — That is it.
   {
     copy: "",
     anchor: "grid",
-    placement: "bottom",
+    order: "tell-show",
     enter: { spot: ["all"], lit: [] },
     beats: [],
   },
@@ -565,6 +573,8 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   const reduce = useReducedMotion();
   const [step, setStep] = useState(0);
   const [scene, setScene] = useState<Scene>(() => enterScene(0));
+  const [copyVisible, setCopyVisible] = useState(false);
+  const [stepSettled, setStepSettled] = useState(false);
   const [gridRef, cardW] = useCardWidth();
   const timers = useRef<number[]>([]);
 
@@ -582,18 +592,44 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   useEffect(() => {
     for (const id of timers.current) window.clearTimeout(id);
     timers.current = [];
+    const currentStep = SCRIPT[step];
     if (reduce) {
       setScene(settledScene(step));
+      setCopyVisible(step !== LAST);
+      setStepSettled(true);
       return;
     }
     setScene(enterScene(step));
-    const beats = SCRIPT[step].beats;
+    const tellFirst = currentStep.order === "tell-show";
+    setCopyVisible(tellFirst && step !== LAST);
+    setStepSettled(step === LAST);
+    const offset = tellFirst ? DEMO_TELL_LEAD_MS : 0;
+    const beats = currentStep.beats;
     for (const beat of beats) {
       const id = window.setTimeout(() => {
         setScene((prev) => ({ ...prev, ...beat.patch }));
         beat.sound?.();
-      }, beat.at);
+      }, beat.at + offset);
       timers.current.push(id);
+    }
+    if (tellFirst && step !== LAST) {
+      const hideTimer = window.setTimeout(() => setCopyVisible(false), DEMO_TELL_LEAD_MS);
+      timers.current.push(hideTimer);
+      const settleTimer = window.setTimeout(
+        () => setStepSettled(true),
+        offset + (currentStep.settlesAt ?? beats.reduce((latest, beat) => Math.max(latest, beat.at), 0)),
+      );
+      timers.current.push(settleTimer);
+    }
+    if (!tellFirst && step !== LAST) {
+      const copyTimer = window.setTimeout(
+        () => {
+          setCopyVisible(true);
+          setStepSettled(true);
+        },
+        (currentStep.settlesAt ?? beats.reduce((latest, beat) => Math.max(latest, beat.at), 0)) + DEMO_COPY_SETTLE_MS,
+      );
+      timers.current.push(copyTimer);
     }
     return () => {
       for (const id of timers.current) window.clearTimeout(id);
@@ -631,10 +667,6 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   const spotAll = scene.spot.includes("all");
   const lit = (key: Exclude<SpotKey, "all">) => spotAll || scene.spot.includes(key);
   const current = SCRIPT[step];
-  const tip = (key: Exclude<SpotKey, "all">, placement: SpotPlacement) =>
-    current.anchor === key && current.copy && step !== LAST
-      ? { tooltip: current.copy, placement }
-      : {};
 
   const cardOpacity = (pos: number) =>
     !spotAll && scene.spot.includes("grid") && scene.lit.length > 0 && !scene.lit.includes(pos)
@@ -737,7 +769,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
         width: "100%",
       }}
     >
-      <p style={{ ...textStyle("caption", true), margin: 0, textAlign: "center", color: COLORS.ink, whiteSpace: "pre-line" }}>
+      <p style={{ ...textStyle("body", true), fontFamily: FONT_FAMILY_UI, fontWeight: FONT_WEIGHT_UI, margin: 0, textAlign: "center", color: COLORS.ink, whiteSpace: "pre-line" }}>
         {mode === "in-game"
           ? "That is it. Your seat is still yours and nothing moved while you watched."
           : "First to twelve cards wins. Play on your own against WHOOP, or send a link and play with people."}
@@ -797,13 +829,13 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
         inset: 0,
         height: "var(--ww-vh)",
         zIndex: 1000,
-        background: COLORS.surface,
+        background: COLORS.panel,
         boxSizing: "border-box",
         overflow: "hidden",
         display: "flex",
         justifyContent: "center",
-        padding: SPACE[4],
-        paddingBottom: `calc(${SPACE[4]}px + env(safe-area-inset-bottom))`,
+        padding: SPACE[6],
+        paddingBottom: `calc(${SPACE[6]}px + env(safe-area-inset-bottom))`,
       }}
     >
       <div
@@ -812,7 +844,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
           maxWidth: 420,
           display: "flex",
           flexDirection: "column",
-          gap: SPACE[3],
+          gap: SPACE[2],
           minHeight: 0,
         }}
       >
@@ -864,14 +896,15 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             flex: "none",
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: SPACE[4],
-            ...panelStyle("panel", 3),
+            columnGap: SPACE[4],
+            rowGap: SPACE[2],
+            ...panelStyle("panel", 4),
           }}
         >
-          <DemoSpotlight active={lit("chipWhoop")} {...tip("chipWhoop", "bottom")}>
+          <DemoSpotlight active={lit("chipWhoop")}>
             <ChipCell chip={chip("WHOOP", scene.whoopChip, scene.whoopScore, 1)} />
           </DemoSpotlight>
-          <DemoSpotlight active={lit("chipYou")} {...tip("chipYou", "bottom")}>
+          <DemoSpotlight active={lit("chipYou")}>
             <ChipCell chip={chip("YOU", scene.myChip, scene.myScore, 0)} />
           </DemoSpotlight>
         </div>
@@ -879,31 +912,91 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
         {/* the board */}
         <DemoSpotlight
           active={lit("grid")}
-          {...tip("grid", "bottom")}
-          style={{ flex: "1 1 auto", minHeight: 0 }}
+          style={{
+            ...panelStyle("panel", 5),
+            flex: "1 1 auto",
+            minHeight: 0,
+            overflow: "hidden",
+          }}
         >
           {grid}
         </DemoSpotlight>
 
-        {/* die + call button */}
-        <div style={{ flex: "none", display: "flex", alignItems: "stretch", gap: SPACE[4], height: 60 }}>
-          <DemoSpotlight active={lit("die")} {...tip("die", "top")}>
-            {dieBox}
-          </DemoSpotlight>
-          <DemoSpotlight
-            active={lit("button")}
-            {...tip("button", "top")}
-            style={{ flex: "1 1 0", minWidth: 0, display: "flex" }}
+        {/* One fixed lower slot: the real die/action row occupies it while the
+            action plays, then the explanation fades over that same reserved
+            footprint. Nothing below the board ever reflows. We intentionally
+            rely on the spotlight rather than route a connector across cards. */}
+        <div
+          style={{
+            flex: "0 0 120px",
+            minHeight: 120,
+            position: "relative",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "stretch",
+              gap: SPACE[4],
+              height: 84,
+              opacity: copyVisible || step === LAST ? 0 : 1,
+              transition: reduce ? undefined : `opacity ${DEMO_COPY_FADE_MS}ms ${DEMO_DIE_EASE}`,
+              pointerEvents: copyVisible || step === LAST ? "none" : "auto",
+            }}
           >
-            <ActionButton kind={scene.button} disabled label={scene.buttonLabel} />
-          </DemoSpotlight>
-        </div>
-
-        {/* footer: step navigation, or the closing choice */}
-        <div style={{ flex: "none", display: "flex", gap: SPACE[4], alignItems: "center" }}>
+            <DemoSpotlight active={lit("die")}>
+              {dieBox}
+            </DemoSpotlight>
+            <DemoSpotlight
+              active={lit("button")}
+              style={{ flex: "1 1 0", minWidth: 0, display: "flex" }}
+            >
+              <ActionButton kind={scene.button} disabled label={scene.buttonLabel} />
+            </DemoSpotlight>
+          </div>
           {step === LAST ? (
             finalPanel
           ) : (
+            <div
+              role="status"
+              aria-live="polite"
+              style={{
+                ...panelStyle("surface", 6),
+                background: COLORS.surface,
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: copyVisible ? 1 : 0,
+                transition: reduce ? undefined : `opacity ${DEMO_COPY_FADE_MS}ms ${DEMO_DIE_EASE}`,
+                pointerEvents: copyVisible ? "auto" : "none",
+                zIndex: 6,
+              }}
+            >
+              <span
+                style={{
+                  ...textStyle("subhead", true),
+                  fontFamily: FONT_FAMILY_UI,
+                  fontWeight: FONT_WEIGHT_UI,
+                  letterSpacing: 0,
+                  display: "block",
+                  textAlign: "center",
+                  whiteSpace: "pre-line",
+                  color: COLORS.ink,
+                }}
+              >
+                {current.copy}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* footer: step navigation, or the closing choice */}
+        <div style={{ flex: "0 0 43px", display: "flex", gap: SPACE[4], alignItems: "center" }}>
+          {step !== LAST && (
             <>
               {step > 0 && (
                 <button
@@ -919,8 +1012,11 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               <button
                 type="button"
                 className="ww-press"
-                onClick={() => setStep((s) => Math.min(LAST, s + 1))}
-                style={{ ...buttonStyle("primary", "md", { mobile: true }), flex: "1 1 0" }}
+                onClick={() => {
+                  if (stepSettled) setStep((s) => Math.min(LAST, s + 1));
+                }}
+                disabled={!stepSettled}
+                style={{ ...buttonStyle("primary", "md", { mobile: true, disabled: !stepSettled }), flex: "1 1 0" }}
               >
                 NEXT
                 <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />

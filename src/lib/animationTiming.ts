@@ -141,3 +141,9 @@ export const DEMO_DIE_ROLL_MS = 900;
 export const DEMO_DIE_EASE = "cubic-bezier(0.2, 0.75, 0.2, 1)";
 /** Beat between the two ticks of a score chip counting up. */
 export const DEMO_SCORE_TICK_MS = 320;
+/** Quiet pause after the final visible beat before instructional copy appears. */
+export const DEMO_COPY_SETTLE_MS = 450;
+/** Fade used when the fixed instructional bubble enters or leaves. */
+export const DEMO_COPY_FADE_MS = 250;
+/** Lead time for the rare tell-first step before its demonstration begins. */
+export const DEMO_TELL_LEAD_MS = 2800;
