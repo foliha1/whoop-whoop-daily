@@ -14,7 +14,7 @@
 // tooltip's centre, so it keeps pointing at the thing being discussed.
 // ============================================================================
 
-import React, { useEffect, useState } from "react";
+import React, { useLayoutEffect, useState } from "react";
 import { BORDER, COLORS, MOTION, RADIUS, SPACE, panelStyle, textStyle } from "@/lib/tokens";
 
 /** Opacity of everything that is not the element being discussed. */
@@ -46,11 +46,13 @@ const DemoSpotlight: React.FC<DemoSpotlightProps> = ({
 }) => {
   const below = placement === "bottom";
   const [node, setNode] = useState<HTMLDivElement | null>(null);
+  const [tooltipNode, setTooltipNode] = useState<HTMLDivElement | null>(null);
   const [shift, setShift] = useState(0);
+  const [verticalShift, setVerticalShift] = useState(0);
   const show = active && !!tooltip;
 
-  useEffect(() => {
-    if (!node || !show) return;
+  useLayoutEffect(() => {
+    if (!node || !tooltipNode || !show) return;
     const measure = () => {
       const vw = window.innerWidth;
       const box = node.getBoundingClientRect();
@@ -58,16 +60,26 @@ const DemoSpotlight: React.FC<DemoSpotlightProps> = ({
       const wanted = box.left + box.width / 2 - width / 2;
       const clamped = Math.min(Math.max(EDGE, wanted), vw - EDGE - width);
       setShift(Math.round(clamped - wanted));
+
+      // Tooltips hang from their highlighted region, which can leave a long
+      // explanation outside a short phone viewport. Measure the rendered copy
+      // and translate it back inside both safe edges without moving the board.
+      const tipBox = tooltipNode.getBoundingClientRect();
+      const naturalTop = tipBox.top - verticalShift;
+      const maxTop = Math.max(EDGE, window.innerHeight - EDGE - tipBox.height);
+      const safeTop = Math.min(Math.max(EDGE, naturalTop), maxTop);
+      setVerticalShift(Math.round(safeTop - naturalTop));
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(node);
+    ro.observe(tooltipNode);
     window.addEventListener("resize", measure);
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [node, show]);
+  }, [node, show, tooltip, tooltipNode, verticalShift]);
 
   return (
     <div
@@ -84,13 +96,14 @@ const DemoSpotlight: React.FC<DemoSpotlightProps> = ({
 
       {show ? (
         <div
+          ref={setTooltipNode}
           role="status"
           aria-live="polite"
           style={{
             ...panelStyle("panel", 6),
             position: "absolute",
             left: "50%",
-            transform: `translateX(calc(-50% + ${shift}px))`,
+            transform: `translate(calc(-50% + ${shift}px), ${verticalShift}px)`,
             ...(below
               ? { top: `calc(100% + ${SPACE[5]}px)` }
               : { bottom: `calc(100% + ${SPACE[5]}px)` }),
