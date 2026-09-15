@@ -397,19 +397,17 @@ export function startTheme(trackUrl?: string): void {
   try {
     if (themeStopTimer) { clearTimeout(themeStopTimer); themeStopTimer = null; }
     if (!themeEl) {
-      const el = new Audio(themeUrl);
-      el.loop = true;
-      el.preload = "auto";
-      el.volume = 0;
-      // Inline playback: iOS otherwise treats media as a fullscreen player.
-      el.setAttribute("playsinline", "");
-      themeEl = el;
+      themeEl = makeThemeEl(themeUrl, 0);
+      themeAltEl = makeThemeEl(themeUrl, 0);
     }
     const el = themeEl;
     // play() rejects until the page has had a gesture; the site-wide gesture
     // listener calls startTheme() again, so a rejection here is harmless.
     void Promise.resolve(el.play()).then(
-      () => fadeEl(el, THEME_GAIN, THEME_FADE_IN_MS),
+      () => {
+        fadeEl(el, THEME_GAIN, THEME_FADE_IN_MS);
+        startLoopWatcher();
+      },
       () => { /* blocked — retried on the next gesture */ },
     );
   } catch { /* never throw from audio */ }
@@ -419,9 +417,13 @@ export function startTheme(trackUrl?: string): void {
 function killTheme(): void {
   if (themeStopTimer) { clearTimeout(themeStopTimer); themeStopTimer = null; }
   if (themeFadeTimer) { clearInterval(themeFadeTimer); themeFadeTimer = null; }
+  stopLoopWatcher();
   try { themeEl?.pause(); } catch { /* ignore */ }
+  try { themeAltEl?.pause(); } catch { /* ignore */ }
   themeEl = null;
+  themeAltEl = null;
 }
+
 
 function fadeOutTheme(hard: boolean): void {
   try {
