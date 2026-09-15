@@ -46,7 +46,10 @@ import {
   playSelect,
   playWhoopCall,
   playWrong,
+  startTheme,
+  stopTheme,
 } from "@/lib/sounds";
+import howToPlayTheme from "@/assets/Whoop_Whoop_How_to_Play_SHORT.mp3.asset.json";
 import {
   CARD_FLIP_MS,
   DAILY_MATCH_GREAT_MS,
@@ -604,6 +607,14 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
 }) => {
   const portalHost = usePortalHost("classic-demo");
   const reduce = useReducedMotion();
+  // Demo-only music: the How to Play track loops for as long as the demo is
+  // open, including the welcome card. The screen underneath (lobby or game)
+  // resumes its own music when the demo closes.
+  useEffect(() => {
+    startTheme(howToPlayTheme.url);
+    return () => stopTheme();
+  }, []);
+
   const [welcome, setWelcome] = useState(true);
   const [step, setStep] = useState(0);
   const [scene, setScene] = useState<Scene>(() => enterScene(0));
@@ -934,7 +945,6 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             <div
               style={{
                 width: "100%",
-                height: 61,
                 display: "flex",
                 flexDirection: "row",
                 justifyContent: "space-between",
@@ -945,7 +955,6 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               <h1
                 style={{
                   width: "100%",
-                  height: 61,
                   margin: 0,
                   fontFamily: FONT_FAMILY,
                   fontSize: FONT_SIZE["5.5xl"],
@@ -957,7 +966,9 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                   color: RAW.warmBlack,
                 }}
               >
-                Welcome to Whoop! Whoop! Classic
+                Welcome to
+                <br />
+                Whoop! Whoop! Classic
               </h1>
             </div>
             <div

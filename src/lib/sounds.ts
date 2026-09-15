@@ -10,7 +10,8 @@
 // repeated tap never sounds like the same sample twice.
 //
 // Two independent flags: sfxEnabled controls the effect functions; musicEnabled
-// controls the background theme (still a real recording, /sounds/theme.mp3).
+// controls the background theme (real recordings; each screen passes its own
+// track to startTheme, defaulting to the Daily's /sounds/theme.mp3).
 // Both persist to localStorage so a refresh preserves the user's choice.
 //
 // unlockAudio() must be called from a user gesture — it resumes the context and
@@ -59,7 +60,7 @@ export function setMusicEnabled(value: boolean): void {
   // Honour the flag live: off fades out and stops, on fades back in when the
   // current screen still wants music.
   if (!value) fadeOutTheme(true);
-  else if (themeDesired) startTheme();
+  else if (themeDesired) startTheme(themeUrl);
 }
 
 // Back-compat wrappers — GameWindow (solo) uses these. `muted` is the inverse
@@ -244,7 +245,7 @@ export function unlockAudio(): void {
         primeGraph(ctx);
       }
       // A screen that wants music may have asked for it before the gesture.
-      if (themeDesired) startTheme();
+      if (themeDesired) startTheme(themeUrl);
     };
     if (needsResume(ctx)) void Promise.resolve(ctx.resume()).then(settle, settle);
     else settle();
@@ -273,13 +274,19 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
 // Background theme — music, behind musicEnabled, never an effect
 // ---------------------------------------------------------------------------
 
-const THEME_FILE = "/sounds/theme.mp3";
+/** The Daily's theme. `startTheme()` with no argument always means this one. */
+const DEFAULT_THEME_FILE = "/sounds/theme.mp3";
 const THEME_GAIN = 0.15;
 const THEME_FADE_IN_MS = 600;
 const THEME_FADE_OUT_MS = 400;
 
-let themeBuffer: AudioBuffer | null = null;
-let themeLoading: Promise<void> | null = null;
+/** The track the current screen wants. Screens with their own music (the
+    Classic lobby, the How to Play demo) pass their URL to startTheme(). */
+let themeUrl = DEFAULT_THEME_FILE;
+/** Decoded buffers and in-flight loads, per track URL, so switching between
+    the lobby and demo tracks never refetches. */
+const themeBuffers = new Map<string, AudioBuffer>();
+const themeLoads = new Map<string, Promise<void>>();
 let themeSource: AudioBufferSourceNode | null = null;
 let themeGainNode: GainNode | null = null;
 /** The screen wants music, regardless of whether it is audible right now. */
@@ -302,20 +309,22 @@ function decode(ctx: AudioContext, data: ArrayBuffer): Promise<AudioBuffer> {
   });
 }
 
-function loadTheme(): Promise<void> {
-  if (themeLoading) return themeLoading;
-  themeLoading = (async () => {
+function loadTheme(url: string): Promise<void> {
+  const existing = themeLoads.get(url);
+  if (existing) return existing;
+  const p = (async () => {
     try {
-      const res = await fetch(THEME_FILE, { cache: "force-cache" });
+      const res = await fetch(url, { cache: "force-cache" });
       if (!res.ok) throw new Error(`theme ${res.status}`);
-      themeBuffer = await decode(getCtx(), await res.arrayBuffer());
+      themeBuffers.set(url, await decode(getCtx(), await res.arrayBuffer()));
     } catch {
       // A transient network failure must not disable music for the session:
       // clear the cached attempt so the next startTheme() can try again.
-      themeLoading = null;
+      themeLoads.delete(url);
     }
   })();
-  return themeLoading;
+  themeLoads.set(url, p);
+  return p;
 }
 
 
@@ -333,8 +342,16 @@ function ramp(node: GainNode, to: number, ms: number) {
  * music; a no-op until a gesture has unlocked audio, and it never restarts an
  * already-running loop — it just ramps the level back up.
  */
-export function startTheme(): void {
+export function startTheme(trackUrl?: string): void {
+  const next = trackUrl ?? DEFAULT_THEME_FILE;
   themeDesired = true;
+  if (next !== themeUrl) {
+    // Track switch: fade out and tear down the current loop; the new track
+    // fades in once its buffer has loaded.
+    themeUrl = next;
+    themeLoadAttempts = 0;
+    fadeOutTheme(true);
+  }
   if (!musicEnabled) return;
   try {
     const ctx = getCtx();
@@ -354,19 +371,22 @@ function startThemeNow(ctx: AudioContext): void {
     ramp(themeGainNode, THEME_GAIN, THEME_FADE_IN_MS);
     return;
   }
-  if (!themeBuffer) {
+  const buffer = themeBuffers.get(themeUrl);
+  if (!buffer) {
     // Bounded retry: a failed fetch/decode is retried a couple of times, then
     // music quietly gives up rather than looping forever.
     if (themeLoadAttempts >= 3) return;
     themeLoadAttempts += 1;
-    void loadTheme().then(() => { if (themeDesired && themeBuffer) startTheme(); });
+    void loadTheme(themeUrl).then(() => {
+      if (themeDesired && themeBuffers.has(themeUrl)) startTheme(themeUrl);
+    });
     return;
   }
   const g = ctx.createGain();
   g.gain.value = 0;
   g.connect(ctx.destination);
   const src = ctx.createBufferSource();
-  src.buffer = themeBuffer;
+  src.buffer = buffer;
   src.loop = true;
   src.connect(g);
   // If the loop ever ends (context torn down, source killed), drop the handles
@@ -416,7 +436,7 @@ if (typeof document !== "undefined" && typeof document.addEventListener === "fun
       if (!ctx) return;
       whenRunning(ctx, () => {
         if (ctx.state === "running" && sfxBus && sfxEnabled) sfxBus.gain.value = 1;
-        if (themeDesired && musicEnabled) startTheme();
+        if (themeDesired && musicEnabled) startTheme(themeUrl);
       });
     } catch { /* never throw from audio */ }
   };

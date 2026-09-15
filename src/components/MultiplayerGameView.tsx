@@ -57,8 +57,9 @@ import { callClaimLock } from "@/lib/claimLock";
 import {
   playFlip, playDiceRoll, playWhoopCall, playCorrect, playWrong, playDeal,
   playSelect, playDeselect, playDieLand, playRoundAdvance,
-  unlockAudio,
+  unlockAudio, startTheme, stopTheme,
 } from "@/lib/sounds";
+import classicTheme from "@/assets/Whoop_Whoop_Classic_Theme.mp3.asset.json";
 import AutoFitText from "@/components/AutoFitText";
 import { hapticTap, hapticImpact, hapticSuccess, hapticError } from "@/lib/haptics";
 
@@ -868,6 +869,17 @@ const MultiplayerGameView: React.FC<Props> = ({
     wasGameOverRef.current = isGameOver;
     if (!was && isGameOver) playRoundAdvance();
   }, [isGameOver]);
+
+  // ---- Music -------------------------------------------------------------
+  // The board itself is silent: mounting the game view stops whatever the
+  // lobby was playing. The result screen brings the Classic theme back, the
+  // same role the theme plays on the Daily's results screen. While the How to
+  // Play demo is open it owns the music, so this effect steps aside.
+  useEffect(() => {
+    if (showHowTo) return;
+    if (isGameOver) startTheme(classicTheme.url);
+    else stopTheme();
+  }, [isGameOver, showHowTo]);
   useEffect(() => {
     if (isGameOver) {
       setBgOverlayVisible(false);
