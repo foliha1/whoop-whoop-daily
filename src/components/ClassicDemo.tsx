@@ -599,6 +599,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
 }) => {
   const portalHost = usePortalHost("classic-demo");
   const reduce = useReducedMotion();
+  const [welcome, setWelcome] = useState(true);
   const [step, setStep] = useState(0);
   const [scene, setScene] = useState<Scene>(() => enterScene(0));
   const [copyVisible, setCopyVisible] = useState(false);
@@ -628,6 +629,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
       return;
     }
     setScene(enterScene(step));
+    const pressTellShow = currentStep.order === "press-tell-show";
     const tellFirst = currentStep.order === "tell-show";
     setCopyVisible(tellFirst && step !== LAST);
     setStepSettled(step === LAST);
@@ -640,6 +642,17 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
       }, beat.at + offset);
       timers.current.push(id);
     }
+    if (pressTellShow) {
+      const copyTimer = window.setTimeout(
+        () => setCopyVisible(true),
+        PRESS_ANIM_MS + DEMO_COPY_SETTLE_MS,
+      );
+      const settleTimer = window.setTimeout(
+        () => setStepSettled(true),
+        currentStep.settlesAt ?? PRESS_ANIM_MS + DEMO_COPY_SETTLE_MS + DEMO_TELL_LEAD_MS,
+      );
+      timers.current.push(copyTimer, settleTimer);
+    }
     if (tellFirst && step !== LAST) {
       const hideTimer = window.setTimeout(() => setCopyVisible(false), DEMO_TELL_LEAD_MS);
       timers.current.push(hideTimer);
@@ -649,7 +662,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
       );
       timers.current.push(settleTimer);
     }
-    if (!tellFirst && step !== LAST) {
+    if (!tellFirst && !pressTellShow && step !== LAST) {
       const copyTimer = window.setTimeout(
         () => {
           setCopyVisible(true);
@@ -685,12 +698,15 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") setStep((s) => Math.min(LAST, s + 1));
+      if (e.key === "ArrowRight") {
+        if (welcome) setWelcome(false);
+        else setStep((s) => Math.min(LAST, s + 1));
+      }
       else if (e.key === "ArrowLeft") setStep((s) => Math.max(0, s - 1));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [welcome]);
 
   const spotAll = scene.spot.includes("all");
   const lit = (key: Exclude<SpotKey, "all">) => spotAll || scene.spot.includes(key);
@@ -741,19 +757,32 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                   }}
                 />
               ) : (
-                <GameCard
-                  card={card(scene.cards[pos])}
-                  faceUp={scene.faceUp.includes(pos) || scene.burned.includes(pos)}
-                  fill
-                  interactive={false}
-                  highlighted={scene.selected.includes(pos)}
-                  matched={scene.matched.includes(pos)}
-                  wrong={scene.wrong.includes(pos)}
-                  unavailable={scene.burned.includes(pos)}
-                  pulsing={scene.pulsing}
-                  dealKey={scene.deal[pos]?.key}
-                  dealIndex={scene.deal[pos]?.index}
-                />
+                <>
+                  <div style={{ width: "100%", height: "100%", opacity: scene.matched.includes(pos) ? 0 : 1 }}>
+                    <GameCard
+                      card={card(scene.cards[pos])}
+                      faceUp={scene.faceUp.includes(pos) || scene.burned.includes(pos)}
+                      fill
+                      interactive={false}
+                      highlighted={scene.selected.includes(pos)}
+                      wrong={scene.wrong.includes(pos)}
+                      unavailable={scene.burned.includes(pos)}
+                      pulsing={scene.pulsing}
+                      dealKey={scene.deal[pos]?.key}
+                      dealIndex={scene.deal[pos]?.index}
+                    />
+                  </div>
+                  {scene.matched.includes(pos) && (
+                    <MatchGhostCard
+                      card={card(scene.cards[pos])}
+                      stage="great"
+                      faceUp
+                      k={cardW / 104.333}
+                      radius={RADIUS.md}
+                      style={{ position: "absolute", inset: 0, overflow: "hidden" }}
+                    />
+                  )}
+                </>
               )}
             </div>
           );
@@ -777,7 +806,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
       }}
     >
       <MatchDie
-        size={44}
+        size={SPACE[12] * 2}
         attribute={scene.rule ?? "SHAPE"}
         faceIndex={0}
         rotation={dieRotation(scene.rule, scene.rolls)}
@@ -799,8 +828,8 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
     >
       <p style={{ ...textStyle("body", true), fontFamily: FONT_FAMILY_UI, fontWeight: FONT_WEIGHT_UI, margin: 0, textAlign: "center", color: COLORS.ink, whiteSpace: "pre-line" }}>
         {mode === "in-game"
-          ? "That is it. Your seat is still yours and nothing moved while you watched."
-          : "First to twelve cards wins. Play on your own against WHOOP, or send a link and play with people."}
+          ? "First to twelve wins!\nNow go play a solo game with WHOOP Bot, or send a link to your people and play together. Have fun and WHOOP! WHOOP!"
+          : "First to twelve wins!\nNow go play a solo game with WHOOP Bot, or send a link to your people and play together. Have fun and WHOOP! WHOOP!"}
       </p>
       <div style={{ display: "flex", gap: SPACE[4], width: "100%" }}>
         {mode === "in-game" ? (
@@ -846,6 +875,10 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
 
   if (!portalHost) return null;
 
+  const rollingFullScreen = !welcome && !copyVisible && (
+    (step === 1 && scene.rolls === 1) || (step === 9 && scene.rolls === 2)
+  );
+
   return createPortal(
     <div
       role="dialog"
@@ -866,6 +899,42 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
         paddingBottom: `calc(${SPACE[6]}px + env(safe-area-inset-bottom))`,
       }}
     >
+      {welcome ? (
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 420,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: SPACE[12],
+            textAlign: "center",
+          }}
+        >
+          <CloseButton
+            label={mode === "in-game" ? "BACK" : "SKIP"}
+            onClick={skip}
+            ariaLabel={mode === "in-game" ? "Back to your table" : "Skip the demo"}
+            data-testid="classic-demo-skip"
+          />
+          <div style={{ display: "flex", flexDirection: "column", gap: SPACE[6] }}>
+            <h1 style={{ ...textStyle("hero", true), margin: 0, color: COLORS.ink }}>WHOOP! WHOOP! Classic</h1>
+            <p style={{ ...textStyle("subhead", true), fontFamily: FONT_FAMILY_UI, fontWeight: FONT_WEIGHT_UI, letterSpacing: 0, margin: 0, color: COLORS.ink }}>
+              A quick memory game for two to six players. Flip, remember, and call the match before anyone else.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="ww-press"
+            onClick={() => setWelcome(false)}
+            style={{ ...buttonStyle("primary", "lg", { mobile: true, fullWidth: true }) }}
+          >
+            SHOW ME HOW
+          </button>
+        </div>
+      ) : (
       <div
         style={{
           width: "100%",
@@ -898,7 +967,9 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                   flex: "1 1 0",
                   height: SPACE[2],
                   borderRadius: RADIUS.sm,
-                  background: i <= step ? COLORS.ink : COLORS.panel,
+                  background: i <= step ? RAW.blue : RAW.cream,
+                  border: BORDER.standard,
+                  boxSizing: "border-box",
                   transition: `background ${MOTION.fast}`,
                 }}
               />
@@ -981,7 +1052,9 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               active={lit("button")}
               style={{ flex: "1 1 0", minWidth: 0, display: "flex" }}
             >
-              <ActionButton kind={scene.button} disabled label={scene.buttonLabel} />
+               <div className={scene.buttonPressed ? "ww-press-on" : undefined} style={{ display: "flex", flex: "1 1 0", minWidth: 0 }}>
+                 <ActionButton kind={scene.button} disabled label={scene.buttonLabel} />
+               </div>
             </DemoSpotlight>
           </div>
           {step === LAST ? (
@@ -1004,7 +1077,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 zIndex: 6,
               }}
             >
-              <span
+               <div
                 style={{
                   ...textStyle("subhead", true),
                   fontFamily: FONT_FAMILY_UI,
@@ -1016,8 +1089,13 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                   color: COLORS.ink,
                 }}
               >
-                {current.copy}
-              </span>
+                <span style={{ whiteSpace: "pre-line" }}>{current.copy}</span>
+                {current.bullets && (
+                  <ul style={{ margin: `${SPACE[2]}px 0 0`, paddingInlineStart: SPACE[10], textAlign: "left" }}>
+                    {current.bullets.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -1053,6 +1131,30 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
           )}
         </div>
       </div>
+      )}
+      {rollingFullScreen && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 20,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: `color-mix(in srgb, ${RAW.warmBlack} 55%, transparent)`,
+            pointerEvents: "none",
+          }}
+        >
+          <MatchDie
+            size={SPACE[10] * 10}
+            attribute={scene.rule ?? "SHAPE"}
+            faceIndex={0}
+            rotation={dieRotation(scene.rule, scene.rolls)}
+            transition={reduce ? undefined : `transform ${DEMO_DIE_ROLL_MS}ms ${DEMO_DIE_EASE}`}
+          />
+        </div>
+      )}
     </div>,
     portalHost,
   );
