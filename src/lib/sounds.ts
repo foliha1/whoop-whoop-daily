@@ -304,6 +304,59 @@ let themeStopTimer: ReturnType<typeof setTimeout> | null = null;
 let themeEl: HTMLAudioElement | null = null;
 let themeFadeTimer: ReturnType<typeof setInterval> | null = null;
 
+// A media element's own `loop` flag is not gapless for MP3: the decoder's
+// trailing padding plays out before the restart, which is audible as a short
+// pause every time round. Instead we keep a second, already-buffered element
+// of the same track and hand over to it a hair before the first one ends —
+// starting a preloaded element is immediate, so the phrase joins cleanly.
+let themeAltEl: HTMLAudioElement | null = null;
+let themeLoopRaf: number | null = null;
+/** Seconds of encoder padding to skip at the tail when handing over. */
+const THEME_LOOP_LEAD = 0.06;
+
+function makeThemeEl(url: string, volume: number): HTMLAudioElement {
+  const el = new Audio(url);
+  el.loop = false;
+  el.preload = "auto";
+  el.volume = volume;
+  // Inline playback: iOS otherwise treats media as a fullscreen player.
+  el.setAttribute("playsinline", "");
+  return el;
+}
+
+function stopLoopWatcher(): void {
+  if (themeLoopRaf !== null && typeof cancelAnimationFrame === "function") {
+    cancelAnimationFrame(themeLoopRaf);
+  }
+  themeLoopRaf = null;
+}
+
+/** Watch the playhead and swap elements at the loop point. */
+function startLoopWatcher(): void {
+  if (typeof requestAnimationFrame !== "function") return;
+  stopLoopWatcher();
+  const tick = () => {
+    themeLoopRaf = requestAnimationFrame(tick);
+    const cur = themeEl;
+    const alt = themeAltEl;
+    if (!cur || !alt || cur.paused) return;
+    const dur = cur.duration;
+    if (!Number.isFinite(dur) || dur <= 0) return;
+    if (dur - cur.currentTime > THEME_LOOP_LEAD) return;
+    try {
+      alt.volume = cur.volume;
+      alt.currentTime = 0;
+      void alt.play();
+      cur.pause();
+      cur.currentTime = 0;
+      themeEl = alt;
+      themeAltEl = cur;
+    } catch { /* ignore */ }
+  };
+  themeLoopRaf = requestAnimationFrame(tick);
+}
+
+
 
 /** Fade the element's volume over `ms`, in small steps (media elements have no
     scheduled ramps). `onDone` runs when the target level is reached. */
@@ -344,19 +397,17 @@ export function startTheme(trackUrl?: string): void {
   try {
     if (themeStopTimer) { clearTimeout(themeStopTimer); themeStopTimer = null; }
     if (!themeEl) {
-      const el = new Audio(themeUrl);
-      el.loop = true;
-      el.preload = "auto";
-      el.volume = 0;
-      // Inline playback: iOS otherwise treats media as a fullscreen player.
-      el.setAttribute("playsinline", "");
-      themeEl = el;
+      themeEl = makeThemeEl(themeUrl, 0);
+      themeAltEl = makeThemeEl(themeUrl, 0);
     }
     const el = themeEl;
     // play() rejects until the page has had a gesture; the site-wide gesture
     // listener calls startTheme() again, so a rejection here is harmless.
     void Promise.resolve(el.play()).then(
-      () => fadeEl(el, THEME_GAIN, THEME_FADE_IN_MS),
+      () => {
+        fadeEl(el, THEME_GAIN, THEME_FADE_IN_MS);
+        startLoopWatcher();
+      },
       () => { /* blocked — retried on the next gesture */ },
     );
   } catch { /* never throw from audio */ }
@@ -366,9 +417,13 @@ export function startTheme(trackUrl?: string): void {
 function killTheme(): void {
   if (themeStopTimer) { clearTimeout(themeStopTimer); themeStopTimer = null; }
   if (themeFadeTimer) { clearInterval(themeFadeTimer); themeFadeTimer = null; }
+  stopLoopWatcher();
   try { themeEl?.pause(); } catch { /* ignore */ }
+  try { themeAltEl?.pause(); } catch { /* ignore */ }
   themeEl = null;
+  themeAltEl = null;
 }
+
 
 function fadeOutTheme(hard: boolean): void {
   try {
@@ -378,7 +433,8 @@ function fadeOutTheme(hard: boolean): void {
       // Only a musicEnabled=false toggle tears the element down; a screen
       // change leaves it playing silently so music resumes mid-phrase.
       if (hard) killTheme();
-      else { try { el.pause(); } catch { /* ignore */ } }
+      else { stopLoopWatcher(); try { el.pause(); } catch { /* ignore */ } }
+
     });
   } catch { /* ignore */ }
 }
