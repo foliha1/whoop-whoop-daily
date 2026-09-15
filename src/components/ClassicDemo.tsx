@@ -32,6 +32,7 @@ import MatchDie, { landedComponentsFor } from "@/components/MatchDie";
 import { ActionButton, ChipCell, type ButtonKind, type DerivedChip } from "@/components/MultiplayerGameView";
 import CloseButton from "@/components/CloseButton";
 import DemoSpotlight from "@/components/DemoSpotlight";
+import { MatchGhostCard } from "@/components/matchGhostParts";
 import { ALL_CARDS, type Card } from "@/cardData";
 import type { RollAttribute } from "@/lib/multiplayer";
 import { TARGET_SCORE } from "@/hooks/useGameState";
@@ -59,6 +60,7 @@ import {
   DEMO_COPY_FADE_MS,
   DEMO_COPY_SETTLE_MS,
   DEMO_TELL_LEAD_MS,
+  PRESS_ANIM_MS,
   SETTLE_REVEAL_HOLD_MS,
   WRONG_ANIM_MS,
 } from "@/lib/animationTiming";
@@ -155,6 +157,7 @@ interface Scene {
   whoopChip: ChipKindName;
   button: ButtonKind;
   buttonLabel?: string;
+  buttonPressed: boolean;
   spot: SpotKey[];
   /** Positions that stay bright while the grid is lit. Empty = all of them. */
   lit: number[];
@@ -177,6 +180,7 @@ const BASE: Scene = {
   myChip: "IDLE",
   whoopChip: "IDLE",
   button: "DISABLED",
+  buttonPressed: false,
   spot: ["grid"],
   lit: [],
 };
@@ -191,7 +195,8 @@ interface Step {
   copy: string;
   /** Region the fixed bubble's pointer aims toward. */
   anchor: Exclude<SpotKey, "all">;
-  order?: "tell-show";
+  order?: "tell-show" | "press-tell-show";
+  bullets?: string[];
   /** When every visual treatment triggered by this step has fully settled. */
   settlesAt?: number;
   enter: Partial<Scene>;
@@ -207,7 +212,7 @@ const dealAll = (): Scene["deal"] =>
 const SCRIPT: Step[] = [
   // 1 — The table.
   {
-    copy: "Nine cards, face down. Two to six players. You do not know what any of them are yet.",
+    copy: "You start with nine cards face down. You do not know what any of them are yet, neither do your opponents.",
     anchor: "grid",
     enter: { spot: ["grid"], lit: [], deal: dealAll() },
     beats: [{ at: 0, patch: {}, sound: playDeal }],
@@ -215,8 +220,7 @@ const SCRIPT: Step[] = [
   },
   // 2 — The die decides.
   {
-    copy:
-      "This die decides what counts as a match. This round it says colour, so you are hunting two cards that share one. It changes every round.",
+    copy: "The die decides what is important. This round it says COLOR, so you are trying to find two cards that share the same color. What is important changes every round.",
     anchor: "die",
     enter: { spot: ["die"], lit: [] },
     beats: [
@@ -227,7 +231,7 @@ const SCRIPT: Step[] = [
   },
   // 3 — Your first flip.
   {
-    copy: "On your turn you flip a card so everyone can see it. Red Circle 3. Remember where it is.",
+    copy: "On your turn you flip a card so everyone can see it. Your job is to remember what it is and where it is.",
     anchor: "grid",
     enter: { spot: ["grid"], lit: [1], myChip: "FLIPPING" },
     beats: [
@@ -242,7 +246,7 @@ const SCRIPT: Step[] = [
   },
   // 4 — Your second flip.
   {
-    copy: "You get two flips on your turn. Red Square 1. That is your turn done.",
+    copy: "You get two flips per turn. After your second flip, your turn is done.",
     anchor: "grid",
     enter: { spot: ["grid"], lit: [5], myChip: "FLIPPING" },
     beats: [
@@ -257,8 +261,7 @@ const SCRIPT: Step[] = [
   },
   // 5 — WHOOP's turn.
   {
-    copy:
-      "Now it is WHOOP's turn. Watch their flips too — every flip is public. Blue Square 3. Red Star 4.",
+    copy: "Now it is your opponent's turn. Watch their flips too, every flip is important.",
     anchor: "grid",
     enter: { spot: ["chipWhoop"], lit: [], whoopChip: "FLIPPING" },
     beats: [
@@ -282,15 +285,23 @@ const SCRIPT: Step[] = [
   },
   // 6 — Call it.
   {
-    copy: "Spotted a match? Call it. You can call at any moment — on your turn, on someone else's, whenever.",
+    copy: "Did you spot a match? Call it! Press the Whoop! Whoop! button at any time to call a match, during your turn or other players.",
     anchor: "button",
-    order: "tell-show",
-    enter: { spot: ["button"], lit: [], button: "DISABLED", buttonLabel: undefined },
-    beats: [{ at: 0, patch: { button: "WHOOP" } }],
+    order: "press-tell-show",
+    enter: { spot: ["button"], lit: [], button: "WHOOP", buttonLabel: undefined, buttonPressed: false },
+    beats: [
+      { at: 0, patch: { buttonPressed: true }, sound: playWhoopCall },
+      { at: PRESS_ANIM_MS, patch: { buttonPressed: false } },
+      {
+        at: PRESS_ANIM_MS + DEMO_COPY_SETTLE_MS + DEMO_TELL_LEAD_MS,
+        patch: { spot: ["grid"], pulsing: true, myChip: "WHOOP", button: "SELECT_MATCH" },
+      },
+    ],
+    settlesAt: PRESS_ANIM_MS + DEMO_COPY_SETTLE_MS + DEMO_TELL_LEAD_MS,
   },
   // 7 — The call.
   {
-    copy: "When anyone calls, the whole board lights up blue. Everyone at the table knows a call is happening.",
+    copy: "When any player calls Whoop! Whoop!, the whole board lights up. Everyone at the table knows a call is happening.",
     anchor: "grid",
     enter: {
       spot: ["grid"],
@@ -303,9 +314,9 @@ const SCRIPT: Step[] = [
   },
   // 8 — Pick two.
   {
-    copy: "You chose two cards; the second tap locked the call in. Both were red, and the die said colour. That was a match.",
+    copy: "Choose two cards you think match the rule on the die; the second tap locks in your choice. This round is color, so two reds makes a match!",
     anchor: "grid",
-    enter: { spot: ["grid"], lit: [1, 5], pulsing: true },
+    enter: { spot: ["all", "chipYou"], lit: [1, 5], pulsing: true, myChip: "WHOOP" },
     beats: [
       { at: DEMO_BEAT_MS, patch: { selected: [1] }, sound: playSelect },
       { at: 2 * DEMO_BEAT_MS, patch: { selected: [1, 5] }, sound: playSelect },
@@ -328,8 +339,7 @@ const SCRIPT: Step[] = [
   },
   // 9 — What you won.
   {
-    copy:
-      "Both cards go to you. Two points. First to twelve cards wins. Two new cards fill the gaps — only those two. Everything else stays exactly where it was.",
+    copy: "A good match = two points. The matched cards go to you. Two new cards fill the gaps, only those two. All other cards stay exactly where they are.",
     anchor: "grid",
     enter: { spot: ["chipYou"], lit: [] },
     beats: [
@@ -356,8 +366,7 @@ const SCRIPT: Step[] = [
   },
   // 10 — You take the die.
   {
-    copy:
-      "Winning a match hands you the die. You roll the next rule and you flip first. It says shape now. The cards did not move, but what matters about them just changed.",
+    copy: "A good match hands you the die. Your roll sets the next rule, and you flip first. The cards did not change, but what makes a match did change. It was COLOR, now it is SHAPE.",
     anchor: "die",
     enter: { spot: ["die"], lit: [], myChip: "ROLLING" },
     beats: [
@@ -372,13 +381,14 @@ const SCRIPT: Step[] = [
       "Blue Star and Blue Triangle. Both blue — but the die says shape now, and a star is not a triangle. That is a miss.",
     anchor: "grid",
     enter: {
-      spot: ["grid"],
+      spot: ["all"],
       lit: [2, 4],
       pulsing: true,
       myChip: "WHOOP",
       button: "SELECT_MATCH",
     },
     beats: [
+      { at: 0, patch: {}, sound: playWhoopCall },
       { at: DEMO_BEAT_MS, patch: { selected: [2] }, sound: playSelect },
       { at: 2 * DEMO_BEAT_MS, patch: { selected: [2, 4] }, sound: playSelect },
       {
@@ -400,10 +410,14 @@ const SCRIPT: Step[] = [
   },
   // 12 — What a miss costs.
   {
-    copy:
-      "A miss returns one card you already won to the deck. The pair stays face up, and only you cannot choose it again this round.\nYou keep any unused flip.",
+    copy: "A missed match does three things:",
+    bullets: [
+      "Lose one card you already won to the deck",
+      "Keep the missed match face up for the rest of the round",
+      "Those cards are locked for you for the round",
+    ],
     anchor: "grid",
-    enter: { spot: ["chipYou"], lit: [] },
+    enter: { spot: ["all"], lit: [] },
     beats: [
       { at: DEMO_BEAT_MS, patch: { myScore: 1 } },
       {
@@ -419,7 +433,7 @@ const SCRIPT: Step[] = [
   },
   // 13 — Two calls each.
   {
-    copy: "You get two calls per round. Use both and you sit out the rest of the round. Your flips still count.",
+    copy: "You only get 2 calls per round. Use them wisely.",
     anchor: "button",
     enter: { spot: ["button"], lit: [], button: "WHOOP", buttonLabel: "1 CALL LEFT" },
     beats: [],
@@ -427,10 +441,9 @@ const SCRIPT: Step[] = [
   },
   // 14 — WHOOP calls.
   {
-    copy:
-      "Anyone can call, not just you. Orange Square and Blue Square — both squares, so WHOOP takes the pair and the die. Now they set the next rule.",
+    copy: "Remember, anyone can call at anytime. If another player gets a match, they get the die, set the next rule, and flip first.",
     anchor: "grid",
-    enter: { spot: ["chipWhoop"], lit: [], whoopChip: "WHOOP", button: "DISABLED", buttonLabel: undefined },
+    enter: { spot: ["all"], lit: [], whoopChip: "WHOOP", button: "DISABLED", buttonLabel: undefined },
     beats: [
       { at: 0, patch: {}, sound: playWhoopCall },
       {
@@ -464,11 +477,26 @@ const SCRIPT: Step[] = [
   },
   // 15 — That is it.
   {
-    copy: "",
+    copy: "First to twelve wins!\nNow go play a solo game with WHOOP Bot, or send a link to your people and play together. Have fun and WHOOP! WHOOP!",
     anchor: "grid",
-    order: "tell-show",
-    enter: { spot: ["all"], lit: [] },
-    beats: [],
+    enter: {
+      spot: ["all"],
+      lit: [],
+      cards: { ...BOARD },
+      removed: [],
+      faceUp: [],
+      selected: [],
+      matched: [],
+      wrong: [],
+      burned: [],
+      pulsing: false,
+      myChip: "IDLE",
+      whoopChip: "IDLE",
+      button: "WHOOP",
+      deal: Object.fromEntries(POSITIONS.map((p) => [p, { key: `${p}-final`, index: p - 1 }])),
+    },
+    beats: [{ at: 0, patch: {}, sound: playDeal }],
+    settlesAt: 8 * DEAL_STAGGER_MS + DEAL_MOVE_MS,
   },
 ];
 
