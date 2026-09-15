@@ -945,7 +945,6 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             <div
               style={{
                 width: "100%",
-                height: 61,
                 display: "flex",
                 flexDirection: "row",
                 justifyContent: "space-between",
