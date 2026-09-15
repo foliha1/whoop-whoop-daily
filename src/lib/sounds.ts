@@ -283,17 +283,18 @@ const THEME_FADE_OUT_MS = 400;
 /** The track the current screen wants. Screens with their own music (the
     Classic lobby, the How to Play demo) pass their URL to startTheme(). */
 let themeUrl = DEFAULT_THEME_FILE;
-/** Decoded buffers and in-flight loads, per track URL, so switching between
-    the lobby and demo tracks never refetches. */
-const themeBuffers = new Map<string, AudioBuffer>();
-const themeLoads = new Map<string, Promise<void>>();
-let themeSource: AudioBufferSourceNode | null = null;
-let themeGainNode: GainNode | null = null;
 /** The screen wants music, regardless of whether it is audible right now. */
 let themeDesired = false;
 let themeStopTimer: ReturnType<typeof setTimeout> | null = null;
-/** Bounded retry counter for a failed theme fetch/decode. */
-let themeLoadAttempts = 0;
+
+// The theme plays through a plain <audio> element, not the Web Audio graph.
+// On iOS the Web Audio session is "ambient": the hardware ring/silent switch
+// mutes it outright, so a phone with the switch flipped heard no music at all
+// however healthy the graph was. A media element uses the playback session and
+// is audible either way — and it needs no fetch/decode step, so it also starts
+// on the first gesture instead of a round-trip later.
+let themeEl: HTMLAudioElement | null = null;
+let themeFadeTimer: ReturnType<typeof setInterval> | null = null;
 
 
 /**
