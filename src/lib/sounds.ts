@@ -236,6 +236,9 @@ function primeGraph(ctx: AudioContext): void {
 // wanted. Only flags success once the context is actually running, so a blocked
 // attempt does not stop the next gesture from trying again.
 export function unlockAudio(): void {
+  // Music first, and synchronously: a media element only starts if play() is
+  // called inside the gesture itself, before any await.
+  if (themeDesired) startTheme(themeUrl);
   try {
     const ctx = getCtx();
     primeGraph(ctx);
@@ -389,11 +392,13 @@ export function stopTheme(): void {
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
   const wake = () => {
     try {
+      // The theme lives on a media element, so it can come back even if the
+      // effects graph was never built on this visit.
+      if (themeDesired && musicEnabled) startTheme(themeUrl);
       const ctx = audioCtx;
       if (!ctx) return;
       whenRunning(ctx, () => {
         if (ctx.state === "running" && sfxBus && sfxEnabled) sfxBus.gain.value = 1;
-        if (themeDesired && musicEnabled) startTheme(themeUrl);
       });
     } catch { /* never throw from audio */ }
   };
