@@ -433,7 +433,8 @@ function fadeOutTheme(hard: boolean): void {
       // Only a musicEnabled=false toggle tears the element down; a screen
       // change leaves it playing silently so music resumes mid-phrase.
       if (hard) killTheme();
-      else { try { el.pause(); } catch { /* ignore */ } }
+      else { stopLoopWatcher(); try { el.pause(); } catch { /* ignore */ } }
+
     });
   } catch { /* ignore */ }
 }
