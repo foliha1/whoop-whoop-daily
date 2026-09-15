@@ -1,4 +1,4 @@
 # Roadmap
 
 - [x] Refine Classic How to Play: live-game layout, fixed readable bubble, safe connector, and two-beat sequencing.
-- [ ] Revise the Classic demo welcome, copy, spotlight behavior, rolls, match effects, and closing reset.
+- [x] Revise the Classic demo welcome, copy, spotlight behavior, rolls, match effects, and closing reset.
