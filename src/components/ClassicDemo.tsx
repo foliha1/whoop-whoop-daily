@@ -624,15 +624,15 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
     const currentStep = SCRIPT[step];
     if (reduce) {
       setScene(settledScene(step));
-      setCopyVisible(step !== LAST);
+      setCopyVisible(true);
       setStepSettled(true);
       return;
     }
     setScene(enterScene(step));
     const pressTellShow = currentStep.order === "press-tell-show";
     const tellFirst = currentStep.order === "tell-show";
-    setCopyVisible(tellFirst && step !== LAST);
-    setStepSettled(step === LAST);
+    setCopyVisible(tellFirst);
+    setStepSettled(false);
     const offset = tellFirst ? DEMO_TELL_LEAD_MS : 0;
     const beats = currentStep.beats;
     for (const beat of beats) {
@@ -653,7 +653,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
       );
       timers.current.push(copyTimer, settleTimer);
     }
-    if (tellFirst && step !== LAST) {
+    if (tellFirst) {
       const hideTimer = window.setTimeout(() => setCopyVisible(false), DEMO_TELL_LEAD_MS);
       timers.current.push(hideTimer);
       const settleTimer = window.setTimeout(
@@ -662,7 +662,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
       );
       timers.current.push(settleTimer);
     }
-    if (!tellFirst && !pressTellShow && step !== LAST) {
+    if (!tellFirst && !pressTellShow) {
       const copyTimer = window.setTimeout(
         () => {
           setCopyVisible(true);
@@ -779,7 +779,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                       faceUp
                       k={cardW / 104.333}
                       radius={RADIUS.md}
-                      style={{ position: "absolute", inset: 0, overflow: "hidden" }}
+                      style={{ position: "absolute", inset: 0 }}
                     />
                   )}
                 </>
@@ -824,6 +824,11 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
         alignItems: "center",
         gap: SPACE[6],
         width: "100%",
+        height: "100%",
+        justifyContent: "center",
+        opacity: copyVisible ? 1 : 0,
+        transition: reduce ? undefined : `opacity ${DEMO_COPY_FADE_MS}ms ${DEMO_DIE_EASE}`,
+        pointerEvents: copyVisible ? "auto" : "none",
       }}
     >
       <p style={{ ...textStyle("body", true), fontFamily: FONT_FAMILY_UI, fontWeight: FONT_WEIGHT_UI, margin: 0, textAlign: "center", color: COLORS.ink, whiteSpace: "pre-line" }}>
