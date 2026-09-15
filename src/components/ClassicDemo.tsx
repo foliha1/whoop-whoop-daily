@@ -46,7 +46,10 @@ import {
   playSelect,
   playWhoopCall,
   playWrong,
+  startTheme,
+  stopTheme,
 } from "@/lib/sounds";
+import howToPlayTheme from "@/assets/Whoop_Whoop_How_to_Play_SHORT.mp3.asset.json";
 import {
   CARD_FLIP_MS,
   DAILY_MATCH_GREAT_MS,
