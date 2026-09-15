@@ -740,14 +740,20 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
     return () => window.removeEventListener("keydown", onKey);
   }, [welcome]);
 
+  // Dimming is tied to the bubble, not to the step: while an animation beat is
+  // playing (no copy on screen) the board reads exactly like a live game, and
+  // the dim + spotlight rise and fall together with the instruction copy.
+  const dimActive = copyVisible;
   const spotAll = scene.spot.includes("all");
-  const lit = (key: Exclude<SpotKey, "all">) => spotAll || scene.spot.includes(key);
+  const lit = (key: Exclude<SpotKey, "all">) =>
+    !dimActive || spotAll || scene.spot.includes(key);
   const current = SCRIPT[step];
 
   const cardOpacity = (pos: number) =>
-    !spotAll && scene.spot.includes("grid") && scene.lit.length > 0 && !scene.lit.includes(pos)
+    dimActive && !spotAll && scene.spot.includes("grid") && scene.lit.length > 0 && !scene.lit.includes(pos)
       ? 0.35
       : 1;
+
 
   const chip = (name: string, kind: ChipKindName, score: number, seat: number): DerivedChip =>
     ({ kind, name, score, seat } as DerivedChip);
