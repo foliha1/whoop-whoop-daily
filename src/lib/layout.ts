@@ -6,3 +6,6 @@
  */
 export const MOBILE_SHELL_PAD = 12;
 export const DESKTOP_SHELL_PAD = 8;
+
+/** Live Classic action row: shared by the game and its How to Play demo. */
+export const CLASSIC_ACTION_ROW_HEIGHT = 110.94;

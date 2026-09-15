@@ -50,6 +50,7 @@ import { serverNow } from "@/hooks/useServerClock";
 import { TARGET_SCORE, MAX_WRONG_CLAIMS_PER_ROUND } from "@/hooks/useGameState";
 
 import RollHeroOverlay, { TUMBLE_MS } from "@/components/RollHeroOverlay";
+import { CLASSIC_ACTION_ROW_HEIGHT } from "@/lib/layout";
 import { MATCH_ART_SRC } from "@/components/MatchDie";
 import type { Card } from "@/cardData";
 import { preloadGameArt } from "@/lib/preloadArt";
@@ -613,14 +614,14 @@ const ButtonStyles: Record<ButtonKind, { bg: string; text: string; label: string
   DISABLED:     { bg: PANEL,  text: MUTED,   label: "WAIT" },
 };
 
-const DieBox: React.FC<{
+export const DieBox: React.FC<{
   rule: string;
   heroActive: boolean;
   waiting: boolean;
   homeRef?: React.Ref<HTMLDivElement>;
 }> = ({ rule, heroActive, waiting, homeRef }) => (
   <div style={{
-    width: 111, flex: "none", boxSizing: "border-box", background: ORANGE,
+    width: 111, height: "100%", flex: "none", boxSizing: "border-box", background: ORANGE,
     border: BORDER_HEAVY, borderRadius: R_BOX, padding: 8,
     display: "flex", flexDirection: "column", alignItems: "center",
     justifyContent: "center",
@@ -1626,7 +1627,7 @@ const MultiplayerGameView: React.FC<Props> = ({
   // Compact mode: short mobile viewports get a slimmer bottom bar, tighter
   // gaps and smaller minimum cards so the board fits without scrolling.
   const compact = mobile && rootH > 0 && rootH < 620;
-  const bottomBarH = compact ? 84 : 110.94;
+  const bottomBarH = CLASSIC_ACTION_ROW_HEIGHT;
 
   const bottomRow = (
     <div style={{ display: "flex", flexDirection: "row", gap: 8, height: bottomBarH, flex: "none" }}>

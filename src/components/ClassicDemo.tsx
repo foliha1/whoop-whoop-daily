@@ -28,13 +28,14 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePortalHost } from "@/hooks/usePortalHost";
 import { useDismiss } from "@/hooks/useDismiss";
 import GameCard from "@/components/GameCard";
-import MatchDie, { landedComponentsFor } from "@/components/MatchDie";
-import { ActionButton, ChipCell, type ButtonKind, type DerivedChip } from "@/components/MultiplayerGameView";
+import RollHeroOverlay, { TUMBLE_MS } from "@/components/RollHeroOverlay";
+import { ActionButton, ChipCell, DieBox, type ButtonKind, type DerivedChip } from "@/components/MultiplayerGameView";
 import CloseButton from "@/components/CloseButton";
 import DemoSpotlight from "@/components/DemoSpotlight";
 import { MatchGhostCard } from "@/components/matchGhostParts";
 import { ALL_CARDS, type Card } from "@/cardData";
-import type { RollAttribute } from "@/lib/multiplayer";
+import { ROLL_HERO_MS, type RollAttribute, type RollCommitPayload } from "@/lib/multiplayer";
+import { CLASSIC_ACTION_ROW_HEIGHT } from "@/lib/layout";
 import { TARGET_SCORE } from "@/hooks/useGameState";
 import { trackEvent } from "@/lib/analytics";
 import {
@@ -57,7 +58,6 @@ import {
   DEAL_STAGGER_MS,
   DEMO_BEAT_MS,
   DEMO_DIE_EASE,
-  DEMO_DIE_ROLL_MS,
   DEMO_HOLD_MS,
   DEMO_SCORE_TICK_MS,
   DEMO_COPY_FADE_MS,
@@ -231,9 +231,9 @@ const SCRIPT: Step[] = [
     enter: { spot: ["die"], lit: [] },
     beats: [
       { at: DEMO_BEAT_MS, patch: { rule: "COLOR", rolls: 1 }, sound: playDiceRoll },
-      { at: DEMO_BEAT_MS + DEMO_DIE_ROLL_MS, patch: {}, sound: playDieLand },
+      { at: DEMO_BEAT_MS + TUMBLE_MS, patch: {}, sound: playDieLand },
     ],
-    settlesAt: DEMO_BEAT_MS + DEMO_DIE_ROLL_MS,
+    settlesAt: DEMO_BEAT_MS + ROLL_HERO_MS,
   },
   // 3 — Your first flip.
   {
@@ -377,9 +377,9 @@ const SCRIPT: Step[] = [
     enter: { spot: ["die"], lit: [], myChip: "ROLLING" },
     beats: [
       { at: DEMO_BEAT_MS, patch: { rule: "SHAPE", rolls: 2 }, sound: playDiceRoll },
-      { at: DEMO_BEAT_MS + DEMO_DIE_ROLL_MS, patch: { myChip: "IDLE" }, sound: playDieLand },
+      { at: DEMO_BEAT_MS + TUMBLE_MS, patch: { myChip: "IDLE" }, sound: playDieLand },
     ],
-    settlesAt: DEMO_BEAT_MS + DEMO_DIE_ROLL_MS,
+    settlesAt: DEMO_BEAT_MS + ROLL_HERO_MS,
   },
   // 11 — Getting it wrong.
   {
@@ -571,12 +571,6 @@ const useCardWidth = (): [(el: HTMLDivElement | null) => void, number] => {
   return [setNode, w];
 };
 
-const dieRotation = (rule: RollAttribute | null, rolls: number): string => {
-  if (!rule) return "rotateX(-24deg) rotateY(36deg)";
-  const { x, y } = landedComponentsFor(rule, 0);
-  return `rotateX(${x - 720 * rolls}deg) rotateY(${y + 1080 * rolls}deg)`;
-};
-
 /* ------------------------------------------------------------------ *
  * The demo.
  *
@@ -621,6 +615,10 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   const [copyVisible, setCopyVisible] = useState(false);
   const [stepSettled, setStepSettled] = useState(false);
   const [gridRef, cardW] = useCardWidth();
+  const dieHomeRef = useRef<HTMLDivElement | null>(null);
+  const [rollCommit, setRollCommit] = useState<RollCommitPayload | null>(null);
+  const [rollRects, setRollRects] = useState<{ home: DOMRect; target: DOMRect } | null>(null);
+  const previousRollRef = useRef(0);
   const timers = useRef<number[]>([]);
 
   useEffect(() => {
@@ -693,6 +691,24 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
       timers.current = [];
     };
   }, [step, reduce]);
+
+  // Use the live game's roll overlay for both scripted rolls. The small tray
+  // only reveals the landed result after the full-screen animation completes.
+  useEffect(() => {
+    if (scene.rolls <= previousRollRef.current || !scene.rule) return;
+    previousRollRef.current = scene.rolls;
+    const home = dieHomeRef.current?.getBoundingClientRect();
+    const target = document.querySelector<HTMLElement>('[data-testid="classic-demo-board"]')?.getBoundingClientRect();
+    if (!home || !target) return;
+    setRollRects({ home, target });
+    setRollCommit({
+      roundId: `demo-${scene.rolls}`,
+      attribute: scene.rule,
+      faceIndex: 0,
+      tumbleSeed: scene.rolls,
+      startAt: Date.now(),
+    });
+  }, [scene.rolls, scene.rule]);
 
   const finish = useCallback(() => {
     markClassicDemoSeen();
@@ -809,28 +825,12 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   );
 
   const dieBox = (
-    <div
-      style={{
-        width: 111,
-        flex: "none",
-        boxSizing: "border-box",
-        background: COLORS.orange,
-        border: BORDER.heavy,
-        borderRadius: RADIUS.sm,
-        padding: SPACE[4],
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <MatchDie
-        size={SPACE[10] * 4}
-        attribute={scene.rule ?? "SHAPE"}
-        faceIndex={0}
-        rotation={dieRotation(scene.rule, scene.rolls)}
-        transition={reduce ? undefined : `transform ${DEMO_DIE_ROLL_MS}ms ${DEMO_DIE_EASE}`}
-      />
-    </div>
+    <DieBox
+      rule={scene.rule ?? "SHAPE"}
+      heroActive={rollCommit !== null}
+      waiting={scene.rule === null}
+      homeRef={dieHomeRef}
+    />
   );
 
   const finalPanel = (
@@ -897,10 +897,6 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   );
 
   if (!portalHost) return null;
-
-  const rollingFullScreen = !welcome && !copyVisible && (
-    (step === 1 && scene.rolls === 1) || (step === 9 && scene.rolls === 2)
-  );
 
   return createPortal(
     <div
@@ -1090,7 +1086,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             overflow: "hidden",
           }}
         >
-          {grid}
+          <div data-testid="classic-demo-board" style={{ width: "100%", height: "100%" }}>{grid}</div>
         </DemoSpotlight>
 
         {/* One fixed lower slot: the real die/action row occupies it while the
@@ -1111,7 +1107,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               display: "flex",
               alignItems: "stretch",
               gap: SPACE[4],
-              height: 84,
+              height: CLASSIC_ACTION_ROW_HEIGHT,
               opacity: copyVisible || step === LAST ? 0 : 1,
               transition: reduce ? undefined : `opacity ${DEMO_COPY_FADE_MS}ms ${DEMO_DIE_EASE}`,
               pointerEvents: copyVisible || step === LAST ? "none" : "auto",
@@ -1137,6 +1133,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               aria-live="polite"
               style={{
                  ...panelStyle("surface", 4),
+                paddingInline: SPACE[4] * 1.2,
                 background: COLORS.surface,
                 width: "100%",
                 height: "100%",
@@ -1152,6 +1149,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                <div
                 style={{
                   ...textStyle("subhead", true),
+                  fontSize: FONT_SIZE.md,
                   fontFamily: FONT_FAMILY_UI,
                   fontWeight: FONT_WEIGHT_UI,
                   letterSpacing: 0,
@@ -1204,26 +1202,26 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
         </div>
       </div>
       )}
-      {rollingFullScreen && (
+      {rollCommit && rollRects && (
         <div
           aria-hidden="true"
           style={{
-            position: "absolute",
+            position: "fixed",
             inset: 0,
             zIndex: 20,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
             background: `color-mix(in srgb, ${RAW.warmBlack} 55%, transparent)`,
             pointerEvents: "none",
           }}
         >
-          <MatchDie
-            size={SPACE[10] * 10}
-            attribute={scene.rule ?? "SHAPE"}
-            faceIndex={0}
-            rotation={dieRotation(scene.rule, scene.rolls)}
-            transition={reduce ? undefined : `transform ${DEMO_DIE_ROLL_MS}ms ${DEMO_DIE_EASE}`}
+          <RollHeroOverlay
+            commit={rollCommit}
+            homeRect={rollRects.home}
+            targetRect={rollRects.target}
+            parentRect={new DOMRect(0, 0, window.innerWidth, window.innerHeight)}
+            onComplete={() => {
+              setRollCommit(null);
+              setRollRects(null);
+            }}
           />
         </div>
       )}
