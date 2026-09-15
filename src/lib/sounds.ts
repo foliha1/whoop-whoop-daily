@@ -10,7 +10,8 @@
 // repeated tap never sounds like the same sample twice.
 //
 // Two independent flags: sfxEnabled controls the effect functions; musicEnabled
-// controls the background theme (still a real recording, /sounds/theme.mp3).
+// controls the background theme (real recordings; each screen passes its own
+// track to startTheme, defaulting to the Daily's /sounds/theme.mp3).
 // Both persist to localStorage so a refresh preserves the user's choice.
 //
 // unlockAudio() must be called from a user gesture — it resumes the context and
