@@ -341,8 +341,16 @@ function ramp(node: GainNode, to: number, ms: number) {
  * music; a no-op until a gesture has unlocked audio, and it never restarts an
  * already-running loop — it just ramps the level back up.
  */
-export function startTheme(): void {
+export function startTheme(trackUrl?: string): void {
+  const next = trackUrl ?? DEFAULT_THEME_FILE;
   themeDesired = true;
+  if (next !== themeUrl) {
+    // Track switch: fade out and tear down the current loop; the new track
+    // fades in once its buffer has loaded.
+    themeUrl = next;
+    themeLoadAttempts = 0;
+    fadeOutTheme(true);
+  }
   if (!musicEnabled) return;
   try {
     const ctx = getCtx();
@@ -362,12 +370,15 @@ function startThemeNow(ctx: AudioContext): void {
     ramp(themeGainNode, THEME_GAIN, THEME_FADE_IN_MS);
     return;
   }
-  if (!themeBuffer) {
+  const buffer = themeBuffers.get(themeUrl);
+  if (!buffer) {
     // Bounded retry: a failed fetch/decode is retried a couple of times, then
     // music quietly gives up rather than looping forever.
     if (themeLoadAttempts >= 3) return;
     themeLoadAttempts += 1;
-    void loadTheme().then(() => { if (themeDesired && themeBuffer) startTheme(); });
+    void loadTheme(themeUrl).then(() => {
+      if (themeDesired && themeBuffers.has(themeUrl)) startTheme(themeUrl);
+    });
     return;
   }
   const g = ctx.createGain();
