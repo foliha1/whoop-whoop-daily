@@ -780,7 +780,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 width: cardW,
                 height: Math.round(cardW * CARD_RATIO),
                 opacity: cardOpacity(pos),
-                transition: `opacity ${MOTION.base}`,
+                transition: reduce ? undefined : `opacity ${MOTION.base}`,
               }}
             >
               {removed ? (
