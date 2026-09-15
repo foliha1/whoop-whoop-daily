@@ -740,6 +740,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             <div
               key={pos}
               style={{
+                position: "relative",
                 width: cardW,
                 height: Math.round(cardW * CARD_RATIO),
                 opacity: cardOpacity(pos),
@@ -821,11 +822,11 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   const finalPanel = (
     <div
       style={{
-        ...panelStyle("surface", 8),
+        ...panelStyle("surface", 4),
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: SPACE[6],
+        gap: SPACE[4],
         width: "100%",
         height: "100%",
         justifyContent: "center",
@@ -1035,8 +1036,8 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             rely on the spotlight rather than route a connector across cards. */}
         <div
           style={{
-            flex: "0 0 120px",
-            minHeight: 120,
+            flex: "0 0 176px",
+            minHeight: 176,
             position: "relative",
           }}
         >
@@ -1072,7 +1073,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               role="status"
               aria-live="polite"
               style={{
-                ...panelStyle("surface", 6),
+                 ...panelStyle("surface", 4),
                 background: COLORS.surface,
                 width: "100%",
                 height: "100%",
