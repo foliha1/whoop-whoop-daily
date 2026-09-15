@@ -59,7 +59,7 @@ export function setMusicEnabled(value: boolean): void {
   // Honour the flag live: off fades out and stops, on fades back in when the
   // current screen still wants music.
   if (!value) fadeOutTheme(true);
-  else if (themeDesired) startTheme();
+  else if (themeDesired) startTheme(themeUrl);
 }
 
 // Back-compat wrappers — GameWindow (solo) uses these. `muted` is the inverse
@@ -244,7 +244,7 @@ export function unlockAudio(): void {
         primeGraph(ctx);
       }
       // A screen that wants music may have asked for it before the gesture.
-      if (themeDesired) startTheme();
+      if (themeDesired) startTheme(themeUrl);
     };
     if (needsResume(ctx)) void Promise.resolve(ctx.resume()).then(settle, settle);
     else settle();
@@ -385,7 +385,7 @@ function startThemeNow(ctx: AudioContext): void {
   g.gain.value = 0;
   g.connect(ctx.destination);
   const src = ctx.createBufferSource();
-  src.buffer = themeBuffer;
+  src.buffer = buffer;
   src.loop = true;
   src.connect(g);
   // If the loop ever ends (context torn down, source killed), drop the handles
@@ -435,7 +435,7 @@ if (typeof document !== "undefined" && typeof document.addEventListener === "fun
       if (!ctx) return;
       whenRunning(ctx, () => {
         if (ctx.state === "running" && sfxBus && sfxEnabled) sfxBus.gain.value = 1;
-        if (themeDesired && musicEnabled) startTheme();
+        if (themeDesired && musicEnabled) startTheme(themeUrl);
       });
     } catch { /* never throw from audio */ }
   };
