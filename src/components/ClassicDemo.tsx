@@ -1074,16 +1074,18 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             ...panelStyle("panel", 4),
           }}
         >
-          <DemoSpotlight active={lit("chipWhoop")}>
+          <DemoSpotlight instant={reduce}
+ active={lit("chipWhoop")}>
             <ChipCell chip={chip("WHOOP", scene.whoopChip, scene.whoopScore, 1)} />
           </DemoSpotlight>
-          <DemoSpotlight active={lit("chipYou")}>
+          <DemoSpotlight instant={reduce}
+ active={lit("chipYou")}>
             <ChipCell chip={chip("YOU", scene.myChip, scene.myScore, 0)} />
           </DemoSpotlight>
         </div>
 
         {/* the board */}
-        <DemoSpotlight
+        <DemoSpotlight instant={reduce}
           active={lit("grid")}
           style={{
             ...panelStyle("panel", 5),
@@ -1119,10 +1121,11 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               pointerEvents: copyVisible || step === LAST ? "none" : "auto",
             }}
           >
-            <DemoSpotlight active={lit("die")}>
+            <DemoSpotlight instant={reduce}
+ active={lit("die")}>
               {dieBox}
             </DemoSpotlight>
-            <DemoSpotlight
+            <DemoSpotlight instant={reduce}
               active={lit("button")}
               style={{ flex: "1 1 0", minWidth: 0, display: "flex" }}
             >
