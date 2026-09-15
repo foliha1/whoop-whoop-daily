@@ -273,13 +273,19 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
 // Background theme — music, behind musicEnabled, never an effect
 // ---------------------------------------------------------------------------
 
-const THEME_FILE = "/sounds/theme.mp3";
+/** The Daily's theme. `startTheme()` with no argument always means this one. */
+const DEFAULT_THEME_FILE = "/sounds/theme.mp3";
 const THEME_GAIN = 0.15;
 const THEME_FADE_IN_MS = 600;
 const THEME_FADE_OUT_MS = 400;
 
-let themeBuffer: AudioBuffer | null = null;
-let themeLoading: Promise<void> | null = null;
+/** The track the current screen wants. Screens with their own music (the
+    Classic lobby, the How to Play demo) pass their URL to startTheme(). */
+let themeUrl = DEFAULT_THEME_FILE;
+/** Decoded buffers and in-flight loads, per track URL, so switching between
+    the lobby and demo tracks never refetches. */
+const themeBuffers = new Map<string, AudioBuffer>();
+const themeLoads = new Map<string, Promise<void>>();
 let themeSource: AudioBufferSourceNode | null = null;
 let themeGainNode: GainNode | null = null;
 /** The screen wants music, regardless of whether it is audible right now. */
@@ -302,20 +308,22 @@ function decode(ctx: AudioContext, data: ArrayBuffer): Promise<AudioBuffer> {
   });
 }
 
-function loadTheme(): Promise<void> {
-  if (themeLoading) return themeLoading;
-  themeLoading = (async () => {
+function loadTheme(url: string): Promise<void> {
+  const existing = themeLoads.get(url);
+  if (existing) return existing;
+  const p = (async () => {
     try {
-      const res = await fetch(THEME_FILE, { cache: "force-cache" });
+      const res = await fetch(url, { cache: "force-cache" });
       if (!res.ok) throw new Error(`theme ${res.status}`);
-      themeBuffer = await decode(getCtx(), await res.arrayBuffer());
+      themeBuffers.set(url, await decode(getCtx(), await res.arrayBuffer()));
     } catch {
       // A transient network failure must not disable music for the session:
       // clear the cached attempt so the next startTheme() can try again.
-      themeLoading = null;
+      themeLoads.delete(url);
     }
   })();
-  return themeLoading;
+  themeLoads.set(url, p);
+  return p;
 }
 
 
