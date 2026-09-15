@@ -385,10 +385,12 @@ const SCRIPT: Step[] = [
       lit: [2, 4],
       pulsing: true,
       myChip: "WHOOP",
-      button: "SELECT_MATCH",
+      button: "WHOOP",
+      buttonPressed: true,
     },
     beats: [
       { at: 0, patch: {}, sound: playWhoopCall },
+      { at: PRESS_ANIM_MS, patch: { buttonPressed: false, button: "SELECT_MATCH" } },
       { at: DEMO_BEAT_MS, patch: { selected: [2] }, sound: playSelect },
       { at: 2 * DEMO_BEAT_MS, patch: { selected: [2, 4] }, sound: playSelect },
       {
@@ -794,19 +796,20 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   const dieBox = (
     <div
       style={{
+        width: 111,
         flex: "none",
         boxSizing: "border-box",
         background: COLORS.orange,
         border: BORDER.heavy,
         borderRadius: RADIUS.sm,
-        padding: SPACE[3],
+        padding: SPACE[4],
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
       }}
     >
       <MatchDie
-        size={SPACE[12] * 2}
+        size={SPACE[10] * 4}
         attribute={scene.rule ?? "SHAPE"}
         faceIndex={0}
         rotation={dieRotation(scene.rule, scene.rolls)}
