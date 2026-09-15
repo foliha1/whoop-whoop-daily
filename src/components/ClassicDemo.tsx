@@ -1142,7 +1142,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               aria-live="polite"
               style={{
                  ...panelStyle("surface", 4),
-                paddingInline: SPACE[4] * 1.2,
+                paddingInline: SPACE[20],
                 background: COLORS.surface,
                 width: "100%",
                 height: "100%",
@@ -1157,21 +1157,22 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             >
                <div
                 style={{
-                  ...textStyle("subhead", true),
-                  fontSize: FONT_SIZE.md,
+                  ...textStyle("control", true),
+                  fontSize: FONT_SIZE.sm,
                   fontFamily: FONT_FAMILY_UI,
                   fontWeight: FONT_WEIGHT_UI,
                   letterSpacing: 0,
                   display: "block",
                   textAlign: "center",
                   whiteSpace: "pre-line",
+                  textWrap: "balance",
                   color: COLORS.ink,
                 }}
               >
                 <span style={{ whiteSpace: "pre-line" }}>{current.copy}</span>
                 {current.bullets && (
                   <ul style={{ margin: `${SPACE[2]}px 0 0`, paddingInlineStart: SPACE[10], textAlign: "left" }}>
-                    {current.bullets.map((item) => <li key={item}>{item}</li>)}
+                    {current.bullets.map((item) => <li key={item} style={{ textWrap: "pretty" }}>{item}</li>)}
                   </ul>
                 )}
               </div>

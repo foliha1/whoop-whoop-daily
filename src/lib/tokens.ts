@@ -101,6 +101,7 @@ export const SPACE = {
   12: 24,
   14: 28,
   16: 32,
+  20: 40,
 } as const;
 
 export const SHADOW = {
