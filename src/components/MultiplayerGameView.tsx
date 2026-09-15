@@ -60,7 +60,6 @@ import {
   playSelect, playDeselect, playDieLand, playRoundAdvance,
   unlockAudio, startTheme, stopTheme,
 } from "@/lib/sounds";
-import classicTheme from "@/assets/Whoop_Whoop_Classic_Theme.mp3.asset.json";
 import AutoFitText from "@/components/AutoFitText";
 import { hapticTap, hapticImpact, hapticSuccess, hapticError } from "@/lib/haptics";
 
@@ -878,7 +877,7 @@ const MultiplayerGameView: React.FC<Props> = ({
   // Play demo is open it owns the music, so this effect steps aside.
   useEffect(() => {
     if (showHowTo) return;
-    if (isGameOver) startTheme(classicTheme.url);
+    if (isGameOver) startTheme(CLASSIC_THEME_FILE);
     else stopTheme();
   }, [isGameOver, showHowTo]);
   useEffect(() => {

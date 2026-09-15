@@ -50,7 +50,6 @@ import {
   startTheme,
   stopTheme,
 } from "@/lib/sounds";
-import howToPlayTheme from "@/assets/Whoop_Whoop_How_to_Play_SHORT.mp3.asset.json";
 import {
   CARD_FLIP_MS,
   DAILY_MATCH_GREAT_MS,
@@ -605,7 +604,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   // open, including the welcome card. The screen underneath (lobby or game)
   // resumes its own music when the demo closes.
   useEffect(() => {
-    startTheme(howToPlayTheme.url);
+    startTheme(HOW_TO_PLAY_THEME_FILE);
     return () => stopTheme();
   }, []);
 
