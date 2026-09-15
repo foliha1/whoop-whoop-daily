@@ -510,6 +510,13 @@ const SCRIPT: Step[] = [
 
 const LAST = SCRIPT.length - 1;
 
+/** Keep the final phrase together so narrow screens never leave a 1–2 word widow. */
+function preventShortLastLine(copy: string): string {
+  const words = copy.split(" ");
+  if (words.length < 4) return copy;
+  return [...words.slice(0, -3), words.slice(-3).join("\u00a0")].join(" ");
+}
+
 /* ------------------------------------------------------------------ *
  * Folding the script. `enterScene(i)` is the frame a step opens on;
  * `settledScene(i)` is the frame it ends on — what reduced motion and
@@ -1142,7 +1149,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               aria-live="polite"
               style={{
                  ...panelStyle("surface", 4),
-                paddingInline: SPACE[4] * 1.2,
+                paddingInline: SPACE[20],
                 background: COLORS.surface,
                 width: "100%",
                 height: "100%",
@@ -1157,21 +1164,22 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             >
                <div
                 style={{
-                  ...textStyle("subhead", true),
-                  fontSize: FONT_SIZE.md,
+                  ...textStyle("control", true),
+                  fontSize: FONT_SIZE.sm,
                   fontFamily: FONT_FAMILY_UI,
                   fontWeight: FONT_WEIGHT_UI,
                   letterSpacing: 0,
                   display: "block",
                   textAlign: "center",
                   whiteSpace: "pre-line",
+                  textWrap: "balance",
                   color: COLORS.ink,
                 }}
               >
-                <span style={{ whiteSpace: "pre-line" }}>{current.copy}</span>
+                <span style={{ whiteSpace: "pre-line" }}>{preventShortLastLine(current.copy)}</span>
                 {current.bullets && (
                   <ul style={{ margin: `${SPACE[2]}px 0 0`, paddingInlineStart: SPACE[10], textAlign: "left" }}>
-                    {current.bullets.map((item) => <li key={item}>{item}</li>)}
+                    {current.bullets.map((item) => <li key={item} style={{ textWrap: "pretty" }}>{preventShortLastLine(item)}</li>)}
                   </ul>
                 )}
               </div>
