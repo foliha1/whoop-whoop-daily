@@ -32,6 +32,7 @@ import MatchDie, { landedComponentsFor } from "@/components/MatchDie";
 import { ActionButton, ChipCell, type ButtonKind, type DerivedChip } from "@/components/MultiplayerGameView";
 import CloseButton from "@/components/CloseButton";
 import DemoSpotlight from "@/components/DemoSpotlight";
+import { MatchGhostCard } from "@/components/matchGhostParts";
 import { ALL_CARDS, type Card } from "@/cardData";
 import type { RollAttribute } from "@/lib/multiplayer";
 import { TARGET_SCORE } from "@/hooks/useGameState";
@@ -59,6 +60,7 @@ import {
   DEMO_COPY_FADE_MS,
   DEMO_COPY_SETTLE_MS,
   DEMO_TELL_LEAD_MS,
+  PRESS_ANIM_MS,
   SETTLE_REVEAL_HOLD_MS,
   WRONG_ANIM_MS,
 } from "@/lib/animationTiming";
@@ -155,6 +157,7 @@ interface Scene {
   whoopChip: ChipKindName;
   button: ButtonKind;
   buttonLabel?: string;
+  buttonPressed: boolean;
   spot: SpotKey[];
   /** Positions that stay bright while the grid is lit. Empty = all of them. */
   lit: number[];
@@ -177,6 +180,7 @@ const BASE: Scene = {
   myChip: "IDLE",
   whoopChip: "IDLE",
   button: "DISABLED",
+  buttonPressed: false,
   spot: ["grid"],
   lit: [],
 };
@@ -191,7 +195,8 @@ interface Step {
   copy: string;
   /** Region the fixed bubble's pointer aims toward. */
   anchor: Exclude<SpotKey, "all">;
-  order?: "tell-show";
+  order?: "tell-show" | "press-tell-show";
+  bullets?: string[];
   /** When every visual treatment triggered by this step has fully settled. */
   settlesAt?: number;
   enter: Partial<Scene>;
@@ -207,7 +212,7 @@ const dealAll = (): Scene["deal"] =>
 const SCRIPT: Step[] = [
   // 1 — The table.
   {
-    copy: "Nine cards, face down. Two to six players. You do not know what any of them are yet.",
+    copy: "You start with nine cards face down. You do not know what any of them are yet, neither do your opponents.",
     anchor: "grid",
     enter: { spot: ["grid"], lit: [], deal: dealAll() },
     beats: [{ at: 0, patch: {}, sound: playDeal }],
@@ -215,8 +220,7 @@ const SCRIPT: Step[] = [
   },
   // 2 — The die decides.
   {
-    copy:
-      "This die decides what counts as a match. This round it says colour, so you are hunting two cards that share one. It changes every round.",
+    copy: "The die decides what is important. This round it says COLOR, so you are trying to find two cards that share the same color. What is important changes every round.",
     anchor: "die",
     enter: { spot: ["die"], lit: [] },
     beats: [
@@ -227,7 +231,7 @@ const SCRIPT: Step[] = [
   },
   // 3 — Your first flip.
   {
-    copy: "On your turn you flip a card so everyone can see it. Red Circle 3. Remember where it is.",
+    copy: "On your turn you flip a card so everyone can see it. Your job is to remember what it is and where it is.",
     anchor: "grid",
     enter: { spot: ["grid"], lit: [1], myChip: "FLIPPING" },
     beats: [
@@ -242,7 +246,7 @@ const SCRIPT: Step[] = [
   },
   // 4 — Your second flip.
   {
-    copy: "You get two flips on your turn. Red Square 1. That is your turn done.",
+    copy: "You get two flips per turn. After your second flip, your turn is done.",
     anchor: "grid",
     enter: { spot: ["grid"], lit: [5], myChip: "FLIPPING" },
     beats: [
@@ -257,8 +261,7 @@ const SCRIPT: Step[] = [
   },
   // 5 — WHOOP's turn.
   {
-    copy:
-      "Now it is WHOOP's turn. Watch their flips too — every flip is public. Blue Square 3. Red Star 4.",
+    copy: "Now it is your opponent's turn. Watch their flips too, every flip is important.",
     anchor: "grid",
     enter: { spot: ["chipWhoop"], lit: [], whoopChip: "FLIPPING" },
     beats: [
@@ -282,15 +285,23 @@ const SCRIPT: Step[] = [
   },
   // 6 — Call it.
   {
-    copy: "Spotted a match? Call it. You can call at any moment — on your turn, on someone else's, whenever.",
+    copy: "Did you spot a match? Call it! Press the Whoop! Whoop! button at any time to call a match, during your turn or other players.",
     anchor: "button",
-    order: "tell-show",
-    enter: { spot: ["button"], lit: [], button: "DISABLED", buttonLabel: undefined },
-    beats: [{ at: 0, patch: { button: "WHOOP" } }],
+    order: "press-tell-show",
+    enter: { spot: ["button"], lit: [], button: "WHOOP", buttonLabel: undefined, buttonPressed: false },
+    beats: [
+      { at: 0, patch: { buttonPressed: true }, sound: playWhoopCall },
+      { at: PRESS_ANIM_MS, patch: { buttonPressed: false } },
+      {
+        at: PRESS_ANIM_MS + DEMO_COPY_SETTLE_MS + DEMO_TELL_LEAD_MS,
+        patch: { spot: ["grid"], pulsing: true, myChip: "WHOOP", button: "SELECT_MATCH" },
+      },
+    ],
+    settlesAt: PRESS_ANIM_MS + DEMO_COPY_SETTLE_MS + DEMO_TELL_LEAD_MS,
   },
   // 7 — The call.
   {
-    copy: "When anyone calls, the whole board lights up blue. Everyone at the table knows a call is happening.",
+    copy: "When any player calls Whoop! Whoop!, the whole board lights up. Everyone at the table knows a call is happening.",
     anchor: "grid",
     enter: {
       spot: ["grid"],
@@ -303,9 +314,9 @@ const SCRIPT: Step[] = [
   },
   // 8 — Pick two.
   {
-    copy: "You chose two cards; the second tap locked the call in. Both were red, and the die said colour. That was a match.",
+    copy: "Choose two cards you think match the rule on the die; the second tap locks in your choice. This round is color, so two reds makes a match!",
     anchor: "grid",
-    enter: { spot: ["grid"], lit: [1, 5], pulsing: true },
+    enter: { spot: ["all", "chipYou"], lit: [1, 5], pulsing: true, myChip: "WHOOP" },
     beats: [
       { at: DEMO_BEAT_MS, patch: { selected: [1] }, sound: playSelect },
       { at: 2 * DEMO_BEAT_MS, patch: { selected: [1, 5] }, sound: playSelect },
@@ -328,8 +339,7 @@ const SCRIPT: Step[] = [
   },
   // 9 — What you won.
   {
-    copy:
-      "Both cards go to you. Two points. First to twelve cards wins. Two new cards fill the gaps — only those two. Everything else stays exactly where it was.",
+    copy: "A good match = two points. The matched cards go to you. Two new cards fill the gaps, only those two. All other cards stay exactly where they are.",
     anchor: "grid",
     enter: { spot: ["chipYou"], lit: [] },
     beats: [
@@ -356,8 +366,7 @@ const SCRIPT: Step[] = [
   },
   // 10 — You take the die.
   {
-    copy:
-      "Winning a match hands you the die. You roll the next rule and you flip first. It says shape now. The cards did not move, but what matters about them just changed.",
+    copy: "A good match hands you the die. Your roll sets the next rule, and you flip first. The cards did not change, but what makes a match did change. It was COLOR, now it is SHAPE.",
     anchor: "die",
     enter: { spot: ["die"], lit: [], myChip: "ROLLING" },
     beats: [
@@ -372,13 +381,16 @@ const SCRIPT: Step[] = [
       "Blue Star and Blue Triangle. Both blue — but the die says shape now, and a star is not a triangle. That is a miss.",
     anchor: "grid",
     enter: {
-      spot: ["grid"],
+      spot: ["all"],
       lit: [2, 4],
       pulsing: true,
       myChip: "WHOOP",
-      button: "SELECT_MATCH",
+      button: "WHOOP",
+      buttonPressed: true,
     },
     beats: [
+      { at: 0, patch: {}, sound: playWhoopCall },
+      { at: PRESS_ANIM_MS, patch: { buttonPressed: false, button: "SELECT_MATCH" } },
       { at: DEMO_BEAT_MS, patch: { selected: [2] }, sound: playSelect },
       { at: 2 * DEMO_BEAT_MS, patch: { selected: [2, 4] }, sound: playSelect },
       {
@@ -400,10 +412,14 @@ const SCRIPT: Step[] = [
   },
   // 12 — What a miss costs.
   {
-    copy:
-      "A miss returns one card you already won to the deck. The pair stays face up, and only you cannot choose it again this round.\nYou keep any unused flip.",
+    copy: "A missed match does three things:",
+    bullets: [
+      "Lose one card you already won to the deck",
+      "Keep the missed match face up for the rest of the round",
+      "Those cards are locked for you for the round",
+    ],
     anchor: "grid",
-    enter: { spot: ["chipYou"], lit: [] },
+    enter: { spot: ["all"], lit: [] },
     beats: [
       { at: DEMO_BEAT_MS, patch: { myScore: 1 } },
       {
@@ -419,7 +435,7 @@ const SCRIPT: Step[] = [
   },
   // 13 — Two calls each.
   {
-    copy: "You get two calls per round. Use both and you sit out the rest of the round. Your flips still count.",
+    copy: "You only get 2 calls per round. Use them wisely.",
     anchor: "button",
     enter: { spot: ["button"], lit: [], button: "WHOOP", buttonLabel: "1 CALL LEFT" },
     beats: [],
@@ -427,10 +443,9 @@ const SCRIPT: Step[] = [
   },
   // 14 — WHOOP calls.
   {
-    copy:
-      "Anyone can call, not just you. Orange Square and Blue Square — both squares, so WHOOP takes the pair and the die. Now they set the next rule.",
+    copy: "Remember, anyone can call at anytime. If another player gets a match, they get the die, set the next rule, and flip first.",
     anchor: "grid",
-    enter: { spot: ["chipWhoop"], lit: [], whoopChip: "WHOOP", button: "DISABLED", buttonLabel: undefined },
+    enter: { spot: ["all"], lit: [], whoopChip: "WHOOP", button: "DISABLED", buttonLabel: undefined },
     beats: [
       { at: 0, patch: {}, sound: playWhoopCall },
       {
@@ -464,11 +479,26 @@ const SCRIPT: Step[] = [
   },
   // 15 — That is it.
   {
-    copy: "",
+    copy: "First to twelve wins!\nNow go play a solo game with WHOOP Bot, or send a link to your people and play together. Have fun and WHOOP! WHOOP!",
     anchor: "grid",
-    order: "tell-show",
-    enter: { spot: ["all"], lit: [] },
-    beats: [],
+    enter: {
+      spot: ["all"],
+      lit: [],
+      cards: { ...BOARD },
+      removed: [],
+      faceUp: [],
+      selected: [],
+      matched: [],
+      wrong: [],
+      burned: [],
+      pulsing: false,
+      myChip: "IDLE",
+      whoopChip: "IDLE",
+      button: "WHOOP",
+      deal: Object.fromEntries(POSITIONS.map((p) => [p, { key: `${p}-final`, index: p - 1 }])),
+    },
+    beats: [{ at: 0, patch: {}, sound: playDeal }],
+    settlesAt: 8 * DEAL_STAGGER_MS + DEAL_MOVE_MS,
   },
 ];
 
@@ -571,6 +601,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
 }) => {
   const portalHost = usePortalHost("classic-demo");
   const reduce = useReducedMotion();
+  const [welcome, setWelcome] = useState(true);
   const [step, setStep] = useState(0);
   const [scene, setScene] = useState<Scene>(() => enterScene(0));
   const [copyVisible, setCopyVisible] = useState(false);
@@ -595,14 +626,15 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
     const currentStep = SCRIPT[step];
     if (reduce) {
       setScene(settledScene(step));
-      setCopyVisible(step !== LAST);
+      setCopyVisible(true);
       setStepSettled(true);
       return;
     }
     setScene(enterScene(step));
+    const pressTellShow = currentStep.order === "press-tell-show";
     const tellFirst = currentStep.order === "tell-show";
-    setCopyVisible(tellFirst && step !== LAST);
-    setStepSettled(step === LAST);
+    setCopyVisible(tellFirst);
+    setStepSettled(false);
     const offset = tellFirst ? DEMO_TELL_LEAD_MS : 0;
     const beats = currentStep.beats;
     for (const beat of beats) {
@@ -612,7 +644,18 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
       }, beat.at + offset);
       timers.current.push(id);
     }
-    if (tellFirst && step !== LAST) {
+    if (pressTellShow) {
+      const copyTimer = window.setTimeout(
+        () => setCopyVisible(true),
+        PRESS_ANIM_MS + DEMO_COPY_SETTLE_MS,
+      );
+      const settleTimer = window.setTimeout(
+        () => setStepSettled(true),
+        currentStep.settlesAt ?? PRESS_ANIM_MS + DEMO_COPY_SETTLE_MS + DEMO_TELL_LEAD_MS,
+      );
+      timers.current.push(copyTimer, settleTimer);
+    }
+    if (tellFirst) {
       const hideTimer = window.setTimeout(() => setCopyVisible(false), DEMO_TELL_LEAD_MS);
       timers.current.push(hideTimer);
       const settleTimer = window.setTimeout(
@@ -621,7 +664,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
       );
       timers.current.push(settleTimer);
     }
-    if (!tellFirst && step !== LAST) {
+    if (!tellFirst && !pressTellShow) {
       const copyTimer = window.setTimeout(
         () => {
           setCopyVisible(true);
@@ -657,12 +700,15 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") setStep((s) => Math.min(LAST, s + 1));
+      if (e.key === "ArrowRight") {
+        if (welcome) setWelcome(false);
+        else setStep((s) => Math.min(LAST, s + 1));
+      }
       else if (e.key === "ArrowLeft") setStep((s) => Math.max(0, s - 1));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [welcome]);
 
   const spotAll = scene.spot.includes("all");
   const lit = (key: Exclude<SpotKey, "all">) => spotAll || scene.spot.includes(key);
@@ -694,6 +740,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             <div
               key={pos}
               style={{
+                position: "relative",
                 width: cardW,
                 height: Math.round(cardW * CARD_RATIO),
                 opacity: cardOpacity(pos),
@@ -713,19 +760,32 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                   }}
                 />
               ) : (
-                <GameCard
-                  card={card(scene.cards[pos])}
-                  faceUp={scene.faceUp.includes(pos) || scene.burned.includes(pos)}
-                  fill
-                  interactive={false}
-                  highlighted={scene.selected.includes(pos)}
-                  matched={scene.matched.includes(pos)}
-                  wrong={scene.wrong.includes(pos)}
-                  unavailable={scene.burned.includes(pos)}
-                  pulsing={scene.pulsing}
-                  dealKey={scene.deal[pos]?.key}
-                  dealIndex={scene.deal[pos]?.index}
-                />
+                <>
+                  <div style={{ width: "100%", height: "100%", opacity: scene.matched.includes(pos) ? 0 : 1 }}>
+                    <GameCard
+                      card={card(scene.cards[pos])}
+                      faceUp={scene.faceUp.includes(pos) || scene.burned.includes(pos)}
+                      fill
+                      interactive={false}
+                      highlighted={scene.selected.includes(pos)}
+                      wrong={scene.wrong.includes(pos)}
+                      unavailable={scene.burned.includes(pos)}
+                      pulsing={scene.pulsing}
+                      dealKey={scene.deal[pos]?.key}
+                      dealIndex={scene.deal[pos]?.index}
+                    />
+                  </div>
+                  {scene.matched.includes(pos) && (
+                    <MatchGhostCard
+                      card={card(scene.cards[pos])}
+                      stage="great"
+                      faceUp
+                      k={cardW / 104.333}
+                      radius={RADIUS.md}
+                      style={{ position: "absolute", inset: 0 }}
+                    />
+                  )}
+                </>
               )}
             </div>
           );
@@ -737,19 +797,20 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   const dieBox = (
     <div
       style={{
+        width: 111,
         flex: "none",
         boxSizing: "border-box",
         background: COLORS.orange,
         border: BORDER.heavy,
         borderRadius: RADIUS.sm,
-        padding: SPACE[3],
+        padding: SPACE[4],
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
       }}
     >
       <MatchDie
-        size={44}
+        size={SPACE[10] * 4}
         attribute={scene.rule ?? "SHAPE"}
         faceIndex={0}
         rotation={dieRotation(scene.rule, scene.rolls)}
@@ -761,18 +822,23 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   const finalPanel = (
     <div
       style={{
-        ...panelStyle("surface", 8),
+        ...panelStyle("surface", 4),
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: SPACE[6],
+        gap: SPACE[4],
         width: "100%",
+        height: "100%",
+        justifyContent: "center",
+        opacity: copyVisible ? 1 : 0,
+        transition: reduce ? undefined : `opacity ${DEMO_COPY_FADE_MS}ms ${DEMO_DIE_EASE}`,
+        pointerEvents: copyVisible ? "auto" : "none",
       }}
     >
       <p style={{ ...textStyle("body", true), fontFamily: FONT_FAMILY_UI, fontWeight: FONT_WEIGHT_UI, margin: 0, textAlign: "center", color: COLORS.ink, whiteSpace: "pre-line" }}>
         {mode === "in-game"
-          ? "That is it. Your seat is still yours and nothing moved while you watched."
-          : "First to twelve cards wins. Play on your own against WHOOP, or send a link and play with people."}
+          ? "First to twelve wins!\nNow go play a solo game with WHOOP Bot, or send a link to your people and play together. Have fun and WHOOP! WHOOP!"
+          : "First to twelve wins!\nNow go play a solo game with WHOOP Bot, or send a link to your people and play together. Have fun and WHOOP! WHOOP!"}
       </p>
       <div style={{ display: "flex", gap: SPACE[4], width: "100%" }}>
         {mode === "in-game" ? (
@@ -818,6 +884,10 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
 
   if (!portalHost) return null;
 
+  const rollingFullScreen = !welcome && !copyVisible && (
+    (step === 1 && scene.rolls === 1) || (step === 9 && scene.rolls === 2)
+  );
+
   return createPortal(
     <div
       role="dialog"
@@ -838,6 +908,42 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
         paddingBottom: `calc(${SPACE[6]}px + env(safe-area-inset-bottom))`,
       }}
     >
+      {welcome ? (
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 420,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: SPACE[12],
+            textAlign: "center",
+          }}
+        >
+          <CloseButton
+            label={mode === "in-game" ? "BACK" : "SKIP"}
+            onClick={skip}
+            ariaLabel={mode === "in-game" ? "Back to your table" : "Skip the demo"}
+            data-testid="classic-demo-skip"
+          />
+          <div style={{ display: "flex", flexDirection: "column", gap: SPACE[6] }}>
+            <h1 style={{ ...textStyle("hero", true), margin: 0, color: COLORS.ink }}>WHOOP! WHOOP! Classic</h1>
+            <p style={{ ...textStyle("subhead", true), fontFamily: FONT_FAMILY_UI, fontWeight: FONT_WEIGHT_UI, letterSpacing: 0, margin: 0, color: COLORS.ink }}>
+              A quick memory game for two to six players. Flip, remember, and call the match before anyone else.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="ww-press"
+            onClick={() => setWelcome(false)}
+            style={{ ...buttonStyle("primary", "lg", { mobile: true, fullWidth: true }) }}
+          >
+            SHOW ME HOW
+          </button>
+        </div>
+      ) : (
       <div
         style={{
           width: "100%",
@@ -870,7 +976,9 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                   flex: "1 1 0",
                   height: SPACE[2],
                   borderRadius: RADIUS.sm,
-                  background: i <= step ? COLORS.ink : COLORS.panel,
+                  background: i <= step ? RAW.blue : RAW.cream,
+                  border: BORDER.standard,
+                  boxSizing: "border-box",
                   transition: `background ${MOTION.fast}`,
                 }}
               />
@@ -928,8 +1036,8 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             rely on the spotlight rather than route a connector across cards. */}
         <div
           style={{
-            flex: "0 0 120px",
-            minHeight: 120,
+            flex: "0 0 176px",
+            minHeight: 176,
             position: "relative",
           }}
         >
@@ -953,7 +1061,9 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               active={lit("button")}
               style={{ flex: "1 1 0", minWidth: 0, display: "flex" }}
             >
-              <ActionButton kind={scene.button} disabled label={scene.buttonLabel} />
+               <div className={scene.buttonPressed ? "ww-press-on" : undefined} style={{ display: "flex", flex: "1 1 0", minWidth: 0 }}>
+                 <ActionButton kind={scene.button} disabled label={scene.buttonLabel} />
+               </div>
             </DemoSpotlight>
           </div>
           {step === LAST ? (
@@ -963,7 +1073,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               role="status"
               aria-live="polite"
               style={{
-                ...panelStyle("surface", 6),
+                 ...panelStyle("surface", 4),
                 background: COLORS.surface,
                 width: "100%",
                 height: "100%",
@@ -976,7 +1086,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 zIndex: 6,
               }}
             >
-              <span
+               <div
                 style={{
                   ...textStyle("subhead", true),
                   fontFamily: FONT_FAMILY_UI,
@@ -988,8 +1098,13 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                   color: COLORS.ink,
                 }}
               >
-                {current.copy}
-              </span>
+                <span style={{ whiteSpace: "pre-line" }}>{current.copy}</span>
+                {current.bullets && (
+                  <ul style={{ margin: `${SPACE[2]}px 0 0`, paddingInlineStart: SPACE[10], textAlign: "left" }}>
+                    {current.bullets.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -1025,6 +1140,30 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
           )}
         </div>
       </div>
+      )}
+      {rollingFullScreen && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 20,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: `color-mix(in srgb, ${RAW.warmBlack} 55%, transparent)`,
+            pointerEvents: "none",
+          }}
+        >
+          <MatchDie
+            size={SPACE[10] * 10}
+            attribute={scene.rule ?? "SHAPE"}
+            faceIndex={0}
+            rotation={dieRotation(scene.rule, scene.rolls)}
+            transition={reduce ? undefined : `transform ${DEMO_DIE_ROLL_MS}ms ${DEMO_DIE_EASE}`}
+          />
+        </div>
+      )}
     </div>,
     portalHost,
   );
