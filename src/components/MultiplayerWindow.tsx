@@ -170,7 +170,7 @@ import {
   type RoomRow,
 } from "@/lib/rooms";
 
-import { startTheme, stopTheme, unlockAudio } from "@/lib/sounds";
+import { startTheme, stopTheme, unlockAudio, CLASSIC_THEME_FILE } from "@/lib/sounds";
 import { supabase } from "@/integrations/supabase/client";
 
 

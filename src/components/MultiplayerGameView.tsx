@@ -58,7 +58,7 @@ import { callClaimLock } from "@/lib/claimLock";
 import {
   playFlip, playDiceRoll, playWhoopCall, playCorrect, playWrong, playDeal,
   playSelect, playDeselect, playDieLand, playRoundAdvance,
-  unlockAudio, startTheme, stopTheme,
+  unlockAudio, startTheme, stopTheme, CLASSIC_THEME_FILE,
 } from "@/lib/sounds";
 import AutoFitText from "@/components/AutoFitText";
 import { hapticTap, hapticImpact, hapticSuccess, hapticError } from "@/lib/haptics";

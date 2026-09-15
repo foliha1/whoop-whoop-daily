@@ -49,6 +49,7 @@ import {
   playWrong,
   startTheme,
   stopTheme,
+  HOW_TO_PLAY_THEME_FILE,
 } from "@/lib/sounds";
 import {
   CARD_FLIP_MS,
