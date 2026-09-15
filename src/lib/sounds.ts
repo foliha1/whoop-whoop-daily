@@ -403,6 +403,14 @@ function startThemeNow(ctx: AudioContext): void {
 
 }
 
+/** Stop and drop the running loop right now (used when switching tracks). */
+function killTheme(): void {
+  if (themeStopTimer) { clearTimeout(themeStopTimer); themeStopTimer = null; }
+  try { themeSource?.stop(); } catch { /* ignore */ }
+  themeSource = null;
+  themeGainNode = null;
+}
+
 function fadeOutTheme(hard: boolean): void {
   try {
     if (!themeSource || !themeGainNode) return;
