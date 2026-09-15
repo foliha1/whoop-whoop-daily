@@ -170,8 +170,7 @@ import {
   type RoomRow,
 } from "@/lib/rooms";
 
-import { startTheme, stopTheme, unlockAudio } from "@/lib/sounds";
-import classicTheme from "@/assets/Whoop_Whoop_Classic_Theme.mp3.asset.json";
+import { startTheme, stopTheme, unlockAudio, CLASSIC_THEME_FILE } from "@/lib/sounds";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -426,7 +425,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     (view.kind === "joiner" && joinerPublicState !== null);
   useEffect(() => {
     if (howTo) return; // the demo owns music while it is open
-    if (!inGameplay) startTheme(classicTheme.url);
+    if (!inGameplay) startTheme(CLASSIC_THEME_FILE);
   }, [howTo, inGameplay]);
   // Route change or window close: nothing on the next screen wants this loop.
   useEffect(() => () => stopTheme(), []);

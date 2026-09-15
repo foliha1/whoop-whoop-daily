@@ -236,6 +236,9 @@ function primeGraph(ctx: AudioContext): void {
 // wanted. Only flags success once the context is actually running, so a blocked
 // attempt does not stop the next gesture from trying again.
 export function unlockAudio(): void {
+  // Music first, and synchronously: a media element only starts if play() is
+  // called inside the gesture itself, before any await.
+  if (themeDesired) startTheme(themeUrl);
   try {
     const ctx = getCtx();
     primeGraph(ctx);
@@ -276,6 +279,11 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
 
 /** The Daily's theme. `startTheme()` with no argument always means this one. */
 const DEFAULT_THEME_FILE = "/sounds/theme.mp3";
+/** Classic's own tracks. Served straight out of `public/`, like the Daily's —
+    the CDN asset path is not resolvable in every environment, so a media
+    element got HTML back instead of audio and never played. */
+export const CLASSIC_THEME_FILE = "/sounds/classic-theme.mp3";
+export const HOW_TO_PLAY_THEME_FILE = "/sounds/how-to-play.mp3";
 const THEME_GAIN = 0.15;
 const THEME_FADE_IN_MS = 600;
 const THEME_FADE_OUT_MS = 400;
@@ -283,152 +291,99 @@ const THEME_FADE_OUT_MS = 400;
 /** The track the current screen wants. Screens with their own music (the
     Classic lobby, the How to Play demo) pass their URL to startTheme(). */
 let themeUrl = DEFAULT_THEME_FILE;
-/** Decoded buffers and in-flight loads, per track URL, so switching between
-    the lobby and demo tracks never refetches. */
-const themeBuffers = new Map<string, AudioBuffer>();
-const themeLoads = new Map<string, Promise<void>>();
-let themeSource: AudioBufferSourceNode | null = null;
-let themeGainNode: GainNode | null = null;
 /** The screen wants music, regardless of whether it is audible right now. */
 let themeDesired = false;
 let themeStopTimer: ReturnType<typeof setTimeout> | null = null;
-/** Bounded retry counter for a failed theme fetch/decode. */
-let themeLoadAttempts = 0;
+
+// The theme plays through a plain <audio> element, not the Web Audio graph.
+// On iOS the Web Audio session is "ambient": the hardware ring/silent switch
+// mutes it outright, so a phone with the switch flipped heard no music at all
+// however healthy the graph was. A media element uses the playback session and
+// is audible either way — and it needs no fetch/decode step, so it also starts
+// on the first gesture instead of a round-trip later.
+let themeEl: HTMLAudioElement | null = null;
+let themeFadeTimer: ReturnType<typeof setInterval> | null = null;
 
 
-/**
- * `decodeAudioData` is promise-based everywhere modern, but older Safari only
- * supports the callback form and returns `undefined`. Support both.
- */
-function decode(ctx: AudioContext, data: ArrayBuffer): Promise<AudioBuffer> {
-  return new Promise((resolve, reject) => {
-    const maybe = ctx.decodeAudioData(data, resolve, reject) as unknown;
-    if (maybe && typeof (maybe as Promise<AudioBuffer>).then === "function") {
-      (maybe as Promise<AudioBuffer>).then(resolve, reject);
+/** Fade the element's volume over `ms`, in small steps (media elements have no
+    scheduled ramps). `onDone` runs when the target level is reached. */
+function fadeEl(el: HTMLAudioElement, to: number, ms: number, onDone?: () => void) {
+  if (themeFadeTimer) { clearInterval(themeFadeTimer); themeFadeTimer = null; }
+  const stepMs = 40;
+  const steps = Math.max(1, Math.round(ms / stepMs));
+  const from = el.volume;
+  let i = 0;
+  themeFadeTimer = setInterval(() => {
+    i += 1;
+    const v = from + (to - from) * (i / steps);
+    try { el.volume = Math.min(1, Math.max(0, v)); } catch { /* ignore */ }
+    if (i >= steps) {
+      if (themeFadeTimer) { clearInterval(themeFadeTimer); themeFadeTimer = null; }
+      onDone?.();
     }
-  });
-}
-
-function loadTheme(url: string): Promise<void> {
-  const existing = themeLoads.get(url);
-  if (existing) return existing;
-  const p = (async () => {
-    try {
-      const res = await fetch(url, { cache: "force-cache" });
-      if (!res.ok) throw new Error(`theme ${res.status}`);
-      themeBuffers.set(url, await decode(getCtx(), await res.arrayBuffer()));
-    } catch {
-      // A transient network failure must not disable music for the session:
-      // clear the cached attempt so the next startTheme() can try again.
-      themeLoads.delete(url);
-    }
-  })();
-  themeLoads.set(url, p);
-  return p;
-}
-
-
-function ramp(node: GainNode, to: number, ms: number) {
-  const ctx = getCtx();
-  const now = ctx.currentTime;
-  const current = node.gain.value;
-  node.gain.cancelScheduledValues(now);
-  node.gain.setValueAtTime(current, now);
-  node.gain.linearRampToValueAtTime(to, now + ms / 1000);
+  }, stepMs);
 }
 
 /**
  * Fade the theme in and keep it looping. Called from screens that should have
- * music; a no-op until a gesture has unlocked audio, and it never restarts an
- * already-running loop — it just ramps the level back up.
+ * music; playback may be blocked until a gesture has unlocked audio, in which
+ * case unlockAudio() retries it. Never restarts an already-running loop — it
+ * just ramps the level back up.
  */
 export function startTheme(trackUrl?: string): void {
   const next = trackUrl ?? DEFAULT_THEME_FILE;
   themeDesired = true;
   if (next !== themeUrl) {
-    // Track switch: kill the current loop synchronously. A deferred teardown
-    // would still be pending when startThemeNow() runs below, and that path
-    // would simply ramp the *old* source back up — the new track would never
-    // be heard.
+    // Track switch: tear the current element down synchronously, or the fade
+    // below would simply ramp the *old* track back up.
     themeUrl = next;
-    themeLoadAttempts = 0;
     killTheme();
   }
   if (!musicEnabled) return;
+  if (typeof Audio === "undefined") return;
   try {
-    const ctx = getCtx();
-    // resume() is async: without waiting, the first attempt schedules against a
-    // clock that has not started yet. Attempted even before a gesture —
-    // browsers that block it simply reject, which is fine.
-    whenRunning(ctx, () => { try { startThemeNow(ctx); } catch { /* ignore */ } });
+    if (themeStopTimer) { clearTimeout(themeStopTimer); themeStopTimer = null; }
+    if (!themeEl) {
+      const el = new Audio(themeUrl);
+      el.loop = true;
+      el.preload = "auto";
+      el.volume = 0;
+      // Inline playback: iOS otherwise treats media as a fullscreen player.
+      el.setAttribute("playsinline", "");
+      themeEl = el;
+    }
+    const el = themeEl;
+    // play() rejects until the page has had a gesture; the site-wide gesture
+    // listener calls startTheme() again, so a rejection here is harmless.
+    void Promise.resolve(el.play()).then(
+      () => fadeEl(el, THEME_GAIN, THEME_FADE_IN_MS),
+      () => { /* blocked — retried on the next gesture */ },
+    );
   } catch { /* never throw from audio */ }
-}
-
-
-function startThemeNow(ctx: AudioContext): void {
-  if (!themeDesired || !musicEnabled) return;
-  if (themeStopTimer) { clearTimeout(themeStopTimer); themeStopTimer = null; }
-
-  if (themeSource && themeGainNode) {
-    ramp(themeGainNode, THEME_GAIN, THEME_FADE_IN_MS);
-    return;
-  }
-  const buffer = themeBuffers.get(themeUrl);
-  if (!buffer) {
-    // Bounded retry: a failed fetch/decode is retried a couple of times, then
-    // music quietly gives up rather than looping forever.
-    if (themeLoadAttempts >= 3) return;
-    themeLoadAttempts += 1;
-    void loadTheme(themeUrl).then(() => {
-      if (themeDesired && themeBuffers.has(themeUrl)) startTheme(themeUrl);
-    });
-    return;
-  }
-  const g = ctx.createGain();
-  g.gain.value = 0;
-  g.connect(ctx.destination);
-  const src = ctx.createBufferSource();
-  src.buffer = buffer;
-  src.loop = true;
-  src.connect(g);
-  // If the loop ever ends (context torn down, source killed), drop the handles
-  // so the next startTheme() builds a fresh source instead of ramping a corpse.
-  src.onended = () => {
-    if (themeSource === src) { themeSource = null; themeGainNode = null; }
-  };
-  src.start();
-  themeSource = src;
-  themeGainNode = g;
-  ramp(g, THEME_GAIN, THEME_FADE_IN_MS);
-
 }
 
 /** Stop and drop the running loop right now (used when switching tracks). */
 function killTheme(): void {
   if (themeStopTimer) { clearTimeout(themeStopTimer); themeStopTimer = null; }
-  try { themeSource?.stop(); } catch { /* ignore */ }
-  themeSource = null;
-  themeGainNode = null;
+  if (themeFadeTimer) { clearInterval(themeFadeTimer); themeFadeTimer = null; }
+  try { themeEl?.pause(); } catch { /* ignore */ }
+  themeEl = null;
 }
 
 function fadeOutTheme(hard: boolean): void {
   try {
-    if (!themeSource || !themeGainNode) return;
-    ramp(themeGainNode, 0, THEME_FADE_OUT_MS);
-    if (!hard) return;
-    // Only a musicEnabled=false toggle tears the node down; a screen change
-    // leaves the loop running so it resumes mid-phrase, not from the top.
-    if (themeStopTimer) clearTimeout(themeStopTimer);
-    themeStopTimer = setTimeout(() => {
-      try { themeSource?.stop(); } catch { /* ignore */ }
-      themeSource = null;
-      themeGainNode = null;
-      themeStopTimer = null;
-    }, THEME_FADE_OUT_MS + 40);
+    const el = themeEl;
+    if (!el) return;
+    fadeEl(el, 0, THEME_FADE_OUT_MS, () => {
+      // Only a musicEnabled=false toggle tears the element down; a screen
+      // change leaves it playing silently so music resumes mid-phrase.
+      if (hard) killTheme();
+      else { try { el.pause(); } catch { /* ignore */ } }
+    });
   } catch { /* ignore */ }
 }
 
-/** Fade the theme out. The loop keeps running silently underneath. */
+/** Fade the theme out. */
 export function stopTheme(): void {
   themeDesired = false;
   fadeOutTheme(false);
@@ -442,11 +397,13 @@ export function stopTheme(): void {
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
   const wake = () => {
     try {
+      // The theme lives on a media element, so it can come back even if the
+      // effects graph was never built on this visit.
+      if (themeDesired && musicEnabled) startTheme(themeUrl);
       const ctx = audioCtx;
       if (!ctx) return;
       whenRunning(ctx, () => {
         if (ctx.state === "running" && sfxBus && sfxEnabled) sfxBus.gain.value = 1;
-        if (themeDesired && musicEnabled) startTheme(themeUrl);
       });
     } catch { /* never throw from audio */ }
   };
