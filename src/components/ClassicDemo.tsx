@@ -67,8 +67,11 @@ import {
 import {
   BORDER,
   COLORS,
+  FONT_FAMILY,
   FONT_FAMILY_UI,
   FONT_WEIGHT_UI,
+  FONT_SIZE,
+  LINE_HEIGHT,
   MOTION,
   RADIUS,
   RAW,
@@ -909,40 +912,89 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
       }}
     >
       {welcome ? (
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 420,
-            minHeight: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: SPACE[12],
-            textAlign: "center",
-          }}
-        >
+        <>
           <CloseButton
             label={mode === "in-game" ? "BACK" : "SKIP"}
             onClick={skip}
             ariaLabel={mode === "in-game" ? "Back to your table" : "Skip the demo"}
             data-testid="classic-demo-skip"
+            style={{ position: "absolute", top: SPACE[6], right: SPACE[6], zIndex: 1 }}
           />
-          <div style={{ display: "flex", flexDirection: "column", gap: SPACE[6] }}>
-            <h1 style={{ ...textStyle("hero", true), margin: 0, color: COLORS.ink }}>WHOOP! WHOOP! Classic</h1>
-            <p style={{ ...textStyle("subhead", true), fontFamily: FONT_FAMILY_UI, fontWeight: FONT_WEIGHT_UI, letterSpacing: 0, margin: 0, color: COLORS.ink }}>
-              A quick memory game for two to six players. Flip, remember, and call the match before anyone else.
-            </p>
-          </div>
-          <button
-            type="button"
-            className="ww-press"
-            onClick={() => setWelcome(false)}
-            style={{ ...buttonStyle("primary", "lg", { mobile: true, fullWidth: true }) }}
+          <div
+            style={{
+              width: 290,
+              margin: "auto",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              padding: 0,
+              gap: SPACE[16],
+            }}
           >
-            SHOW ME HOW
-          </button>
-        </div>
+            <div
+              style={{
+                width: "100%",
+                height: 61,
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: 0,
+              }}
+            >
+              <h1
+                style={{
+                  width: "100%",
+                  height: 61,
+                  margin: 0,
+                  fontFamily: FONT_FAMILY,
+                  fontSize: FONT_SIZE["5.5xl"],
+                  fontWeight: 400,
+                  fontStyle: "normal",
+                  lineHeight: 1,
+                  letterSpacing: "-0.01em",
+                  textAlign: "center",
+                  color: RAW.warmBlack,
+                }}
+              >
+                Welcome to Whoop! Whoop! Classic
+              </h1>
+            </div>
+            <div
+              style={{
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                padding: 0,
+                gap: SPACE[6],
+              }}
+            >
+              <p
+                style={{
+                  width: "100%",
+                  margin: 0,
+                  fontFamily: FONT_FAMILY_UI,
+                  fontSize: 16,
+                  fontWeight: FONT_WEIGHT_UI,
+                  lineHeight: LINE_HEIGHT.snug,
+                  textAlign: "center",
+                  color: RAW.warmBlack,
+                }}
+              >
+                A fun and fast memory game for two to six players. Flip, remember, and call the match before anyone else.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="ww-press"
+              onClick={() => setWelcome(false)}
+              style={{ ...buttonStyle("primary", "lg", { mobile: true, fullWidth: true }) }}
+            >
+              Learn How to Play
+            </button>
+          </div>
+        </>
       ) : (
       <div
         style={{
