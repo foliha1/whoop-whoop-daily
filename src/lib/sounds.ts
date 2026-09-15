@@ -346,11 +346,13 @@ export function startTheme(trackUrl?: string): void {
   const next = trackUrl ?? DEFAULT_THEME_FILE;
   themeDesired = true;
   if (next !== themeUrl) {
-    // Track switch: fade out and tear down the current loop; the new track
-    // fades in once its buffer has loaded.
+    // Track switch: kill the current loop synchronously. A deferred teardown
+    // would still be pending when startThemeNow() runs below, and that path
+    // would simply ramp the *old* source back up — the new track would never
+    // be heard.
     themeUrl = next;
     themeLoadAttempts = 0;
-    fadeOutTheme(true);
+    killTheme();
   }
   if (!musicEnabled) return;
   try {
@@ -399,6 +401,14 @@ function startThemeNow(ctx: AudioContext): void {
   themeGainNode = g;
   ramp(g, THEME_GAIN, THEME_FADE_IN_MS);
 
+}
+
+/** Stop and drop the running loop right now (used when switching tracks). */
+function killTheme(): void {
+  if (themeStopTimer) { clearTimeout(themeStopTimer); themeStopTimer = null; }
+  try { themeSource?.stop(); } catch { /* ignore */ }
+  themeSource = null;
+  themeGainNode = null;
 }
 
 function fadeOutTheme(hard: boolean): void {

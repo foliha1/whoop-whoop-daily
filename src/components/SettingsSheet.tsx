@@ -110,7 +110,7 @@ const Toggle: React.FC<{
 
 export interface SettingsSheetProps {
   onClose: () => void;
-  /** Classic has no music. Daily keeps its working recorded-loop control. */
+  /** Kept for callers; the Music toggle now shows in both products. */
   product: "classic" | "daily";
   /** When provided, How to Play opens the in-app stepper instead of /about. */
   onHowTo?: () => void;
@@ -131,7 +131,7 @@ const howToStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
-const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo }) => {
+const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, onHowTo }) => {
   const { mode, setMode } = useThemeMode();
   const portalHost = usePortalHost("settings-sheet");
   const [sfx, setSfx] = useState(() => getSfxEnabled());
@@ -247,16 +247,14 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
           }}
         />
 
-        {product === "daily" && (
-          <Toggle
-            label="Music"
-            checked={music}
-            onChange={(next) => {
-              setMusicEnabled(next);
-              setMusic(next);
-            }}
-          />
-        )}
+        <Toggle
+          label="Music"
+          checked={music}
+          onChange={(next) => {
+            setMusicEnabled(next);
+            setMusic(next);
+          }}
+        />
 
         {onHowTo ? (
           <button type="button" onClick={onHowTo} style={{ ...howToStyle, cursor: "pointer", background: "transparent" }}>
