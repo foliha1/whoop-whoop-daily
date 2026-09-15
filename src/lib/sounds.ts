@@ -279,6 +279,11 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
 
 /** The Daily's theme. `startTheme()` with no argument always means this one. */
 const DEFAULT_THEME_FILE = "/sounds/theme.mp3";
+/** Classic's own tracks. Served straight out of `public/`, like the Daily's —
+    the CDN asset path is not resolvable in every environment, so a media
+    element got HTML back instead of audio and never played. */
+export const CLASSIC_THEME_FILE = "/sounds/classic-theme.mp3";
+export const HOW_TO_PLAY_THEME_FILE = "/sounds/how-to-play.mp3";
 const THEME_GAIN = 0.15;
 const THEME_FADE_IN_MS = 600;
 const THEME_FADE_OUT_MS = 400;
