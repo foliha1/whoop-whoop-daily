@@ -21,12 +21,15 @@ export const DEMO_DIM_OPACITY = 0.22;
 export interface DemoSpotlightProps {
   /** True while this region is the element being discussed. */
   active: boolean;
+  /** Reduced motion: the dim still applies, it just arrives without easing. */
+  instant?: boolean;
   style?: React.CSSProperties;
   children: React.ReactNode;
 }
 
 const DemoSpotlight: React.FC<DemoSpotlightProps> = ({
   active,
+  instant = false,
   style,
   children,
 }) => {
@@ -37,12 +40,13 @@ const DemoSpotlight: React.FC<DemoSpotlightProps> = ({
         ...style,
         zIndex: active ? 5 : 0,
         opacity: active ? 1 : DEMO_DIM_OPACITY,
-        transition: `opacity ${MOTION.base}`,
+        transition: instant ? undefined : `opacity ${MOTION.base}`,
       }}
     >
       {children}
     </div>
   );
 };
+
 
 export default DemoSpotlight;

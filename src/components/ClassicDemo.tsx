@@ -740,14 +740,20 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
     return () => window.removeEventListener("keydown", onKey);
   }, [welcome]);
 
+  // Dimming is tied to the bubble, not to the step: while an animation beat is
+  // playing (no copy on screen) the board reads exactly like a live game, and
+  // the dim + spotlight rise and fall together with the instruction copy.
+  const dimActive = copyVisible;
   const spotAll = scene.spot.includes("all");
-  const lit = (key: Exclude<SpotKey, "all">) => spotAll || scene.spot.includes(key);
+  const lit = (key: Exclude<SpotKey, "all">) =>
+    !dimActive || spotAll || scene.spot.includes(key);
   const current = SCRIPT[step];
 
   const cardOpacity = (pos: number) =>
-    !spotAll && scene.spot.includes("grid") && scene.lit.length > 0 && !scene.lit.includes(pos)
+    dimActive && !spotAll && scene.spot.includes("grid") && scene.lit.length > 0 && !scene.lit.includes(pos)
       ? 0.35
       : 1;
+
 
   const chip = (name: string, kind: ChipKindName, score: number, seat: number): DerivedChip =>
     ({ kind, name, score, seat } as DerivedChip);
@@ -774,7 +780,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 width: cardW,
                 height: Math.round(cardW * CARD_RATIO),
                 opacity: cardOpacity(pos),
-                transition: `opacity ${MOTION.base}`,
+                transition: reduce ? undefined : `opacity ${MOTION.base}`,
               }}
             >
               {removed ? (
@@ -1068,16 +1074,18 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             ...panelStyle("panel", 4),
           }}
         >
-          <DemoSpotlight active={lit("chipWhoop")}>
+          <DemoSpotlight instant={reduce}
+ active={lit("chipWhoop")}>
             <ChipCell chip={chip("WHOOP", scene.whoopChip, scene.whoopScore, 1)} />
           </DemoSpotlight>
-          <DemoSpotlight active={lit("chipYou")}>
+          <DemoSpotlight instant={reduce}
+ active={lit("chipYou")}>
             <ChipCell chip={chip("YOU", scene.myChip, scene.myScore, 0)} />
           </DemoSpotlight>
         </div>
 
         {/* the board */}
-        <DemoSpotlight
+        <DemoSpotlight instant={reduce}
           active={lit("grid")}
           style={{
             ...panelStyle("panel", 5),
@@ -1113,10 +1121,11 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               pointerEvents: copyVisible || step === LAST ? "none" : "auto",
             }}
           >
-            <DemoSpotlight active={lit("die")}>
+            <DemoSpotlight instant={reduce}
+ active={lit("die")}>
               {dieBox}
             </DemoSpotlight>
-            <DemoSpotlight
+            <DemoSpotlight instant={reduce}
               active={lit("button")}
               style={{ flex: "1 1 0", minWidth: 0, display: "flex" }}
             >
