@@ -247,16 +247,14 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
           }}
         />
 
-        {product === "daily" && (
-          <Toggle
-            label="Music"
-            checked={music}
-            onChange={(next) => {
-              setMusicEnabled(next);
-              setMusic(next);
-            }}
-          />
-        )}
+        <Toggle
+          label="Music"
+          checked={music}
+          onChange={(next) => {
+            setMusicEnabled(next);
+            setMusic(next);
+          }}
+        />
 
         {onHowTo ? (
           <button type="button" onClick={onHowTo} style={{ ...howToStyle, cursor: "pointer", background: "transparent" }}>
