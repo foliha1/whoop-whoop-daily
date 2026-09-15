@@ -621,7 +621,7 @@ export const DieBox: React.FC<{
   homeRef?: React.Ref<HTMLDivElement>;
 }> = ({ rule, heroActive, waiting, homeRef }) => (
   <div style={{
-    width: 111, flex: "none", boxSizing: "border-box", background: ORANGE,
+    width: 111, height: "100%", flex: "none", boxSizing: "border-box", background: ORANGE,
     border: BORDER_HEAVY, borderRadius: R_BOX, padding: 8,
     display: "flex", flexDirection: "column", alignItems: "center",
     justifyContent: "center",
