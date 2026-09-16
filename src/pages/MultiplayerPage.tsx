@@ -31,6 +31,7 @@ const prefersReducedMotion = (): boolean => {
 };
 
 const MultiplayerWindow = React.lazy(() => import("@/components/MultiplayerWindow"));
+import ClassicLoading from "@/components/ClassicLoading";
 
 type IntroStatus = "pending" | "running" | "skipped" | "complete" | "timeout" | "none";
 
@@ -146,7 +147,7 @@ const MultiplayerPage: React.FC = () => {
         )}
 
         <div style={{ height: "100%", visibility: lobbyVisible ? "visible" : "hidden" }}>
-          <Suspense fallback={<div style={{ margin: "auto", color: COLORS.ink }}>Loading…</div>}>
+          <Suspense fallback={<ClassicLoading />}>
             <MultiplayerWindow
               initialRoomCode={roomCode}
               initialMode={initialMode}
