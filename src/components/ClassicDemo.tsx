@@ -199,6 +199,8 @@ interface Beat {
 }
 
 interface Step {
+  /** Short Friend-set header above the body copy. */
+  header: string;
   copy: string;
   /** Region the fixed bubble's pointer aims toward. */
   anchor: Exclude<SpotKey, "all">;
@@ -219,6 +221,7 @@ const dealAll = (): Scene["deal"] =>
 const SCRIPT: Step[] = [
   // 1 — The table.
   {
+    header: "Nine Cards, Face Down",
     copy: "You start with nine cards face down. You do not know what any of them are yet, neither do your opponents.",
     anchor: "grid",
     enter: { spot: ["grid"], lit: [], deal: dealAll() },
@@ -227,6 +230,7 @@ const SCRIPT: Step[] = [
   },
   // 2 — The die decides.
   {
+    header: "The Die Decides",
     copy: "The die decides what is important. This round it says COLOR, so you are trying to find two cards that share the same color. What is important changes every round.",
     anchor: "die",
     enter: { spot: ["die"], lit: [] },
@@ -238,6 +242,7 @@ const SCRIPT: Step[] = [
   },
   // 3 — Your first flip.
   {
+    header: "Flip and Remember",
     copy: "On your turn you flip a card so everyone can see it. Your job is to remember what it is and where it is.",
     anchor: "grid",
     enter: { spot: ["grid"], lit: [1], myChip: "FLIPPING" },
@@ -253,6 +258,7 @@ const SCRIPT: Step[] = [
   },
   // 4 — Your second flip.
   {
+    header: "Two Flips, Then Done",
     copy: "You get two flips per turn. After your second flip, your turn is done.",
     anchor: "grid",
     enter: { spot: ["grid"], lit: [5], myChip: "FLIPPING" },
@@ -268,6 +274,7 @@ const SCRIPT: Step[] = [
   },
   // 5 — WHOOP's turn.
   {
+    header: "Watch Everyone",
     copy: "Now it is your opponent's turn. Watch their flips too, every flip is important.",
     anchor: "grid",
     enter: { spot: ["chipWhoop"], lit: [], whoopChip: "FLIPPING" },
@@ -292,6 +299,7 @@ const SCRIPT: Step[] = [
   },
   // 6 — Call it.
   {
+    header: "Call It Anytime",
     copy: "Did you spot a match? Call it! Press the Whoop! Whoop! button at any time to call a match, during your turn or other players.",
     anchor: "button",
     order: "press-tell-show",
@@ -308,6 +316,7 @@ const SCRIPT: Step[] = [
   },
   // 7 — The call.
   {
+    header: "Whoop! Whoop!",
     copy: "When any player calls Whoop! Whoop!, the whole board lights up. Everyone at the table knows a call is happening.",
     anchor: "grid",
     enter: {
@@ -321,6 +330,7 @@ const SCRIPT: Step[] = [
   },
   // 8 — Pick two.
   {
+    header: "Lock In Your Match",
     copy: "Choose two cards you think match the rule on the die; the second tap locks in your choice. This round is color, so two reds makes a match!",
     anchor: "grid",
     enter: { spot: ["all", "chipYou"], lit: [1, 5], pulsing: true, myChip: "WHOOP" },
@@ -346,6 +356,7 @@ const SCRIPT: Step[] = [
   },
   // 9 — What you won.
   {
+    header: "Two Points",
     copy: "A good match = two points. The matched cards go to you. Two new cards fill the gaps, only those two. All other cards stay exactly where they are.",
     anchor: "grid",
     enter: { spot: ["chipYou"], lit: [] },
@@ -373,6 +384,7 @@ const SCRIPT: Step[] = [
   },
   // 10 — You take the die.
   {
+    header: "The Rule Just Changed",
     copy: "A good match hands you the die. Your roll sets the next rule, and you flip first. The cards did not change, but what makes a match did change. It was COLOR, now it is SHAPE.",
     anchor: "die",
     enter: { spot: ["die"], lit: [], myChip: "ROLLING" },
@@ -384,6 +396,7 @@ const SCRIPT: Step[] = [
   },
   // 11 — Getting it wrong.
   {
+    header: "A Missed Call",
     copy:
       "Blue Star and Blue Triangle. Both blue — but the die says shape now, and a star is not a triangle. That is a miss.",
     anchor: "grid",
@@ -419,6 +432,7 @@ const SCRIPT: Step[] = [
   },
   // 12 — What a miss costs.
   {
+    header: "What a Miss Costs",
     copy: "A missed match does three things:",
     bullets: [
       "Lose one card you already won to the deck",
@@ -442,6 +456,7 @@ const SCRIPT: Step[] = [
   },
   // 13 — Two calls each.
   {
+    header: "Two Calls Per Round",
     copy: "You only get 2 calls per round. Use them wisely.",
     anchor: "button",
     enter: { spot: ["button"], lit: [], button: "WHOOP", buttonLabel: "1 CALL LEFT" },
@@ -450,6 +465,7 @@ const SCRIPT: Step[] = [
   },
   // 14 — WHOOP calls.
   {
+    header: "Anyone Can Call",
     copy: "Remember, anyone can call at anytime. If another player gets a match, they get the die, set the next rule, and flip first.",
     anchor: "grid",
     enter: { spot: ["all"], lit: [], whoopChip: "WHOOP", button: "DISABLED", buttonLabel: undefined },
@@ -486,6 +502,7 @@ const SCRIPT: Step[] = [
   },
   // 15 — That is it.
   {
+    header: "First to Twelve",
     copy: "First to twelve wins!\nNow go play a solo game with WHOOP Bot, or send a link to your people and play together. Have fun and WHOOP! WHOOP!",
     anchor: "grid",
     enter: {
@@ -872,6 +889,9 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
         pointerEvents: copyVisible ? "auto" : "none",
       }}
     >
+      <p style={{ ...textStyle("subhead", isMobile), letterSpacing: 0, margin: 0, textAlign: "center", color: COLORS.ink }}>
+        {SCRIPT[LAST].header}
+      </p>
       <p style={{ ...textStyle("body", true), fontFamily: FONT_FAMILY_UI, fontWeight: FONT_WEIGHT_UI, margin: 0, textAlign: "center", color: COLORS.ink, whiteSpace: "pre-line" }}>
         {mode === "in-game"
           ? "First to twelve wins!\nNow go play a solo game with WHOOP Bot, or send a link to your people and play together. Have fun and WHOOP! WHOOP!"
@@ -1184,16 +1204,34 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                   lineHeight: LINE_HEIGHT.tight * 1.05,
                   letterSpacing: 0,
                   display: "block",
-                  textAlign: "left",
+                  width: "100%",
+                  textAlign: "center",
                   whiteSpace: "pre-line",
                   textWrap: "pretty",
                   color: COLORS.ink,
                 }}
               >
+                {/* Header: Friend, hierarchy from size + tracking only. */}
+                <p style={{ ...textStyle("subhead", isMobile), letterSpacing: 0, margin: `0 0 ${SPACE[2]}px`, textAlign: "center", color: COLORS.ink }}>
+                  {current.header}
+                </p>
                 <span style={{ whiteSpace: "pre-line" }}>{preventShortLastLine(current.copy)}</span>
                 {current.bullets && (
-                  <ul style={{ margin: `${SPACE[2]}px 0 0`, paddingInlineStart: SPACE[4], textAlign: "left", listStyleType: "disc", textWrap: "wrap" }}>
-                    {current.bullets.map((item) => <li key={item} style={{ paddingInlineStart: SPACE[2], textWrap: "wrap" }}>{item}</li>)}
+                  <ul
+                    style={{
+                      // `inside` markers keep the bullets and their wrapped
+                      // lines within the bubble's padding box.
+                      margin: `${SPACE[2]}px 0 0`,
+                      paddingInlineStart: 0,
+                      listStylePosition: "inside",
+                      listStyleType: "disc",
+                      // One step down the scale, only here, to pay for the header.
+                      fontSize: FONT_SIZE.xs,
+                      textAlign: "left",
+                      textWrap: "wrap",
+                    }}
+                  >
+                    {current.bullets.map((item) => <li key={item} style={{ textWrap: "wrap" }}>{item}</li>)}
                   </ul>
                 )}
               </div>
