@@ -1,5 +1,5 @@
 import React from "react";
-import { COLORS, FONT_FAMILY_UI, FONT_SIZE, FONT_WEIGHT_UI, LINE_HEIGHT, RADIUS } from "@/lib/tokens";
+import { COLORS, RADIUS, SHADOW } from "@/lib/tokens";
 import { CARD_BACK_PATH } from "@/cardData";
 
 /**
@@ -16,6 +16,7 @@ const faceLayer: React.CSSProperties = {
   WebkitBackfaceVisibility: "hidden",
   borderRadius: RADIUS.md,
   overflow: "hidden",
+  boxShadow: SHADOW.card,
 };
 
 const ClassicLoading: React.FC = () => (
@@ -45,19 +46,6 @@ const ClassicLoading: React.FC = () => (
         </div>
       </div>
     </div>
-    <span
-      style={{
-        fontFamily: FONT_FAMILY_UI,
-        fontSize: FONT_SIZE.sm,
-        fontWeight: FONT_WEIGHT_UI,
-        lineHeight: LINE_HEIGHT.label,
-        letterSpacing: "0.06em",
-        textTransform: "uppercase",
-        color: COLORS.inkMuted,
-      }}
-    >
-      Loading…
-    </span>
   </div>
 );
 
