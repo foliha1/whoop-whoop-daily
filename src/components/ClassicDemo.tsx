@@ -27,6 +27,7 @@ import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePortalHost } from "@/hooks/usePortalHost";
 import { useDismiss } from "@/hooks/useDismiss";
+import { useIsMobile } from "@/hooks/use-mobile";
 import GameCard from "@/components/GameCard";
 import RollHeroOverlay, { TUMBLE_MS } from "@/components/RollHeroOverlay";
 import { ActionButton, ChipCell, DieBox, type ButtonKind, type DerivedChip } from "@/components/MultiplayerGameView";
@@ -608,6 +609,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
 }) => {
   const portalHost = usePortalHost("classic-demo");
   const reduce = useReducedMotion();
+  const isMobile = useIsMobile();
   // Demo-only music: the How to Play track loops for as long as the demo is
   // open, including the welcome card. The screen underneath (lobby or game)
   // resumes its own music when the demo closes.
@@ -1045,10 +1047,11 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 key={i}
                 aria-hidden="true"
                 style={{
-                  flex: "1 1 0",
-                  height: SPACE[2],
+                  flex: "none",
+                  width: SPACE[3],
+                  height: SPACE[3],
                   borderRadius: RADIUS.sm,
-                  background: i <= step ? RAW.blue : RAW.cream,
+                  background: i <= step ? RAW.warmBlack : "transparent",
                   border: BORDER.standard,
                   boxSizing: "border-box",
                   transition: `background ${MOTION.fast}`,
@@ -1149,7 +1152,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               aria-live="polite"
               style={{
                  ...panelStyle("surface", 4),
-                paddingInline: SPACE[20],
+                paddingInline: isMobile ? SPACE[10] : SPACE[16],
                 background: COLORS.surface,
                 width: "100%",
                 height: "100%",
@@ -1168,6 +1171,9 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                   fontSize: FONT_SIZE.sm,
                   fontFamily: FONT_FAMILY_UI,
                   fontWeight: FONT_WEIGHT_UI,
+                  // +5% over the control role's spacing — derived from the
+                  // token so it can never drift from the scale.
+                  lineHeight: LINE_HEIGHT.tight * 1.05,
                   letterSpacing: 0,
                   display: "block",
                   textAlign: "center",
