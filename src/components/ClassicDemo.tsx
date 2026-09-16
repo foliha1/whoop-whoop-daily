@@ -1273,7 +1273,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 type="button"
                 className="ww-press"
                 onClick={() => {
-                  if (stepSettled) setStep((s) => Math.min(LAST, s + 1));
+                  if (stepSettled) goToStep((s) => Math.min(LAST, s + 1));
                 }}
                 disabled={!stepSettled}
                 style={{ ...buttonStyle("primary", "md", { mobile: true, disabled: !stepSettled }), flex: "1 1 0" }}
