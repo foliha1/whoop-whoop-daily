@@ -202,6 +202,18 @@ All colors MUST be HSL.
 }
 
 @keyframes whoop-pulse {
+
+/* Classic loading screen — gentle brand breathe. */
+@keyframes ww-loading-breathe {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.97); }
+}
+.ww-loading-breathe {
+  animation: ww-loading-breathe 1600ms ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ww-loading-breathe { animation: none; }
+}
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.03); }
 }
