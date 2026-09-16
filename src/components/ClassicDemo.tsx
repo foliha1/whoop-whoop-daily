@@ -1262,7 +1262,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 <button
                   type="button"
                   className="ww-press"
-                  onClick={() => setStep((s) => Math.max(0, s - 1))}
+                  onClick={() => goToStep((s) => Math.max(0, s - 1))}
                   style={{ ...buttonStyle("neutral", "md", { mobile: true }), flex: "1 1 0" }}
                 >
                   <ChevronLeft size={18} strokeWidth={2} aria-hidden="true" />
