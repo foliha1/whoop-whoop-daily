@@ -1239,8 +1239,8 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
         </div>
 
         {/* footer: step navigation, or the closing choice */}
-        <div style={{ flex: step === LAST ? "0 0 0" : "0 0 43px", display: "flex", gap: SPACE[4], alignItems: "center" }}>
-          {step !== LAST && (
+        {step !== LAST && (
+          <div style={{ flex: "0 0 43px", display: "flex", gap: SPACE[4], alignItems: "center" }}>
             <>
               {step > 0 && (
                 <button
@@ -1266,8 +1266,8 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />
               </button>
             </>
-          )}
-        </div>
+          </div>
+        )}
       </div>
       )}
       {rollCommit && rollRects && (
