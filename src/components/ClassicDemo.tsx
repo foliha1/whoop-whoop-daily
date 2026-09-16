@@ -1184,8 +1184,8 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               >
                 <span style={{ whiteSpace: "pre-line" }}>{preventShortLastLine(current.copy)}</span>
                 {current.bullets && (
-                  <ul style={{ margin: `${SPACE[2]}px 0 0`, paddingInlineStart: SPACE[10], textAlign: "left", listStyleType: "disc" }}>
-                    {current.bullets.map((item) => <li key={item} style={{ textWrap: "pretty" }}>{preventShortLastLine(item)}</li>)}
+                  <ul style={{ margin: `${SPACE[2]}px 0 0`, paddingInlineStart: SPACE[4], textAlign: "left", listStyleType: "disc", textWrap: "wrap" }}>
+                    {current.bullets.map((item) => <li key={item} style={{ paddingInlineStart: SPACE[2], textWrap: "wrap" }}>{item}</li>)}
                   </ul>
                 )}
               </div>
