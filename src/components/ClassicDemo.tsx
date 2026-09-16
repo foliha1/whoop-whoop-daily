@@ -1218,19 +1218,26 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 {current.bullets && (
                   <ul
                     style={{
-                      // `inside` markers keep the bullets and their wrapped
-                      // lines within the bubble's padding box.
+                      // Custom marker columns: the dot sits inside the bubble's
+                      // padding box, and wrapped lines return to the text
+                      // column, never back under the bullet.
                       margin: `${SPACE[2]}px 0 0`,
-                      paddingInlineStart: 0,
-                      listStylePosition: "inside",
-                      listStyleType: "disc",
+                      padding: 0,
+                      listStyle: "none",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: SPACE[1],
                       // One step down the scale, only here, to pay for the header.
                       fontSize: FONT_SIZE.xs,
                       textAlign: "left",
-                      textWrap: "wrap",
                     }}
                   >
-                    {current.bullets.map((item) => <li key={item} style={{ textWrap: "wrap" }}>{item}</li>)}
+                    {current.bullets.map((item) => (
+                      <li key={item} style={{ display: "flex", gap: SPACE[3] }}>
+                        <span aria-hidden="true" style={{ flex: "0 0 auto", width: SPACE[2], textAlign: "center" }}>•</span>
+                        <span style={{ flex: "1 1 0", minWidth: 0, textWrap: "wrap" }}>{item}</span>
+                      </li>
+                    ))}
                   </ul>
                 )}
               </div>
