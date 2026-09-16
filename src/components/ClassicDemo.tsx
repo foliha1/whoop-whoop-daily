@@ -1165,7 +1165,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 zIndex: 6,
               }}
             >
-               <div
+              <div
                 style={{
                   ...textStyle("control", true),
                   fontSize: FONT_SIZE.sm,
@@ -1176,15 +1176,15 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                   lineHeight: LINE_HEIGHT.tight * 1.05,
                   letterSpacing: 0,
                   display: "block",
-                  textAlign: "center",
+                  textAlign: "left",
                   whiteSpace: "pre-line",
-                  textWrap: "balance",
+                  textWrap: "pretty",
                   color: COLORS.ink,
                 }}
               >
                 <span style={{ whiteSpace: "pre-line" }}>{preventShortLastLine(current.copy)}</span>
                 {current.bullets && (
-                  <ul style={{ margin: `${SPACE[2]}px 0 0`, paddingInlineStart: SPACE[10], textAlign: "left" }}>
+                  <ul style={{ margin: `${SPACE[2]}px 0 0`, paddingInlineStart: SPACE[10], textAlign: "left", listStyleType: "disc" }}>
                     {current.bullets.map((item) => <li key={item} style={{ textWrap: "pretty" }}>{preventShortLastLine(item)}</li>)}
                   </ul>
                 )}
