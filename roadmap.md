@@ -4,4 +4,4 @@
 - [x] Revise the Classic demo welcome, copy, spotlight behavior, rolls, match effects, and closing reset.
 - [x] Match the How to Play action row to live play dimensions; fix both surfaces only if live play itself is mismatched.
 - [x] Enlarge How to Play headers, set 16px bubble padding, and anchor the final bubble to the bottom.
-- [ ] Code-split every route, minimize Daily's initial JavaScript, and verify Classic prerender metadata.
+- [x] Code-split every route, keep genuine Classic/multiplayer/admin features out of Daily, report Daily initial JS before/after gzipped, and verify Classic prerender metadata.
