@@ -876,7 +876,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   const finalPanel = (
     <div
       style={{
-        ...panelStyle("surface", 4),
+        ...panelStyle("surface", 8),
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -889,7 +889,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
         pointerEvents: copyVisible ? "auto" : "none",
       }}
     >
-      <p style={{ ...textStyle("subhead", isMobile), letterSpacing: 0, margin: 0, textAlign: "center", color: COLORS.ink }}>
+      <p style={{ ...textStyle("subhead", isMobile), fontSize: isMobile ? FONT_SIZE.xl : FONT_SIZE["2xl"], letterSpacing: 0, margin: 0, textAlign: "center", color: COLORS.ink }}>
         {SCRIPT[LAST].header}
       </p>
       <p style={{ ...textStyle("body", true), fontFamily: FONT_FAMILY_UI, fontWeight: FONT_WEIGHT_UI, margin: 0, textAlign: "center", color: COLORS.ink, whiteSpace: "pre-line" }}>
@@ -1179,8 +1179,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               role="status"
               aria-live="polite"
               style={{
-                 ...panelStyle("surface", 4),
-                paddingInline: isMobile ? SPACE[10] : SPACE[16],
+                 ...panelStyle("surface", 8),
                 background: COLORS.surface,
                 width: "100%",
                 height: "100%",
@@ -1212,7 +1211,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 }}
               >
                 {/* Header: Friend, hierarchy from size + tracking only. */}
-                <p style={{ ...textStyle("subhead", isMobile), letterSpacing: 0, margin: `0 0 ${SPACE[2]}px`, textAlign: "center", color: COLORS.ink }}>
+                <p style={{ ...textStyle("subhead", isMobile), fontSize: isMobile ? FONT_SIZE.xl : FONT_SIZE["2xl"], letterSpacing: 0, margin: `0 0 ${SPACE[2]}px`, textAlign: "center", color: COLORS.ink }}>
                   {current.header}
                 </p>
                 <span style={{ whiteSpace: "pre-line" }}>{preventShortLastLine(current.copy)}</span>
@@ -1240,7 +1239,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
         </div>
 
         {/* footer: step navigation, or the closing choice */}
-        <div style={{ flex: "0 0 43px", display: "flex", gap: SPACE[4], alignItems: "center" }}>
+        <div style={{ flex: step === LAST ? "0 0 0" : "0 0 43px", display: "flex", gap: SPACE[4], alignItems: "center" }}>
           {step !== LAST && (
             <>
               {step > 0 && (
