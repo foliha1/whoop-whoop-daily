@@ -1381,7 +1381,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           <EntryReveal index={3} ready={entryReady} style={{ width: "100%" }}>
             <a
               href="/"
-              className="ww-daily-link"
               style={{
                 ...textStyle("captionItalic", mobile),
                 fontFamily: FONT_FAMILY_UI,
@@ -1393,7 +1392,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 textDecoration: "none",
               }}
             >
-              Looking for Whoop! Whoop! Daily?
+              <span className="ww-daily-link">Looking for Whoop! Whoop! Daily?</span>
             </a>
             <div style={{ marginTop: SPACE[4] }}>
               <DailyLegalFooter />
