@@ -647,6 +647,15 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   const previousRollRef = useRef(0);
   const timers = useRef<number[]>([]);
 
+  // Hide the bubble in the same commit as the step change: otherwise the next
+  // step's copy renders into the still-visible bubble for a frame before the
+  // step effect clears it, which reads as a flash before the animation beat.
+  const goToStep = useCallback((next: (current: number) => number) => {
+    setCopyVisible(false);
+    setStepSettled(false);
+    setStep((current) => next(current));
+  }, []);
+
   useEffect(() => {
     markClassicDemoSeen();
     if (!(lastOpen.mode === mode && Date.now() - lastOpen.at < 2000)) {
