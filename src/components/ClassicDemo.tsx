@@ -775,13 +775,13 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") {
         if (welcome) setWelcome(false);
-        else setStep((s) => Math.min(LAST, s + 1));
+        else goToStep((s) => Math.min(LAST, s + 1));
       }
-      else if (e.key === "ArrowLeft") setStep((s) => Math.max(0, s - 1));
+      else if (e.key === "ArrowLeft") goToStep((s) => Math.max(0, s - 1));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [welcome]);
+  }, [welcome, goToStep]);
 
   // Dimming is tied to the bubble, not to the step: while an animation beat is
   // playing (no copy on screen) the board reads exactly like a live game, and
