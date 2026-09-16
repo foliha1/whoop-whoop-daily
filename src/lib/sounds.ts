@@ -444,6 +444,9 @@ export function startTheme(trackUrl?: string): void {
     if (!themeEl) {
       themeEl = makeThemeEl(themeUrl, 0);
       themeAltEl = makeThemeEl(themeUrl, 0);
+      // Unlock the alternate element inside this same gesture, or its first
+      // timer-driven play() at the loop point is refused on iOS.
+      if (themeAltEl) primeThemeEl(themeAltEl);
     }
     const el = themeEl;
     // play() rejects until the page has had a gesture; the site-wide gesture
