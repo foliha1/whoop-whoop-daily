@@ -457,7 +457,7 @@ const SCRIPT: Step[] = [
   // 13 — Two calls each.
   {
     header: "Two Calls Per Round",
-    copy: "You only get 2 calls per round. Use them wisely.",
+    copy: "You only get 2 calls per round.\nUse them wisely.",
     anchor: "button",
     enter: { spot: ["button"], lit: [], button: "WHOOP", buttonLabel: "1 CALL LEFT" },
     beats: [],
