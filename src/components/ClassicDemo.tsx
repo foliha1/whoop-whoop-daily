@@ -707,7 +707,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
       for (const id of timers.current) window.clearTimeout(id);
       timers.current = [];
     };
-  }, [step, reduce]);
+  }, [step, reduce, welcome]);
 
   // Use the live game's roll overlay for both scripted rolls. The small tray
   // only reveals the landed result after the full-screen animation completes.
