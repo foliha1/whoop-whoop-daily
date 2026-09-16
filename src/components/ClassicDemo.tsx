@@ -1039,7 +1039,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
           }}
         >
           <div
-            style={{ display: "flex", gap: SPACE[1], flex: "1 1 auto", minWidth: 0 }}
+            style={{ display: "flex", justifyContent: "space-between", flex: "1 1 auto", minWidth: 0 }}
             aria-label={`Step ${step + 1} of ${SCRIPT.length}`}
           >
             {SCRIPT.map((_, i) => (
@@ -1048,9 +1048,9 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 aria-hidden="true"
                 style={{
                   flex: "none",
-                  width: SPACE[3],
-                  height: SPACE[3],
-                  borderRadius: RADIUS.sm,
+                  width: SPACE[3] * 1.5,
+                  height: SPACE[3] * 1.5,
+                  borderRadius: "50%",
                   background: i <= step ? RAW.warmBlack : "transparent",
                   border: BORDER.standard,
                   boxSizing: "border-box",
