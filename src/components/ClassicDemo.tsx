@@ -1011,7 +1011,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                   lineHeight: 1,
                   letterSpacing: "-0.01em",
                   textAlign: "center",
-                  color: RAW.warmBlack,
+                  color: COLORS.ink,
                 }}
               >
                 Welcome to
@@ -1038,7 +1038,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                   fontWeight: FONT_WEIGHT_UI,
                   lineHeight: LINE_HEIGHT.snug,
                   textAlign: "center",
-                  color: RAW.warmBlack,
+                  color: COLORS.ink,
                 }}
               >
                 A fun and fast memory game for two to six players. Flip, remember, and call the match before anyone else.
@@ -1088,7 +1088,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                   width: SPACE[3] * 1.5,
                   height: SPACE[3] * 1.5,
                   borderRadius: "50%",
-                  background: i <= step ? RAW.warmBlack : "transparent",
+                  background: i <= step ? COLORS.ink : "transparent",
                   border: BORDER.standard,
                   boxSizing: "border-box",
                   transition: `background ${MOTION.fast}`,
