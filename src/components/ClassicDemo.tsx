@@ -1047,7 +1047,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
           }}
         >
           <div
-            style={{ display: "flex", justifyContent: "space-between", flex: "1 1 auto", minWidth: 0 }}
+            style={{ display: "flex", justifyContent: "space-between", flex: "1 1 auto", minWidth: 0, paddingRight: SPACE[8] }}
             aria-label={`Step ${step + 1} of ${SCRIPT.length}`}
           >
             {SCRIPT.map((_, i) => (
