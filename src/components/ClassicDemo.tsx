@@ -647,6 +647,15 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   const previousRollRef = useRef(0);
   const timers = useRef<number[]>([]);
 
+  // Hide the bubble in the same commit as the step change: otherwise the next
+  // step's copy renders into the still-visible bubble for a frame before the
+  // step effect clears it, which reads as a flash before the animation beat.
+  const goToStep = useCallback((next: (current: number) => number) => {
+    setCopyVisible(false);
+    setStepSettled(false);
+    setStep((current) => next(current));
+  }, []);
+
   useEffect(() => {
     markClassicDemoSeen();
     if (!(lastOpen.mode === mode && Date.now() - lastOpen.at < 2000)) {
@@ -766,13 +775,13 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") {
         if (welcome) setWelcome(false);
-        else setStep((s) => Math.min(LAST, s + 1));
+        else goToStep((s) => Math.min(LAST, s + 1));
       }
-      else if (e.key === "ArrowLeft") setStep((s) => Math.max(0, s - 1));
+      else if (e.key === "ArrowLeft") goToStep((s) => Math.max(0, s - 1));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [welcome]);
+  }, [welcome, goToStep]);
 
   // Dimming is tied to the bubble, not to the step: while an animation beat is
   // playing (no copy on screen) the board reads exactly like a live game, and
@@ -1253,7 +1262,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 <button
                   type="button"
                   className="ww-press"
-                  onClick={() => setStep((s) => Math.max(0, s - 1))}
+                  onClick={() => goToStep((s) => Math.max(0, s - 1))}
                   style={{ ...buttonStyle("neutral", "md", { mobile: true }), flex: "1 1 0" }}
                 >
                   <ChevronLeft size={18} strokeWidth={2} aria-hidden="true" />
@@ -1264,7 +1273,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 type="button"
                 className="ww-press"
                 onClick={() => {
-                  if (stepSettled) setStep((s) => Math.min(LAST, s + 1));
+                  if (stepSettled) goToStep((s) => Math.min(LAST, s + 1));
                 }}
                 disabled={!stepSettled}
                 style={{ ...buttonStyle("primary", "md", { mobile: true, disabled: !stepSettled }), flex: "1 1 0" }}
