@@ -644,6 +644,14 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   useEffect(() => {
     for (const id of timers.current) window.clearTimeout(id);
     timers.current = [];
+    // The welcome title card holds the timeline: no beats, sounds or copy run
+    // until the player taps through, so step 1 still shows before it tells.
+    if (welcome) {
+      setScene(enterScene(0));
+      setCopyVisible(false);
+      setStepSettled(false);
+      return;
+    }
     const currentStep = SCRIPT[step];
     if (reduce) {
       setScene(settledScene(step));
