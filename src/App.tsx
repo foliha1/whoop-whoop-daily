@@ -1,21 +1,23 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-context";
+import { COLORS } from "@/lib/tokens";
 
-import MultiplayerPage from "./pages/MultiplayerPage.tsx";
-import DailyPage from "./pages/DailyPage.tsx";
-import SupportPage from "./pages/SupportPage.tsx";
-import AdminPage from "./pages/AdminPage.tsx";
-import GroupsPage from "./pages/GroupsPage.tsx";
-import TypographyPage from "./pages/TypographyPage.tsx";
-import PrivacyPage from "./pages/PrivacyPage.tsx";
-import TermsPage from "./pages/TermsPage.tsx";
 import DebugOnlyRoute from "./components/DebugOnlyRoute.tsx";
-import NotFound from "./pages/NotFound.tsx";
+
+const MultiplayerPage = lazy(() => import("./pages/MultiplayerPage.tsx"));
+const DailyPage = lazy(() => import("./pages/DailyPage.tsx"));
+const SupportPage = lazy(() => import("./pages/SupportPage.tsx"));
+const AdminPage = lazy(() => import("./pages/AdminPage.tsx"));
+const GroupsPage = lazy(() => import("./pages/GroupsPage.tsx"));
+const TypographyPage = lazy(() => import("./pages/TypographyPage.tsx"));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage.tsx"));
+const TermsPage = lazy(() => import("./pages/TermsPage.tsx"));
+const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 
 
@@ -55,34 +57,43 @@ const AnimatedRoutes: React.FC = () => {
         minHeight: "var(--ww-vh)",
       }}
     >
-      <Routes location={displayLocation}>
-        <Route path="/" element={<DailyPage />} />
-        <Route path="/today" element={<DailyPage />} />
-        {/* HIDDEN: Groups is built but not launched. Debug-gated until the
-            multiplayer push ships; re-enable by moving this back above with
-            the open routes. */}
-        <Route path="/groups" element={<DebugOnlyRoute><GroupsPage /></DebugOnlyRoute>} />
-        <Route path="/about" element={<SupportPage />} />
-        <Route path="/privacy" element={<PrivacyPage />} />
-        <Route path="/terms" element={<TermsPage />} />
-        <Route path="/admin" element={<AdminPage />} />
+      <Suspense
+        fallback={(
+          <div
+            aria-hidden="true"
+            style={{ minHeight: "var(--ww-vh)", background: COLORS.surface }}
+          />
+        )}
+      >
+        <Routes location={displayLocation}>
+          <Route path="/" element={<DailyPage />} />
+          <Route path="/today" element={<DailyPage />} />
+          {/* HIDDEN: Groups is built but not launched. Debug-gated until the
+              multiplayer push ships; re-enable by moving this back above with
+              the open routes. */}
+          <Route path="/groups" element={<DebugOnlyRoute><GroupsPage /></DebugOnlyRoute>} />
+          <Route path="/about" element={<SupportPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/admin" element={<AdminPage />} />
 
 
 
-        {/* Classic lives at /classic. The .html twin is the document the host
-            actually serves with Classic link-preview tags (see
-            scripts/classicHead.mjs), so it must render the game too. */}
-        <Route path="/classic" element={<MultiplayerPage />} />
-        <Route path="/classic.html" element={<MultiplayerPage />} />
-        <Route path="/classic/:roomCode" element={<MultiplayerPage />} />
-        {/* Legacy /play links redirect, preserving the room code. */}
-        <Route path="/play" element={<ClassicRedirect />} />
-        <Route path="/play/:roomCode" element={<ClassicRedirect />} />
-        {/* Debug-gated routes: 404 in production, live under ?debug=1. */}
-        <Route path="/typography" element={<DebugOnlyRoute><TypographyPage /></DebugOnlyRoute>} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* Classic lives at /classic. The .html twin is the document the host
+              actually serves with Classic link-preview tags (see
+              scripts/classicHead.mjs), so it must render the game too. */}
+          <Route path="/classic" element={<MultiplayerPage />} />
+          <Route path="/classic.html" element={<MultiplayerPage />} />
+          <Route path="/classic/:roomCode" element={<MultiplayerPage />} />
+          {/* Legacy /play links redirect, preserving the room code. */}
+          <Route path="/play" element={<ClassicRedirect />} />
+          <Route path="/play/:roomCode" element={<ClassicRedirect />} />
+          {/* Debug-gated routes: 404 in production, live under ?debug=1. */}
+          <Route path="/typography" element={<DebugOnlyRoute><TypographyPage /></DebugOnlyRoute>} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </div>
   );
 };
