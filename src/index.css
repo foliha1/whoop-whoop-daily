@@ -202,20 +202,24 @@ All colors MUST be HSL.
 }
 
 @keyframes whoop-pulse {
-
-/* Classic loading screen — gentle brand breathe. */
-@keyframes ww-loading-breathe {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.55; transform: scale(0.97); }
-}
-.ww-loading-breathe {
-  animation: ww-loading-breathe 1600ms ease-in-out infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .ww-loading-breathe { animation: none; }
-}
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.03); }
+}
+
+/* Classic loading screen — a game card flipping back and forth.
+   500ms flips (matching CARD_FLIP_MS) with a hold on each side. */
+@keyframes ww-loading-flip {
+  0% { transform: rotateY(0deg); }
+  25% { transform: rotateY(180deg); }
+  50% { transform: rotateY(180deg); }
+  75% { transform: rotateY(360deg); }
+  100% { transform: rotateY(360deg); }
+}
+.ww-loading-flip {
+  animation: ww-loading-flip 2000ms ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ww-loading-flip { animation: none; }
 }
 
 /* ── Wrong-claim card animation (squeeze + shake/rotate, wash, ring) ──
