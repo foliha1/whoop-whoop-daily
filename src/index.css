@@ -202,6 +202,9 @@ All colors MUST be HSL.
 }
 
 @keyframes whoop-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
 
 /* Classic loading screen — a game card flipping back and forth.
    500ms flips (matching CARD_FLIP_MS) with a hold on each side. */
@@ -217,9 +220,6 @@ All colors MUST be HSL.
 }
 @media (prefers-reduced-motion: reduce) {
   .ww-loading-flip { animation: none; }
-}
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.03); }
 }
 
 /* ── Wrong-claim card animation (squeeze + shake/rotate, wash, ring) ──
