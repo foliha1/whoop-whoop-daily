@@ -311,8 +311,15 @@ let themeFadeTimer: ReturnType<typeof setInterval> | null = null;
 // starting a preloaded element is immediate, so the phrase joins cleanly.
 let themeAltEl: HTMLAudioElement | null = null;
 let themeLoopRaf: number | null = null;
-/** Seconds of encoder padding to skip at the tail when handing over. */
-const THEME_LOOP_LEAD = 0.06;
+let themeLoopInterval: ReturnType<typeof setInterval> | null = null;
+/** Seconds of decoder padding to skip at the tail when handing over. */
+const THEME_LOOP_LEAD = 0.09;
+/**
+ * MP3 files carry ~25ms of encoder delay at the head (measured on our tracks),
+ * which plays as silence on every restart. Starting each pass just past it is
+ * what makes the phrase join instead of stutter.
+ */
+const THEME_LOOP_START = 0.026;
 
 function makeThemeEl(url: string, volume: number): HTMLAudioElement {
   const el = new Audio(url);
@@ -324,36 +331,74 @@ function makeThemeEl(url: string, volume: number): HTMLAudioElement {
   return el;
 }
 
+/**
+ * iOS only lets an element play if its *first* play() came from a user gesture.
+ * The hand-over below starts the alternate element from a timer, which iOS
+ * would refuse, so both elements are started (silently) inside the gesture and
+ * parked at the loop point, ready to resume instantly.
+ */
+function primeThemeEl(el: HTMLAudioElement): void {
+  try {
+    const v = el.volume;
+    el.volume = 0;
+    void Promise.resolve(el.play()).then(
+      () => {
+        try {
+          el.pause();
+          el.currentTime = THEME_LOOP_START;
+          el.volume = v;
+        } catch { /* ignore */ }
+      },
+      () => { try { el.volume = v; } catch { /* ignore */ } },
+    );
+  } catch { /* ignore */ }
+}
+
 function stopLoopWatcher(): void {
   if (themeLoopRaf !== null && typeof cancelAnimationFrame === "function") {
     cancelAnimationFrame(themeLoopRaf);
   }
   themeLoopRaf = null;
+  if (themeLoopInterval !== null) { clearInterval(themeLoopInterval); themeLoopInterval = null; }
+}
+
+/** Hand playback over to the pre-buffered alternate element at the loop point. */
+function checkLoopPoint(): void {
+  const cur = themeEl;
+  const alt = themeAltEl;
+  if (!cur || !alt || cur.paused) return;
+  const dur = cur.duration;
+  if (!Number.isFinite(dur) || dur <= 0) return;
+  if (dur - cur.currentTime > THEME_LOOP_LEAD) return;
+  try {
+    alt.volume = cur.volume;
+    // Already parked at THEME_LOOP_START, so this is a resume, not a seek.
+    if (Math.abs(alt.currentTime - THEME_LOOP_START) > 0.15) {
+      alt.currentTime = THEME_LOOP_START;
+    }
+    void alt.play();
+    cur.pause();
+    // Park the retired element straight away: seeking now costs nothing, and
+    // doing it at the next hand-over is exactly what causes an audible gap.
+    try { cur.currentTime = THEME_LOOP_START; } catch { /* ignore */ }
+    themeEl = alt;
+    themeAltEl = cur;
+  } catch { /* ignore */ }
 }
 
 /** Watch the playhead and swap elements at the loop point. */
 function startLoopWatcher(): void {
-  if (typeof requestAnimationFrame !== "function") return;
   stopLoopWatcher();
-  const tick = () => {
+  if (typeof requestAnimationFrame === "function") {
+    const tick = () => {
+      themeLoopRaf = requestAnimationFrame(tick);
+      checkLoopPoint();
+    };
     themeLoopRaf = requestAnimationFrame(tick);
-    const cur = themeEl;
-    const alt = themeAltEl;
-    if (!cur || !alt || cur.paused) return;
-    const dur = cur.duration;
-    if (!Number.isFinite(dur) || dur <= 0) return;
-    if (dur - cur.currentTime > THEME_LOOP_LEAD) return;
-    try {
-      alt.volume = cur.volume;
-      alt.currentTime = 0;
-      void alt.play();
-      cur.pause();
-      cur.currentTime = 0;
-      themeEl = alt;
-      themeAltEl = cur;
-    } catch { /* ignore */ }
-  };
-  themeLoopRaf = requestAnimationFrame(tick);
+  }
+  // Mobile browsers throttle (or pause) animation frames aggressively, which
+  // would let the tail run out before the swap — a timer keeps watching.
+  themeLoopInterval = setInterval(checkLoopPoint, 25);
 }
 
 
@@ -399,6 +444,9 @@ export function startTheme(trackUrl?: string): void {
     if (!themeEl) {
       themeEl = makeThemeEl(themeUrl, 0);
       themeAltEl = makeThemeEl(themeUrl, 0);
+      // Unlock the alternate element inside this same gesture, or its first
+      // timer-driven play() at the loop point is refused on iOS.
+      if (themeAltEl) primeThemeEl(themeAltEl);
     }
     const el = themeEl;
     // play() rejects until the page has had a gesture; the site-wide gesture
