@@ -60,6 +60,21 @@ const PrivacyPage: React.FC = () => (
       </LegalText>
     </LegalSection>
 
+    <LegalSection heading="Groups in Daily">
+      <LegalText>
+        A group shows your display name and your daily results — rounds solved, misses, and
+        whether you used a peek — to everyone in that group. Joining needs only the group's
+        six-character code and a name, so a group is only as private as the code its members
+        share.
+      </LegalText>
+      <LegalText>
+        You can choose to add an email address to a group so your standing follows you to
+        another device. That is optional: if you do not add one, your group place is tied only
+        to the random visitor ID in your browser. If you do add one, we link it to your saved
+        results so the same standing shows up wherever you play.
+      </LegalText>
+    </LegalSection>
+
     <LegalSection heading="Tables in Classic">
       <LegalText>
         A Classic table has a six-character code. Anyone who has the code can join, so a table is

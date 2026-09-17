@@ -6,8 +6,9 @@
 // dropped on short viewports, the shared `CloseButton`, and `useDismiss` for
 // Escape + focus return. Only the panel's contents differ.
 //
-// Identity is the multiplayer `ww_display_name` and its 8-character cap — there
-// is deliberately no second name field anywhere in the product.
+// Identity is the visitor id plus the shared `ww_display_name` and its
+// six-character cap — there is deliberately no second name field anywhere in
+// the product, and no sign-in.
 // ============================================================================
 
 import React from "react";
@@ -21,6 +22,8 @@ import {
   GROUP_CODE_LENGTH,
   GROUP_NAME_MAX,
   createGroup,
+  getGroupEmail,
+  groupErrorMessage,
   joinGroup,
   normalizeGroupCode,
 } from "@/lib/dailyGroups";
@@ -134,7 +137,7 @@ const NameField: React.FC<{
       value={value}
       onChange={(e) => onChange(e.target.value.slice(0, DISPLAY_NAME_MAX))}
       maxLength={DISPLAY_NAME_MAX}
-      placeholder="8 letters"
+      placeholder={`${DISPLAY_NAME_MAX} letters`}
       data-testid="group-name-field"
       style={inputStyle(mobile)}
     />
@@ -176,8 +179,8 @@ export const CreateGroupModal: React.FC<{
       const row = await createGroup(groupName, getVisitorId(), display);
       if (!row) throw new Error("no-group");
       onCreated(row.group_id as string);
-    } catch {
-      setError("That did not work. Try again in a moment.");
+    } catch (err) {
+      setError(groupErrorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -227,9 +230,11 @@ export const JoinGroupModal: React.FC<{
   mobile: boolean;
   /** Prefilled from `/groups?join=CODE`. */
   initialCode?: string;
+  /** An address the Daily already holds. Reused silently, never asked for. */
+  email?: string | null;
   onClose: () => void;
   onJoined: (groupId: string) => void;
-}> = ({ mobile, initialCode = "", onClose, onJoined }) => {
+}> = ({ mobile, initialCode = "", email = null, onClose, onJoined }) => {
   const [code, setCode] = React.useState(() => normalizeGroupCode(initialCode));
   const [who, setWho] = React.useState(getDisplayName());
   const needName = getDisplayName().length === 0;
@@ -251,12 +256,14 @@ export const JoinGroupModal: React.FC<{
     setError(null);
     try {
       setDisplayName(display);
-      const row = await joinGroup(clean, getVisitorId(), display, null);
-      if (!row) throw new Error("no-group");
+      // Any address the player already gave the Daily rides along silently; it
+      // is never asked for here, and joining works fine without one.
+      const row = await joinGroup(clean, getVisitorId(), display, email ?? getGroupEmail());
+      if (!row) throw new Error("group_not_found");
       onJoined(row.group_id as string);
-    } catch {
+    } catch (err) {
       // Stays put: a bad or unknown code never navigates.
-      setError("No group with that code.");
+      setError(groupErrorMessage(err));
     } finally {
       setBusy(false);
     }

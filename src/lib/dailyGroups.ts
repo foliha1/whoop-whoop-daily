@@ -114,6 +114,57 @@ export function seasonPoints(
   return { points, played };
 }
 
+// ------------------------------------------------------------------ identity ---
+
+/**
+ * Groups use the Daily's own identity: the visitor id in local storage plus a
+ * display name. Email is optional and additive — it links a standing across
+ * devices — and is never required to join. This key remembers an address the
+ * player chose to add here, when they are not a Daily subscriber.
+ */
+const GROUP_EMAIL_KEY = "ww_group_email";
+
+export function getGroupEmail(): string | null {
+  try {
+    const v = window.localStorage.getItem(GROUP_EMAIL_KEY);
+    return v && v.length > 0 ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+function rememberGroupEmail(email: string): void {
+  try {
+    window.localStorage.setItem(GROUP_EMAIL_KEY, email);
+  } catch {
+    /* private mode: the membership row still carries it server-side */
+  }
+}
+
+/**
+ * Plain messages for the failures the RPCs actually raise. A Postgres error
+ * arrives as a plain object, not an Error, so every text field is searched —
+ * the raised name lands in `message`, but details and hint carry it too.
+ */
+export function groupErrorMessage(err: unknown): string {
+  const parts: string[] = [];
+  if (err instanceof Error) parts.push(err.message);
+  else if (err && typeof err === "object") {
+    for (const key of ["message", "details", "hint", "code"]) {
+      const v = (err as Record<string, unknown>)[key];
+      if (typeof v === "string") parts.push(v);
+    }
+  } else if (err !== null && err !== undefined) parts.push(String(err));
+  const raw = parts.join(" ");
+  if (raw.includes("group_not_found")) return "No group with that code.";
+  if (raw.includes("group_full")) return "That group is full. 20 members is the limit.";
+  if (raw.includes("group_limit_reached")) {
+    return `You are already in ${GROUP_MAX_PER_PERSON} groups. Leave one to join another.`;
+  }
+  if (raw.includes("rate_limited")) return "Too many tries today. Try again tomorrow.";
+  return "That did not work. Try again in a moment.";
+}
+
 // ---------------------------------------------------------------- RPC calls ---
 
 export async function createGroup(name: string, visitorId: string, displayName: string) {
@@ -149,6 +200,28 @@ export async function leaveGroup(groupId: string, visitorId: string) {
   });
   if (error) throw error;
   return data === true;
+}
+
+/**
+ * The optional restore path. Attaches an address to this visitor's memberships
+ * and stamps their existing results with it, so their standing follows them to
+ * another device. Never a gate: a member without an address still ranks.
+ */
+export async function linkGroupEmail(visitorId: string, email: string): Promise<void> {
+  const clean = email.trim().toLowerCase();
+  const { error } = await supabase.rpc("link_group_email", {
+    p_visitor_id: visitorId,
+    p_email: clean,
+  });
+  if (error) throw error;
+  rememberGroupEmail(clean);
+  await supabase
+    .rpc("backfill_result_emails", {
+      p_visitor_id: visitorId,
+      p_email: clean,
+      p_limit: 500,
+    })
+    .then(() => undefined, () => undefined);
 }
 
 export async function fetchMyGroups(

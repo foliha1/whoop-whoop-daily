@@ -1,23 +1,19 @@
-// The results screen's group line must be invisible to a signed-out player:
-// no prompt, no sign-in nudge, and no group RPC traffic at all — so its height
-// is identical to the no-groups case (both render nothing).
+// The results screen's group line must be invisible to a player who is not in
+// a group: no prompt, no empty state — so its height is identical to a screen
+// with no line at all. Groups need no sign-in, so the only gate is membership.
 
 import { render, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const rpc = vi.fn();
-let session: unknown = null;
+let rows: unknown[] = [];
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     rpc: (...args: unknown[]) => {
       rpc(...args);
-      return Promise.resolve({ data: [], error: null });
-    },
-    auth: {
-      getSession: () => Promise.resolve({ data: { session } }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      return Promise.resolve({ data: rows, error: null });
     },
   },
 }));
@@ -31,26 +27,40 @@ const renderLine = () =>
     </MemoryRouter>
   );
 
-describe("groups gate on the results screen", () => {
+describe("groups line on the results screen", () => {
   beforeEach(() => {
     rpc.mockClear();
-    session = null;
+    rows = [];
   });
 
-  it("renders nothing and calls no group RPC when signed out", async () => {
+  it("renders nothing for a player who is in no group", async () => {
     const { container } = renderLine();
+    await waitFor(() => expect(rpc).toHaveBeenCalled());
     await waitFor(() => expect(container.innerHTML).toBe(""));
-    expect(rpc.mock.calls.map((c) => c[0])).not.toContain("get_my_groups");
   });
 
-  it("renders nothing when signed in with no groups, matching the signed-out height", async () => {
-    const signedOut = renderLine();
-    await waitFor(() => expect(signedOut.container.innerHTML).toBe(""));
-    const signedOutHtml = signedOut.container.innerHTML;
-
-    session = { user: { email: "someone@example.com" } };
-    const signedIn = renderLine();
+  it("reads groups with the visitor id and no session", async () => {
+    renderLine();
     await waitFor(() => expect(rpc).toHaveBeenCalled());
-    expect(signedIn.container.innerHTML).toBe(signedOutHtml);
+    const call = rpc.mock.calls.find((c) => c[0] === "get_my_groups");
+    expect(call).toBeTruthy();
+    expect((call![1] as { p_visitor_id: string }).p_visitor_id.length).toBeGreaterThan(0);
+  });
+
+  it("shows one line for a member", async () => {
+    rows = [
+      {
+        group_id: "g1",
+        name: "Sunday Crew",
+        code: "abc234",
+        member_count: 3,
+        my_position: 2,
+        my_points: 4,
+        puzzle_number: 10,
+      },
+    ];
+    const { findByTestId } = renderLine();
+    const line = await findByTestId("results-groups-line");
+    expect(line.textContent).toContain("2nd today");
   });
 });

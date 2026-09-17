@@ -796,6 +796,10 @@ export type Database = {
         Args: { p_group_id: string; p_visitor_id: string }
         Returns: boolean
       }
+      link_group_email: {
+        Args: { p_email: string; p_visitor_id: string }
+        Returns: boolean
+      }
       log_daily_events: {
         Args: { p_events: Json; p_visitor_id: string }
         Returns: number
