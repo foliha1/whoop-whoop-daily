@@ -16,7 +16,7 @@ import DailyEmailCapture from "@/components/DailyEmailCapture";
 import DailyRecognition from "@/components/DailyRecognition";
 import DailyPreLaunchSignup from "@/components/DailyPreLaunchSignup";
 import { useSubscriberStatus } from "@/hooks/useSubscriberStatus";
-// HIDDEN: DailyGroupsLine stays in the repo; re-mount it here when Groups launches.
+import DailyGroupsLine from "@/components/DailyGroupsLine";
 
 import { useDailyGame } from "@/hooks/useDailyGame";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
@@ -902,9 +902,8 @@ const DailyResultCard: React.FC<{
         </div>
       )}
 
-      {/* HIDDEN: Groups launch pending — the standing line mount was here.
-          Restore <DailyGroupsLine puzzleNumber email={knownEmail} mobile /> in
-          this spot when Groups ships. */}
+      {/* One line, and nothing at all for a player who is not in a group. */}
+      <DailyGroupsLine puzzleNumber={result.puzzleNumber} email={knownEmail} mobile={mobile} />
 
 
 

@@ -131,7 +131,7 @@ const howToStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
-const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, onHowTo }) => {
+const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo }) => {
   const { mode, setMode } = useThemeMode();
   const portalHost = usePortalHost("settings-sheet");
   const [sfx, setSfx] = useState(() => getSfxEnabled());
@@ -263,6 +263,13 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, onHowTo }) => {
         ) : (
           <a href="/about#how-to-play" style={howToStyle}>
             How to Play
+          </a>
+        )}
+
+        {/* Groups are a Daily feature, and this is the permanent way back in. */}
+        {product === "daily" && (
+          <a href="/groups" style={howToStyle} data-testid="settings-groups-link">
+            Your Groups
           </a>
         )}
       </div>

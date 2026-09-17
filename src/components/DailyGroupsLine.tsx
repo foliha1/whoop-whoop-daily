@@ -2,38 +2,30 @@
 // DailyGroupsLine — the results screen's single group line.
 //
 // One line, deliberately: the results screen had a spacing pass and a board
-// here would undo it. In no groups it renders NOTHING — no prompt, no empty
+// here would undo it. With no groups it renders NOTHING — no prompt, no empty
 // state — so the screen's height is unchanged for anyone without a group.
+//
+// Identity is the visitor id, the same as the rest of the Daily. There is no
+// sign-in here and never was a nudge to create one.
 // ============================================================================
 
 import React from "react";
 import { Link } from "react-router-dom";
 import { bestStanding } from "@/lib/dailyGroups";
 import { useMyGroups } from "@/hooks/useMyGroups";
-import { useGroupAuth } from "@/hooks/useGroupAuth";
 import { COLORS, FONT_FAMILY_UI, FONT_WEIGHT_UI, SPACE, textStyle } from "@/lib/tokens";
 
 const DailyGroupsLine: React.FC<{
   puzzleNumber: number;
-  /** Passed so a member who switched devices resolves to one membership. */
+  /** Optional: lets a member who switched devices resolve to one membership. */
   email?: string | null;
   mobile: boolean;
 }> = ({ puzzleNumber, email = null, mobile }) => {
-  const { session, ready } = useGroupAuth();
-  const signedIn = session !== null;
-  const { groups, loading } = useMyGroups(
-    signedIn ? puzzleNumber : null,
-    signedIn ? email : null,
-    signedIn ? 1 : 0
-  );
+  const { groups, loading } = useMyGroups(puzzleNumber, email, 1);
   const best = bestStanding(groups);
-  // Signed out renders nothing at all — no prompt, no nudge — exactly as the
-  // no-groups case does, so the results screen's height never changes.
-  if (!ready || !signedIn || loading || best === null) return null;
-
-
-
-
+  // A non-member renders nothing at all, so the results screen's height never
+  // changes for the players who are not in a group.
+  if (loading || best === null) return null;
 
   return (
     <Link
