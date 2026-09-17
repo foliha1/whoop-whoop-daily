@@ -8,6 +8,13 @@
       "when": 1789663516634,
       "tag": "0000_groups_visitor_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789664062286,
+      "tag": "0001_groups_cap_before_rate_limit",
+      "breakpoints": true
     }
   ]
 }
