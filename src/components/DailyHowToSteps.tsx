@@ -1164,7 +1164,7 @@ const buttonBase: React.CSSProperties = {
   fontSize: 16,
   letterSpacing: "0.02em",
   background: INK,
-  color: RAW.cream,
+  color: COLORS.surface,
   cursor: "pointer",
 };
 
