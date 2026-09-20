@@ -1,20 +1,17 @@
-# Route code-splitting and Daily load reduction
+# Correct Daily groups typography and night-mode modal panels
 
-## Build
-- Replace all nine eager page imports in `src/App.tsx` with `React.lazy` imports.
-- Wrap the existing route switch in one `Suspense` boundary whose fallback is an empty, full-height themed cream ground.
-- Keep every path, redirect, animation, and `DebugOnlyRoute` wrapper unchanged.
-
-## Daily isolation
-- Audit `DailyPage`'s static dependency graph for Classic, multiplayer, results, demo, and admin modules.
-- Remove only route-loading coupling if found; do not alter page or game behavior.
+## Changes
+- Remove explicit Geist family/weight overrides where group text already uses a `textStyle` role, including the groups list, group boards, modal field labels, and results-screen groups line.
+- Keep typography role sizing, casing, tracking, and all existing behavior unchanged; each affected label will inherit Friend from its role as the current token system specifies.
+- Treat the interactive khaki modal panels as an oversight rather than fixed artwork: switch both the groups modal panel and email modal panel to the themed panel color, while leaving cards, dice, results artwork, patterns, and share artifacts untouched.
+- Update the two modal comments so they no longer describe the panel as permanently khaki.
 
 ## Verification
-- Produce a production bundle report with route chunk names and raw/gzip sizes.
-- Compare the JavaScript required by a first visit to `/` before and after the change.
-- Confirm `AdminPage` is isolated and no Classic/admin modules are present in Daily's route chunk.
-- Fetch the generated `/classic.html?r=CODE` without JavaScript and confirm its Classic title and social metadata remain intact.
+- Check create/join group modals and the email modal in night mode at phone size, including panel contrast, controls, borders, headings, body copy, labels, close controls, and errors.
+- Confirm the `/groups` debug gate and all group/game behavior remain unchanged.
+- Run the focused groups tests and type check.
 
 ## Technical details
-- Preserve the existing Vite Classic prerender plugin and static `classic.html` output.
-- Use the existing semantic surface token for the blank Suspense fallback; no spinner or loading text.
+- `textStyle()` currently resolves all roles to Friend; removing `FONT_FAMILY_UI` therefore changes only the explicitly overridden caption/metadata elements, not headings or group names already rendering correctly.
+- `COLORS.panel` maps to the light khaki panel in light mode and the dark themed panel in night mode. `RAW.khaki` is reserved by the token documentation for fixed artwork/colour math, not interactive modal chrome.
+- The email form contains additional frozen ink/input colors; verify their contrast against the themed panel and only adjust them if required for legibility, using existing semantic tokens.
