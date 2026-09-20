@@ -82,7 +82,7 @@ const DailySharePreview: React.FC<{
     const ro = new ResizeObserver(measure);
     ro.observe(slot);
     return () => ro.disconnect();
-  }, []);
+  }, [portalHost]);
 
   // Focus moves in on open: the Send button when it is live, the close control
   // while the image is still rendering.
