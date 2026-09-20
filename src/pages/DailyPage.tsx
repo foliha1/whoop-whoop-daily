@@ -484,7 +484,7 @@ const ShareBlock: React.FC<{
             overflow: "hidden",
           }}
         >
-          INVITE
+          Invite
           {sweep && <span aria-hidden="true" className="ww-sweep-once" style={sweep} />}
         </button>
         <button
@@ -499,7 +499,7 @@ const ShareBlock: React.FC<{
             minWidth: 0,
           }}
         >
-          {working ? "MAKING IMAGE…" : copied ? "COPIED" : "SHARE"}
+          {working ? "Making Image…" : copied ? "Copied" : "Share"}
         </button>
       </div>
 
@@ -947,7 +947,7 @@ const DailyResultCard: React.FC<{
         style={{ ...buttonStyle("ink", "lg", { mobile }), alignSelf: "stretch", marginTop: SPACE[8], ...blockIn("done") }}
       >
 
-        DONE
+        Done
       </button>
     </div>
   );
@@ -1907,7 +1907,7 @@ const DailyPage: React.FC = () => {
                     flex: "0 0 auto",
                   }}
                 >
-                  {state.peekUsed ? "PEEK USED" : "PEEK (5s)"}
+                  {state.peekUsed ? "Peek Used" : "Peek (5s)"}
                 </button>
               </div>
 

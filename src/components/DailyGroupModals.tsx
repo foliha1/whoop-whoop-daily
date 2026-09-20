@@ -110,7 +110,7 @@ const GroupModalShell: React.FC<{
         }}
       >
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <CloseButton label="CLOSE" onClick={onClose} ariaLabel="Close" />
+          <CloseButton label="Close" onClick={onClose} ariaLabel="Close" />
         </div>
         {children}
       </div>
@@ -215,7 +215,7 @@ export const CreateGroupModal: React.FC<{
         data-testid="group-create-submit"
         style={{ ...buttonStyle("primary", "lg", { mobile, disabled: busy }), alignSelf: "stretch" }}
       >
-        {busy ? "CREATING…" : "CREATE GROUP"}
+        {busy ? "Creating…" : "Create Group"}
       </button>
     </GroupModalShell>
   );
@@ -305,7 +305,7 @@ export const JoinGroupModal: React.FC<{
         data-testid="group-join-submit"
         style={{ ...buttonStyle("primary", "lg", { mobile, disabled: busy }), alignSelf: "stretch" }}
       >
-        {busy ? "JOINING…" : "JOIN GROUP"}
+        {busy ? "Joining…" : "Join Group"}
       </button>
     </GroupModalShell>
   );
@@ -332,7 +332,7 @@ export const LeaveGroupModal: React.FC<{
       data-testid="group-leave-confirm"
       style={{ ...buttonStyle("danger", "lg", { mobile }), alignSelf: "stretch" }}
     >
-      LEAVE GROUP
+      Leave Group
     </button>
     <button
       type="button"
@@ -340,7 +340,7 @@ export const LeaveGroupModal: React.FC<{
       onClick={onClose}
       style={{ ...buttonStyle("quiet", "lg", { mobile }), alignSelf: "stretch" }}
     >
-      STAY
+      Stay
     </button>
   </GroupModalShell>
 );

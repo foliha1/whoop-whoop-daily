@@ -196,7 +196,7 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
             Settings
           </h2>
           <CloseButton
-            label="CLOSE"
+            label="Close"
             onClick={onClose}
             ariaLabel="Close settings"
             data-testid="settings-sheet-close"

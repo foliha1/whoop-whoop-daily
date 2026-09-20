@@ -1324,7 +1324,7 @@ const DailyHowToSteps: React.FC<{
             ))}
           </div>
           <CloseButton
-            label="SKIP"
+            label="Skip"
             onClick={dismiss}
             ariaLabel={mode === "gate" ? "Skip how to play and start" : "Close how to play"}
             data-testid="htp-skip"
@@ -1429,7 +1429,7 @@ const DailyHowToSteps: React.FC<{
                   style={{ ...buttonBase, flex: "1 1 0" }}
                 >
                   <ChevronLeft size={18} strokeWidth={2} aria-hidden="true" />
-                  BACK
+                  Back
                 </button>
               )}
               <button
@@ -1438,7 +1438,7 @@ const DailyHowToSteps: React.FC<{
                 onClick={() => go(index + 1)}
                 style={{ ...buttonBase, flex: "1 1 0" }}
               >
-                NEXT
+                Next
                 <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />
               </button>
             </>

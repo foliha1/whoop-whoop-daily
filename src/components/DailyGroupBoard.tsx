@@ -223,7 +223,7 @@ const DailyGroupBoard: React.FC<{
         style={{ ...buttonStyle("ink", "md", { mobile }), alignSelf: "flex-start" }}
       >
         <ChevronLeft size={16} strokeWidth={2} aria-hidden="true" />
-        BACK
+        Back
       </button>
 
       <h1 style={{ ...textStyle("title", mobile), color: COLORS.ink, margin: 0 }}>{group.name}</h1>
@@ -232,8 +232,8 @@ const DailyGroupBoard: React.FC<{
       </p>
 
       <div role="tablist" aria-label="Board" style={{ display: "flex", gap: SPACE[4] }}>
-        <TabButton active={tab === "today"} label="TODAY" onClick={() => setTab("today")} mobile={mobile} />
-        <TabButton active={tab === "season"} label="SEASON" onClick={() => setTab("season")} mobile={mobile} />
+        <TabButton active={tab === "today"} label="Today" onClick={() => setTab("today")} mobile={mobile} />
+        <TabButton active={tab === "season"} label="Season" onClick={() => setTab("season")} mobile={mobile} />
       </div>
 
       {tab === "today" ? (
@@ -327,7 +327,7 @@ const DailyGroupBoard: React.FC<{
           data-testid="group-share-link"
           style={{ ...buttonStyle("secondary", "lg", { mobile }), alignSelf: "stretch" }}
         >
-          INVITE TO GROUP
+          Invite to Group
         </button>
         <button
           type="button"
@@ -336,7 +336,7 @@ const DailyGroupBoard: React.FC<{
           data-testid="group-leave"
           style={{ ...buttonStyle("danger", "lg", { mobile }), alignSelf: "stretch" }}
         >
-          LEAVE GROUP
+          Leave Group
         </button>
       </div>
 

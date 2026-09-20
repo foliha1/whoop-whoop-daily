@@ -165,7 +165,7 @@ const DailyEmailModal: React.FC<{
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <CloseButton
             ref={closeRef}
-            label="CLOSE"
+            label="Close"
             onClick={onClose}
             ariaLabel="Close"
             data-testid="daily-restore-close"
@@ -180,7 +180,7 @@ const DailyEmailModal: React.FC<{
           heading={mode === "restore" ? "Restore your streak." : "Get tomorrow's grid."}
           body="Enter the address you used before and your streak and history come back."
           note={null}
-          submitLabel={mode === "restore" ? "Restore" : "Sign me up"}
+          submitLabel={mode === "restore" ? "Restore" : "Sign Me Up"}
           onSubscribed={(email, restored) => {
             onSubscribed?.(email, restored);
             // The success line shows inside the modal, then it closes itself.

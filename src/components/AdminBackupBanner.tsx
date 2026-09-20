@@ -178,7 +178,7 @@ const AdminBackupBanner: React.FC<{ status?: BackupStatus | null }> = ({ status 
           cursor: "pointer",
         }}
       >
-        {expanded ? "Hide detail" : "Detail"}
+        {expanded ? "Hide Detail" : "Detail"}
       </button>
 
       {expanded ? (

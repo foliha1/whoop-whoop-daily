@@ -914,7 +914,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             onClick={finish}
             style={{ ...buttonStyle("primary", "md", { mobile: true, fullWidth: true }) }}
           >
-            Back to your table
+            Back to Your Table
           </button>
         ) : (
           <>
@@ -973,7 +973,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
       {welcome ? (
         <>
           <CloseButton
-            label={mode === "in-game" ? "BACK" : "SKIP"}
+            label={mode === "in-game" ? "Back" : "Skip"}
             onClick={skip}
             ariaLabel={mode === "in-game" ? "Back to your table" : "Skip the demo"}
             data-testid="classic-demo-skip"
@@ -1097,7 +1097,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             ))}
           </div>
           <CloseButton
-            label={mode === "in-game" ? "BACK" : "SKIP"}
+            label={mode === "in-game" ? "Back" : "Skip"}
             onClick={skip}
             ariaLabel={
               mode === "gate"
@@ -1264,7 +1264,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                   style={{ ...buttonStyle("neutral", "md", { mobile: true }), flex: "1 1 0" }}
                 >
                   <ChevronLeft size={18} strokeWidth={2} aria-hidden="true" />
-                  BACK
+                  Back
                 </button>
               )}
               <button
@@ -1276,7 +1276,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 disabled={!stepSettled}
                 style={{ ...buttonStyle("primary", "md", { mobile: true, disabled: !stepSettled }), flex: "1 1 0" }}
               >
-                NEXT
+                Next
                 <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />
               </button>
             </>

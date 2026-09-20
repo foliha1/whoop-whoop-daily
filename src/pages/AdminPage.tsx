@@ -657,7 +657,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         <span style={labelStyle}>{session.user.email}</span>
       </div>
       <button type="button" onClick={signOut} style={buttonStyle("ink", "sm")}>
-        Sign out
+        Sign Out
       </button>
     </header>
   );
@@ -737,7 +737,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         <span style={labelStyle}>Export</span>
         <ExportButton
           onClick={exportPitch}
-          label="Pitch snapshot (.md)"
+          label="Pitch Snapshot (.md)"
           title="One-page headline summary to paste into a deck or an email"
         />
         <ExportButton onClick={exportAll} label="Everything (.csv)" />
@@ -748,7 +748,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
           onClick={() => setConfirmList(true)}
           style={{ ...exportButtonStyle, color: COLORS.red, borderColor: COLORS.red }}
         >
-          ↓ Subscriber list (emails)
+          ↓ Subscriber List (Emails)
         </button>
       </div>
 
@@ -770,7 +770,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
               disabled={listBusy}
               style={buttonStyle("primary", "sm", { disabled: listBusy })}
             >
-              {listBusy ? "Preparing…" : "Download the list"}
+              {listBusy ? "Preparing…" : "Download the List"}
             </button>
             <button
               type="button"
@@ -1046,7 +1046,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
                     onClick={() => setTrendAll((v) => !v)}
                     style={buttonStyle("secondary", "sm")}
                   >
-                    {trendAll ? "Show last 7 days" : `Show all ${all.length} days`}
+                    {trendAll ? "Show Last 7 Days" : `Show All ${all.length} Days`}
                   </button>
                 ) : null}
               </>

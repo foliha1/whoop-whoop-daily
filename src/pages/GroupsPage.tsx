@@ -139,7 +139,7 @@ const CarryOverEmail: React.FC<{ mobile: boolean; onLinked: (email: string) => v
         data-testid="groups-carry-over-submit"
         style={{ ...buttonStyle("secondary", "md", { mobile, disabled: busy }), alignSelf: "stretch" }}
       >
-        {busy ? "SAVING…" : "SAVE MY EMAIL"}
+        {busy ? "Saving…" : "Save My Email"}
       </button>
     </div>
   );
@@ -189,7 +189,7 @@ const GroupsPage: React.FC = () => {
       style={{ ...buttonStyle("ink", "md", { mobile }), alignSelf: "flex-start" }}
     >
       <ChevronLeft size={16} strokeWidth={2} aria-hidden="true" />
-      BACK
+      Back
     </Link>
   );
 
@@ -278,7 +278,7 @@ const GroupsPage: React.FC = () => {
             data-testid="groups-create"
             style={{ ...buttonStyle("primary", "lg", { mobile, disabled: atGroupCap }), alignSelf: "stretch" }}
           >
-            CREATE A GROUP
+            Create a Group
           </button>
           <button
             type="button"
@@ -288,7 +288,7 @@ const GroupsPage: React.FC = () => {
             data-testid="groups-join"
             style={{ ...buttonStyle("secondary", "lg", { mobile, disabled: atGroupCap }), alignSelf: "stretch" }}
           >
-            JOIN WITH A CODE
+            Join with a Code
           </button>
           {atGroupCap && (
             <p style={{ ...metaLabel(mobile), margin: 0 }}>
