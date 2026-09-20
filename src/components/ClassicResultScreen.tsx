@@ -7,6 +7,7 @@ import {
   BORDER,
   MOTION,
   RADIUS,
+  COLORS,
   RAW,
   SPACE,
   buttonStyle,
