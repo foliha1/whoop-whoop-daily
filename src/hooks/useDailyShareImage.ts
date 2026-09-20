@@ -94,7 +94,8 @@ export function useDailyShareImage(
         const stale = cache.current.get(cacheKey);
         cache.current.set(cacheKey, { blob, url });
         setState({ blob, url, status: "ready" });
-        if (stale) URL.revokeObjectURL(stale.url);
+        // Defer: the old URL may still be painted until React commits the swap.
+        if (stale) window.setTimeout(() => URL.revokeObjectURL(stale.url), 1000);
       },
       () => {
         if (!liveRef.current) return;
