@@ -3,7 +3,7 @@ import { emailHasHistory, isValidEmail, subscribeDaily } from "@/lib/dailySubscr
 import { hapticError, hapticSuccess, hapticTap } from "@/lib/haptics";
 import { playSubscribed } from "@/lib/sounds";
 import { trackDaily } from "@/lib/dailyEvents";
-import { COLORS, RADIUS, SPACE, buttonStyle } from "@/lib/tokens";
+import { BORDER, COLORS, FONT_FAMILY, RADIUS, SPACE, buttonStyle } from "@/lib/tokens";
 
 
 const GEIST = '"Geist", "Geist Sans", system-ui, -apple-system, "Segoe UI", sans-serif';
