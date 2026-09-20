@@ -323,8 +323,6 @@ let themeLoopSeconds = 0;
  * what makes the phrase join instead of stutter.
  */
 const THEME_LOOP_START = 0.026;
-/** How long the outgoing element keeps running under the incoming one. */
-const THEME_OVERLAP_MS = 140;
 
 /**
  * The reported duration is the musical length plus the encoder's head delay and
