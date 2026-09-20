@@ -649,7 +649,6 @@ const DailyResultCard: React.FC<{
   const capSize = mobile ? TEXT.caption.mobileSize : TEXT.caption.size;
   const tileLabelStyle: React.CSSProperties = {
     ...textStyle("caption", mobile),
-    fontFamily: FONT_FAMILY_UI,
     fontWeight: 700,
     fontSize: capSize - (mobile ? 2 : 1),
     // Tighter leading so the two-line all-time labels (LONGEST STREAK,
@@ -1873,7 +1872,7 @@ const DailyPage: React.FC = () => {
                 }}
               >
                 <div style={{ flex: "1 1 auto", minWidth: 0 }}>
-                  <div style={{ ...textStyle("caption", mobile), fontFamily: FONT_FAMILY_UI, fontWeight: FONT_WEIGHT_UI, color: COLORS.inkMuted }}>
+                  <div style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
                     Round {state.roundIndex} of {DAILY_ROUNDS} · {remainingCount(state)} cards
                   </div>
                   <div

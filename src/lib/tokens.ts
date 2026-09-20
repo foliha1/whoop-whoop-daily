@@ -182,10 +182,11 @@ export const LINE_HEIGHT = {
 type TextRoleDef = {
   step: FontSizeStep;
   mobileStep: FontSizeStep;
+  family: "display" | "ui";
   weight: number;
   italic: boolean;
   lineHeight: number;
-  /** CSS letter-spacing. Friend has one weight, so tracking carries hierarchy. */
+  /** CSS letter-spacing; display roles use it to build hierarchy with Friend. */
   letterSpacing?: string;
   textTransform?: CSSProperties["textTransform"];
   fontVariantNumeric?: string;
@@ -193,37 +194,37 @@ type TextRoleDef = {
 
 /**
  * Role -> scale step mapping. Components reference roles, never raw px.
- * Friend ships Regular + Italic only: every role stays at regular weight and
- * earns its hierarchy from size, tracking and case instead.
+ * Friend display roles use Regular/Italic and earn hierarchy from size,
+ * tracking and case. Geist text/UI roles use the shipped Medium face.
  */
 export const TEXT_ROLES = {
-  caption:       { step: "xs",  mobileStep: "2xs", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.normal },
-  captionItalic: { step: "xs",  mobileStep: "2xs", weight: FONT_WEIGHT.regular, italic: true,  lineHeight: LINE_HEIGHT.normal },
-  body:          { step: "md",  mobileStep: "sm",  weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.relaxed },
-  label:         { step: "md",  mobileStep: "sm",  weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.label, textTransform: "uppercase", letterSpacing: "0.06em" },
+  caption:       { step: "xs",  mobileStep: "2xs", family: "ui", weight: FONT_WEIGHT.medium, italic: false, lineHeight: LINE_HEIGHT.normal },
+  captionItalic: { step: "xs",  mobileStep: "2xs", family: "ui", weight: FONT_WEIGHT.medium, italic: true,  lineHeight: LINE_HEIGHT.normal },
+  body:          { step: "md",  mobileStep: "sm",  family: "ui", weight: FONT_WEIGHT.medium, italic: false, lineHeight: LINE_HEIGHT.relaxed },
+  label:         { step: "md",  mobileStep: "sm",  family: "ui", weight: FONT_WEIGHT.medium, italic: false, lineHeight: LINE_HEIGHT.label, textTransform: "uppercase", letterSpacing: "0.06em" },
   /** Pill / marker text (e.g. "Played today"). */
-  pill:          { step: "md",  mobileStep: "sm",  weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.label },
+  pill:          { step: "md",  mobileStep: "sm",  family: "ui", weight: FONT_WEIGHT.medium, italic: false, lineHeight: LINE_HEIGHT.label },
   /** Small italic chip link ("How to Play"). */
-  chip:          { step: "md",  mobileStep: "sm",  weight: FONT_WEIGHT.regular, italic: true,  lineHeight: LINE_HEIGHT.label },
+  chip:          { step: "md",  mobileStep: "sm",  family: "ui", weight: FONT_WEIGHT.medium, italic: true,  lineHeight: LINE_HEIGHT.label },
   /** Buttons, inputs, code fields, small tiles. */
-  control:       { step: "lg",  mobileStep: "md",  weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight },
-  subhead:       { step: "xl",  mobileStep: "lg",  weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.heading, letterSpacing: "-0.01em" },
+  control:       { step: "lg",  mobileStep: "md",  family: "ui", weight: FONT_WEIGHT.medium, italic: false, lineHeight: LINE_HEIGHT.tight },
+  subhead:       { step: "xl",  mobileStep: "lg",  family: "display", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.heading, letterSpacing: "-0.01em" },
   /** Section titles inside pre-game cards. */
-  title:         { step: "3xl", mobileStep: "2xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.heading },
-  heading:       { step: "3xl", mobileStep: "2xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.snug, letterSpacing: "-0.015em" },
+  title:         { step: "3xl", mobileStep: "2xl", family: "display", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.heading },
+  heading:       { step: "3xl", mobileStep: "2xl", family: "display", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.snug, letterSpacing: "-0.015em" },
   /** Screen headlines ("How do you want to play?"). */
-  hero:          { step: "5xl", mobileStep: "4xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.snug },
+  hero:          { step: "5xl", mobileStep: "4xl", family: "display", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.snug },
   /** Classic result headline ("Great Game!") — 72/87 with tight tracking. */
-  resultHero:    { step: "7xl", mobileStep: "6xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.snug, letterSpacing: "-0.02em" },
+  resultHero:    { step: "7xl", mobileStep: "6xl", family: "display", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.snug, letterSpacing: "-0.02em" },
   /** Winner standings row (rank / name / score) on the Classic result. */
-  resultWinner:  { step: "5.5xl", mobileStep: "5xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight },
+  resultWinner:  { step: "5.5xl", mobileStep: "5xl", family: "display", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight },
   /** Remaining standings rows inside the khaki panel. */
-  resultRow:     { step: "2.5xl", mobileStep: "2xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight },
+  resultRow:     { step: "2.5xl", mobileStep: "2xl", family: "display", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight },
   /** Classic result buttons (PLAY AGAIN! / INVITE / DONE). */
-  resultButton:  { step: "4.5xl", mobileStep: "4xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight },
+  resultButton:  { step: "4.5xl", mobileStep: "4xl", family: "display", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight },
   /** Primary CTA lettering ("Let's Play!", table code). Italic needs descender room. */
-  action:        { step: "4xl", mobileStep: "3xl", weight: FONT_WEIGHT.regular, italic: true,  lineHeight: LINE_HEIGHT.snug },
-  display:       { step: "5xl", mobileStep: "4xl", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" },
+  action:        { step: "4xl", mobileStep: "3xl", family: "display", weight: FONT_WEIGHT.regular, italic: true,  lineHeight: LINE_HEIGHT.snug },
+  display:       { step: "5xl", mobileStep: "4xl", family: "display", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" },
 } as const satisfies Record<string, TextRoleDef>;
 
 
@@ -239,6 +240,7 @@ export const TEXT = Object.fromEntries(
     return [role, {
       size: FONT_SIZE[r.step],
       mobileSize: FONT_SIZE[r.mobileStep],
+      family: r.family,
       weight: r.weight,
       italic: r.italic,
       lineHeight: r.lineHeight,
@@ -250,6 +252,7 @@ export const TEXT = Object.fromEntries(
 ) as Record<TextRole, {
   size: number;
   mobileSize: number;
+  family: TextRoleDef["family"];
   weight: number;
   italic: boolean;
   lineHeight: number;
@@ -261,7 +264,7 @@ export const TEXT = Object.fromEntries(
 export function textStyle(role: TextRole, mobile = false): CSSProperties {
   const t = TEXT[role];
   return {
-    fontFamily: FONT_FAMILY,
+    fontFamily: t.family === "ui" ? FONT_FAMILY_UI : FONT_FAMILY,
     fontSize: mobile ? t.mobileSize : t.size,
     fontWeight: t.weight,
     fontStyle: t.italic ? "italic" : "normal",

@@ -901,7 +901,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
       <p style={{ ...textStyle("subhead", isMobile), fontSize: isMobile ? FONT_SIZE.xl : FONT_SIZE["2xl"], letterSpacing: 0, margin: 0, textAlign: "center", color: COLORS.ink }}>
         {SCRIPT[LAST].header}
       </p>
-      <p style={{ ...textStyle("body", true), fontFamily: FONT_FAMILY_UI, fontWeight: FONT_WEIGHT_UI, margin: 0, textAlign: "center", color: COLORS.ink, whiteSpace: "pre-line" }}>
+      <p style={{ ...textStyle("body", true), margin: 0, textAlign: "center", color: COLORS.ink, whiteSpace: "pre-line" }}>
         {mode === "in-game"
           ? "First to twelve wins!\nNow go play a solo game with WHOOP Bot, or send a link to your people and play together. Have fun and WHOOP! WHOOP!"
           : "First to twelve wins!\nNow go play a solo game with WHOOP Bot, or send a link to your people and play together. Have fun and WHOOP! WHOOP!"}
@@ -1205,8 +1205,6 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                 style={{
                   ...textStyle("control", true),
                   fontSize: FONT_SIZE.sm,
-                  fontFamily: FONT_FAMILY_UI,
-                  fontWeight: FONT_WEIGHT_UI,
                   // +5% over the control role's spacing — derived from the
                   // token so it can never drift from the scale.
                   lineHeight: LINE_HEIGHT.tight * 1.05,

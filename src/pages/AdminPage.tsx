@@ -651,7 +651,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       }}
     >
       <div>
-        <h1 style={{ ...textStyle("title"), color: COLORS.ink, margin: 0, fontFamily: FONT_FAMILY }}>
+        <h1 style={{ ...textStyle("title"), color: COLORS.ink, margin: 0 }}>
           Daily Dashboard
         </h1>
         <span style={labelStyle}>{session.user.email}</span>
