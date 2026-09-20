@@ -57,9 +57,9 @@ export function getMusicEnabled(): boolean { return musicEnabled; }
 export function setMusicEnabled(value: boolean): void {
   musicEnabled = value;
   writeFlag(MUSIC_KEY, value);
-  // Honour the flag live: off fades out and stops, on fades back in when the
-  // current screen still wants music.
-  if (!value) fadeOutTheme(true);
+  // Honour the flag live, with no remount: off stops and drops the element, on
+  // starts again when the current screen still wants music.
+  if (!value) killTheme();
   else if (themeDesired) startTheme(themeUrl);
 }
 
