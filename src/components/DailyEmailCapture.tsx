@@ -3,7 +3,7 @@ import { emailHasHistory, isValidEmail, subscribeDaily } from "@/lib/dailySubscr
 import { hapticError, hapticSuccess, hapticTap } from "@/lib/haptics";
 import { playSubscribed } from "@/lib/sounds";
 import { trackDaily } from "@/lib/dailyEvents";
-import { BORDER, COLORS, RAW, FONT_FAMILY, RADIUS, SPACE } from "@/lib/tokens";
+import { BORDER, COLORS, FONT_FAMILY, RADIUS, SPACE, buttonStyle } from "@/lib/tokens";
 
 
 const GEIST = '"Geist", "Geist Sans", system-ui, -apple-system, "Segoe UI", sans-serif';
@@ -43,7 +43,7 @@ const DailyEmailCapture: React.FC<{
   heading = "Get tomorrow's grid.",
   body = "A new game every morning. Nothing else.",
   note = "New here, or coming back? Drop in your email.",
-  submitLabel = "Sign me up",
+  submitLabel = "Sign Me Up",
   successMessage,
   autoFocus = false,
 }) => {
@@ -206,16 +206,8 @@ const DailyEmailCapture: React.FC<{
         className="ww-press"
         disabled={status === "sending"}
         style={{
+          ...buttonStyle("secondary", "lg", { fullWidth: true, disabled: status === "sending" }),
           width: "100%",
-          minHeight: 44,
-          border: BORDER.heavy,
-          borderRadius: RADIUS.sm,
-          background: COLORS.blue,
-          color: RAW.cream,
-          fontFamily: FONT_FAMILY,
-          fontStyle: "italic",
-          fontSize: 20,
-          lineHeight: 1.15,
           cursor: status === "sending" ? "default" : "pointer",
           opacity: status === "sending" ? 0.7 : 1,
         }}

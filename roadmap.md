@@ -7,3 +7,4 @@
 - [x] Code-split every route, keep genuine Classic/multiplayer/admin features out of Daily, report Daily initial JS before/after gzipped, and verify Classic prerender metadata.
 - [x] Restore role-defined typography across Daily groups and theme the groups/email modal panels for night mode.
 - [x] Correct shared typography roles so Friend owns display copy and Geist owns body/UI copy.
+- [x] Normalize shared button typography and visible button labels only; preserve sentence copy and accessibility descriptions.

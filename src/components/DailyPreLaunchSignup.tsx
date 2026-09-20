@@ -96,7 +96,7 @@ const DailyPreLaunchSignup: React.FC<{
       >
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <CloseButton
-            label="CLOSE"
+            label="Close"
             onClick={onClose}
             ariaLabel="Close"
             data-testid="prelaunch-close"

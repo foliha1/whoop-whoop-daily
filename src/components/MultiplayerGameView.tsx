@@ -528,7 +528,7 @@ const BannerStyles: Record<Exclude<BannerKind, null>, { bg: string; text: string
   // claim open and follow the host. Never phrased as being beaten to it.
   CLAIM_WAIT:  { bg: INK,     text: SURFACE, label: "SLOW CONNECTION — HOLD ON" },
   PENALTY:     { bg: MUTED,   text: SURFACE, label: "PENALTY" },
-  CANCEL:      { bg: SURFACE, text: RED,     label: "Cancel match", icon: true },
+  CANCEL:      { bg: SURFACE, text: RED,     label: "Cancel Match", icon: true },
 };
 
 const CancelX: React.FC = () => (
@@ -608,9 +608,9 @@ const ScoreRow: React.FC<{
 export type ButtonKind = "WHOOP" | "YOUR_ROLL" | "SELECT_MATCH" | "DISABLED";
 const ButtonStyles: Record<ButtonKind, { bg: string; text: string; label: string }> = {
   WHOOP:        { bg: RED,    text: SURFACE, label: "WHOOP! WHOOP!" },
-  YOUR_ROLL:    { bg: ORANGE, text: INK,     label: "YOUR ROLL!" },
-  SELECT_MATCH: { bg: BLUE,   text: SURFACE, label: "SELECT MATCH" },
-  DISABLED:     { bg: PANEL,  text: MUTED,   label: "WAIT" },
+  YOUR_ROLL:    { bg: ORANGE, text: INK,     label: "Your Roll!" },
+  SELECT_MATCH: { bg: BLUE,   text: SURFACE, label: "Select Match" },
+  DISABLED:     { bg: PANEL,  text: MUTED,   label: "Wait" },
 };
 
 export const DieBox: React.FC<{
@@ -837,7 +837,7 @@ const DebugControls: React.FC<{
         }}
         data-testid="debug-force-end-game"
       >
-        Force end game
+        Force End Game
       </button>
     </div>
   );
@@ -1500,7 +1500,7 @@ const MultiplayerGameView: React.FC<Props> = ({
   } else if (isMyTurnToRoll) {
     buttonKind = "YOUR_ROLL";
     buttonOnClick = () => onIntent({ type: "REQUEST_ROLL" });
-    buttonLabel = s.roundNum === 1 ? "PLAY!" : "YOUR ROLL!";
+    buttonLabel = s.roundNum === 1 ? "Play!" : "Your Roll!";
   } else if (canClaim && s.phase !== "GAME_OVER") {
     buttonKind = "WHOOP";
     buttonOnClick = async () => {
@@ -2048,7 +2048,7 @@ const MultiplayerGameView: React.FC<Props> = ({
                 ...textStyle("control"),
               }}
             >
-              {isHost ? "End game" : "Leave"}
+              {isHost ? "End Game" : "Leave"}
             </button>
           </div>
         </ModalShell>

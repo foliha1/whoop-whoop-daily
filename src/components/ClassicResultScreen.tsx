@@ -367,7 +367,7 @@ const ClassicResultScreen: React.FC<{
                   minHeight: 79,
                 }}
               >
-                PLAY AGAIN!
+                Play Again!
               </button>
             ) : (
               <div
@@ -407,7 +407,7 @@ const ClassicResultScreen: React.FC<{
                     minWidth: 0,
                   }}
                 >
-                  INVITE
+                  Invite
                 </button>
               )}
               <button
@@ -426,7 +426,7 @@ const ClassicResultScreen: React.FC<{
                   width: onInvite ? 124 : undefined,
                 }}
               >
-                DONE
+                Done
               </button>
             </div>
           </div>

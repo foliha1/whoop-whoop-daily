@@ -134,7 +134,7 @@ const SupportPage: React.FC = () => {
             </h1>
             <Link to="/" style={{ textDecoration: "none", width: "100%" }}>
               <AppButton variant="primary" tone="red" size="md" fullWidth>
-                Play now
+                Play Now
               </AppButton>
             </Link>
           </header>

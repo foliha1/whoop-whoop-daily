@@ -1112,7 +1112,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             Games end when the host leaves. Start your own table to play again.
           </div>
           <AppButton variant="primary" tone="red" size="md" onClick={leaveToIdle} fullWidth>
-            Back to lobby
+            Back to Lobby
           </AppButton>
         </div>
       ),
@@ -1454,7 +1454,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               padding: 0,
             }}
           >
-            <AutoFitText minScale={0.5}>{shareFlash ? "Copied!" : "SHARE"}</AutoFitText>
+            <AutoFitText minScale={0.5}>{shareFlash ? "Copied!" : "Share"}</AutoFitText>
           </button>
         ) : null}
       </div>
@@ -1536,7 +1536,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         disabled={starting}
         className="ww-press" style={{ ...railButtonStyle(starting), opacity: starting ? 0.6 : 1 }}
       >
-        <AutoFitText minScale={0.6}>BACK</AutoFitText>
+        <AutoFitText minScale={0.6}>Back</AutoFitText>
       </button>
       {isHost ? (
         <button

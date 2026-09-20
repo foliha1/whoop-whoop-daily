@@ -77,7 +77,7 @@ function submit(email: string) {
   fireEvent.change(screen.getByLabelText("Email address"), {
     target: { value: email },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Sign me up" }));
+  fireEvent.click(screen.getByRole("button", { name: "Sign Me Up" }));
 }
 
 describe("the form doubles as a restore path", () => {

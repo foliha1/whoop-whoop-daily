@@ -283,7 +283,7 @@ const DailySharePreview: React.FC<{
 
             <CloseButton
               ref={closeRef}
-              label="CLOSE"
+              label="Close"
               onClick={onClose}
               ariaLabel="Close share card"
               data-testid="share-preview-close"
@@ -367,7 +367,7 @@ const DailySharePreview: React.FC<{
                 opacity: !imageUrl || working ? 0.6 : 1,
               }}
             >
-              {working ? "SENDING…" : "SEND"}
+              {working ? "Sending…" : "Send"}
             </button>
             <button
               type="button"
@@ -382,7 +382,7 @@ const DailySharePreview: React.FC<{
                 whiteSpace: "nowrap",
               }}
             >
-              INVITE
+              Invite
             </button>
           </div>
 

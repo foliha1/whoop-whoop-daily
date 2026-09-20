@@ -198,16 +198,16 @@ type TextRoleDef = {
  * tracking and case. Geist text/UI roles use the shipped Medium face.
  */
 export const TEXT_ROLES = {
-  caption:       { step: "xs",  mobileStep: "2xs", family: "ui", weight: FONT_WEIGHT.medium, italic: false, lineHeight: LINE_HEIGHT.normal },
-  captionItalic: { step: "xs",  mobileStep: "2xs", family: "ui", weight: FONT_WEIGHT.medium, italic: true,  lineHeight: LINE_HEIGHT.normal },
+  caption:       { step: "xs",  mobileStep: "xs", family: "ui", weight: FONT_WEIGHT.medium, italic: false, lineHeight: LINE_HEIGHT.normal },
+  captionItalic: { step: "xs",  mobileStep: "xs", family: "ui", weight: FONT_WEIGHT.medium, italic: true,  lineHeight: LINE_HEIGHT.normal },
   body:          { step: "md",  mobileStep: "sm",  family: "ui", weight: FONT_WEIGHT.medium, italic: false, lineHeight: LINE_HEIGHT.relaxed },
-  label:         { step: "md",  mobileStep: "sm",  family: "ui", weight: FONT_WEIGHT.medium, italic: false, lineHeight: LINE_HEIGHT.label, textTransform: "uppercase", letterSpacing: "0.06em" },
+  label:         { step: "xs",  mobileStep: "xs", family: "ui", weight: FONT_WEIGHT.medium, italic: false, lineHeight: LINE_HEIGHT.label, textTransform: "uppercase", letterSpacing: "0.06em" },
   /** Pill / marker text (e.g. "Played today"). */
-  pill:          { step: "md",  mobileStep: "sm",  family: "ui", weight: FONT_WEIGHT.medium, italic: false, lineHeight: LINE_HEIGHT.label },
+  pill:          { step: "xs",  mobileStep: "xs", family: "ui", weight: FONT_WEIGHT.medium, italic: false, lineHeight: LINE_HEIGHT.label },
   /** Small italic chip link ("How to Play"). */
-  chip:          { step: "md",  mobileStep: "sm",  family: "ui", weight: FONT_WEIGHT.medium, italic: true,  lineHeight: LINE_HEIGHT.label },
+  chip:          { step: "xs",  mobileStep: "xs", family: "ui", weight: FONT_WEIGHT.medium, italic: true,  lineHeight: LINE_HEIGHT.label },
   /** Buttons, inputs, code fields, small tiles. */
-  control:       { step: "lg",  mobileStep: "md",  family: "ui", weight: FONT_WEIGHT.medium, italic: false, lineHeight: LINE_HEIGHT.tight },
+  control:       { step: "lg",  mobileStep: "md",  family: "display", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight },
   subhead:       { step: "xl",  mobileStep: "lg",  family: "display", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.heading, letterSpacing: "-0.01em" },
   /** Section titles inside pre-game cards. */
   title:         { step: "3xl", mobileStep: "2xl", family: "display", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.heading },
