@@ -66,7 +66,9 @@ const DailySharePreview: React.FC<{
   const slotRef = useRef<HTMLDivElement | null>(null);
   const [box, setBox] = React.useState<{ w: number; h: number }>({ w: 0, h: 0 });
 
-  /** Derive the largest 4:5 box that fits the slot, so the ratio is exact. */
+  /** Derive the largest 4:5 box that fits the slot, so the ratio is exact.
+   *  Keyed on `portalHost`: the slot does not exist until the portal does, and
+   *  without it the measurement never ran and the card collapsed to 0x0. */
   useEffect(() => {
     const slot = slotRef.current;
     if (!slot) return;
@@ -80,7 +82,7 @@ const DailySharePreview: React.FC<{
     const ro = new ResizeObserver(measure);
     ro.observe(slot);
     return () => ro.disconnect();
-  }, []);
+  }, [portalHost]);
 
   // Focus moves in on open: the Send button when it is live, the close control
   // while the image is still rendering.
