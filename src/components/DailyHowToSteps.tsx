@@ -606,7 +606,7 @@ const DieVisual: React.FC<{ sz: Step; active: boolean }> = ({ sz, active }) => {
             height: 121 * v,
             flex: "0 0 auto",
             background: RAW.cream,
-            border: `2px solid ${INK}`,
+            border: `2px solid ${ART_INK}`,
             borderRadius: 9.68 * v,
             display: "flex",
             alignItems: "center",
