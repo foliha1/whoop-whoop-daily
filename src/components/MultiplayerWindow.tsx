@@ -410,23 +410,18 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
   const joinerPublicState = joiner.publicState;
 
-  // ---- Lobby music -------------------------------------------------------
-  // The Classic theme loops on every entry screen (chooser, name prompt,
-  // waiting rooms, error screens) — the same role the theme plays on the
-  // Daily's ready/results screens. During play the board is silent; the
-  // result screen restarts the theme from inside MultiplayerGameView (it owns
-  // the GAME_OVER phase), and the How to Play demo swaps in its own track
-  // while it is open.
-  const inGameplay =
-    view.kind === "solo" ||
-    (isHostView && frozenSeats !== null) ||
-    (view.kind === "joiner" && joinerPublicState !== null);
+  // ---- Classic music -----------------------------------------------------
+  // The Classic theme loops across the whole Classic session: entry screens,
+  // the live board and the result screen. The How to Play demo swaps in its
+  // own track while it is open, and this effect re-runs on close so the
+  // Classic theme comes back without needing a remount.
   useEffect(() => {
     if (howTo) return; // the demo owns music while it is open
-    if (!inGameplay) startTheme(CLASSIC_THEME_FILE);
-  }, [howTo, inGameplay]);
+    startTheme(CLASSIC_THEME_FILE);
+  }, [howTo]);
   // Route change or window close: nothing on the next screen wants this loop.
   useEffect(() => () => stopTheme(), []);
+
 
   const joinerSeat = useMemo(() => {
     if (!joinerPublicState) return null;
