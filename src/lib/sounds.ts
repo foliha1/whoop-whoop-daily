@@ -307,19 +307,36 @@ let themeFadeTimer: ReturnType<typeof setInterval> | null = null;
 // A media element's own `loop` flag is not gapless for MP3: the decoder's
 // trailing padding plays out before the restart, which is audible as a short
 // pause every time round. Instead we keep a second, already-buffered element
-// of the same track and hand over to it a hair before the first one ends —
-// starting a preloaded element is immediate, so the phrase joins cleanly.
+// of the same track and start it on a wall-clock schedule, overlapping the
+// outgoing element's silent tail — so the phrase joins with no hole and no
+// dependence on how punctually the browser fires a timer.
 let themeAltEl: HTMLAudioElement | null = null;
 let themeLoopRaf: number | null = null;
 let themeLoopInterval: ReturnType<typeof setInterval> | null = null;
-/** Seconds of decoder padding to skip at the tail when handing over. */
-const THEME_LOOP_LEAD = 0.09;
+/** Wall-clock time (performance.now) of the next hand-over. */
+let themeLoopAt = 0;
+/** Musical length of one pass, in seconds (excludes the encoder padding). */
+let themeLoopSeconds = 0;
 /**
  * MP3 files carry ~25ms of encoder delay at the head (measured on our tracks),
  * which plays as silence on every restart. Starting each pass just past it is
  * what makes the phrase join instead of stutter.
  */
 const THEME_LOOP_START = 0.026;
+/** How long the outgoing element keeps running under the incoming one. */
+const THEME_OVERLAP_MS = 140;
+
+/**
+ * The reported duration is the musical length plus the encoder's head delay and
+ * tail padding, so it cannot be used as the loop length directly. Our loops are
+ * written to musical lengths, so snapping to the nearest quarter second lands on
+ * the true value; anything that doesn't snap falls back to trimming the padding.
+ */
+function loopSecondsFor(duration: number): number {
+  const audible = duration - THEME_LOOP_START;
+  const snapped = Math.round(audible * 4) / 4;
+  return Math.abs(snapped - audible) <= 0.08 ? snapped : audible;
+}
 
 function makeThemeEl(url: string, volume: number): HTMLAudioElement {
   const el = new Audio(url);
@@ -360,6 +377,7 @@ function stopLoopWatcher(): void {
   }
   themeLoopRaf = null;
   if (themeLoopInterval !== null) { clearInterval(themeLoopInterval); themeLoopInterval = null; }
+  themeLoopAt = 0;
 }
 
 /** Hand playback over to the pre-buffered alternate element at the loop point. */
@@ -369,7 +387,13 @@ function checkLoopPoint(): void {
   if (!cur || !alt || cur.paused) return;
   const dur = cur.duration;
   if (!Number.isFinite(dur) || dur <= 0) return;
-  if (dur - cur.currentTime > THEME_LOOP_LEAD) return;
+  if (!themeLoopSeconds) themeLoopSeconds = loopSecondsFor(dur);
+  // Anchor the schedule the first time we know where the playhead is.
+  if (!themeLoopAt) {
+    const played = Math.max(0, cur.currentTime - THEME_LOOP_START);
+    themeLoopAt = performance.now() + (themeLoopSeconds - played) * 1000;
+  }
+  if (performance.now() < themeLoopAt - 4) return;
   try {
     alt.volume = cur.volume;
     // Already parked at THEME_LOOP_START, so this is a resume, not a seek.
@@ -377,16 +401,19 @@ function checkLoopPoint(): void {
       alt.currentTime = THEME_LOOP_START;
     }
     void alt.play();
-    cur.pause();
-    // Park the retired element straight away: seeking now costs nothing, and
-    // doing it at the next hand-over is exactly what causes an audible gap.
-    try { cur.currentTime = THEME_LOOP_START; } catch { /* ignore */ }
+    themeLoopAt += themeLoopSeconds * 1000;
     themeEl = alt;
     themeAltEl = cur;
+    // Let the retired element run its silent tail underneath, then park it —
+    // pausing it on the spot is what used to clip the last of the phrase.
+    setTimeout(() => {
+      if (cur === themeEl) return; // it got handed playback again meanwhile
+      try { cur.pause(); cur.currentTime = THEME_LOOP_START; } catch { /* ignore */ }
+    }, THEME_OVERLAP_MS);
   } catch { /* ignore */ }
 }
 
-/** Watch the playhead and swap elements at the loop point. */
+/** Watch the clock and swap elements at the loop point. */
 function startLoopWatcher(): void {
   stopLoopWatcher();
   if (typeof requestAnimationFrame === "function") {
@@ -398,7 +425,7 @@ function startLoopWatcher(): void {
   }
   // Mobile browsers throttle (or pause) animation frames aggressively, which
   // would let the tail run out before the swap — a timer keeps watching.
-  themeLoopInterval = setInterval(checkLoopPoint, 25);
+  themeLoopInterval = setInterval(checkLoopPoint, 10);
 }
 
 
@@ -470,6 +497,7 @@ function killTheme(): void {
   try { themeAltEl?.pause(); } catch { /* ignore */ }
   themeEl = null;
   themeAltEl = null;
+  themeLoopSeconds = 0;
 }
 
 
