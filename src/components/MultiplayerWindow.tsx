@@ -13,8 +13,6 @@ import {
   textStyle,
   TEXT,
   FONT_FAMILY,
-  FONT_FAMILY_UI,
-  FONT_WEIGHT_UI,
   buttonStyle,
   panelStyle,
   CONTROL_H,
@@ -1130,8 +1128,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     // helper lines, Friend for headlines and controls.
     const smallCopy: React.CSSProperties = {
       ...textStyle("caption", mobile),
-      fontFamily: FONT_FAMILY_UI,
-      fontWeight: FONT_WEIGHT_UI,
     };
 
     return entryFrame({
@@ -1383,8 +1379,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               href="/"
               style={{
                 ...textStyle("captionItalic", mobile),
-                fontFamily: FONT_FAMILY_UI,
-                fontWeight: FONT_WEIGHT_UI,
                 color: COLORS.inkMuted,
                 textAlign: "center",
                 display: "block",

@@ -9,6 +9,7 @@ import {
   TEXT,
   TEXT_ROLES,
   FONT_SIZE,
+  textStyle,
   type TextRole,
 } from "@/lib/tokens";
 
@@ -53,10 +54,7 @@ const TypographyPage: React.FC = () => {
           <header>
             <h1
               style={{
-                fontFamily: '"Friend", Georgia, serif',
-                fontSize: FONT_SIZE["3xl"],
-                fontWeight: 900,
-                lineHeight: 1.1,
+                ...textStyle("title"),
                 margin: `0 0 ${SPACE[4]}px`,
               }}
             >
@@ -64,9 +62,7 @@ const TypographyPage: React.FC = () => {
             </h1>
             <p
               style={{
-                fontFamily: '"Friend", Georgia, serif',
-                fontSize: FONT_SIZE.md,
-                lineHeight: 1.4,
+                ...textStyle("body"),
                 color: COLORS.panelMuted,
                 margin: 0,
               }}
@@ -110,11 +106,7 @@ const TypographyPage: React.FC = () => {
                   >
                     <h2
                       style={{
-                        fontFamily: '"Friend", Georgia, serif',
-                        fontSize: FONT_SIZE.lg,
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
+                        ...textStyle("subhead"),
                         margin: 0,
                       }}
                     >
@@ -122,8 +114,7 @@ const TypographyPage: React.FC = () => {
                     </h2>
                     <div
                       style={{
-                        fontFamily: '"Friend", Georgia, serif',
-                        fontSize: FONT_SIZE.xs,
+                        ...textStyle("caption"),
                         color: COLORS.inkMuted,
                         display: "flex",
                         gap: SPACE[6],
@@ -132,6 +123,7 @@ const TypographyPage: React.FC = () => {
                     >
                       <span>desktop {def.size}px</span>
                       <span>mobile {def.mobileSize}px</span>
+                      <span>family {def.family === "ui" ? "Geist" : "Friend"}</span>
                       <span>weight {def.weight}</span>
                       <span>line-height {def.lineHeight}</span>
                       {meta.italic && <span>italic</span>}
@@ -147,19 +139,14 @@ const TypographyPage: React.FC = () => {
                   >
                     <div
                       style={{
-                        fontFamily: '"Friend", Georgia, serif',
-                        fontSize: def.size,
-                        fontWeight: def.weight,
-                        fontStyle: def.italic ? "italic" : "normal",
-                        lineHeight: def.lineHeight,
+                        ...textStyle(role),
                         color: COLORS.ink,
                       }}
                     >
                       <span
                         style={{
+                          ...textStyle("caption"),
                           display: "inline-block",
-                          fontSize: FONT_SIZE["2xs"],
-                          fontWeight: 400,
                           color: COLORS.inkMuted,
                           textTransform: "uppercase",
                           letterSpacing: "0.05em",
@@ -173,19 +160,14 @@ const TypographyPage: React.FC = () => {
 
                     <div
                       style={{
-                        fontFamily: '"Friend", Georgia, serif',
-                        fontSize: def.mobileSize,
-                        fontWeight: def.weight,
-                        fontStyle: def.italic ? "italic" : "normal",
-                        lineHeight: def.lineHeight,
+                        ...textStyle(role, true),
                         color: COLORS.ink,
                       }}
                     >
                       <span
                         style={{
+                          ...textStyle("caption", true),
                           display: "inline-block",
-                          fontSize: FONT_SIZE["2xs"],
-                          fontWeight: 400,
                           color: COLORS.inkMuted,
                           textTransform: "uppercase",
                           letterSpacing: "0.05em",
