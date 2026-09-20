@@ -39,8 +39,6 @@ import {
 import {
   BORDER,
   COLORS,
-  FONT_FAMILY_UI,
-  FONT_WEIGHT_UI,
   RADIUS,
   SPACE,
   buttonStyle,
@@ -51,8 +49,6 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const metaLabel = (mobile: boolean): React.CSSProperties => ({
   ...textStyle("caption", mobile),
-  fontFamily: FONT_FAMILY_UI,
-  fontWeight: FONT_WEIGHT_UI,
   letterSpacing: "0.05em",
   textTransform: "uppercase",
   color: COLORS.inkMuted,

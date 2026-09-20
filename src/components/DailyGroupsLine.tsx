@@ -13,7 +13,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { bestStanding } from "@/lib/dailyGroups";
 import { useMyGroups } from "@/hooks/useMyGroups";
-import { COLORS, FONT_FAMILY_UI, FONT_WEIGHT_UI, SPACE, textStyle } from "@/lib/tokens";
+import { COLORS, SPACE, textStyle } from "@/lib/tokens";
 
 const DailyGroupsLine: React.FC<{
   puzzleNumber: number;
@@ -33,8 +33,6 @@ const DailyGroupsLine: React.FC<{
       data-testid="results-groups-line"
       style={{
         ...textStyle("caption", mobile),
-        fontFamily: FONT_FAMILY_UI,
-        fontWeight: FONT_WEIGHT_UI,
         letterSpacing: "0.05em",
         textTransform: "uppercase",
         color: COLORS.blue,
