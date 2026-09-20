@@ -1275,7 +1275,7 @@ const DailyHowToSteps: React.FC<{
             inset: 0,
             width: "100%",
             height: "100%",
-            background: RAW.khaki,
+            background: COLORS.panel,
             borderRadius: RADIUS.sm,
             /* Vertical padding and gaps give height back on very short
                viewports (in-app browser chrome) so the copy and buttons
