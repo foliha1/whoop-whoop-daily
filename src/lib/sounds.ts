@@ -323,8 +323,6 @@ let themeLoopSeconds = 0;
  * what makes the phrase join instead of stutter.
  */
 const THEME_LOOP_START = 0.026;
-/** How long the outgoing element keeps running under the incoming one. */
-const THEME_OVERLAP_MS = 140;
 
 /**
  * The reported duration is the musical length plus the encoder's head delay and
@@ -401,15 +399,13 @@ function checkLoopPoint(): void {
       alt.currentTime = THEME_LOOP_START;
     }
     void alt.play();
+    // Hard cut, no overlap: the incoming pass takes over on the same tick the
+    // outgoing one ends, and the retired element is parked immediately so it is
+    // ready to resume instantly next time round.
+    try { cur.pause(); cur.currentTime = THEME_LOOP_START; } catch { /* ignore */ }
     themeLoopAt += themeLoopSeconds * 1000;
     themeEl = alt;
     themeAltEl = cur;
-    // Let the retired element run its silent tail underneath, then park it —
-    // pausing it on the spot is what used to clip the last of the phrase.
-    setTimeout(() => {
-      if (cur === themeEl) return; // it got handed playback again meanwhile
-      try { cur.pause(); cur.currentTime = THEME_LOOP_START; } catch { /* ignore */ }
-    }, THEME_OVERLAP_MS);
   } catch { /* ignore */ }
 }
 

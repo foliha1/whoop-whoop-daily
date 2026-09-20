@@ -7,6 +7,7 @@ import {
   BORDER,
   MOTION,
   RADIUS,
+  COLORS,
   RAW,
   SPACE,
   buttonStyle,
@@ -32,7 +33,7 @@ const STRIP_W = 354;
 const STRIP_H = 19;
 
 /** The chase cycle. Four brand stops, in the order they travel across the text. */
-const CHASE = [RAW.warmBlack, RAW.red, RAW.orange, RAW.blue] as const;
+const CHASE = [COLORS.ink, RAW.red, RAW.orange, RAW.blue] as const;
 
 const HEADLINE = "Great Game!";
 
@@ -74,7 +75,7 @@ const ChaseHeadline: React.FC<{ mobile?: boolean }> = ({ mobile }) => {
         ...textStyle("resultHero", mobile),
         margin: 0,
         textAlign: "center",
-        color: RAW.warmBlack,
+        color: COLORS.ink,
         ...chaseVars,
       }}
     >
@@ -206,7 +207,7 @@ const ClassicResultScreen: React.FC<{
         padding: SPACE[4],
         background: RAW.blue,
         border: BORDER.heavy,
-        borderColor: RAW.warmBlack,
+        borderColor: COLORS.ink,
         borderRadius: RADIUS.sm,
       }}
     >
@@ -250,7 +251,7 @@ const ClassicResultScreen: React.FC<{
         zIndex: 80,
         boxSizing: "border-box",
         height: "var(--ww-vh)",
-        background: RAW.cream,
+        background: COLORS.surface,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -293,8 +294,8 @@ const ClassicResultScreen: React.FC<{
               <div
                 style={{
                   ...panelStyle("panel", 4),
-                  background: RAW.khaki,
-                  borderColor: RAW.warmBlack,
+                  background: COLORS.panel,
+                  borderColor: COLORS.ink,
                   borderRadius: RADIUS.sm,
                 }}
               >
@@ -309,13 +310,13 @@ const ClassicResultScreen: React.FC<{
                       borderBottom:
                         i === rest.length - 1
                           ? undefined
-                          : `2px solid ${RAW.warmBlack}`,
+                          : `2px solid ${COLORS.ink}`,
                     }}
                   >
                     <span
                       style={{
                         ...textStyle("resultRow", mobile),
-                        color: RAW.mocha,
+                        color: COLORS.inkMuted,
                         flex: "0 0 auto",
                       }}
                     >
@@ -324,7 +325,7 @@ const ClassicResultScreen: React.FC<{
                     <span
                       style={{
                         ...textStyle("resultRow", mobile),
-                        color: RAW.warmBlack,
+                        color: COLORS.ink,
                         flex: "1 1 0",
                         minWidth: 0,
                         overflow: "hidden",
@@ -337,7 +338,7 @@ const ClassicResultScreen: React.FC<{
                     <span
                       style={{
                         ...textStyle("resultRow", mobile),
-                        color: RAW.warmBlack,
+                        color: COLORS.ink,
                         flex: "0 0 auto",
                         textAlign: "right",
                       }}
@@ -362,7 +363,7 @@ const ClassicResultScreen: React.FC<{
                   background: RAW.red,
                   color: RAW.cream,
                   border: BORDER.heavy,
-                  borderColor: RAW.warmBlack,
+                  borderColor: COLORS.ink,
                   borderRadius: RADIUS.sm,
                   minHeight: 79,
                 }}
@@ -376,10 +377,10 @@ const ClassicResultScreen: React.FC<{
                 style={{
                   ...buttonStyle("neutral", "lg", { mobile, fullWidth: true, disabled: true }),
                   ...textStyle("resultButton", mobile),
-                  background: RAW.khaki,
-                  color: RAW.mocha,
+                  background: COLORS.panel,
+                  color: COLORS.inkMuted,
                   border: BORDER.heavy,
-                  borderColor: RAW.warmBlack,
+                  borderColor: COLORS.ink,
                   borderRadius: RADIUS.sm,
                   minHeight: 79,
                   cursor: "default",
@@ -400,7 +401,7 @@ const ClassicResultScreen: React.FC<{
                     background: RAW.blue,
                     color: RAW.cream,
                     border: BORDER.heavy,
-                    borderColor: RAW.warmBlack,
+                    borderColor: COLORS.ink,
                     borderRadius: RADIUS.sm,
                     minHeight: 58,
                     flex: "1 1 0",
@@ -416,10 +417,10 @@ const ClassicResultScreen: React.FC<{
                 style={{
                   ...buttonStyle("ink", "lg", { mobile, fullWidth: !onInvite }),
                   ...textStyle("resultButton", mobile),
-                  background: RAW.warmBlack,
-                  color: RAW.cream,
+                  background: COLORS.ink,
+                  color: COLORS.surface,
                   border: BORDER.heavy,
-                  borderColor: RAW.warmBlack,
+                  borderColor: COLORS.ink,
                   borderRadius: RADIUS.sm,
                   minHeight: 58,
                   flex: onInvite ? "0 0 124px" : "1 1 0",
@@ -446,9 +447,9 @@ const ClassicResultScreen: React.FC<{
               href="/"
               style={{
                 ...textStyle("caption", mobile),
-                color: RAW.mocha,
+                color: COLORS.inkMuted,
                 textDecoration: "none",
-                borderBottom: `1px solid ${RAW.mocha}`,
+                borderBottom: `1px solid ${COLORS.inkMuted}`,
                 paddingBottom: 1,
                 transition: MOTION.fast,
               }}

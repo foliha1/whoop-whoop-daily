@@ -274,8 +274,10 @@ const useStep = (): Step => {
   return stepFor(w);
 };
 
-/** The card art is a literal brand artifact: ink and khaki stay literal. */
-const INK = RAW.warmBlack;
+/** Panel ink follows the theme, so the slides read in night mode too. */
+const INK = COLORS.ink;
+/** The card art is a literal brand artifact: its ink stays literal. */
+const ART_INK = RAW.warmBlack;
 
 const heading = (big: boolean, sz: Step): React.CSSProperties => ({
   fontFamily: FONT_FAMILY,
@@ -604,7 +606,7 @@ const DieVisual: React.FC<{ sz: Step; active: boolean }> = ({ sz, active }) => {
             height: 121 * v,
             flex: "0 0 auto",
             background: RAW.cream,
-            border: `2px solid ${INK}`,
+            border: `2px solid ${ART_INK}`,
             borderRadius: 9.68 * v,
             display: "flex",
             alignItems: "center",
@@ -1162,7 +1164,7 @@ const buttonBase: React.CSSProperties = {
   fontSize: 16,
   letterSpacing: "0.02em",
   background: INK,
-  color: RAW.cream,
+  color: COLORS.surface,
   cursor: "pointer",
 };
 
@@ -1273,7 +1275,7 @@ const DailyHowToSteps: React.FC<{
             inset: 0,
             width: "100%",
             height: "100%",
-            background: RAW.khaki,
+            background: COLORS.panel,
             borderRadius: RADIUS.sm,
             /* Vertical padding and gaps give height back on very short
                viewports (in-app browser chrome) so the copy and buttons

@@ -11,7 +11,7 @@ import DailyEmailCapture from "@/components/DailyEmailCapture";
 import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
 import { DAILY_LAUNCH_LABEL } from "@/lib/daily";
-import { BORDER, RAW, RADIUS, SPACE } from "@/lib/tokens";
+import { BORDER, COLORS, RAW, RADIUS, SPACE } from "@/lib/tokens";
 
 const FOCUSABLE =
   'button:not([disabled]), input:not([disabled]), [href], select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -82,7 +82,7 @@ const DailyPreLaunchSignup: React.FC<{
           width: "100%",
           maxWidth: 354,
           // Sized to its content, never the full screen.
-          background: RAW.khaki,
+          background: COLORS.panel,
           border: BORDER.heavy,
           borderRadius: RADIUS.sm,
           boxSizing: "border-box",
