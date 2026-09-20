@@ -638,8 +638,7 @@ const DailyResultCard: React.FC<{
   }, [burst, milestonePreview, puzzleNumber]);
 
 
-  // Tile labels: all caps, real Geist 700 (the variable face ships wght 100-900,
-  // so this is not a synthesised bold), 0.05em tracking.
+  // Tile labels: all caps, Geist medium, 0.05em tracking.
   //
   // Caps plus tracking is wider than the sentence case it replaces, and the
   // narrowest tile (four across at 360px) leaves 56px of inner width. So the
@@ -649,7 +648,7 @@ const DailyResultCard: React.FC<{
   const capSize = mobile ? TEXT.caption.mobileSize : TEXT.caption.size;
   const tileLabelStyle: React.CSSProperties = {
     ...textStyle("caption", mobile),
-    fontWeight: 700,
+    fontWeight: FONT_WEIGHT_UI,
     fontSize: capSize - (mobile ? 2 : 1),
     // Tighter leading so the two-line all-time labels (LONGEST STREAK,
     // AVERAGE MISSES) sit close together. Single-line labels are unaffected.
@@ -1718,7 +1717,7 @@ const DailyPage: React.FC = () => {
               background: COLORS.red,
               color: RAW.cream,
               fontSize: 10,
-              fontWeight: 700,
+              fontWeight: FONT_WEIGHT_UI,
               letterSpacing: "0.08em",
               pointerEvents: "none",
             }}

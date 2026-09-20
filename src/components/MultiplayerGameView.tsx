@@ -1500,7 +1500,7 @@ const MultiplayerGameView: React.FC<Props> = ({
   } else if (isMyTurnToRoll) {
     buttonKind = "YOUR_ROLL";
     buttonOnClick = () => onIntent({ type: "REQUEST_ROLL" });
-    buttonLabel = s.roundNum === 1 ? "PLAY!" : "YOUR ROLL!";
+    buttonLabel = s.roundNum === 1 ? "Play!" : "Your Roll!";
   } else if (canClaim && s.phase !== "GAME_OVER") {
     buttonKind = "WHOOP";
     buttonOnClick = async () => {
