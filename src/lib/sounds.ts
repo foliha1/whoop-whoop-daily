@@ -57,9 +57,9 @@ export function getMusicEnabled(): boolean { return musicEnabled; }
 export function setMusicEnabled(value: boolean): void {
   musicEnabled = value;
   writeFlag(MUSIC_KEY, value);
-  // Honour the flag live: off fades out and stops, on fades back in when the
-  // current screen still wants music.
-  if (!value) fadeOutTheme(true);
+  // Honour the flag live, with no remount: off stops and drops the element, on
+  // starts again when the current screen still wants music.
+  if (!value) killTheme();
   else if (themeDesired) startTheme(themeUrl);
 }
 
@@ -275,6 +275,11 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
 
 // ---------------------------------------------------------------------------
 // Background theme — music, behind musicEnabled, never an effect
+//
+// Looping is the element's own `loop = true`, nothing more. That is gapless for
+// OGG, so every track ships as OGG with the original MP3 kept as the fallback
+// for browsers that cannot decode Vorbis (Safari before 17.4). No fades: start
+// and stop are hard, at full theme level.
 // ---------------------------------------------------------------------------
 
 /** The Daily's theme. `startTheme()` with no argument always means this one. */
@@ -285,15 +290,36 @@ const DEFAULT_THEME_FILE = "/sounds/theme.mp3";
 export const CLASSIC_THEME_FILE = "/sounds/classic-theme.mp3";
 export const HOW_TO_PLAY_THEME_FILE = "/sounds/how-to-play.mp3";
 const THEME_GAIN = 0.15;
-const THEME_FADE_IN_MS = 600;
-const THEME_FADE_OUT_MS = 400;
+
+/** Gapless OGG masters, keyed by the MP3 path each screen asks for. */
+const OGG_FOR_MP3: Record<string, string> = {
+  [DEFAULT_THEME_FILE]: "/sounds/Whoop_Whoop_Daily_Theme.ogg",
+  [CLASSIC_THEME_FILE]: "/sounds/Whoop_Whoop_Classic_Theme.ogg",
+  [HOW_TO_PLAY_THEME_FILE]: "/sounds/Whoop_Whoop_How_to_Play.ogg",
+};
+
+let oggSupport: boolean | null = null;
+function canPlayOgg(): boolean {
+  if (oggSupport !== null) return oggSupport;
+  try {
+    const probe = new Audio();
+    const verdict = probe.canPlayType('audio/ogg; codecs="vorbis"') || probe.canPlayType("audio/ogg");
+    oggSupport = verdict === "probably" || verdict === "maybe";
+  } catch { oggSupport = false; }
+  return oggSupport;
+}
+
+/** The file actually loaded for a requested track: OGG when decodable. */
+export function themeSourceFor(url: string): string {
+  const ogg = OGG_FOR_MP3[url];
+  return ogg && canPlayOgg() ? ogg : url;
+}
 
 /** The track the current screen wants. Screens with their own music (the
     Classic lobby, the How to Play demo) pass their URL to startTheme(). */
 let themeUrl = DEFAULT_THEME_FILE;
 /** The screen wants music, regardless of whether it is audible right now. */
 let themeDesired = false;
-let themeStopTimer: ReturnType<typeof setTimeout> | null = null;
 
 // The theme plays through a plain <audio> element, not the Web Audio graph.
 // On iOS the Web Audio session is "ambient": the hardware ring/silent switch
@@ -302,43 +328,10 @@ let themeStopTimer: ReturnType<typeof setTimeout> | null = null;
 // is audible either way — and it needs no fetch/decode step, so it also starts
 // on the first gesture instead of a round-trip later.
 let themeEl: HTMLAudioElement | null = null;
-let themeFadeTimer: ReturnType<typeof setInterval> | null = null;
-
-// A media element's own `loop` flag is not gapless for MP3: the decoder's
-// trailing padding plays out before the restart, which is audible as a short
-// pause every time round. Instead we keep a second, already-buffered element
-// of the same track and start it on a wall-clock schedule, overlapping the
-// outgoing element's silent tail — so the phrase joins with no hole and no
-// dependence on how punctually the browser fires a timer.
-let themeAltEl: HTMLAudioElement | null = null;
-let themeLoopRaf: number | null = null;
-let themeLoopInterval: ReturnType<typeof setInterval> | null = null;
-/** Wall-clock time (performance.now) of the next hand-over. */
-let themeLoopAt = 0;
-/** Musical length of one pass, in seconds (excludes the encoder padding). */
-let themeLoopSeconds = 0;
-/**
- * MP3 files carry ~25ms of encoder delay at the head (measured on our tracks),
- * which plays as silence on every restart. Starting each pass just past it is
- * what makes the phrase join instead of stutter.
- */
-const THEME_LOOP_START = 0.026;
-
-/**
- * The reported duration is the musical length plus the encoder's head delay and
- * tail padding, so it cannot be used as the loop length directly. Our loops are
- * written to musical lengths, so snapping to the nearest quarter second lands on
- * the true value; anything that doesn't snap falls back to trimming the padding.
- */
-function loopSecondsFor(duration: number): number {
-  const audible = duration - THEME_LOOP_START;
-  const snapped = Math.round(audible * 4) / 4;
-  return Math.abs(snapped - audible) <= 0.08 ? snapped : audible;
-}
 
 function makeThemeEl(url: string, volume: number): HTMLAudioElement {
-  const el = new Audio(url);
-  el.loop = false;
+  const el = new Audio(themeSourceFor(url));
+  el.loop = true;
   el.preload = "auto";
   el.volume = volume;
   // Inline playback: iOS otherwise treats media as a fullscreen player.
@@ -347,174 +340,41 @@ function makeThemeEl(url: string, volume: number): HTMLAudioElement {
 }
 
 /**
- * iOS only lets an element play if its *first* play() came from a user gesture.
- * The hand-over below starts the alternate element from a timer, which iOS
- * would refuse, so both elements are started (silently) inside the gesture and
- * parked at the loop point, ready to resume instantly.
- */
-function primeThemeEl(el: HTMLAudioElement): void {
-  try {
-    const v = el.volume;
-    el.volume = 0;
-    void Promise.resolve(el.play()).then(
-      () => {
-        try {
-          el.pause();
-          el.currentTime = THEME_LOOP_START;
-          el.volume = v;
-        } catch { /* ignore */ }
-      },
-      () => { try { el.volume = v; } catch { /* ignore */ } },
-    );
-  } catch { /* ignore */ }
-}
-
-function stopLoopWatcher(): void {
-  if (themeLoopRaf !== null && typeof cancelAnimationFrame === "function") {
-    cancelAnimationFrame(themeLoopRaf);
-  }
-  themeLoopRaf = null;
-  if (themeLoopInterval !== null) { clearInterval(themeLoopInterval); themeLoopInterval = null; }
-  themeLoopAt = 0;
-}
-
-/** Hand playback over to the pre-buffered alternate element at the loop point. */
-function checkLoopPoint(): void {
-  const cur = themeEl;
-  const alt = themeAltEl;
-  if (!cur || !alt || cur.paused) return;
-  const dur = cur.duration;
-  if (!Number.isFinite(dur) || dur <= 0) return;
-  if (!themeLoopSeconds) themeLoopSeconds = loopSecondsFor(dur);
-  // Anchor the schedule the first time we know where the playhead is.
-  if (!themeLoopAt) {
-    const played = Math.max(0, cur.currentTime - THEME_LOOP_START);
-    themeLoopAt = performance.now() + (themeLoopSeconds - played) * 1000;
-  }
-  if (performance.now() < themeLoopAt - 4) return;
-  try {
-    alt.volume = cur.volume;
-    // Already parked at THEME_LOOP_START, so this is a resume, not a seek.
-    if (Math.abs(alt.currentTime - THEME_LOOP_START) > 0.15) {
-      alt.currentTime = THEME_LOOP_START;
-    }
-    void alt.play();
-    // Hard cut, no overlap: the incoming pass takes over on the same tick the
-    // outgoing one ends, and the retired element is parked immediately so it is
-    // ready to resume instantly next time round.
-    try { cur.pause(); cur.currentTime = THEME_LOOP_START; } catch { /* ignore */ }
-    themeLoopAt += themeLoopSeconds * 1000;
-    themeEl = alt;
-    themeAltEl = cur;
-  } catch { /* ignore */ }
-}
-
-/** Watch the clock and swap elements at the loop point. */
-function startLoopWatcher(): void {
-  stopLoopWatcher();
-  if (typeof requestAnimationFrame === "function") {
-    const tick = () => {
-      themeLoopRaf = requestAnimationFrame(tick);
-      checkLoopPoint();
-    };
-    themeLoopRaf = requestAnimationFrame(tick);
-  }
-  // Mobile browsers throttle (or pause) animation frames aggressively, which
-  // would let the tail run out before the swap — a timer keeps watching.
-  themeLoopInterval = setInterval(checkLoopPoint, 10);
-}
-
-
-
-/** Fade the element's volume over `ms`, in small steps (media elements have no
-    scheduled ramps). `onDone` runs when the target level is reached. */
-function fadeEl(el: HTMLAudioElement, to: number, ms: number, onDone?: () => void) {
-  if (themeFadeTimer) { clearInterval(themeFadeTimer); themeFadeTimer = null; }
-  const stepMs = 40;
-  const steps = Math.max(1, Math.round(ms / stepMs));
-  const from = el.volume;
-  let i = 0;
-  themeFadeTimer = setInterval(() => {
-    i += 1;
-    const v = from + (to - from) * (i / steps);
-    try { el.volume = Math.min(1, Math.max(0, v)); } catch { /* ignore */ }
-    if (i >= steps) {
-      if (themeFadeTimer) { clearInterval(themeFadeTimer); themeFadeTimer = null; }
-      onDone?.();
-    }
-  }, stepMs);
-}
-
-/**
- * Fade the theme in and keep it looping. Called from screens that should have
+ * Start the looping theme at full level. Called from screens that should have
  * music; playback may be blocked until a gesture has unlocked audio, in which
- * case unlockAudio() retries it. Never restarts an already-running loop — it
- * just ramps the level back up.
+ * case unlockAudio() retries it. Never restarts an already-running loop.
  */
 export function startTheme(trackUrl?: string): void {
   const next = trackUrl ?? DEFAULT_THEME_FILE;
   themeDesired = true;
   if (next !== themeUrl) {
-    // Track switch: tear the current element down synchronously, or the fade
-    // below would simply ramp the *old* track back up.
+    // Track switch: tear the current element down synchronously so the play()
+    // below cannot resume the *old* track.
     themeUrl = next;
     killTheme();
   }
   if (!musicEnabled) return;
   if (typeof Audio === "undefined") return;
   try {
-    if (themeStopTimer) { clearTimeout(themeStopTimer); themeStopTimer = null; }
-    if (!themeEl) {
-      themeEl = makeThemeEl(themeUrl, 0);
-      themeAltEl = makeThemeEl(themeUrl, 0);
-      // Unlock the alternate element inside this same gesture, or its first
-      // timer-driven play() at the loop point is refused on iOS.
-      if (themeAltEl) primeThemeEl(themeAltEl);
-    }
+    if (!themeEl) themeEl = makeThemeEl(themeUrl, THEME_GAIN);
     const el = themeEl;
+    el.volume = THEME_GAIN;
     // play() rejects until the page has had a gesture; the site-wide gesture
     // listener calls startTheme() again, so a rejection here is harmless.
-    void Promise.resolve(el.play()).then(
-      () => {
-        fadeEl(el, THEME_GAIN, THEME_FADE_IN_MS);
-        startLoopWatcher();
-      },
-      () => { /* blocked — retried on the next gesture */ },
-    );
+    void Promise.resolve(el.play()).catch(() => { /* retried on next gesture */ });
   } catch { /* never throw from audio */ }
 }
 
 /** Stop and drop the running loop right now (used when switching tracks). */
 function killTheme(): void {
-  if (themeStopTimer) { clearTimeout(themeStopTimer); themeStopTimer = null; }
-  if (themeFadeTimer) { clearInterval(themeFadeTimer); themeFadeTimer = null; }
-  stopLoopWatcher();
   try { themeEl?.pause(); } catch { /* ignore */ }
-  try { themeAltEl?.pause(); } catch { /* ignore */ }
   themeEl = null;
-  themeAltEl = null;
-  themeLoopSeconds = 0;
 }
 
-
-function fadeOutTheme(hard: boolean): void {
-  try {
-    const el = themeEl;
-    if (!el) return;
-    fadeEl(el, 0, THEME_FADE_OUT_MS, () => {
-      // Only a musicEnabled=false toggle tears the element down; a screen
-      // change leaves it playing silently so music resumes mid-phrase.
-      if (hard) killTheme();
-      else { stopLoopWatcher(); try { el.pause(); } catch { /* ignore */ } }
-
-    });
-  } catch { /* ignore */ }
-}
-
-/** Fade the theme out. */
+/** Stop the theme immediately — no fade. */
 export function stopTheme(): void {
   themeDesired = false;
-  fadeOutTheme(false);
+  try { themeEl?.pause(); } catch { /* ignore */ }
 }
 
 // iOS suspends (or "interrupts") the AudioContext when the page is backgrounded,
