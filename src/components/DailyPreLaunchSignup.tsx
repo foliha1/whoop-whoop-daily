@@ -82,7 +82,7 @@ const DailyPreLaunchSignup: React.FC<{
           width: "100%",
           maxWidth: 354,
           // Sized to its content, never the full screen.
-          background: RAW.khaki,
+          background: COLORS.panel,
           border: BORDER.heavy,
           borderRadius: RADIUS.sm,
           boxSizing: "border-box",
