@@ -13,7 +13,7 @@ const bodyStyle: React.CSSProperties = {
   fontWeight: 500,
   fontSize: 14,
   lineHeight: 1.45,
-  color: RAW.warmBlack,
+  color: COLORS.ink,
   margin: 0,
 };
 
@@ -117,7 +117,7 @@ const DailyEmailCapture: React.FC<{
           fontFamily: FONT_FAMILY,
           fontSize: 20,
           lineHeight: 1.2,
-          color: RAW.warmBlack,
+          color: COLORS.ink,
           textAlign: "center",
         }}
       >
@@ -146,7 +146,7 @@ const DailyEmailCapture: React.FC<{
           fontFamily: FONT_FAMILY,
           fontSize: 20,
           lineHeight: 1.2,
-          color: RAW.warmBlack,
+          color: COLORS.ink,
         }}
       >
         {heading}
@@ -185,16 +185,17 @@ const DailyEmailCapture: React.FC<{
           padding: `0 ${SPACE[8]}px`,
           border: BORDER.heavy,
           borderRadius: RADIUS.sm,
-          background: RAW.cream,
+          background: COLORS.surface,
+          color: COLORS.ink,
         }}
       />
-      <p style={{ ...bodyStyle, fontSize: 12, color: RAW.warmGrey }}>
+      <p style={{ ...bodyStyle, fontSize: 12, color: COLORS.inkMuted }}>
         We only send the daily puzzle.{" "}
         <a
           href="/privacy"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: RAW.warmGrey, textDecoration: "underline" }}
+          style={{ color: COLORS.inkMuted, textDecoration: "underline" }}
         >
           Privacy
         </a>
@@ -222,7 +223,7 @@ const DailyEmailCapture: React.FC<{
         {submitLabel}
       </button>
       {status === "error" && errorMessage && (
-        <p role="alert" style={{ ...bodyStyle, color: RAW.warmBlack, fontStyle: "italic" }}>
+        <p role="alert" style={{ ...bodyStyle, color: COLORS.ink, fontStyle: "italic" }}>
           {errorMessage}
         </p>
       )}

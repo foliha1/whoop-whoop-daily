@@ -30,8 +30,6 @@ import { LeaveGroupModal } from "@/components/DailyGroupModals";
 import {
   BORDER,
   COLORS,
-  FONT_FAMILY_UI,
-  FONT_WEIGHT_UI,
   RADIUS,
   SPACE,
   buttonStyle,
@@ -40,11 +38,9 @@ import {
 
 type Tab = "today" | "season";
 
-/** Geist metadata label: all caps, 0.05em, matching the stat-tile labels. */
+/** Role-defined metadata label: all caps, 0.05em, matching the stat-tile labels. */
 const metaLabel = (mobile: boolean): React.CSSProperties => ({
   ...textStyle("caption", mobile),
-  fontFamily: FONT_FAMILY_UI,
-  fontWeight: FONT_WEIGHT_UI,
   letterSpacing: "0.05em",
   textTransform: "uppercase",
   color: COLORS.inkMuted,

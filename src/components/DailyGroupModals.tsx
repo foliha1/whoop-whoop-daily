@@ -2,7 +2,7 @@
 // DailyGroupModals — create and join, in the Daily's existing modal shell.
 //
 // The chrome here is `DailyEmailModal`'s, not a new dialog: portal to
-// `document.body`, cream page inside the 24px gutter, khaki panel, shape rules
+// `document.body`, themed page and panel inside the 24px gutter, shape rules
 // dropped on short viewports, the shared `CloseButton`, and `useDismiss` for
 // Escape + focus return. Only the panel's contents differ.
 //
@@ -30,20 +30,15 @@ import {
 import {
   BORDER,
   COLORS,
-  FONT_FAMILY_UI,
-  FONT_WEIGHT_UI,
   RADIUS,
-  RAW,
   SPACE,
   buttonStyle,
   textStyle,
 } from "@/lib/tokens";
 
-/** Small metadata label: Geist, all caps, 0.05em — same as the stat tiles. */
+/** Small metadata label: role-defined type, all caps, 0.05em — same as the stat tiles. */
 const fieldLabelStyle = (mobile: boolean): React.CSSProperties => ({
   ...textStyle("caption", mobile),
-  fontFamily: FONT_FAMILY_UI,
-  fontWeight: FONT_WEIGHT_UI,
   letterSpacing: "0.05em",
   textTransform: "uppercase",
   color: COLORS.ink,
@@ -105,7 +100,7 @@ const GroupModalShell: React.FC<{
           width: "100%",
           maxWidth: 402,
           flex: "0 0 auto",
-          background: RAW.khaki,
+          background: COLORS.panel,
           borderRadius: RADIUS.sm,
           boxSizing: "border-box",
           padding: `${SPACE[6]}px ${SPACE[8]}px ${SPACE[8]}px`,

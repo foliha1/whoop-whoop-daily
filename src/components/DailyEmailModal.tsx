@@ -9,7 +9,7 @@
 // nothing on the ready screen can capture or clip it.
 //
 // Chrome is deliberately the share modal's language: full-bleed cream surface
-// inside the 24px DailyFrame gutter, khaki panel, top-right CLOSE control,
+// inside the 24px DailyFrame gutter, themed panel, top-right CLOSE control,
 // Escape to dismiss, focus moved in and trapped. The styling is DUPLICATED
 // rather than extracted from `DailySharePreview` — that component measures its
 // own card slot with a ResizeObserver against its flex chrome, and refactoring
@@ -29,7 +29,7 @@ import DailyShapeRule from "@/components/DailyShapeRule";
 import DailyEmailCapture from "@/components/DailyEmailCapture";
 import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
-import { COLORS, RADIUS, RAW, SPACE } from "@/lib/tokens";
+import { COLORS, RADIUS, SPACE } from "@/lib/tokens";
 
 const FOCUSABLE =
   'button:not([disabled]), input:not([disabled]), [href], select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -153,7 +153,7 @@ const DailyEmailModal: React.FC<{
           width: "100%",
           maxWidth: 402,
           flex: "0 0 auto",
-          background: RAW.khaki,
+          background: COLORS.panel,
           borderRadius: RADIUS.sm,
           boxSizing: "border-box",
           padding: `${SPACE[6]}px clamp(16px, 9%, 32px) ${SPACE[8]}px`,
