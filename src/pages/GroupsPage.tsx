@@ -195,6 +195,9 @@ const GroupsPage: React.FC = () => {
 
   return (
     <DailyFrame gap={SPACE[6]}>
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       {open ? (
         <DailyGroupBoard
           group={open}
