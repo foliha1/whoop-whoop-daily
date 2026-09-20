@@ -16,6 +16,7 @@
 // ============================================================================
 
 import React from "react";
+import { Helmet } from "react-helmet-async";
 import { Link, useSearchParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
