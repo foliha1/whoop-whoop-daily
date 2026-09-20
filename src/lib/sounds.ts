@@ -497,6 +497,7 @@ function killTheme(): void {
   try { themeAltEl?.pause(); } catch { /* ignore */ }
   themeEl = null;
   themeAltEl = null;
+  themeLoopSeconds = 0;
 }
 
 
