@@ -19,7 +19,7 @@ import DailyLegalFooter from "@/components/DailyLegalFooter";
 import DailyStatsBlock from "@/components/DailyStatsBlock";
 import { useDailyProfile } from "@/hooks/useDailyProfile";
 import useDailyRecall from "@/hooks/useDailyRecall";
-import { useTierDistribution, useWhoopScore } from "@/hooks/useWhoopScore";
+import { useTierDistribution, useWhoopScoreState } from "@/hooks/useWhoopScore";
 import { getDailyNumber } from "@/lib/daily";
 import { tierForScore } from "@/lib/whoopScore";
 import {
