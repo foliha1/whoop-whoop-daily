@@ -130,7 +130,7 @@ export function computeWhoopScore(
   const noPeekRate = windowed.filter((g) => !g.peekUsed).length / gamesCounted;
   const zeroMistakeRate = windowed.filter((g) => g.totalMisses === 0).length / gamesCounted;
 
-  const ref = windowed.reduce((max, g) => (g.puzzleDate > max ? g.puzzleDate : max), windowed[0].puzzleDate);
+  const ref = asOf;
   const days = new Set(
     all
       .filter((g) => {
