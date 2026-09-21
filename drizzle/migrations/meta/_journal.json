@@ -22,6 +22,13 @@
       "when": 1789982511114,
       "tag": "0002_whoop_score_engine",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789988099989,
+      "tag": "0003_whoop_score_decay_active_pool_email_guard",
+      "breakpoints": true
     }
   ]
 }
