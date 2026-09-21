@@ -49,7 +49,7 @@ describe("tiers", () => {
 describe("the formula", () => {
   it("scores a perfect 30-day player 100", () => {
     const games = Array.from({ length: 30 }, (_, i) => run(i + 1));
-    const r = computeWhoopScore(games);
+    const r = computeWhoopScore(games, dateFor(30));
     expect(r.score).toBe(100);
     expect(r.tier).toBe("legend");
     expect(r.gamesCounted).toBe(30);
