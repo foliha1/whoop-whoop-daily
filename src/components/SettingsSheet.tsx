@@ -272,6 +272,13 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
             Your Groups
           </a>
         )}
+
+        {/* The Whoop Score and the all-time numbers live on the YOU page. */}
+        {product === "daily" && (
+          <a href="/you" style={howToStyle} data-testid="settings-you-link">
+            Your Whoop Score
+          </a>
+        )}
       </div>
     </div>
   );

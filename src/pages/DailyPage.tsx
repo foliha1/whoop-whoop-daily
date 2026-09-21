@@ -54,16 +54,15 @@ import {
 
 
 import {
-  formatAvgMisses,
   formatPercentileLine,
   formatStreakLine,
-  type DailyStats,
 } from "@/lib/dailyResults";
 import { useDailyStreak } from "@/hooks/useDailyStreak";
 import { useDailyProfile } from "@/hooks/useDailyProfile";
-import { useDailyRecall } from "@/hooks/useDailyRecall";
-import DailyRecallTrend from "@/components/DailyRecallTrend";
-import type { RecallTrend } from "@/lib/dailyRecall";
+import { useWhoopScore } from "@/hooks/useWhoopScore";
+import WhoopScoreChange from "@/components/WhoopScoreChange";
+import { formatScoreChange } from "@/lib/whoopTiers";
+import type { WhoopScore } from "@/lib/whoopScore";
 
 import { runDailyEndSequence } from "@/lib/dailyEndSequence";
 import {
@@ -138,10 +137,12 @@ const RESULT_BLOCK = {
   message: 1,
   stats: 2,
   rounds: 3,
-  streak: 4,
-  share: 5,
-  email: 6,
-  done: 7,
+  /** The Whoop Score hero, directly after today's result. */
+  score: 4,
+  streak: 5,
+  share: 6,
+  email: 7,
+  done: 8,
 } as const;
 const blockIn = (block: keyof typeof RESULT_BLOCK): React.CSSProperties =>
   ({ "--ww-res-delay": `${RESULT_BLOCK[block] * BLOCK_STAGGER_MS}ms` } as React.CSSProperties);
@@ -566,12 +567,13 @@ const DailyResultCard: React.FC<{
   result: DailyResult;
   /** Null hides the streak line entirely — never show a zero. */
   streak: number | null;
-  /** Null hides the personal stats block entirely. */
-  stats: DailyStats | null;
   /** Null hides the percentile line (withheld below 20 players). */
   percentile: number | null;
-  /** Null hides the recall trend line (fewer than 6 games, or the read failed). */
-  recall: RecallTrend | null;
+  /**
+   * The Whoop Score, read only AFTER today's run was written — otherwise the
+   * change line would compare against yesterday. Null hides the block.
+   */
+  whoop: WhoopScore | null;
   /** Passed to the group line so switched devices resolve to one membership. */
   knownEmail?: string | null;
   /** Called after an email signup so the parent can re-read streak/stats. */
@@ -593,9 +595,8 @@ const DailyResultCard: React.FC<{
   shareText,
   result,
   streak,
-  stats,
   percentile,
-  recall,
+  whoop,
   knownEmail = null,
   onSubscribed,
   subscribed,
@@ -637,6 +638,18 @@ const DailyResultCard: React.FC<{
   React.useEffect(() => {
     if (burst && !milestonePreview) markCelebrated(puzzleNumber);
   }, [burst, milestonePreview, puzzleNumber]);
+
+  // ── A new tier is a moment ────────────────────────────────────────────────
+  // Crossing into a higher tier than `previous_score` sat in — or unlocking a
+  // first score at all — is marked on the block and hooked to the SAME
+  // milestone confetti. No second celebration was invented. On a streak
+  // milestone day the milestone burst already fired, so this adds nothing.
+  const scoreChange =
+    whoop !== null && whoop.score !== null
+      ? formatScoreChange(whoop.previousScore, whoop.score)
+      : null;
+  const tierUp = scoreChange?.tierUp ?? false;
+  const tierBurst = tierUp && !reducedMotion && !burst;
 
 
   // Tile labels: all caps, Geist medium, 0.05em tracking.
@@ -735,6 +748,12 @@ const DailyResultCard: React.FC<{
       {burst && (
         <DailyMilestoneConfetti
           delayMs={RESULT_BLOCK.stats * BLOCK_STAGGER_MS + BLOCK_IN_MS}
+        />
+      )}
+      {/* A new tier reuses the same burst, timed to the score block instead. */}
+      {tierBurst && (
+        <DailyMilestoneConfetti
+          delayMs={RESULT_BLOCK.score * BLOCK_STAGGER_MS + BLOCK_IN_MS}
         />
       )}
 
@@ -849,57 +868,38 @@ const DailyResultCard: React.FC<{
         )}
       </div>
 
-      {/* All time results. Subscribers only, and hidden entirely when the read
-          failed — never shown as zeroes, never as an empty placeholder. */}
-      {(stats !== null || recall !== null) && (
-        <div
-          className="ww-res-in"
+      {/* Did today move me. Slotted into the same staggered entry, directly
+          after today's result. Absent until the score read returns — which
+          only happens after the run was written. */}
+      <div
+        className="ww-res-in"
+        style={{
+          alignSelf: "stretch",
+          display: "flex",
+          flexDirection: "column",
+          marginTop: SPACE[8],
+          paddingTop: SPACE[4],
+          borderTop: BORDER.heavy,
+          ...blockIn("score"),
+        }}
+      >
+        <WhoopScoreChange whoop={whoop} mobile={mobile} tierUp={tierUp} />
+        {/* The four all-time stats and the recall trend now live on /you; this
+            is the one quiet way through to them. */}
+        <a
+          href="/you"
+          data-testid="result-you-link"
           style={{
-            alignSelf: "stretch",
-            display: "flex",
-            flexDirection: "column",
-            gap: 0,
-            // Tier 3 — the largest gap between two readout sections
-            // (marginTop + paddingTop across the rule).
-            marginTop: SPACE[8],
-            paddingTop: SPACE[4],
-            borderTop: BORDER.heavy,
-            ...blockIn("stats"),
+            ...textStyle("caption", mobile),
+            color: COLORS.inkMuted,
+            textAlign: "center",
+            marginTop: SPACE[4],
+            textDecoration: "underline",
           }}
         >
-          <h2 style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, margin: 0 }}>
-            All time results
-          </h2>
-          {stats !== null && (
-            <div style={{ display: "flex", gap: SPACE[4], alignSelf: "stretch", marginTop: SPACE[4] }}>
-              {stat("Days played", `${stats.totalPlayed}`)}
-              {stat("Clean runs", `${stats.cleanRuns}`)}
-              {stat("Longest streak", `${stats.bestStreak}`)}
-              {stat("Average misses", formatAvgMisses(stats.avgMisses))}
-            </div>
-          )}
-          {/* Recall trend: first three games against the last three — an
-              all-time comparison, so it sits with the all-time tiles. */}
-          {recall !== null && (
-            <div
-              data-testid="recall-container"
-              style={{
-                marginTop: stats !== null ? SPACE[8] : SPACE[4],
-                alignSelf: "stretch",
-                // Transparent fill — the page shows through — inside a brand
-                // blue stroke. Corner and padding match the stat tiles.
-                background: "transparent",
-                border: `2px solid ${COLORS.blue}`,
-                borderRadius: RADIUS.sm,
-                padding: `${SPACE[4]}px ${SPACE[3]}px`,
-              }}
-            >
-              <DailyRecallTrend trend={recall} mobile={mobile} />
-            </div>
-          )}
-
-        </div>
-      )}
+          See all your stats
+        </a>
+      </div>
 
       {/* One line, and nothing at all for a player who is not in a group. */}
       <DailyGroupsLine puzzleNumber={result.puzzleNumber} email={knownEmail} mobile={mobile} />
@@ -1335,12 +1335,14 @@ const DailyPage: React.FC = () => {
   // Read after the run is persisted so today counts toward the streak.
   const dataReady = daily.resultSaved || daily.result === null;
   const streak = useDailyStreak(daily.puzzleNumber, dataReady, profileKey);
-  const { stats, percentile } = useDailyProfile(
+  const { percentile } = useDailyProfile(
     daily.puzzleNumber,
     dataReady,
     profileKey
   );
-  const recall = useDailyRecall(dataReady, profileKey);
+  // Same gate as the streak: the score is read only after the run is written,
+  // so "+3 → 58" is the effect of today's game, not yesterday's standing.
+  const whoop = useWhoopScore(dataReady, profileKey);
 
   // -------------------------------------------------------------------------
   // Instrumentation. Read-only observers of the engine: nothing here changes
@@ -1832,9 +1834,8 @@ const DailyPage: React.FC = () => {
               )}
               result={daily.result!}
               streak={streak?.current ?? null}
-              stats={stats}
               percentile={percentile}
-              recall={recall}
+              whoop={whoop}
               knownEmail={knownEmail}
               subscribed={subscribed}
               onSubscribed={(email) => {
