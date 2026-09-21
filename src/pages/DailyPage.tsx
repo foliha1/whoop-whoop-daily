@@ -774,7 +774,7 @@ const DailyResultCard: React.FC<{
         >
           {failed
             ? "Whooped! Better luck tomorrow."
-            : "You already tested your memory today. Come back tomorrow!"}
+             : <>You already tested your memory today.<br />Come back tomorrow!</>}
         </p>
       )}
       {/* Your daily results: this run's numbers, the round rows, and the
