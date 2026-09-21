@@ -879,6 +879,12 @@ export type Database = {
             Args: { p_email: string; p_source: string; p_visitor_id: string }
             Returns: boolean
           }
+      whoop_score_active_identities: {
+        Args: { p_as_of?: string }
+        Returns: {
+          identity: string
+        }[]
+      }
       whoop_score_config: { Args: never; Returns: Json }
       whoop_score_rows: {
         Args: never
@@ -891,7 +897,7 @@ export type Database = {
         }[]
       }
       whoop_score_table: {
-        Args: { p_offset?: number }
+        Args: { p_as_of?: string; p_offset?: number }
         Returns: {
           consistency_rate: number
           games_counted: number
