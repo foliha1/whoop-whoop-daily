@@ -779,6 +779,30 @@ export type Database = {
         }[]
       }
       get_subscriber_email: { Args: { p_visitor_id: string }; Returns: string }
+      get_whoop_score: {
+        Args: { p_email?: string; p_visitor_id: string }
+        Returns: {
+          consistency_rate: number
+          games_counted: number
+          games_needed: number
+          next_tier_threshold: number
+          no_peek_rate: number
+          percentile_band: number
+          points_to_next: number
+          previous_score: number
+          score: number
+          tier: string
+          zero_mistake_rate: number
+        }[]
+      }
+      get_whoop_tier_distribution: {
+        Args: never
+        Returns: {
+          eligible_total: number
+          players: number
+          tier: string
+        }[]
+      }
       is_admin: { Args: never; Returns: boolean }
       join_daily_group: {
         Args: {
@@ -855,6 +879,30 @@ export type Database = {
             Args: { p_email: string; p_source: string; p_visitor_id: string }
             Returns: boolean
           }
+      whoop_score_config: { Args: never; Returns: Json }
+      whoop_score_rows: {
+        Args: never
+        Returns: {
+          identity: string
+          peek_used: boolean
+          puzzle_date: string
+          puzzle_number: number
+          total_misses: number
+        }[]
+      }
+      whoop_score_table: {
+        Args: { p_offset?: number }
+        Returns: {
+          consistency_rate: number
+          games_counted: number
+          identity: string
+          no_peek_rate: number
+          score: number
+          zero_mistake_rate: number
+        }[]
+      }
+      whoop_score_tier: { Args: { p_score: number }; Returns: string }
+      whoop_score_tier_floor: { Args: { p_tier: string }; Returns: number }
     }
     Enums: {
       [_ in never]: never
