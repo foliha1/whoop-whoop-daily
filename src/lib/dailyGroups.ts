@@ -114,6 +114,47 @@ export function seasonPoints(
   return { points, played };
 }
 
+// -------------------------------------------------------------- email linkage ---
+
+/**
+ * Mirror of `public.email_linked_to_visitor`. An address only counts as a
+ * member's own when the Daily already ties the two together — a result stamped
+ * with it, or a subscriber row for it. Group membership emails are supplied by
+ * the joiner, so an unlinked address must never widen whose results a member
+ * matches; the server refuses it on write and ignores it on read.
+ */
+export type EmailLink = { visitorId: string; email: string };
+
+export function isEmailLinkedToVisitor(
+  visitorId: string,
+  email: string | null | undefined,
+  links: EmailLink[],
+): boolean {
+  const v = visitorId.trim();
+  const e = (email ?? "").trim().toLowerCase();
+  if (v.length === 0 || e.length === 0) return false;
+  return links.some((l) => l.visitorId === v && l.email.trim().toLowerCase() === e);
+}
+
+/**
+ * Which results belong to a group member: always their own visitor's rows, plus
+ * rows under their email only when that email is linked to them.
+ */
+export function resultsForMember<T extends { visitor_id: string; email?: string | null }>(
+  member: { visitor_id: string; email?: string | null },
+  results: T[],
+  links: EmailLink[],
+): T[] {
+  const linked = isEmailLinkedToVisitor(member.visitor_id, member.email, links)
+    ? (member.email ?? "").trim().toLowerCase()
+    : null;
+  return results.filter(
+    (r) =>
+      r.visitor_id === member.visitor_id ||
+      (linked !== null && (r.email ?? "").trim().toLowerCase() === linked),
+  );
+}
+
 // ------------------------------------------------------------------ identity ---
 
 /**
