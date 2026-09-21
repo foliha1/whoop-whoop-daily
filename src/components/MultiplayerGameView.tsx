@@ -871,15 +871,15 @@ const MultiplayerGameView: React.FC<Props> = ({
   }, [isGameOver]);
 
   // ---- Music -------------------------------------------------------------
-  // The Classic theme runs for the whole Classic session — lobby, live board
-  // and result screen alike — so nothing has to restart it after an overlay.
-  // While the How to Play demo is open it owns the music; this effect re-runs
-  // when the demo closes (`showHowTo` is a dependency) and brings the theme
-  // straight back if music is enabled. The Daily is untouched: it still plays
-  // only on its ready/results screens.
+  // Live play is sound-effects only: the theme is silent while the board is in
+  // play and comes back on the result screen. While the How to Play demo is
+  // open it owns the music; this effect re-runs when the demo closes and
+  // restores the right state. The Daily behaves the same way: theme on its
+  // ready/results screens, effects only during the run.
   useEffect(() => {
     if (showHowTo) return;
-    startTheme(CLASSIC_THEME_FILE);
+    if (isGameOver) startTheme(CLASSIC_THEME_FILE);
+    else stopTheme();
   }, [isGameOver, showHowTo]);
 
   useEffect(() => {
