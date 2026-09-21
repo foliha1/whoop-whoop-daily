@@ -50,6 +50,7 @@ import {
   playWrong,
   startTheme,
   stopTheme,
+  prewarmTheme,
   HOW_TO_PLAY_THEME_FILE,
 } from "@/lib/sounds";
 import {
