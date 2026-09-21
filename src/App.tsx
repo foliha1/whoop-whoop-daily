@@ -14,6 +14,7 @@ const DailyPage = lazy(() => import("./pages/DailyPage.tsx"));
 const SupportPage = lazy(() => import("./pages/SupportPage.tsx"));
 const AdminPage = lazy(() => import("./pages/AdminPage.tsx"));
 const GroupsPage = lazy(() => import("./pages/GroupsPage.tsx"));
+const YouPage = lazy(() => import("./pages/YouPage.tsx"));
 const TypographyPage = lazy(() => import("./pages/TypographyPage.tsx"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage.tsx"));
 const TermsPage = lazy(() => import("./pages/TermsPage.tsx"));
@@ -71,6 +72,8 @@ const AnimatedRoutes: React.FC = () => {
           {/* Groups is live. Shareable but not indexed: the page sets
               noindex itself and robots.txt still disallows /groups. */}
           <Route path="/groups" element={<GroupsPage />} />
+          {/* The player's long-term self. Not indexed, same as groups. */}
+          <Route path="/you" element={<YouPage />} />
           <Route path="/about" element={<SupportPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
