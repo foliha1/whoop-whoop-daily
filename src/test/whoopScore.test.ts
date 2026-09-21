@@ -81,7 +81,8 @@ describe("the formula", () => {
     for (let i = 0; i < 20; i += 1) {
       games.push(run(i + 1, { date: dateFor(1 + i * 20) }));
     }
-    const r = computeWhoopScore(games);
+    // Anchored on the day of the last game, only 2 of the days land in window.
+    const r = computeWhoopScore(games, dateFor(1 + 19 * 20));
     expect(r.noPeekRate).toBe(1);
     expect(r.zeroMistakeRate).toBe(1);
     expect(r.consistencyRate).toBeCloseTo(2 / 30, 5);
@@ -89,10 +90,26 @@ describe("the formula", () => {
     expect(r.tier).toBe("tier_4");
   });
 
+  it("lets consistency decay to zero for a lapsed player", () => {
+    // 30 flawless games that stopped 40 days ago: performance intact, but the
+    // consistency window ending today contains nothing.
+    const games = Array.from({ length: 30 }, (_, i) => run(i + 1));
+    const lastDay = dateFor(30);
+    const asOf = new Date(Date.parse(`${lastDay}T00:00:00Z`) + 40 * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+    const r = computeWhoopScore(games, asOf);
+    expect(r.noPeekRate).toBe(1);
+    expect(r.zeroMistakeRate).toBe(1);
+    expect(r.consistencyRate).toBe(0);
+    expect(r.score).toBe(80);
+    expect(r.tier).toBe("tier_4");
+  });
+
   it("only counts the most recent 30 results", () => {
     const old = Array.from({ length: 10 }, (_, i) => run(i + 1, { peek: true, misses: 3 }));
     const recent = Array.from({ length: 30 }, (_, i) => run(i + 11));
-    const r = computeWhoopScore([...old, ...recent]);
+    const r = computeWhoopScore([...old, ...recent], dateFor(40));
     expect(r.gamesCounted).toBe(30);
     expect(r.noPeekRate).toBe(1);
   });
@@ -101,7 +118,7 @@ describe("the formula", () => {
     const games = Array.from({ length: 10 }, (_, i) =>
       run(i + 1, { peek: i < 5, misses: i % 2 === 0 ? 0 : 1 })
     );
-    const r = computeWhoopScore(games);
+    const r = computeWhoopScore(games, dateFor(10));
     expect(r.noPeekRate).toBe(0.5);
     expect(r.zeroMistakeRate).toBe(0.5);
     expect(r.consistencyRate).toBeCloseTo(10 / 30, 5);
