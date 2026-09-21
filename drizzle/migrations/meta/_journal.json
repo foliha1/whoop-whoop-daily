@@ -15,6 +15,13 @@
       "when": 1789664062286,
       "tag": "0001_groups_cap_before_rate_limit",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789982511114,
+      "tag": "0002_whoop_score_engine",
+      "breakpoints": true
     }
   ]
 }
