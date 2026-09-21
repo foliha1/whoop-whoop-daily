@@ -65,6 +65,9 @@ const MultiplayerPage: React.FC = () => {
   useEffect(() => {
     const img = new Image();
     img.src = whoopLightLogo.url;
+    // Start fetching Classic's theme now, so the lobby music is buffered by
+    // the time the first gesture unlocks audio instead of after it.
+    prewarmTheme(CLASSIC_THEME_FILE);
   }, []);
 
   // Wait for the intro JSON — no short-timer bail. Load times vary wildly on
