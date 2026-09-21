@@ -669,6 +669,10 @@ export type Database = {
       }
       daily_season_start: { Args: { p_puzzle_number: number }; Returns: string }
       email_has_history: { Args: { p_email: string }; Returns: boolean }
+      email_linked_to_visitor: {
+        Args: { p_email: string; p_visitor_id: string }
+        Returns: boolean
+      }
       gen_daily_group_code: { Args: never; Returns: string }
       get_daily_event_counts: {
         Args: { p_days?: number }
