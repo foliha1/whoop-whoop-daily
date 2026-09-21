@@ -81,15 +81,25 @@ function dayDiff(a: string, b: string): number {
   return (Date.parse(`${a}T00:00:00Z`) - Date.parse(`${b}T00:00:00Z`)) / 86_400_000;
 }
 
+/** Today in UTC as YYYY-MM-DD — the default consistency anchor. */
+function todayUtc(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 /**
  * Pure mirror of the SQL scoring formula, used for tests and for any client
  * that already holds a player's rows.
  *
  * Window = the most recent `SCORE_WINDOW_GAMES` results by puzzle number.
  * Consistency counts distinct days played in the `CONSISTENCY_DAYS` ending on
- * the window's last puzzle date — days showed up, not games played.
+ * `asOf` (today by default) — days showed up, not games played. Anchoring on
+ * today, not on the player's last result, is what makes consistency decay when
+ * someone stops playing.
  */
-export function computeWhoopScore(games: ScoredGame[]): WhoopScoreBreakdown {
+export function computeWhoopScore(
+  games: ScoredGame[],
+  asOf: string = todayUtc()
+): WhoopScoreBreakdown {
   const byPuzzle = new Map<number, ScoredGame>();
   for (const g of games) {
     const seen = byPuzzle.get(g.puzzleNumber);
