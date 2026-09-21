@@ -347,9 +347,18 @@ function makeThemeEl(url: string, volume: number): HTMLAudioElement {
  */
 export function prewarmTheme(trackUrl?: string): void {
   if (typeof Audio === "undefined") return;
-  if (themeEl) return;
+  const url = trackUrl ?? DEFAULT_THEME_FILE;
+  if (themeEl) {
+    // An element already exists for another track: just warm the HTTP cache
+    // for this one so a later switch doesn't wait on the download.
+    if (url !== themeUrl) {
+      try { void fetch(themeSourceFor(url), { mode: "no-cors", cache: "force-cache" }).catch(() => {}); }
+      catch { /* never throw from audio */ }
+    }
+    return;
+  }
   try {
-    themeUrl = trackUrl ?? DEFAULT_THEME_FILE;
+    themeUrl = url;
     themeEl = makeThemeEl(themeUrl, THEME_GAIN);
     themeEl.load();
   } catch { /* never throw from audio */ }
