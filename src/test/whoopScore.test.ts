@@ -29,7 +29,7 @@ const run = (
 describe("thresholds", () => {
   it("keeps the tunable constants in one place", () => {
     expect([SCORE_MIN_GAMES, RANK_MIN_GAMES, PERCENTILE_MIN_PLAYERS]).toEqual([5, 10, 20]);
-    expect([SCORE_WINDOW_GAMES, CONSISTENCY_DAYS]).toEqual([30, 30]);
+    expect([SCORE_WINDOW_GAMES, CONSISTENCY_DAYS, ACTIVE_DAYS]).toEqual([30, 30, 30]);
   });
 });
 
