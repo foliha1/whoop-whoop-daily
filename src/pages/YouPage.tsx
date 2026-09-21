@@ -53,7 +53,7 @@ const YouPage: React.FC = () => {
   const puzzleNumber = React.useMemo(() => getDailyNumber(), []);
   const { stats } = useDailyProfile(puzzleNumber);
   const recall = useDailyRecall();
-  const whoop = useWhoopScore();
+  const { score: whoop, loading: whoopLoading } = useWhoopScoreState();
   const dist = useTierDistribution();
 
   const hasScore = whoop !== null && whoop.score !== null;
