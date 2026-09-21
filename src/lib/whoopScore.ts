@@ -22,6 +22,8 @@ import { getSubscribedEmail } from "@/lib/dailySubscribe";
 export const SCORE_WINDOW_GAMES = 30;
 /** Calendar days the consistency component looks back over. */
 export const CONSISTENCY_DAYS = 30;
+/** A player counts as active — and so rankable — with a result this recent. */
+export const ACTIVE_DAYS = 30;
 /** Below this many games in the window there is no score at all. */
 export const SCORE_MIN_GAMES = 5;
 /** Below this many games the player has a score but is not ranked. */
