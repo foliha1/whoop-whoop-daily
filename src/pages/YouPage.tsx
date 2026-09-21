@@ -19,7 +19,7 @@ import DailyLegalFooter from "@/components/DailyLegalFooter";
 import DailyStatsBlock from "@/components/DailyStatsBlock";
 import { useDailyProfile } from "@/hooks/useDailyProfile";
 import useDailyRecall from "@/hooks/useDailyRecall";
-import { useTierDistribution, useWhoopScore } from "@/hooks/useWhoopScore";
+import { useTierDistribution, useWhoopScoreState } from "@/hooks/useWhoopScore";
 import { getDailyNumber } from "@/lib/daily";
 import { tierForScore } from "@/lib/whoopScore";
 import {
@@ -53,7 +53,7 @@ const YouPage: React.FC = () => {
   const puzzleNumber = React.useMemo(() => getDailyNumber(), []);
   const { stats } = useDailyProfile(puzzleNumber);
   const recall = useDailyRecall();
-  const whoop = useWhoopScore();
+  const { score: whoop, loading: whoopLoading } = useWhoopScoreState();
   const dist = useTierDistribution();
 
   const hasScore = whoop !== null && whoop.score !== null;
@@ -114,12 +114,20 @@ const YouPage: React.FC = () => {
               {tierName(myTier)}
             </span>
           </div>
+        ) : whoopLoading ? null : whoop === null ? (
+          // The read failed. Never claim the player has too few games.
+          <p
+            data-testid="you-score-error"
+            style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, margin: 0 }}
+          >
+            Your Whoop Score could not be loaded. Try again in a moment.
+          </p>
         ) : (
           <p
             data-testid="you-locked"
             style={{ ...textStyle("body", mobile), color: COLORS.ink, margin: 0 }}
           >
-            {formatGamesNeeded(whoop?.gamesNeeded ?? 5)}.
+            {formatGamesNeeded(whoop.gamesNeeded ?? 5)}.
           </p>
         )}
 
