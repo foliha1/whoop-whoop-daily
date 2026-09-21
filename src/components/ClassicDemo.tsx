@@ -631,6 +631,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   // open, including the welcome card. The screen underneath (lobby or game)
   // resumes its own music when the demo closes.
   useEffect(() => {
+    prewarmTheme(HOW_TO_PLAY_THEME_FILE);
     startTheme(HOW_TO_PLAY_THEME_FILE);
     return () => stopTheme();
   }, []);

@@ -91,6 +91,7 @@ import {
   playWrong,
   startTheme,
   stopTheme,
+  prewarmTheme,
   unlockAudio,
 } from "@/lib/sounds";
 
