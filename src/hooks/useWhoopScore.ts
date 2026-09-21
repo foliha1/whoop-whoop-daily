@@ -17,21 +17,37 @@ import {
   type WhoopScore,
 } from "@/lib/whoopScore";
 
-export function useWhoopScore(ready = true, refreshKey = 0): WhoopScore | null {
+/**
+ * The score plus an explicit `loading` flag. A resolved `null` score means the
+ * read failed — callers must not confuse that with "not enough games yet",
+ * which is a loaded score whose `score` field is null.
+ */
+export function useWhoopScoreState(
+  ready = true,
+  refreshKey = 0
+): { score: WhoopScore | null; loading: boolean } {
   const [score, setScore] = useState<WhoopScore | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!ready) return;
     let live = true;
+    setLoading(true);
     void fetchWhoopScore().then((s) => {
-      if (live) setScore(s);
+      if (!live) return;
+      setScore(s);
+      setLoading(false);
     });
     return () => {
       live = false;
     };
   }, [ready, refreshKey]);
 
-  return score;
+  return { score, loading };
+}
+
+export function useWhoopScore(ready = true, refreshKey = 0): WhoopScore | null {
+  return useWhoopScoreState(ready, refreshKey).score;
 }
 
 export function useTierDistribution(ready = true): TierDistribution | null {
