@@ -340,6 +340,24 @@ function makeThemeEl(url: string, volume: number): HTMLAudioElement {
 }
 
 /**
+ * Begin fetching a screen's theme before anything wants to hear it, so the
+ * first note is not waiting on a ~1MB download. Safe to call on mount: it only
+ * builds the media element (preload="auto" starts the fetch) and never plays.
+ * A track that is already loaded is left alone.
+ */
+export function prewarmTheme(trackUrl?: string): void {
+  if (typeof Audio === "undefined") return;
+  if (themeEl) return;
+  try {
+    themeUrl = trackUrl ?? DEFAULT_THEME_FILE;
+    themeEl = makeThemeEl(themeUrl, THEME_GAIN);
+    themeEl.load();
+  } catch { /* never throw from audio */ }
+}
+
+
+
+/**
  * Start the looping theme at full level. Called from screens that should have
  * music; playback may be blocked until a gesture has unlocked audio, in which
  * case unlockAudio() retries it. Never restarts an already-running loop.

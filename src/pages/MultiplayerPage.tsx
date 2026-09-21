@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { useParams, useSearchParams } from "react-router-dom";
 import React, { Suspense, useEffect, useState } from "react";
 import { COLORS } from "@/lib/tokens";
+import { prewarmTheme, CLASSIC_THEME_FILE } from "@/lib/sounds";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 const IntroAnimation = React.lazy(() => import("@/components/IntroAnimation"));
 import { hasSeenIntro, preloadIntroJson } from "@/components/IntroAnimation";
@@ -65,6 +66,9 @@ const MultiplayerPage: React.FC = () => {
   useEffect(() => {
     const img = new Image();
     img.src = whoopLightLogo.url;
+    // Start fetching Classic's theme now, so the lobby music is buffered by
+    // the time the first gesture unlocks audio instead of after it.
+    prewarmTheme(CLASSIC_THEME_FILE);
   }, []);
 
   // Wait for the intro JSON — no short-timer bail. Load times vary wildly on

@@ -1248,8 +1248,11 @@ const MultiplayerGameView: React.FC<Props> = ({
 
   // Deal sound when the grid refills after a claim. Watch occupied count
   // rising — a claim removes cards then the deck deals to fill the gaps.
+  // Seeded at 0 so the opening deal counts as a rise too: the board mounts
+  // already full, and starting from the mounted count swallowed the cue that
+  // should land as play begins.
   const occupiedCount = s.grid.reduce((n, slot) => n + (slot.occupied ? 1 : 0), 0);
-  const prevOccupiedRef = React.useRef<number>(occupiedCount);
+  const prevOccupiedRef = React.useRef<number>(0);
   React.useEffect(() => {
     const prev = prevOccupiedRef.current;
     prevOccupiedRef.current = occupiedCount;
