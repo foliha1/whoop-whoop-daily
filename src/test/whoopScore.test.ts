@@ -58,7 +58,7 @@ describe("the formula", () => {
 
   it("scores a daily player who always peeks and always misses on consistency alone", () => {
     const games = Array.from({ length: 30 }, (_, i) => run(i + 1, { peek: true, misses: 2 }));
-    const r = computeWhoopScore(games);
+    const r = computeWhoopScore(games, dateFor(30));
     expect(r.noPeekRate).toBe(0);
     expect(r.zeroMistakeRate).toBe(0);
     expect(r.consistencyRate).toBe(1);
