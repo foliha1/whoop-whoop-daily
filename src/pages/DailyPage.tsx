@@ -1594,7 +1594,12 @@ const DailyPage: React.FC = () => {
     else stopTheme();
   }, [audioReady, ready, finished]);
 
-  useEffect(() => () => stopTheme(), []);
+  // Begin fetching the Daily theme on mount so the first note isn't waiting
+  // on the download when the ready/results screens start it.
+  useEffect(() => {
+    prewarmTheme();
+    return () => stopTheme();
+  }, []);
 
   const readout = (() => {
     switch (phase) {
