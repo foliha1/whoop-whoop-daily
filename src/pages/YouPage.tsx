@@ -114,12 +114,20 @@ const YouPage: React.FC = () => {
               {tierName(myTier)}
             </span>
           </div>
+        ) : whoopLoading ? null : whoop === null ? (
+          // The read failed. Never claim the player has too few games.
+          <p
+            data-testid="you-score-error"
+            style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, margin: 0 }}
+          >
+            Your Whoop Score could not be loaded. Try again in a moment.
+          </p>
         ) : (
           <p
             data-testid="you-locked"
             style={{ ...textStyle("body", mobile), color: COLORS.ink, margin: 0 }}
           >
-            {formatGamesNeeded(whoop?.gamesNeeded ?? 5)}.
+            {formatGamesNeeded(whoop.gamesNeeded ?? 5)}.
           </p>
         )}
 
