@@ -7,7 +7,9 @@ import {
   bestStanding,
   formatStanding,
   groupJoinUrl,
+  isEmailLinkedToVisitor,
   normalizeGroupCode,
+  resultsForMember,
   ordinal,
   pointsForPosition,
   rankScores,
@@ -133,5 +135,42 @@ describe("group presentation helpers", () => {
 
   it("builds a join link carrying the code", () => {
     expect(groupJoinUrl("abc234")).toBe("https://whoop-whoop.com/groups?join=abc234");
+  });
+});
+
+// ------------------------------------------------------------- email linkage ---
+
+describe("group member email linkage", () => {
+  const links = [{ visitorId: "devA", email: "honest@example.com" }];
+  const results = [
+    { visitor_id: "victim", email: "victim@example.com", puzzle_number: 900 },
+    { visitor_id: "imposter", email: null, puzzle_number: 900 },
+    { visitor_id: "devA", email: "honest@example.com", puzzle_number: 899 },
+    { visitor_id: "devB", email: "honest@example.com", puzzle_number: 900 },
+  ];
+
+  it("ignores an email the member is not linked to", () => {
+    expect(isEmailLinkedToVisitor("imposter", "victim@example.com", links)).toBe(false);
+    const mine = resultsForMember(
+      { visitor_id: "imposter", email: "victim@example.com" },
+      results,
+      links,
+    );
+    expect(mine.map((r) => r.visitor_id)).toEqual(["imposter"]);
+  });
+
+  it("counts both devices for a genuinely linked email", () => {
+    expect(isEmailLinkedToVisitor("devA", "HONEST@example.com ", links)).toBe(true);
+    const mine = resultsForMember(
+      { visitor_id: "devA", email: "honest@example.com" },
+      results,
+      links,
+    );
+    expect(mine.map((r) => r.visitor_id).sort()).toEqual(["devA", "devB"]);
+  });
+
+  it("matches by visitor id alone when no email is stored", () => {
+    const mine = resultsForMember({ visitor_id: "devA", email: null }, results, links);
+    expect(mine.map((r) => r.visitor_id)).toEqual(["devA"]);
   });
 });
