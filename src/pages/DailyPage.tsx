@@ -767,15 +767,15 @@ const DailyResultCard: React.FC<{
 
           {stat("Solved", `${roundsSolved}/${DAILY_ROUNDS}`)}
           {stat("Misses", `${totalMisses}`)}
-          {/* Current streak, folded in beside today's numbers. The record lives
-              in the All time block as "Longest streak", so nothing reads doubled.
-              Omitted (never zero) when the streak read failed. */}
-          {shownStreak !== null && shownStreak >= 1 &&
-            stat(
-              "Streak",
-              `${shownStreak} ${shownStreak === 1 ? "day" : "days"}`,
-              isMilestone
-            )}
+          {/* Keep the three-column summary stable while the post-write streak
+              read is pending. An em dash avoids inventing a zero streak. */}
+          {stat(
+            "Streak",
+            shownStreak !== null && shownStreak >= 1
+              ? `${shownStreak} ${shownStreak === 1 ? "day" : "days"}`
+              : "—",
+            isMilestone
+          )}
 
         </div>
         {/* Round review rows — today's information, so they live here, without
