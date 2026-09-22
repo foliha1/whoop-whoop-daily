@@ -784,7 +784,7 @@ const DailyResultCard: React.FC<{
           style={{
             display: "grid",
             gridTemplateColumns: "auto 1fr auto",
-            alignItems: "center",
+            alignItems: "stretch",
             columnGap: SPACE[3],
              marginTop: SPACE[6],
           }}
@@ -792,6 +792,9 @@ const DailyResultCard: React.FC<{
           {roundEvents.map((events, i) => {
             const cell: React.CSSProperties = {
               ...textStyle("caption", mobile),
+              boxSizing: "border-box",
+              display: "flex",
+              alignItems: "center",
               paddingTop: SPACE[4],
               paddingBottom: SPACE[4],
               ...(i === 0 ? {} : { borderTop: `1px solid ${COLORS.inkMuted}` }),
@@ -806,8 +809,6 @@ const DailyResultCard: React.FC<{
                 <div
                   style={{
                     ...cell,
-                    display: "flex",
-                    alignItems: "center",
                     justifyContent: "flex-end",
                     gap: SPACE[2],
                   }}
