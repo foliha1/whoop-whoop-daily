@@ -28,7 +28,9 @@ const perfect = (i: number): PointsGame => ({
 
 describe("config", () => {
   it("keeps the tunable values in one place", () => {
-    expect([MAX_POINTS_PER_GAME, GRACE_DAYS, DECAY_PER_DAY, ACTIVE_DAYS]).toEqual([5, 7, 3, 30]);
+    expect([
+      MAX_POINTS_PER_GAME, GRACE_DAYS, DECAY_PER_DAY, DECAY_PROTECTED_POINTS, ACTIVE_DAYS,
+    ]).toEqual([5, 7, 3, 25, 30]);
   });
 
   it("maps totals to stable tier keys", () => {
