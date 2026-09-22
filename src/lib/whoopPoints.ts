@@ -180,7 +180,7 @@ export function computeWhoopPoints(
   const earned = new Map<string, string>();
 
   for (const g of ordered) {
-    if (prev) total = Math.max(0, total - decayForGap(dayDiff(g.puzzleDate, prev)));
+    if (prev) total = applyDecay(total, dayDiff(g.puzzleDate, prev));
     if (g.puzzleDate === asOf && todayPoints === null) {
       totalBeforeToday = total;
       todayPoints = 0;
