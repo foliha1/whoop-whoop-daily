@@ -8,6 +8,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import CurrentTierBadge from "@/components/CurrentTierBadge";
+import MaterialIcon from "@/components/MaterialIcon";
 import type { WhoopPoints } from "@/lib/whoopPoints";
 import { SCORE_LABEL, badgeArt, tierName } from "@/lib/whoopTiers";
 import { BORDER, COLORS, FONT_SIZE, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
