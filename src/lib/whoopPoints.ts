@@ -198,9 +198,9 @@ export function computeWhoopPoints(
 
   const lastPlayed = ordered[ordered.length - 1].puzzleDate;
   const daysAway = dayDiff(asOf, lastPlayed);
-  const decay = decayForGap(daysAway);
-  const decayApplied = Math.min(decay, total);
-  total = Math.max(0, total - decay);
+  const afterDecay = applyDecay(total, daysAway);
+  const decayApplied = total - afterDecay;
+  total = afterDecay;
 
   const badges: EarnedBadge[] = [...POINTS_TIER_FLOORS]
     .reverse()
