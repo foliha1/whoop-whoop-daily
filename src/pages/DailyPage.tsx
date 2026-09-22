@@ -189,8 +189,8 @@ const RoundMarks: React.FC<{
         <span className={cls} style={{ display: "inline-flex", ...anim(0) }}>
           <span
             style={{
-              width: 20,
-              height: 20,
+              width: SPACE[6],
+              height: SPACE[6],
               opacity: 0.3,
               border: BORDER.heavy,
               borderRadius: 999,
@@ -204,8 +204,8 @@ const RoundMarks: React.FC<{
             className={cls}
             title={m === "SOLVE" ? "Solved" : "Miss"}
             style={{
-              width: 20,
-              height: 20,
+              width: SPACE[6],
+              height: SPACE[6],
               borderRadius: 999,
               background: m === "SOLVE" ? COLORS.blue : COLORS.red,
               ...anim(i),
