@@ -26,6 +26,7 @@ import DailyGroupBoard from "@/components/DailyGroupBoard";
 import { CreateGroupModal, JoinGroupModal } from "@/components/DailyGroupModals";
 import DailyFrame from "@/components/DailyFrame";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
+import MotionReveal from "@/components/MotionReveal";
 import { getDailyNumber } from "@/lib/daily";
 import { getVisitorId } from "@/lib/visitor";
 
@@ -225,15 +226,15 @@ const GroupsPage: React.FC = () => {
             gap: SPACE[6],
           }}
         >
-          {backLink}
+          <MotionReveal index={0}>{backLink}</MotionReveal>
 
-          <h1 style={{ ...textStyle("title", mobile), color: COLORS.ink, margin: 0 }}>
+          <MotionReveal index={1}><h1 style={{ ...textStyle("title", mobile), color: COLORS.ink, margin: 0 }}>
             Your groups
-          </h1>
-          <p style={{ ...textStyle("body", mobile), color: COLORS.ink, margin: 0 }}>
+          </h1></MotionReveal>
+          <MotionReveal index={2}><p style={{ ...textStyle("body", mobile), color: COLORS.ink, margin: 0 }}>
             Play the same daily puzzle as your people and see how you all did. Join with
             a code and a name — nothing else.
-          </p>
+          </p></MotionReveal>
 
           {loading && <p style={{ ...metaLabel(mobile), margin: 0 }}>Loading…</p>}
 
@@ -246,9 +247,8 @@ const GroupsPage: React.FC = () => {
             </p>
           )}
 
-          {groups.map((g: MyGroup) => (
-            <button
-              key={g.group_id}
+          {groups.map((g: MyGroup, i) => (
+            <MotionReveal kind="list" index={i} key={g.group_id}><button
               type="button"
               className="ww-press"
               onClick={() => setOpenId(g.group_id)}
@@ -273,10 +273,10 @@ const GroupsPage: React.FC = () => {
                 {formatStanding(g)} · {g.member_count}{" "}
                 {g.member_count === 1 ? "member" : "members"}
               </span>
-            </button>
+            </button></MotionReveal>
           ))}
 
-          <button
+          <MotionReveal index={3}><button
             type="button"
             className="ww-press"
             onClick={() => setShowCreate(true)}
@@ -285,8 +285,8 @@ const GroupsPage: React.FC = () => {
             style={{ ...buttonStyle("primary", "lg", { mobile, disabled: atGroupCap }), alignSelf: "stretch" }}
           >
             Create a Group
-          </button>
-          <button
+          </button></MotionReveal>
+          <MotionReveal index={4}><button
             type="button"
             className="ww-press"
             onClick={() => setShowJoin(true)}
@@ -295,7 +295,7 @@ const GroupsPage: React.FC = () => {
             style={{ ...buttonStyle("secondary", "lg", { mobile, disabled: atGroupCap }), alignSelf: "stretch" }}
           >
             Join with a Code
-          </button>
+          </button></MotionReveal>
           {atGroupCap && (
             <p style={{ ...metaLabel(mobile), margin: 0 }}>
               {GROUP_MAX_PER_PERSON} groups is the limit. Leave one to join another.

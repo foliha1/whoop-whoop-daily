@@ -17,6 +17,7 @@ import { usePortalHost } from "@/hooks/usePortalHost";
 import DailyShapeRule from "@/components/DailyShapeRule";
 import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
+import { useMotionExit } from "@/hooks/useMotionExit";
 import {
   BORDER,
   COLORS,
@@ -65,6 +66,7 @@ const DailySharePreview: React.FC<{
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const slotRef = useRef<HTMLDivElement | null>(null);
   const [box, setBox] = React.useState<{ w: number; h: number }>({ w: 0, h: 0 });
+  const { exiting, requestExit } = useMotionExit(onClose);
 
   /** Derive the largest 4:5 box that fits the slot, so the ratio is exact.
    *  Keyed on `portalHost`: the slot does not exist until the portal does, and
@@ -97,7 +99,7 @@ const DailySharePreview: React.FC<{
   }, [imageUrl]);
 
   // Escape + focus return: shared. The Tab trap stays local.
-  useDismiss(onClose, { escape: true, returnFocus: true });
+  useDismiss(requestExit, { escape: true, returnFocus: true });
 
   const trap = useCallback((e: KeyboardEvent) => {
     if (e.key !== "Tab") return;
@@ -133,6 +135,8 @@ const DailySharePreview: React.FC<{
       aria-modal="true"
       aria-label="Your share card"
       data-testid="share-preview"
+      className="ww-ui-modal-backdrop"
+      data-motion-exit={exiting ? "true" : undefined}
       style={
         {
           position: "fixed",
@@ -172,6 +176,8 @@ const DailySharePreview: React.FC<{
         }}
       >
         <div
+          className="ww-ui-modal-panel"
+          data-motion-exit={exiting ? "true" : undefined}
           style={{
             width: "100%",
             height: "100%",
@@ -286,7 +292,7 @@ const DailySharePreview: React.FC<{
             <CloseButton
               ref={closeRef}
               label="Close"
-              onClick={onClose}
+              onClick={requestExit}
               ariaLabel="Close share card"
               data-testid="share-preview-close"
             />

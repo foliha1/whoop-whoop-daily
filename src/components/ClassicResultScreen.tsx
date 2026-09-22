@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { usePortalHost } from "@/hooks/usePortalHost";
 import DailyShapeRule from "@/components/DailyShapeRule";
 import { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
+import MotionReveal from "@/components/MotionReveal";
 import {
   BORDER,
   MOTION,
@@ -276,10 +277,10 @@ const ClassicResultScreen: React.FC<{
             gap: SPACE[12],
           }}
         >
-          <ChaseHeadline mobile={mobile} />
+          <MotionReveal index={0}><ChaseHeadline mobile={mobile} /></MotionReveal>
 
           {/* Results block — 40px below the headline. */}
-          <div
+          <MotionReveal index={1}><div
             style={{
               marginTop: SPACE[16] + SPACE[2],
               display: "flex",
@@ -288,7 +289,9 @@ const ClassicResultScreen: React.FC<{
             }}
           >
             {/* Ties at the top share 1st and each get a winner row. */}
-            {winners.map(winnerRow)}
+            {winners.map((entry, index) => (
+              <MotionReveal kind="list" index={index} key={entry.seat}>{winnerRow(entry)}</MotionReveal>
+            ))}
 
             {rest.length > 0 && (
               <div
@@ -300,8 +303,7 @@ const ClassicResultScreen: React.FC<{
                 }}
               >
                 {rest.map((e, i) => (
-                  <div
-                    key={e.seat}
+                  <MotionReveal kind="list" index={winners.length + i} key={e.seat}><div
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -345,14 +347,14 @@ const ClassicResultScreen: React.FC<{
                     >
                       {e.score}/{target}
                     </span>
-                  </div>
+                  </div></MotionReveal>
                 ))}
               </div>
             )}
-          </div>
+          </div></MotionReveal>
 
           {/* Buttons */}
-          <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
+          <MotionReveal index={2}><div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
             {canRematch ? (
               <button
                 type="button"
@@ -430,11 +432,11 @@ const ClassicResultScreen: React.FC<{
                 Done
               </button>
             </div>
-          </div>
+          </div></MotionReveal>
 
           {/* Quiet footer: the one route out of Classic, to the Daily. No
               email capture here — Classic is not an acquisition surface. */}
-          <nav
+          <MotionReveal index={3}><nav
             aria-label="More from Whoop Whoop"
             style={{
               display: "flex",
@@ -456,7 +458,7 @@ const ClassicResultScreen: React.FC<{
             >
               Play today's Daily
             </a>
-          </nav>
+          </nav></MotionReveal>
         </div>
 
       </FitScale>

@@ -27,6 +27,7 @@ import {
   type MyGroup,
 } from "@/lib/dailyGroups";
 import { LeaveGroupModal } from "@/components/DailyGroupModals";
+import MotionReveal from "@/components/MotionReveal";
 import {
   BORDER,
   COLORS,
@@ -61,7 +62,9 @@ const BoardRow: React.FC<{
   quiet?: boolean;
   mobile: boolean;
   testId?: string;
-}> = ({ position, name, right, me, quiet = false, mobile, testId }) => (
+  motionIndex?: number;
+}> = ({ position, name, right, me, quiet = false, mobile, testId, motionIndex = 0 }) => (
+  <MotionReveal kind="list" index={motionIndex}>
   <div
     data-testid={testId}
     data-me={me ? "1" : undefined}
@@ -103,6 +106,7 @@ const BoardRow: React.FC<{
       {right}
     </span>
   </div>
+  </MotionReveal>
 );
 
 const TabButton: React.FC<{
@@ -215,7 +219,7 @@ const DailyGroupBoard: React.FC<{
         gap: SPACE[6],
       }}
     >
-      <button
+      <MotionReveal index={0}><button
         type="button"
         className="ww-press"
         onClick={onBack}
@@ -224,17 +228,17 @@ const DailyGroupBoard: React.FC<{
       >
         <ChevronLeft size={16} strokeWidth={2} aria-hidden="true" />
         Back
-      </button>
+      </button></MotionReveal>
 
-      <h1 style={{ ...textStyle("title", mobile), color: COLORS.ink, margin: 0 }}>{group.name}</h1>
-      <p style={{ ...metaLabel(mobile), margin: 0 }}>
+      <MotionReveal index={1}><h1 style={{ ...textStyle("title", mobile), color: COLORS.ink, margin: 0 }}>{group.name}</h1></MotionReveal>
+      <MotionReveal index={2}><p style={{ ...metaLabel(mobile), margin: 0 }}>
         {group.member_count} {group.member_count === 1 ? "member" : "members"}
-      </p>
+      </p></MotionReveal>
 
-      <div role="tablist" aria-label="Board" style={{ display: "flex", gap: SPACE[4] }}>
+      <MotionReveal index={3}><div role="tablist" aria-label="Board" style={{ display: "flex", gap: SPACE[4] }}>
         <TabButton active={tab === "today"} label="Today" onClick={() => setTab("today")} mobile={mobile} />
         <TabButton active={tab === "season"} label="Season" onClick={() => setTab("season")} mobile={mobile} />
-      </div>
+      </div></MotionReveal>
 
       {tab === "today" ? (
         <div
@@ -242,7 +246,7 @@ const DailyGroupBoard: React.FC<{
           style={{ display: "flex", flexDirection: "column", gap: SPACE[3] }}
         >
           {today === null && <p style={{ ...metaLabel(mobile), margin: 0 }}>Loading…</p>}
-          {todayRows.map((r) => (
+          {todayRows.map((r, i) => (
             <BoardRow
               key={r.visitor_id}
               testId="group-today-row"
@@ -267,6 +271,7 @@ const DailyGroupBoard: React.FC<{
               me={r.is_me}
               quiet={r.not_played}
               mobile={mobile}
+              motionIndex={i}
             />
           ))}
         </div>
@@ -280,7 +285,7 @@ const DailyGroupBoard: React.FC<{
           <p style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>
             Points are 3 for 1st, 2 for 2nd, 1 for 3rd.
           </p>
-          {(season ?? []).map((r) => (
+          {(season ?? []).map((r, i) => (
             <BoardRow
               key={r.visitor_id}
               testId="group-season-row"
@@ -293,6 +298,7 @@ const DailyGroupBoard: React.FC<{
               }
               me={r.is_me}
               mobile={mobile}
+              motionIndex={i}
             />
           ))}
         </div>

@@ -3,7 +3,7 @@ import { ENTRY_STAGGER_DELAYS_MS } from "@/lib/animationTiming";
 
 /**
  * One element of an entry screen's staggered reveal — the same treatment the
- * Daily ready screen uses (`.daily-intro` / `daily-intro-up` in index.css),
+ * Daily ready screen uses (`.daily-intro` in index.css),
  * lifted here so Classic reuses it instead of owning a second copy.
  *
  * Children are always mounted and always occupy their space, so nothing shifts

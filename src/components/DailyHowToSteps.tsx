@@ -1220,7 +1220,7 @@ const DailyHowToSteps: React.FC<{
 
   useEffect(() => {
     if (!prev) return;
-    const t = window.setTimeout(() => setPrev(null), 340);
+    const t = window.setTimeout(() => setPrev(null), 250);
     return () => window.clearTimeout(t);
   }, [prev]);
 
@@ -1294,7 +1294,7 @@ const DailyHowToSteps: React.FC<{
                centring it between the heading and the copy. */
             gap: 0,
 
-            "--ww-step-dx": `${d * 32}px`,
+            "--ww-step-dx": `${d * 8}px`,
           } as React.CSSProperties
         }
       >

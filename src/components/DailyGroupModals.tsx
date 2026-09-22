@@ -17,6 +17,7 @@ import { usePortalHost } from "@/hooks/usePortalHost";
 import DailyShapeRule from "@/components/DailyShapeRule";
 import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
+import { useMotionExit } from "@/hooks/useMotionExit";
 import { getDisplayName, getVisitorId, setDisplayName, DISPLAY_NAME_MAX } from "@/lib/visitor";
 import {
   GROUP_CODE_LENGTH,
@@ -61,9 +62,10 @@ const GroupModalShell: React.FC<{
   ariaLabel: string;
   testId: string;
   onClose: () => void;
-  children: React.ReactNode;
+  children: React.ReactNode | ((requestExit: () => void) => React.ReactNode);
 }> = ({ ariaLabel, testId, onClose, children }) => {
-  useDismiss(onClose, { escape: true, returnFocus: true });
+  const { exiting, requestExit } = useMotionExit(onClose);
+  useDismiss(requestExit, { escape: true, returnFocus: true });
   const portalHost = usePortalHost("group-modal");
   const short =
     typeof window !== "undefined" && window.innerHeight > 0 && window.innerHeight < 560;
@@ -77,6 +79,8 @@ const GroupModalShell: React.FC<{
       aria-modal="true"
       aria-label={ariaLabel}
       data-testid={testId}
+      className="ww-ui-modal-backdrop"
+      data-motion-exit={exiting ? "true" : undefined}
       style={{
         position: "fixed",
         inset: 0,
@@ -96,6 +100,8 @@ const GroupModalShell: React.FC<{
     >
       {!short && <DailyShapeRule />}
       <div
+        className="ww-ui-modal-panel"
+        data-motion-exit={exiting ? "true" : undefined}
         style={{
           width: "100%",
           maxWidth: 402,
@@ -110,9 +116,9 @@ const GroupModalShell: React.FC<{
         }}
       >
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <CloseButton label="Close" onClick={onClose} ariaLabel="Close" />
+          <CloseButton label="Close" onClick={requestExit} ariaLabel="Close" />
         </div>
-        {children}
+        {typeof children === "function" ? children(requestExit) : children}
       </div>
       {!short && <DailyShapeRule />}
     </div>,
@@ -319,6 +325,7 @@ export const LeaveGroupModal: React.FC<{
   onConfirm: () => void;
 }> = ({ mobile, groupName, onClose, onConfirm }) => (
   <GroupModalShell ariaLabel="Leave group" testId="group-leave-modal" onClose={onClose}>
+    {(requestExit) => <>
     <h2 style={{ ...textStyle("subhead", mobile), color: COLORS.ink, margin: 0 }}>
       Leave {groupName}?
     </h2>
@@ -337,10 +344,11 @@ export const LeaveGroupModal: React.FC<{
     <button
       type="button"
       className="ww-press"
-      onClick={onClose}
+      onClick={requestExit}
       style={{ ...buttonStyle("quiet", "lg", { mobile }), alignSelf: "stretch" }}
     >
       Stay
     </button>
+    </>}
   </GroupModalShell>
 );

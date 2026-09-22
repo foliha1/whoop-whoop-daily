@@ -365,22 +365,66 @@ All colors MUST be HSL.
   to { width: 100%; }
 }
 
-/* ── Daily ready screen intro animation ── */
-@keyframes daily-intro-up {
-  from { opacity: 0; transform: translateY(16px); }
+/* ── Shared product UI motion ── */
+@keyframes ww-ui-enter {
+  from { opacity: 0; transform: translateY(var(--ww-ui-distance, 8px)); }
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes ww-ui-small-enter {
+  from { opacity: 0; transform: scale(var(--ww-ui-small-scale, 0.8)); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ww-ui-revisit { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ww-ui-modal-in {
+  from { opacity: 0; transform: scale(var(--ww-ui-modal-scale, 0.96)); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes ww-ui-modal-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(var(--ww-ui-modal-scale, 0.96)); }
+}
+
+.ww-ui-section-in,
+.ww-ui-list-in,
 .daily-intro {
   opacity: 0;
-  animation: daily-intro-up 600ms ease-out forwards;
+  animation: ww-ui-enter var(--ww-ui-enter, 250ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) var(--ww-ui-delay, 0ms) both;
+}
+
+.ww-ui-small-in {
+  opacity: 0;
+  animation: ww-ui-small-enter var(--ww-ui-small-enter, 180ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) var(--ww-small-delay, 0ms) both;
+}
+
+.ww-ui-revisit {
+  opacity: 0;
+  animation: ww-ui-revisit var(--ww-ui-revisit, 200ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) both;
+}
+
+.ww-ui-modal-backdrop { animation: ww-ui-revisit var(--ww-ui-enter, 250ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) both; }
+.ww-ui-modal-panel { animation: ww-ui-modal-in var(--ww-ui-enter, 250ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) both; }
+.ww-ui-modal-backdrop[data-motion-exit="true"] { animation: ww-ui-revisit var(--ww-ui-exit, 150ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) reverse both; }
+.ww-ui-modal-panel[data-motion-exit="true"] { animation: ww-ui-modal-out var(--ww-ui-exit, 150ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) both; }
+
+.daily-intro {
+  --ww-ui-delay: 0ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .daily-intro {
-    opacity: 1;
-    animation: none;
+  .daily-intro,
+  .ww-ui-section-in,
+  .ww-ui-list-in,
+  .ww-ui-small-in,
+  .ww-ui-modal-panel {
+    animation-name: ww-ui-revisit;
+    transform: none;
   }
+  .daily-intro,
+  .ww-ui-section-in,
+  .ww-ui-list-in,
+  .ww-ui-small-in { animation-delay: 0ms; }
 }
 
 /* ── Daily pattern strip ──
@@ -418,30 +462,30 @@ All colors MUST be HSL.
    another, not two ghosting through each other. Transform + opacity only.
    `--ww-step-dx` carries the direction of travel. */
 .ww-step-in {
-  animation: ww-step-in 320ms cubic-bezier(0.25, 1, 0.5, 1) both;
+  animation: ww-step-in var(--ww-ui-enter, 250ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) both;
   z-index: 2;
 }
 .ww-step-out {
-  animation: ww-step-out 320ms cubic-bezier(0.5, 0, 0.75, 1) both;
+  animation: ww-step-out var(--ww-ui-exit, 150ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) both;
   pointer-events: none;
   z-index: 1;
 }
 
 @keyframes ww-step-in {
-  from { opacity: 0; transform: translate3d(var(--ww-step-dx, 32px), 0, 0) scale(0.97); }
+  from { opacity: 0; transform: translate3d(var(--ww-step-dx, 8px), 0, 0); }
   55%  { opacity: 1; }
-  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 @keyframes ww-step-out {
-  from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  from { opacity: 1; transform: translate3d(0, 0, 0); }
   45%  { opacity: 0; }
-  to   { opacity: 0; transform: translate3d(calc(var(--ww-step-dx, 32px) * -1), 0, 0) scale(0.97); }
+  to   { opacity: 0; transform: translate3d(calc(var(--ww-step-dx, 8px) * -1), 0, 0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ww-step-in  { animation: ww-step-fade-in 250ms linear both; z-index: 2; }
-  .ww-step-out { animation: ww-step-fade-out 250ms linear both; z-index: 1; }
+  .ww-step-in  { animation: ww-step-fade-in var(--ww-ui-enter, 250ms) var(--ww-ui-ease, ease-out) both; z-index: 2; }
+  .ww-step-out { animation: ww-step-fade-out var(--ww-ui-exit, 150ms) var(--ww-ui-ease, ease-out) both; z-index: 1; }
 }
 
 @keyframes ww-step-fade-in  { from { opacity: 0; } to { opacity: 1; } }
@@ -1251,12 +1295,12 @@ All colors MUST be HSL.
 }
 
 @keyframes ww-mark-in {
-  from { opacity: 0; transform: scale(0.6); }
+  from { opacity: 0; transform: scale(var(--ww-ui-small-scale, 0.8)); }
   to   { opacity: 1; transform: scale(1); }
 }
 .ww-mark-in {
   opacity: 0;
-  animation: ww-mark-in 180ms cubic-bezier(0.23, 1, 0.32, 1) var(--ww-mark-delay, 0ms) both;
+  animation: ww-mark-in var(--ww-ui-small-enter, 180ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) var(--ww-mark-delay, 0ms) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

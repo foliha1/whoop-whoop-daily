@@ -38,6 +38,7 @@ const CurrentTierBadge: React.FC<CurrentTierBadgeProps> = ({ tier, size, testId,
 
   return (
     <img
+      className="ww-ui-small-in"
       data-testid={testId}
       data-tier={tier}
       src={src}

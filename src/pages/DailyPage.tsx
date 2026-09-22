@@ -69,6 +69,9 @@ import {
   DAILY_MATCH_REVEAL_MS,
   GREAT_MATCH_DELAY_MS,
   DEAL_MOVE_MS,
+  UI_ENTER_MS,
+  UI_SECTION_STAGGER_MS,
+  UI_SMALL_ENTER_MS,
 } from "@/lib/animationTiming";
 
 import { hapticError, hapticSuccess, hapticTap } from "@/lib/haptics";
@@ -124,10 +127,10 @@ const ATTR_LABEL: Record<string, string> = {
 };
 
 // Results-screen entrance motion: block stagger and the per-mark sequence.
-const BLOCK_STAGGER_MS = 40;
-const BLOCK_IN_MS = 250;
+const BLOCK_STAGGER_MS = UI_SECTION_STAGGER_MS;
+const BLOCK_IN_MS = UI_ENTER_MS;
 const MARK_STAGGER_MS = 70;
-const MARK_IN_MS = 180;
+const MARK_IN_MS = UI_SMALL_ENTER_MS;
 /** Delay index of each block, in the order they arrive. */
 const RESULT_BLOCK = {
   heading: 0,
@@ -619,7 +622,7 @@ const DailyResultCard: React.FC<{
   // The orange tile is STATE, not animation: it applies in both motion modes.
   // Only the confetti and the shine are motion, and both are dropped entirely
   // under reduced motion — no quieter variant.
-  const celebrate = isMilestone && !reducedMotion;
+  const celebrate = isMilestone && !reducedMotion && !revisit;
   // Fires once per puzzle: revisits show the orange tile but no burst. Preview
   // never sets (or reads) the guard.
   const [burst] = React.useState(
@@ -644,7 +647,11 @@ const DailyResultCard: React.FC<{
       (b) => b.earnedOn === new Date().toISOString().slice(0, 10) && badgeArt(b.key) !== null
     );
   const tierUp = (scoreChange?.tierUp ?? false) || badgeToday;
-  const tierBurst = tierUp && !reducedMotion && !burst;
+  const tierBurst = tierUp && !reducedMotion && !burst && !revisit;
+
+  const resultClass = revisit ? undefined : "ww-res-in";
+  const resultMotion = (block: keyof typeof RESULT_BLOCK): React.CSSProperties =>
+    revisit ? {} : blockIn(block);
 
 
   const tileLabelStyle: React.CSSProperties = {
@@ -661,6 +668,7 @@ const DailyResultCard: React.FC<{
    */
   const stat = (label: string, value: string, milestone = false) => (
     <div
+      className={revisit ? "ww-ui-revisit" : undefined}
       key={label}
       data-testid="stat-tile"
       data-milestone={milestone ? "1" : undefined}
@@ -736,8 +744,8 @@ const DailyResultCard: React.FC<{
 
 
       <h1
-        className="ww-res-in"
-        style={{ ...textStyle("title", mobile), color: COLORS.ink, textAlign: "center", margin: 0, ...blockIn("heading") }}
+        className={resultClass}
+        style={{ ...textStyle("title", mobile), color: COLORS.ink, textAlign: "center", margin: 0, ...resultMotion("heading") }}
       >
         WHOOP! WHOOP! Daily #{puzzleNumber}
       </h1>
@@ -745,8 +753,8 @@ const DailyResultCard: React.FC<{
           revisit endings still say their one thing. */}
       {(failed || revisit) && (
         <p
-          className="ww-res-in"
-          style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, textAlign: "center", margin: 0, marginTop: SPACE[6], ...blockIn("message") }}
+          className={resultClass}
+          style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, textAlign: "center", margin: 0, marginTop: SPACE[6], ...resultMotion("message") }}
         >
           {failed
             ? "Whooped! Better luck tomorrow."
@@ -756,8 +764,8 @@ const DailyResultCard: React.FC<{
       {/* Your daily results: this run's numbers, the round rows, and the
           crowd comparison. */}
       <div
-        className="ww-res-in"
-        style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: 0, marginTop: SPACE[6], ...blockIn("stats") }}
+        className={resultClass}
+        style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: 0, marginTop: SPACE[6], ...resultMotion("stats") }}
       >
         <h2 style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, margin: 0 }}>
           Your daily results
@@ -828,7 +836,7 @@ const DailyResultCard: React.FC<{
                   )}
                   <RoundMarks
                     events={events}
-                    animateFrom={markOffsets[i]}
+                    animateFrom={revisit ? undefined : markOffsets[i]}
                     baseDelayMs={MARKS_BASE_DELAY_MS}
                   />
                 </div>
@@ -842,13 +850,13 @@ const DailyResultCard: React.FC<{
           after today's result. Absent until the score read returns — which
           only happens after the run was written. */}
       <div
-        className="ww-res-in"
+        className={resultClass}
         style={{
           alignSelf: "stretch",
           display: "flex",
           flexDirection: "column",
           marginTop: SPACE[6],
-          ...blockIn("score"),
+          ...resultMotion("score"),
         }}
       >
         <WhoopPointsChange points={whoop} mobile={mobile} tierUp={tierUp} />
@@ -859,7 +867,7 @@ const DailyResultCard: React.FC<{
 
 
       {/* Tier 4 — the actions are a different kind of thing from the readout. */}
-      <div className="ww-res-in" style={{ alignSelf: "stretch", marginTop: SPACE[6], ...blockIn("share") }}>
+      <div className={resultClass} style={{ alignSelf: "stretch", marginTop: SPACE[6], ...resultMotion("share") }}>
         <ShareBlock
           text={shareText}
           result={result}
@@ -872,10 +880,10 @@ const DailyResultCard: React.FC<{
 
       <button
         type="button"
-        className="ww-press ww-res-in"
+        className={["ww-press", resultClass].filter(Boolean).join(" ")}
         onClick={onLeave}
         data-testid="results-done"
-        style={{ ...buttonStyle("ink", "lg", { mobile }), alignSelf: "stretch", marginTop: SPACE[4], ...blockIn("done") }}
+        style={{ ...buttonStyle("ink", "lg", { mobile }), alignSelf: "stretch", marginTop: SPACE[4], ...resultMotion("done") }}
       >
         Done
       </button>
@@ -883,7 +891,7 @@ const DailyResultCard: React.FC<{
       {!subscribed && (
         <div
           data-testid="results-email-capture"
-          className="ww-res-in"
+          className={resultClass}
           style={{
             alignSelf: "stretch",
             border: BORDER.heavy,
@@ -893,7 +901,7 @@ const DailyResultCard: React.FC<{
             display: "flex",
             flexDirection: "column",
             marginTop: SPACE[8],
-            ...blockIn("email"),
+            ...resultMotion("email"),
           }}
         >
           <DailyEmailCapture onSubscribed={onSubscribed} />

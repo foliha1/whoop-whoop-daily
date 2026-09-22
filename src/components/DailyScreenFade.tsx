@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { DAILY_SCREEN_FADE_MS } from "@/lib/animationTiming";
+import { DAILY_SCREEN_FADE_MS, UI_EASE } from "@/lib/animationTiming";
 
 /**
  * True cross-fade between the daily screens (ready → gameplay → results).
@@ -61,7 +61,7 @@ const DailyScreenFade: React.FC<{
   const layerStyle: React.CSSProperties = {
     position: "absolute",
     inset: 0,
-    transition: `opacity ${MS}ms ease`,
+    transition: `opacity ${MS}ms ${UI_EASE}`,
   };
 
   return (
@@ -70,7 +70,7 @@ const DailyScreenFade: React.FC<{
         position: "relative",
         minHeight: "var(--ww-vh)",
         background,
-        transition: `background-color ${MS}ms ease`,
+        transition: `background-color ${MS}ms ${UI_EASE}`,
       }}
     >
       {outgoing && (

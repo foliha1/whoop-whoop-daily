@@ -18,6 +18,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import DailyFrame from "@/components/DailyFrame";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
 import DailyStatsBlock from "@/components/DailyStatsBlock";
+import MotionReveal from "@/components/MotionReveal";
 import CurrentTierBadge from "@/components/CurrentTierBadge";
 import { useDailyProfile } from "@/hooks/useDailyProfile";
 import useDailyRecall from "@/hooks/useDailyRecall";
@@ -110,7 +111,7 @@ const YouPage: React.FC = () => {
           gap: SPACE[10],
         }}
       >
-        <Link
+        <MotionReveal index={0} style={{ alignSelf: "flex-start" }}><Link
           to="/"
           state={backToResults ? { wwOpenResult: true } : undefined}
           className="ww-press"
@@ -118,9 +119,9 @@ const YouPage: React.FC = () => {
         >
           <ChevronLeft size={16} strokeWidth={2} aria-hidden="true" />
           Back
-        </Link>
+        </Link></MotionReveal>
 
-        <h1 style={{ ...textStyle("title", mobile), color: COLORS.ink, margin: 0 }}>You</h1>
+        <MotionReveal index={1}><h1 style={{ ...textStyle("title", mobile), color: COLORS.ink, margin: 0 }}>You</h1></MotionReveal>
 
         {/* 1 — the total, and the tier it sits in. */}
         {loading ? null : points === null ? (
@@ -132,7 +133,7 @@ const YouPage: React.FC = () => {
           </p>
         ) : (
           <>
-            <div
+            <MotionReveal index={2}><div
               data-testid="you-score"
               style={{
                 ...panel,
@@ -177,10 +178,10 @@ const YouPage: React.FC = () => {
                   </span>
                 </div>
               </div>
-            </div>
+            </div></MotionReveal>
 
             {/* 2 — two contained stats, the number leading. */}
-            <div
+            <MotionReveal index={3}><div
               data-testid="you-stats"
               style={{ alignSelf: "stretch", display: "flex", gap: SPACE[4] }}
             >
@@ -228,10 +229,10 @@ const YouPage: React.FC = () => {
                       )}`}
                 </span>
               </div>
-            </div>
+            </div></MotionReveal>
 
             {/* 3 — the ladder, with your rung marked. */}
-            <div
+            <MotionReveal index={4}><div
               data-testid="you-ladder"
               style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}
             >
@@ -240,7 +241,7 @@ const YouPage: React.FC = () => {
                 const here = t.tier === points.tier;
                 const highest = droppedTier && i === highestIdx;
                 return (
-                  <div
+                  <MotionReveal kind="list" index={i}
                     key={t.tier}
                     data-testid="you-ladder-row"
                     data-here={here ? "1" : undefined}
@@ -272,20 +273,20 @@ const YouPage: React.FC = () => {
                     >
                       {tierRange(t.tier)}
                     </span>
-                  </div>
+                  </MotionReveal>
                 );
               })}
-            </div>
+            </div></MotionReveal>
 
             {/* 4 — how points are earned, and how they fade. */}
-            <div
+            <MotionReveal index={5}><div
               data-testid="you-earning"
               style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}
             >
               {sectionLabel("How you earn points")}
               <div style={{ ...panel, padding: `${SPACE[2]}px ${SPACE[6]}px` }}>
                 {EARN_ROWS.map((row, i) => (
-                  <div
+                  <MotionReveal kind="list" index={i}
                     key={row.label}
                     data-testid="you-earn-row"
                     style={{
@@ -306,24 +307,24 @@ const YouPage: React.FC = () => {
                     <span style={{ ...textStyle("control", mobile), color: COLORS.ink }}>
                       {row.value}
                     </span>
-                  </div>
+                  </MotionReveal>
                 ))}
               </div>
               <p style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>
                 {FADE_LINE}
               </p>
-            </div>
+            </div></MotionReveal>
 
             {/* 5 — badges. Only art that exists is ever shown. */}
             {shownBadges.length > 0 && (
-              <div
+              <MotionReveal index={6}><div
                 data-testid="you-badges"
                 style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}
               >
                 {sectionLabel("Badges")}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: SPACE[6] }}>
-                  {shownBadges.map((b) => (
-                    <div
+                  {shownBadges.map((b, i) => (
+                    <MotionReveal kind="small" index={i}
                       key={b.key}
                       data-testid="you-badge"
                       data-badge={b.key}
@@ -360,26 +361,26 @@ const YouPage: React.FC = () => {
                       >
                         {formatBadgeDate(b.earnedOn)}
                       </span>
-                    </div>
+                    </MotionReveal>
                   ))}
                 </div>
-              </div>
+              </div></MotionReveal>
             )}
           </>
         )}
 
         {/* 6 — moved here from the results screen. */}
-        <DailyStatsBlock stats={stats} recall={recall} mobile={mobile} />
+        <MotionReveal index={7}><DailyStatsBlock stats={stats} recall={recall} mobile={mobile} /></MotionReveal>
 
         {/* 7 — groups. */}
-        <Link
+        <MotionReveal index={8}><Link
           to="/groups"
           className="ww-press"
           data-testid="you-groups-link"
           style={{ ...buttonStyle("secondary", "lg", { mobile }), alignSelf: "stretch" }}
         >
           Your Groups
-        </Link>
+        </Link></MotionReveal>
       </div>
 
       <DailyLegalFooter />

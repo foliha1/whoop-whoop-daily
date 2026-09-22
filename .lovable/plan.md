@@ -14,10 +14,10 @@ Replace the product’s mixed presentation timings with one motion language whil
 | Classic display-name screen | `MultiplayerWindow.tsx` | No section reveal | Add shared section reveal/stagger |
 | Classic lobby and terminal entry screens | `MultiplayerWindow.tsx` | Mostly instant; intro handoff has 250ms `ease-out` plus 120ms delay | Add shared section reveal/stagger; keep frequently changing status content instant |
 | Daily results sections | `DailyPage.tsx`, `.ww-res-in` | 250ms, rise 8px, requested curve, 40ms blocks; constants local | Same visible behavior, now driven by central tokens |
-| Daily result dots | `DailyPage.tsx`, `.ww-mark-in` | 180ms, scale 0.6→1; 70ms per mark | 180ms, scale 0.8→1; 30ms list stagger capped at item 6 |
+| Daily result dots | `DailyPage.tsx`, `.ww-mark-in` | 180ms, scale 0.6→1; 70ms per mark | 180ms, scale 0.8→1; preserve the explanatory 70ms attempt replay with no list cap |
 | Daily small result elements (badges/chips) | `WhoopPointsChange.tsx`, badge/result children | Mixed inherited entry or hard appearance | Shared 180ms small-element fade/scale, 0.8→1 |
 | Daily revisit results | `DailyPage.tsx` | Replays full section and dot sequence | One 200ms opacity-only fade; zero stagger; dots do not replay |
-| Daily ready/play/results cross-fade | `DailyScreenFade.tsx` | 250ms `ease`, opacity; background also transitions | At most 250ms with shared curve; opacity/transform-only rule means background color changes instantly rather than animating |
+| Daily ready/play/results cross-fade | `DailyScreenFade.tsx` | 250ms `ease`, opacity; background also transitions | At most 250ms with shared curve; preserve the ground-color fade to prevent cream/khaki flashing |
 | App route changes | `App.tsx` | 200ms `ease` out, then 200ms in | 150ms exit and 250ms enter with shared curve |
 | YOU page sections | `YouPage.tsx`, `DailyStatsBlock.tsx` | No entry motion | 250ms section entries, 40ms stagger |
 | YOU tier/earning rows | `YouPage.tsx` | No entry motion | 250ms row entry, 30ms stagger capped at row 6 |
@@ -33,7 +33,7 @@ Replace the product’s mixed presentation timings with one motion language whil
 | Classic leave-game modal | `MultiplayerWindow.tsx` | Instant mount/unmount | Modal tokens: 250ms enter/150ms exit |
 | In-game confirmation modals | `MultiplayerGameView.tsx` `ModalShell` | Instant mount/unmount | Modal tokens: 250ms enter/150ms exit; no game-state timing changes |
 | Classic results | `ClassicResultScreen.tsx` | Instant full-screen entry | Sections use 250ms/40ms entry; rows use capped 30ms list stagger; modal-style shell exits in 150ms where dismissal is locally owned |
-| How to Play slide chrome | `DailyHowToSteps.tsx`, `.ww-step-in/out` | 320ms directional 32px slide + scale 0.97; reduced motion 250ms linear fade | Screen change ≤250ms on shared curve; UI chrome uses 8px/opacity language, exit 150ms; reduced motion fade-only with no delay |
+| How to Play slide chrome | `DailyHowToSteps.tsx`, `.ww-step-in/out` | 320ms directional 32px slide + scale 0.97; reduced motion 250ms linear fade | Directional screen change on the shared curve: Next and Back retain opposite directions, shortened to 8px and ≤250ms; exit 150ms; reduced motion fade-only with no delay |
 | Classic How to Play chrome/copy | `ClassicDemo.tsx`, `DemoSpotlight.tsx` | Mostly 250ms `ease-out` or 250ms demo curve fades | Shared 250ms curve for chrome/copy only; scripted board/die teaching motion remains untouched |
 | Toasts | `src/components/ui/toast.tsx` | Utility defaults, large directional slide, `transition-all` | Shared enter/exit durations and curve, targeted opacity/transform properties only; swipe gesture remains functional |
 
@@ -85,24 +85,24 @@ In `src/lib/animationTiming.ts`, add named presentation constants and expose mat
 - `UI_SMALL_START_SCALE = 0.8`
 - `UI_EASE = cubic-bezier(0.23, 1, 0.32, 1)`
 
-Add shared classes/helpers for section entry, capped list entry, small-element entry, revisit fade, modal backdrop/panel entry and exit, and route/screen transitions. All use only opacity and transform. Existing `ENTRY_ASSET_TIMEOUT_MS = 700` remains unchanged.
+Add shared classes/helpers for section entry, capped list entry, small-element entry, revisit fade, modal backdrop/panel entry and exit, and route/screen transitions. Entering/leaving elements use only opacity and transform. Screen ground-color transitions remain allowed on the shared curve. Existing `ENTRY_ASSET_TIMEOUT_MS = 700` remains unchanged.
 
 Reduced motion will keep opacity fades, remove transforms, and force all stagger variables to zero. Controls remain mounted and tappable throughout; animation wrappers never use `pointer-events: none` for incoming content.
 
 ## Implementation
 
-1. Centralize the Daily result constants and CSS literals in the new tokens; change mark scale from 0.6 to 0.8 and stagger from 70ms to capped 30ms.
+1. Centralize the Daily result constants and CSS literals in the new tokens; change mark scale from 0.6 to 0.8 while preserving the 70ms attempt-replay stagger without a cap.
 2. Update `EntryReveal`, Daily start, and Classic chooser/display-name/lobby entry structures to consume shared section delays without changing their asset gate.
 3. Add reusable presentational wrappers/hooks for section/list entry and controlled modal exit. Apply them to YOU, Groups, group boards, Classic results, and the named dialogs/sheets.
 4. Add the explicit Daily revisit branch: one 200ms fade around the completed result, with section and dot classes disabled. Fresh completion retains the full stagger and milestone timing.
-5. Move route, Daily screen, and How to Play chrome transitions to the shared curve and durations; leave demo/gameplay choreography intact.
+5. Move route and Daily screen transitions to the shared curve and durations while preserving ground-color fades. Keep How to Play navigation directional with opposite 8px Next/Back travel; leave demo/gameplay choreography intact.
 6. Replace `transition-all` in the active toast with explicit opacity/transform transitions while retaining swipe behavior.
 
 ## Verification
 
 - Add timing-token and reduced-motion tests, including zero stagger and fade-only transforms.
 - Test Daily fresh completion versus revisit: fresh result staggers and dots animate; revisit uses one 200ms fade with no dot replay.
-- Test list delay capping: items 1–6 use 0/30/60/90/120/150ms and every later item stays at 150ms.
+- Test list delay capping: ordinary list items 1–6 use 0/30/60/90/120/150ms and every later item stays at 150ms; Daily result dots remain 70ms apart without capping.
 - Test modal enter and delayed 150ms exit without blocking buttons, Escape, backdrop close, focus return, or visual-viewport handling.
 - Verify Daily, YOU, Groups, Classic entry/lobby/results, settings, share, email, create/join/leave dialogs in normal and reduced-motion modes.
 - Run focused tests, type-check through the project harness, and browser-check representative 390×520 and desktop flows in light/night themes.
