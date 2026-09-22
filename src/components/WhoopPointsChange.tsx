@@ -9,6 +9,7 @@
 // ============================================================================
 
 import React from "react";
+import CurrentTierBadge from "@/components/CurrentTierBadge";
 import type { WhoopPoints } from "@/lib/whoopPoints";
 import { SCORE_LABEL, formatPointsChange, tierName } from "@/lib/whoopTiers";
 import { BORDER, COLORS, RADIUS, RAW, SPACE, textStyle } from "@/lib/tokens";
@@ -35,6 +36,7 @@ const WhoopPointsChange: React.FC<{
       style={{
         alignSelf: "stretch",
         boxSizing: "border-box",
+        position: "relative",
         border: BORDER.heavy,
         borderRadius: RADIUS.sm,
         background: tierUp ? COLORS.orange : COLORS.panel,
@@ -76,9 +78,27 @@ const WhoopPointsChange: React.FC<{
           {points.total}
         </span>
       </div>
-      <span style={{ ...textStyle("control", mobile), color: ink }}>
-        {tierName(points.tier)}
-      </span>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minWidth: 0,
+        }}
+      >
+        <span style={{ ...textStyle("control", mobile), color: ink }}>
+          {tierName(points.tier)}
+        </span>
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          right: SPACE[6],
+          bottom: tierUp ? SPACE[6] : SPACE[4],
+        }}
+      >
+        <CurrentTierBadge tier={points.tier} size={mobile ? 36 : 42} testId="result-tier-badge" />
+      </div>
       {tierUp && (
         <span
           data-testid="result-tier-up"
