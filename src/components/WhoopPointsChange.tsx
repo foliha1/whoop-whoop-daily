@@ -107,7 +107,7 @@ const WhoopPointsChange: React.FC<{
           }}
         >
           <span style={{ ...textStyle("display", mobile), color: ink }}>
-            +{points.todayPoints}
+            +{points.todayPoints ?? 0}
           </span>
           <span style={{ ...textStyle("caption", mobile), color: tierUp ? RAW.warmBlack : COLORS.inkMuted }}>
             today
