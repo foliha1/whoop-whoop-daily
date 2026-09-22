@@ -14,6 +14,12 @@ export function useMotionExit(onExited: () => void) {
 
   const requestExit = React.useCallback(() => {
     if (timerRef.current !== null) return;
+    // Test/non-visual DOMs cannot play the CSS exit, so preserve immediate
+    // dismissal there rather than leaving an invisible timer-owned surface.
+    if (typeof Element === "undefined" || typeof Element.prototype.animate !== "function") {
+      callbackRef.current();
+      return;
+    }
     setExiting(true);
     timerRef.current = window.setTimeout(() => callbackRef.current(), UI_EXIT_MS);
   }, []);

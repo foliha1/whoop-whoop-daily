@@ -668,7 +668,6 @@ const DailyResultCard: React.FC<{
    */
   const stat = (label: string, value: string, milestone = false) => (
     <div
-      className={revisit ? "ww-ui-revisit" : undefined}
       key={label}
       data-testid="stat-tile"
       data-milestone={milestone ? "1" : undefined}
@@ -715,6 +714,7 @@ const DailyResultCard: React.FC<{
 
   return (
     <div
+      className={revisit ? "ww-ui-revisit" : undefined}
       style={{
         width: "100%",
         alignSelf: "stretch",

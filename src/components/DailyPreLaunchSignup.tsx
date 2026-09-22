@@ -10,6 +10,7 @@ import React from "react";
 import DailyEmailCapture from "@/components/DailyEmailCapture";
 import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
+import { useMotionExit } from "@/hooks/useMotionExit";
 import { DAILY_LAUNCH_LABEL } from "@/lib/daily";
 import { BORDER, COLORS, RAW, RADIUS, SPACE } from "@/lib/tokens";
 
@@ -21,10 +22,11 @@ const DailyPreLaunchSignup: React.FC<{
   onSubscribed?: (email: string, restored: boolean) => void;
 }> = ({ onClose, onSubscribed }) => {
   const cardRef = React.useRef<HTMLDivElement>(null);
+  const { exiting, requestExit } = useMotionExit(onClose);
 
   // Escape + focus return: shared. Backdrop tap is this modal's own behaviour
   // (it is the only Daily modal with a scrim) and is wired through the hook.
-  const { onBackdropClick } = useDismiss(onClose, {
+  const { onBackdropClick } = useDismiss(requestExit, {
     escape: true,
     backdrop: true,
     returnFocus: true,
@@ -63,6 +65,7 @@ const DailyPreLaunchSignup: React.FC<{
       aria-label="Get the first puzzle"
       data-testid="prelaunch-signup"
       className="ww-ui-modal-backdrop"
+      data-motion-exit={exiting ? "true" : undefined}
       style={{
         position: "fixed",
         inset: 0,
@@ -80,6 +83,7 @@ const DailyPreLaunchSignup: React.FC<{
       <div
         ref={cardRef}
         className="ww-ui-modal-panel"
+        data-motion-exit={exiting ? "true" : undefined}
         style={{
           width: "100%",
           maxWidth: 354,
@@ -99,7 +103,7 @@ const DailyPreLaunchSignup: React.FC<{
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <CloseButton
             label="Close"
-            onClick={onClose}
+            onClick={requestExit}
             ariaLabel="Close"
             data-testid="prelaunch-close"
           />
