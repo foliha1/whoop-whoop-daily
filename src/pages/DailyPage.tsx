@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { HelpCircle, Settings } from "lucide-react";
 
@@ -1535,6 +1536,19 @@ const DailyPage: React.FC = () => {
     daily.result !== null && (daily.alreadyPlayed || (phase === "DONE" && runSettled));
   const finished = playedToday && showResult;
   const ready = !finished && (phase === "READY" || playedToday);
+
+  // Back from Your Stats / Groups with today's result already saved: land
+  // straight on the results screen instead of asking for the ready screen's
+  // "See Today's Result" tap again.
+  const location = useLocation();
+  useEffect(() => {
+    const fromResults =
+      (location.state as { wwOpenResult?: boolean } | null)?.wwOpenResult === true;
+    if (fromResults && daily.alreadyPlayed && daily.result !== null) {
+      setShowResult(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.key, daily.alreadyPlayed, daily.result]);
 
   // Background theme: ready (intro) and results screens only. It fades out the
   // moment the run starts and fades back in when the result screen opens. The
