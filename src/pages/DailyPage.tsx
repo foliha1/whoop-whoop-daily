@@ -782,11 +782,9 @@ const DailyResultCard: React.FC<{
             a heading of their own. */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "auto 1fr auto",
-            alignItems: "stretch",
-            columnGap: SPACE[3],
-             marginTop: SPACE[6],
+            display: "flex",
+            flexDirection: "column",
+            marginTop: SPACE[6],
           }}
         >
           {roundEvents.map((events, i) => {
@@ -797,11 +795,19 @@ const DailyResultCard: React.FC<{
               alignItems: "center",
               paddingTop: SPACE[4],
               paddingBottom: SPACE[4],
-              ...(i === 0 ? {} : { borderTop: `1px solid ${COLORS.inkMuted}` }),
             };
 
             return (
-              <React.Fragment key={`round-${i}`}>
+              <div
+                key={`round-${i}`}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "auto minmax(0, 1fr) auto",
+                  alignItems: "stretch",
+                  columnGap: SPACE[3],
+                  ...(i === 0 ? {} : { borderTop: `1px solid ${COLORS.inkMuted}` }),
+                }}
+              >
                 <div style={{ ...cell, color: COLORS.inkMuted }}>R{i + 1}</div>
                 <div style={{ ...cell, color: COLORS.ink }}>
                   {attributes[i] ? ATTR_LABEL[attributes[i]] : ""}
@@ -825,7 +831,7 @@ const DailyResultCard: React.FC<{
                     baseDelayMs={MARKS_BASE_DELAY_MS}
                   />
                 </div>
-              </React.Fragment>
+              </div>
             );
           })}
         </div>
