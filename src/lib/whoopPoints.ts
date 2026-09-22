@@ -7,8 +7,8 @@
 // mirrors the config for the client: the constants below must stay in step with
 // `public.whoop_points_config()`.
 //
-// Built alongside the older Whoop Score engine (`src/lib/whoopScore.ts`), which
-// the UI still reads. Nothing here replaces it yet.
+// This is the only score engine: it replaced the old rolling-average Whoop
+// Score, which has been removed. Display names live in `src/lib/whoopTiers.ts`.
 // ============================================================================
 
 import { supabase } from "@/integrations/supabase/client";

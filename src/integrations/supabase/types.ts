@@ -808,30 +808,6 @@ export type Database = {
           tier: string
         }[]
       }
-      get_whoop_score: {
-        Args: { p_email?: string; p_visitor_id: string }
-        Returns: {
-          consistency_rate: number
-          games_counted: number
-          games_needed: number
-          next_tier_threshold: number
-          no_peek_rate: number
-          percentile_band: number
-          points_to_next: number
-          previous_score: number
-          score: number
-          tier: string
-          zero_mistake_rate: number
-        }[]
-      }
-      get_whoop_tier_distribution: {
-        Args: never
-        Returns: {
-          eligible_total: number
-          players: number
-          tier: string
-        }[]
-      }
       is_admin: { Args: never; Returns: boolean }
       join_daily_group: {
         Args: {
@@ -914,6 +890,18 @@ export type Database = {
           identity: string
         }[]
       }
+      whoop_points_all: {
+        Args: { p_as_of?: string }
+        Returns: {
+          games_played: number
+          highest_tier_ever: string
+          identity: string
+          last_played: string
+          peak_total: number
+          tier: string
+          total: number
+        }[]
+      }
       whoop_points_apply_decay: {
         Args: { p_days: number; p_total: number }
         Returns: number
@@ -984,23 +972,6 @@ export type Database = {
       }
       whoop_points_tier: { Args: { p_total: number }; Returns: string }
       whoop_points_tier_floor: { Args: { p_tier: string }; Returns: number }
-      whoop_score_active_identities: {
-        Args: { p_as_of?: string }
-        Returns: {
-          identity: string
-        }[]
-      }
-      whoop_score_config: { Args: never; Returns: Json }
-      whoop_score_rows: {
-        Args: never
-        Returns: {
-          identity: string
-          peek_used: boolean
-          puzzle_date: string
-          puzzle_number: number
-          total_misses: number
-        }[]
-      }
       whoop_score_table: {
         Args: { p_as_of?: string; p_offset?: number }
         Returns: {
@@ -1012,8 +983,6 @@ export type Database = {
           zero_mistake_rate: number
         }[]
       }
-      whoop_score_tier: { Args: { p_score: number }; Returns: string }
-      whoop_score_tier_floor: { Args: { p_tier: string }; Returns: number }
     }
     Enums: {
       [_ in never]: never
