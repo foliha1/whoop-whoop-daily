@@ -9,3 +9,4 @@
 - [x] Correct shared typography roles so Friend owns display copy and Geist owns body/UI copy.
 - [x] Normalize shared button typography and visible button labels only; preserve sentence copy and accessibility descriptions.
 - [x] Build the Whoop Score engine: Daily-only scoring RPCs, tunable constants, and formula unit tests.
+- [ ] Redesign the Daily results presentation to the supplied reference layout; verify themes, short-screen scrolling, Rookie fallback, and email capture.
