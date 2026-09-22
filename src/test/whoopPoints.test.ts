@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   ACTIVE_DAYS,
   DECAY_PER_DAY,
+  DECAY_PROTECTED_POINTS,
   GRACE_DAYS,
   MAX_POINTS_PER_GAME,
+  applyDecay,
   computeWhoopPoints,
   decayForGap,
   gamePoints,
