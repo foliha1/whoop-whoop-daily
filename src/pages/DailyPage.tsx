@@ -491,7 +491,7 @@ const ShareBlock: React.FC<{
           onClick={openPreview}
           disabled={working}
           style={{
-            ...buttonStyle("secondary", "lg", { mobile }),
+            ...buttonStyle("accent", "lg", { mobile }),
             flex: "1 1 0",
             minWidth: 0,
           }}

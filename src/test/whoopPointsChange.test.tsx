@@ -57,7 +57,9 @@ describe("Daily results score panel", () => {
     expect(screen.getByRole("link", { name: "Your Stats" })).toHaveAttribute("href", "/you");
     expect(screen.getByRole("link", { name: "Groups" })).toHaveAttribute("href", "/groups");
     expect(screen.getByTestId("result-points-today")).toHaveTextContent("+2 today");
-    expect(screen.getByTestId("result-points-total")).toHaveTextContent("21");
+    expect(screen.getByTestId("result-points-total")).toHaveTextContent("21 total");
+    expect(screen.queryByText("Your tier", { exact: false })).toBeNull();
+    expect(screen.queryByText("Total score", { exact: false })).toBeNull();
   });
 
   it("keeps the tier tile complete without mapped art", () => {

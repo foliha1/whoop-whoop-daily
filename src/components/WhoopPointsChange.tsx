@@ -62,7 +62,7 @@ const WhoopPointsChange: React.FC<{
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "minmax(0, 0.88fr) minmax(0, 2fr)",
+          gridTemplateColumns: "minmax(0, 1.35fr) repeat(2, minmax(0, 1fr))",
           gap: SPACE[5],
           minWidth: 0,
         }}
@@ -74,16 +74,15 @@ const WhoopPointsChange: React.FC<{
             minWidth: 0,
             padding: `${SPACE[3]}px ${SPACE[2]}px`,
             display: "flex",
-            flexDirection: "column",
+            flexDirection: "row",
             alignItems: "center",
-            justifyContent: "space-between",
+            justifyContent: "center",
             gap: SPACE[2],
             textAlign: "center",
           }}
         >
-          <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted }}>Your tier</span>
           {tierHasArt && (
-            <div style={{ width: "64%", maxWidth: FONT_SIZE["7xl"] }}>
+            <div style={{ width: FONT_SIZE["4.5xl"], flex: "0 0 auto" }}>
               <CurrentTierBadge tier={points.tier} size={FONT_SIZE["7xl"]} fluid testId="result-tier-badge" />
             </div>
           )}
@@ -98,51 +97,47 @@ const WhoopPointsChange: React.FC<{
             {tierName(points.tier)}
           </span>
         </div>
-
         <div
+          data-testid="result-points-today"
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-            gridTemplateRows: "minmax(0, 1fr) auto",
-            gap: SPACE[5],
+            ...innerPanel,
             minWidth: 0,
+            padding: SPACE[3],
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            ...textStyle("subhead", mobile),
+            color: ink,
+            textAlign: "center",
           }}
         >
-          <div
-            data-testid="result-points-today"
-            style={{
-              ...innerPanel,
-              minWidth: 0,
-              padding: SPACE[3],
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              ...textStyle("subhead", mobile),
-              color: ink,
-              textAlign: "center",
-            }}
-          >
-            {change.text ?? `+0 today`}
-          </div>
-          <div
-            style={{
-              ...innerPanel,
-              minWidth: 0,
-              padding: SPACE[3],
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: SPACE[1],
-            }}
-          >
-            <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, textAlign: "center" }}>
-              Total score
-            </span>
-            <span data-testid="result-points-total" style={{ ...textStyle("display", mobile), color: COLORS.ink }}>
-              {points.total}
-            </span>
-          </div>
+          {change.text ?? `+0 today`}
+        </div>
+        <div
+          data-testid="result-points-total"
+          style={{
+            ...innerPanel,
+            minWidth: 0,
+            padding: SPACE[3],
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            ...textStyle("subhead", mobile),
+            color: COLORS.ink,
+            textAlign: "center",
+          }}
+        >
+          {points.total} total
+        </div>
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          gap: SPACE[5],
+          minWidth: 0,
+        }}
+      >
           <Link
             to="/you"
             data-testid="result-you-link"
@@ -159,7 +154,6 @@ const WhoopPointsChange: React.FC<{
           >
             Groups
           </Link>
-        </div>
       </div>
       {tierUp && (
         <span
