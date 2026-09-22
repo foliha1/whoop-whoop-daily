@@ -914,6 +914,10 @@ export type Database = {
           identity: string
         }[]
       }
+      whoop_points_apply_decay: {
+        Args: { p_days: number; p_total: number }
+        Returns: number
+      }
       whoop_points_config: { Args: never; Returns: Json }
       whoop_points_first_try: {
         Args: {

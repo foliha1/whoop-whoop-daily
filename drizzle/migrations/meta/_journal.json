@@ -43,6 +43,13 @@
       "when": 1790065353983,
       "tag": "0005_whoop_points_engine",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790067073236,
+      "tag": "0006_whoop_points_decay_protection",
+      "breakpoints": true
     }
   ]
 }
