@@ -69,15 +69,15 @@ const WhoopPointsChange: React.FC<{
             minWidth: 0,
             padding: `${SPACE[3]}px ${SPACE[2]}px`,
             display: "flex",
-            flexDirection: "row",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            gap: SPACE[3],
+            gap: SPACE[2],
             textAlign: "center",
           }}
         >
           {tierHasArt && (
-            <div style={{ width: FONT_SIZE["6xl"], flex: "0 0 auto" }}>
+            <div style={{ width: FONT_SIZE["7xl"], maxWidth: "100%", flex: "0 0 auto" }}>
               <CurrentTierBadge tier={points.tier} size={FONT_SIZE["7xl"]} fluid testId="result-tier-badge" />
             </div>
           )}
@@ -106,7 +106,7 @@ const WhoopPointsChange: React.FC<{
             textAlign: "center",
           }}
         >
-          <span style={{ ...textStyle("display", mobile), color: ink }}>
+          <span style={{ ...textStyle("resultWinner", mobile), color: ink }}>
             +{points.todayPoints ?? 0}
           </span>
           <span style={{ ...textStyle("caption", mobile), color: tierUp ? RAW.warmBlack : COLORS.inkMuted }}>
@@ -127,7 +127,7 @@ const WhoopPointsChange: React.FC<{
             textAlign: "center",
           }}
         >
-          <span style={{ ...textStyle("display", mobile), color: COLORS.ink }}>
+          <span style={{ ...textStyle("resultWinner", mobile), color: COLORS.ink }}>
             {points.total}
           </span>
           <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
