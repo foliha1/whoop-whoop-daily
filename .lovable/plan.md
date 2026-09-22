@@ -12,7 +12,7 @@ Recompose only the Daily results presentation to match the supplied reference: c
 - Retain the three equal stat tiles for solved, misses, and streak, but restyle them as compact themed khaki panels with the value above the small-caps label.
 - Keep streak milestone state and its existing shine/confetti treatment in the moved streak tile.
 - Keep the current per-round data and event ordering, but present it as three compact divided rows: round number, matching rule, then miss/solve dots at right. Preserve the Peek indicator and existing mark entrance timing.
-- Keep the existing daily percentile line because it is existing results content, placing it directly after the round rows.
+- Remove the daily percentile line from the results presentation to match the reference. Its calculation and underlying data remain unchanged.
 
 ### Score panel
 - Replace the current score hero and separate links with one themed panel headed `YOUR WHOOP WHOOP SCORE`.
@@ -20,7 +20,7 @@ Recompose only the Daily results presentation to match the supplied reference: c
 - Build the right side as a 2×2 grid: `+N today`, labelled total score, `Your Stats` linking to `/you`, and `Groups` linking to `/groups`.
 - Continue reading `todayPoints`, `total`, and `tier` only from the already post-write-gated Whoop Points result.
 - Preserve the existing tier-up/new-badge milestone detection and shared confetti. Keep fixed badge art theme-independent and load-gated through the existing reusable image helper.
-- Treat the latest requirement that Rookie has no displayed art as authoritative: remove Rookie from the badge-art map while leaving its uploaded asset untouched. Other mapped tier badges remain available, and the no-art fallback remains generic.
+- Keep Rookie and every other existing badge in the badge-art map. Rookie displays its badge like any mapped tier; the no-art fallback remains generic for genuinely unmapped or unloadable art.
 
 ### Actions and subscription
 - Keep the existing Invite behavior: native link-only share for today’s Daily, with clipboard/toast fallback and no result-card attachment.
@@ -31,8 +31,8 @@ Recompose only the Daily results presentation to match the supplied reference: c
 
 ### Sizing and overflow
 - Use only existing semantic colors, borders, radii, spacing tokens, button styles, and text roles. Do not introduce bold 700 weight or reduce information text below the existing 14px tier.
-- Use the existing 24px frame padding, yielding a 342px content width at 390px rather than forcing the measured 346px reference width.
-- Use the nearest existing tokens for the reference’s 16px panel padding, approximately 3px radii, 2px borders, and normalized internal gaps.
+- Treat the SVG measurements only as proportion and hierarchy guidance. Use established panel/button styles and the nearest spacing, radius, border, and type tokens throughout.
+- Build the score panel with fluid grid columns that share available width and adapt down to 360px without overflow. Give the tier tile a consistent proportional share and scale its badge within that fluid tile; do not use the reference’s fixed tile or row dimensions.
 - Keep gameplay’s fixed, non-scrolling frame unchanged. Results continue using the frame’s internal vertical scrolling only when content exceeds the viewport.
 
 ## Technical details
@@ -44,15 +44,12 @@ Recompose only the Daily results presentation to match the supplied reference: c
 ## Verification
 - Exercise a subscribed results state at 390×844 in light and night modes and confirm no internal scrolling.
 - Test descending viewport heights at 390px width and report the first height where subscribed results require scrolling; separately report the non-subscriber threshold because the retained email form is taller.
-- Verify a Rookie result shows a finished tier tile with no image or empty placeholder.
+- Verify a Rookie result displays its mapped badge in the tier tile.
 - Verify a badge-bearing tier renders decoded fixed artwork in the tier tile in both themes.
 - Verify a non-subscriber sees the unchanged email capture below Done.
 - Verify Invite sends only the Daily invitation link and Share still opens the unchanged result-card flow.
 - Run focused result, badge/tier, share, and points tests plus the project’s automatic type/build checks.
 
 ## Reference approximations to report
-- 346px panel width → 342px at 390px viewport, preserving the existing 24px frame padding.
-- ~3px and ~2.6px radii → `RADIUS.sm` (4px).
-- ~16px panel padding → `SPACE[8]` (16px).
-- ~10px outer and ~6–9px inner gaps → one normalized spacing token selected during visual fitting.
-- 91/103.5px measured columns and 102/68/25px rows → stable proportional grid tracks and nearest control/spacing dimensions that preserve readable 14px text and touch targets.
+- Report the established radius, border, spacing, control, and type tokens selected to express the reference’s hierarchy.
+- Do not report pixel substitutions for the measured columns or rows: those become fluid proportional tracks and token-based minimum control sizing.
