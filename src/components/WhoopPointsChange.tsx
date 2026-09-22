@@ -34,6 +34,7 @@ const WhoopPointsChange: React.FC<{
     <div
       data-testid="result-points"
       data-tier-up={tierUp ? "1" : undefined}
+      className="daily-intro"
       style={{
         alignSelf: "stretch",
         boxSizing: "border-box",
