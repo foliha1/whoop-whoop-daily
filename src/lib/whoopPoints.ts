@@ -120,16 +120,25 @@ export function gamePoints(game: PointsGame): number {
   );
 }
 
-/** Points lost to a gap of `days` between two appearances. */
+/** Raw points a gap of `days` would cost, before the protected floor applies. */
 export function decayForGap(days: number): number {
   return Math.max(0, days - GRACE_DAYS) * DECAY_PER_DAY;
 }
 
 /**
+ * Apply a gap's decay to a running total. Decay may only remove points above
+ * `DECAY_PROTECTED_POINTS`: a total already at or below it never decays.
+ */
+export function applyDecay(total: number, days: number): number {
+  if (total <= DECAY_PROTECTED_POINTS) return Math.max(0, total);
+  return Math.max(DECAY_PROTECTED_POINTS, total - decayForGap(days));
+}
+
+/**
  * Pure mirror of the SQL walk. Results are taken in `puzzle_date` order; each
- * game adds its points, each gap past the grace window subtracts, and the total
- * is floored at zero at every step — so a returning player rebuilds from where
- * decay left them. Deterministic: the same history always gives the same total.
+ * game adds its points and each gap past the grace window subtracts, never
+ * below the protected floor — so a returning player rebuilds from where decay
+ * left them. Deterministic: the same history always gives the same total.
  */
 export function computeWhoopPoints(
   games: PointsGame[],
