@@ -1,7 +1,8 @@
 import React from "react";
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import CurrentTierBadge from "@/components/CurrentTierBadge";
+import { clearBadgeImageCache, loadBadgeImage } from "@/lib/badgeImages";
 
 class MockImage {
   static instances: MockImage[] = [];
@@ -19,10 +20,11 @@ class MockImage {
 describe("CurrentTierBadge", () => {
   beforeEach(() => {
     MockImage.instances = [];
+    clearBadgeImageCache();
     vi.stubGlobal("Image", MockImage);
   });
 
-  it("shows Great Eye only after its fixed art has loaded", () => {
+  it("shows Great Eye only after its fixed art has loaded", async () => {
     render(<CurrentTierBadge tier="great_eye" size={72} testId="badge" />);
 
     expect(screen.queryByTestId("badge")).toBeNull();
@@ -30,7 +32,7 @@ describe("CurrentTierBadge", () => {
 
     act(() => MockImage.instances[0].onload?.());
 
-    const badge = screen.getByTestId("badge");
+    const badge = await screen.findByTestId("badge");
     expect(badge).toHaveAttribute("src", "/badges/great_eye.svg");
     expect(badge).toHaveAttribute("alt", "Great Eye badge");
     expect(badge).toHaveAttribute("data-tier", "great_eye");
@@ -44,7 +46,7 @@ describe("CurrentTierBadge", () => {
     expect(MockImage.instances).toHaveLength(0);
   });
 
-  it("follows the current tier when a player's highest tier is higher", () => {
+  it("follows the current tier when a player's highest tier is higher", async () => {
     const currentTier = "great_eye" as const;
     const highestTierEver = "match_maker" as const;
     expect(highestTierEver).not.toBe(currentTier);
@@ -52,7 +54,17 @@ describe("CurrentTierBadge", () => {
     render(<CurrentTierBadge tier={currentTier} size={72} testId="badge" />);
     act(() => MockImage.instances[0].onload?.());
 
-    expect(screen.getByTestId("badge")).toHaveAttribute("data-tier", "great_eye");
-    expect(screen.getByTestId("badge")).not.toHaveAttribute("data-tier", highestTierEver);
+    const badge = await screen.findByTestId("badge");
+    expect(badge).toHaveAttribute("data-tier", "great_eye");
+    expect(badge).not.toHaveAttribute("data-tier", highestTierEver);
+  });
+
+  it("returns the decoded image object for a future canvas renderer", async () => {
+    const loaded = loadBadgeImage("great_eye");
+    expect(MockImage.instances).toHaveLength(1);
+    act(() => MockImage.instances[0].onload?.());
+
+    await waitFor(async () => expect(await loaded).toBe(MockImage.instances[0]));
+    await expect(loadBadgeImage("rookie")).resolves.toBeNull();
   });
 });
