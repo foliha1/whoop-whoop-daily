@@ -66,6 +66,8 @@ describe("CurrentTierBadge", () => {
     act(() => MockImage.instances[0].onload?.());
 
     await waitFor(async () => expect(await loaded).toBe(MockImage.instances[0]));
-    await expect(loadBadgeImage("rookie")).resolves.toBeNull();
+    await expect(
+      loadBadgeImage("unknown_tier" as unknown as Parameters<typeof loadBadgeImage>[0])
+    ).resolves.toBeNull();
   });
 });
