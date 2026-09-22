@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-context";
 import { COLORS } from "@/lib/tokens";
+import { UI_EASE, UI_ENTER_MS, UI_EXIT_MS } from "@/lib/animationTiming";
 
 import DebugOnlyRoute from "./components/DebugOnlyRoute.tsx";
 
@@ -21,8 +22,6 @@ const TermsPage = lazy(() => import("./pages/TermsPage.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 
-
-const FADE_MS = 200;
 
 /** Legacy /play and /play/:roomCode → /classic?r=CODE, code preserved. */
 const ClassicRedirect: React.FC = () => {
@@ -45,7 +44,7 @@ const AnimatedRoutes: React.FC = () => {
     const id = window.setTimeout(() => {
       setDisplayLocation(location);
       setStage("fadeIn");
-    }, FADE_MS);
+    }, UI_EXIT_MS);
     return () => window.clearTimeout(id);
   }, [location, displayLocation]);
 
@@ -54,7 +53,7 @@ const AnimatedRoutes: React.FC = () => {
       className="page-transition"
       style={{
         opacity: stage === "fadeIn" ? 1 : 0,
-        transition: `opacity ${FADE_MS}ms ease`,
+        transition: `opacity ${stage === "fadeIn" ? UI_ENTER_MS : UI_EXIT_MS}ms ${UI_EASE}`,
         minHeight: "var(--ww-vh)",
       }}
     >

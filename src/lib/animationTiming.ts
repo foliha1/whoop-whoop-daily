@@ -65,13 +65,42 @@ export const DAILY_FINAL_REVEAL_MS = 1500;
 /** Cross-fade between daily screens (ready, gameplay, reveal, result). */
 export const DAILY_SCREEN_FADE_MS = 250;
 
+// ---- product UI motion ------------------------------------------------------
+// Presentation-only timing shared by Daily, YOU, Groups, and Classic. Gameplay
+// constants remain separate below because reducer windows must never depend on
+// interface animation.
+export const UI_ENTER_MS = 250;
+export const UI_EXIT_MS = 150;
+export const UI_REVISIT_MS = 200;
+export const UI_SECTION_STAGGER_MS = 40;
+export const UI_LIST_STAGGER_MS = 30;
+export const UI_LIST_STAGGER_LIMIT = 6;
+export const UI_SMALL_ENTER_MS = 180;
+export const UI_ENTER_DISTANCE_PX = 8;
+export const UI_MODAL_START_SCALE = 0.96;
+export const UI_SMALL_START_SCALE = 0.8;
+export const UI_EASE = "cubic-bezier(0.23, 1, 0.32, 1)";
+
+/** Delay for a section in a short, authored page sequence. */
+export const sectionEntryDelay = (index: number): number =>
+  Math.max(0, index) * UI_SECTION_STAGGER_MS;
+
+/** Long lists stop accruing delay after the sixth row. */
+export const listEntryDelay = (index: number): number =>
+  Math.min(Math.max(0, index), UI_LIST_STAGGER_LIMIT - 1) * UI_LIST_STAGGER_MS;
+
+export const motionDelayStyle = (
+  delayMs: number,
+  variable: "--ww-ui-delay" | "--ww-small-delay" = "--ww-ui-delay",
+): Record<string, string> => ({ [variable]: `${delayMs}ms` });
+
 // ---- entry / ready screen reveal -------------------------------------------
 // Shared by the Daily ready screen (`.daily-intro`) and the Classic entry
 // screen, so the two products feel identical.
-/** Rise + fade of a single entry element (`daily-intro-up` in index.css). */
-export const ENTRY_RISE_MS = 600;
+/** Rise + fade of a single entry element (`ww-ui-enter` in index.css). */
+export const ENTRY_RISE_MS = UI_ENTER_MS;
 /** Stagger delays, top to bottom, for the elements of an entry screen. */
-export const ENTRY_STAGGER_DELAYS_MS = [0, 120, 240, 320] as const;
+export const ENTRY_STAGGER_DELAYS_MS = [0, 40, 80, 120] as const;
 /** Ceiling on the font/asset gate before the screen shows regardless. */
 export const ENTRY_ASSET_TIMEOUT_MS = 700;
 
@@ -82,6 +111,16 @@ export function applyAnimationTimingVars(root: HTMLElement = document.documentEl
   root.style.setProperty("--ww-deal-stagger", `${DEAL_STAGGER_MS}ms`);
   root.style.setProperty("--ww-deal-move", `${DEAL_MOVE_MS}ms`);
   root.style.setProperty("--ww-select-pulse", `${SELECT_PULSE_MS}ms`);
+  root.style.setProperty("--ww-ui-enter", `${UI_ENTER_MS}ms`);
+  root.style.setProperty("--ww-ui-exit", `${UI_EXIT_MS}ms`);
+  root.style.setProperty("--ww-ui-revisit", `${UI_REVISIT_MS}ms`);
+  root.style.setProperty("--ww-ui-section-stagger", `${UI_SECTION_STAGGER_MS}ms`);
+  root.style.setProperty("--ww-ui-list-stagger", `${UI_LIST_STAGGER_MS}ms`);
+  root.style.setProperty("--ww-ui-small-enter", `${UI_SMALL_ENTER_MS}ms`);
+  root.style.setProperty("--ww-ui-distance", `${UI_ENTER_DISTANCE_PX}px`);
+  root.style.setProperty("--ww-ui-modal-scale", String(UI_MODAL_START_SCALE));
+  root.style.setProperty("--ww-ui-small-scale", String(UI_SMALL_START_SCALE));
+  root.style.setProperty("--ww-ui-ease", UI_EASE);
 }
 
 // ---- rotation claim window --------------------------------------------------

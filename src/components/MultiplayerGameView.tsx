@@ -27,6 +27,7 @@ import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Settings as SettingsIcon, X } from "lucide-react";
 import { usePortalHost } from "@/hooks/usePortalHost";
+import { useMotionExit } from "@/hooks/useMotionExit";
 import SettingsSheet from "@/components/SettingsSheet";
 // Lazy: ClassicDemo shows this file's real board pieces, so a static import
 // here would be a cycle.
@@ -403,18 +404,21 @@ const ModalShell: React.FC<{
   // frames apply transforms), so an in-tree fixed/absolute overlay only ever
   // covered the mobile-width column. A modal must take over the full screen.
   const portalHost = usePortalHost("mp-modal");
+  const { exiting, requestExit } = useMotionExit(onCancel);
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { e.preventDefault(); onCancel(); }
+      if (e.key === "Escape") { e.preventDefault(); requestExit(); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onCancel]);
+  }, [requestExit]);
   if (!portalHost) return null;
   return createPortal(
     <div
       role="presentation"
-      onClick={onCancel}
+      onClick={requestExit}
+      className="ww-ui-modal-backdrop"
+      data-motion-exit={exiting ? "true" : undefined}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
         background: "rgba(0,0,0,0.5)",
@@ -427,6 +431,8 @@ const ModalShell: React.FC<{
         aria-modal="true"
         aria-labelledby={titleId}
         onClick={(e) => e.stopPropagation()}
+        className="ww-ui-modal-panel"
+        data-motion-exit={exiting ? "true" : undefined}
         style={{
           background: SURFACE, border: BORDER_HEAVY, borderRadius: R_BOX,
           padding: 16, maxWidth: 340, width: "100%",

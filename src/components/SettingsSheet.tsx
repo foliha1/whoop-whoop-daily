@@ -23,6 +23,7 @@ import {
   setMusicEnabled,
 } from "@/lib/sounds";
 import CloseButton from "@/components/CloseButton";
+import { useMotionExit } from "@/hooks/useMotionExit";
 
 const TOUCH = 44;
 
@@ -136,14 +137,15 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
   const portalHost = usePortalHost("settings-sheet");
   const [sfx, setSfx] = useState(() => getSfxEnabled());
   const [music, setMusic] = useState(() => getMusicEnabled());
+  const { exiting, requestExit } = useMotionExit(onClose);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") requestExit();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [requestExit]);
 
   // Rendered through a portal: the callers sit inside scaled/faded columns
   // (FitColumn, DailyScreenFade), and a transformed ancestor turns
@@ -154,7 +156,9 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
       role="dialog"
       aria-modal="true"
       aria-labelledby="settings-sheet-title"
-      onClick={onClose}
+      onClick={requestExit}
+      className="ww-ui-modal-backdrop"
+      data-motion-exit={exiting ? "true" : undefined}
       style={{
         position: "fixed",
         inset: 0,
@@ -168,6 +172,8 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        className="ww-ui-modal-panel"
+        data-motion-exit={exiting ? "true" : undefined}
         style={{
           width: "100%",
           maxWidth: 340,
@@ -197,7 +203,7 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
           </h2>
           <CloseButton
             label="Close"
-            onClick={onClose}
+            onClick={requestExit}
             ariaLabel="Close settings"
             data-testid="settings-sheet-close"
           />

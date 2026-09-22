@@ -29,6 +29,7 @@ import DailyShapeRule from "@/components/DailyShapeRule";
 import DailyEmailCapture from "@/components/DailyEmailCapture";
 import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
+import { useMotionExit } from "@/hooks/useMotionExit";
 import { COLORS, RADIUS, SPACE } from "@/lib/tokens";
 
 const FOCUSABLE =
@@ -77,6 +78,7 @@ const DailyEmailModal: React.FC<{
   const hostRef = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
   const vv = useVisualViewportBox();
+  const { exiting, requestExit } = useMotionExit(onClose);
   // With the keyboard open the visible box is tiny; the decorative shape rules
   // and the 24px gutter are the first things to go so the submit stays in view.
   const compact = vv.height > 0 && vv.height < 560;
@@ -84,7 +86,7 @@ const DailyEmailModal: React.FC<{
 
   // Escape + focus return live in the shared hook; the Tab trap is local
   // because only this component knows what is focusable inside it.
-  useDismiss(onClose, { escape: true, returnFocus: true });
+  useDismiss(requestExit, { escape: true, returnFocus: true });
 
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -119,6 +121,8 @@ const DailyEmailModal: React.FC<{
       aria-modal="true"
       aria-label={mode === "restore" ? "Restore your streak" : "Get tomorrow's grid"}
       data-testid="daily-email-modal"
+      className="ww-ui-modal-backdrop"
+      data-motion-exit={exiting ? "true" : undefined}
       style={
         {
           position: "fixed",
@@ -149,6 +153,8 @@ const DailyEmailModal: React.FC<{
 
       <div
         data-testid="daily-email-modal-panel"
+        className="ww-ui-modal-panel"
+        data-motion-exit={exiting ? "true" : undefined}
         style={{
           width: "100%",
           maxWidth: 402,
@@ -166,7 +172,7 @@ const DailyEmailModal: React.FC<{
           <CloseButton
             ref={closeRef}
             label="Close"
-            onClick={onClose}
+            onClick={requestExit}
             ariaLabel="Close"
             data-testid="daily-restore-close"
           />
@@ -184,7 +190,7 @@ const DailyEmailModal: React.FC<{
           onSubscribed={(email, restored) => {
             onSubscribed?.(email, restored);
             // The success line shows inside the modal, then it closes itself.
-            window.setTimeout(onClose, successHoldMs);
+            window.setTimeout(requestExit, successHoldMs);
           }}
         />
       </div>
