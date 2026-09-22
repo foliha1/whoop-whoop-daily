@@ -32,9 +32,12 @@ describe("Whoop Whoop Score presentation", () => {
   });
 
   it("shows a badge only when its art exists", () => {
+    expect(badgeArt("rookie")).toBe("/badges/rookie.svg");
     expect(badgeArt("great_eye")).toBe("/badges/great_eye.svg");
-    expect(badgeArt("legend")).toBeNull();
-    expect(badgeArt("rookie")).toBeNull();
+    expect(badgeArt("match_maker")).toBe("/badges/match_maker.svg");
+    expect(badgeArt("xray_vision")).toBe("/badges/xray_vision.svg");
+    expect(badgeArt("legend")).toBe("/badges/legend.svg");
+    expect(badgeArt("unknown_badge")).toBeNull();
     // Every mapped badge points at a file under /badges.
     for (const path of Object.values(BADGE_ART)) {
       expect(path.startsWith("/badges/")).toBe(true);

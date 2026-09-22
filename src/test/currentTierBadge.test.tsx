@@ -38,8 +38,9 @@ describe("CurrentTierBadge", () => {
     expect(badge).toHaveAttribute("data-tier", "great_eye");
   });
 
-  it("renders no element or preload for Rookie because no art exists", () => {
-    const { container } = render(<CurrentTierBadge tier="rookie" size={72} testId="badge" />);
+  it("renders no element or preload for a tier with no mapped art", () => {
+    const unmapped = "unknown_tier" as unknown as React.ComponentProps<typeof CurrentTierBadge>["tier"];
+    const { container } = render(<CurrentTierBadge tier={unmapped} size={72} testId="badge" />);
 
     expect(screen.queryByTestId("badge")).toBeNull();
     expect(container).toBeEmptyDOMElement();
@@ -65,6 +66,8 @@ describe("CurrentTierBadge", () => {
     act(() => MockImage.instances[0].onload?.());
 
     await waitFor(async () => expect(await loaded).toBe(MockImage.instances[0]));
-    await expect(loadBadgeImage("rookie")).resolves.toBeNull();
+    await expect(
+      loadBadgeImage("unknown_tier" as unknown as Parameters<typeof loadBadgeImage>[0])
+    ).resolves.toBeNull();
   });
 });
