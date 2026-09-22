@@ -7,6 +7,8 @@ type CurrentTierBadgeProps = {
   tier: PointsTier;
   size: number;
   testId?: string;
+  /** Let a token-sized wrapper scale the decoded art with its layout cell. */
+  fluid?: boolean;
 };
 
 /**
@@ -14,7 +16,7 @@ type CurrentTierBadgeProps = {
  * the visible image mounts, so a missing or slow image never leaves a broken
  * image or an empty layout slot behind.
  */
-const CurrentTierBadge: React.FC<CurrentTierBadgeProps> = ({ tier, size, testId }) => {
+const CurrentTierBadge: React.FC<CurrentTierBadgeProps> = ({ tier, size, testId, fluid = false }) => {
   const src = badgeArt(tier);
   const [readySrc, setReadySrc] = React.useState<string | null>(null);
 
@@ -42,7 +44,11 @@ const CurrentTierBadge: React.FC<CurrentTierBadgeProps> = ({ tier, size, testId 
       alt={`${tierName(tier)} badge`}
       width={size}
       height={size}
-      style={{ display: "block", flex: "0 0 auto" }}
+      style={{
+        display: "block",
+        flex: "0 0 auto",
+        ...(fluid ? { width: "100%", height: "auto" } : null),
+      }}
     />
   );
 };

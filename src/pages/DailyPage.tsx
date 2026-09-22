@@ -16,7 +16,6 @@ import DailyEmailCapture from "@/components/DailyEmailCapture";
 import DailyRecognition from "@/components/DailyRecognition";
 import DailyPreLaunchSignup from "@/components/DailyPreLaunchSignup";
 import { useSubscriberStatus } from "@/hooks/useSubscriberStatus";
-import DailyGroupsLine from "@/components/DailyGroupsLine";
 
 import { useDailyGame } from "@/hooks/useDailyGame";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
@@ -54,7 +53,6 @@ import {
 
 
 import {
-  formatPercentileLine,
   formatStreakLine,
 } from "@/lib/dailyResults";
 import { useDailyStreak } from "@/hooks/useDailyStreak";
@@ -101,10 +99,8 @@ import {
 
   RADIUS,
   SPACE,
-  TEXT,
   buttonStyle,
   textStyle,
-  FONT_FAMILY_UI,
   FONT_WEIGHT_UI,
 
 
@@ -137,12 +133,11 @@ const RESULT_BLOCK = {
   message: 1,
   stats: 2,
   rounds: 3,
-  /** The Whoop Score hero, directly after today's result. */
+  /** The Whoop Score panel, directly after today's result. */
   score: 4,
-  streak: 5,
-  share: 6,
+  share: 5,
+  done: 6,
   email: 7,
-  done: 8,
 } as const;
 const blockIn = (block: keyof typeof RESULT_BLOCK): React.CSSProperties =>
   ({ "--ww-res-delay": `${RESULT_BLOCK[block] * BLOCK_STAGGER_MS}ms` } as React.CSSProperties);
@@ -194,8 +189,8 @@ const RoundMarks: React.FC<{
         <span className={cls} style={{ display: "inline-flex", ...anim(0) }}>
           <span
             style={{
-              width: 20,
-              height: 20,
+              width: SPACE[6],
+              height: SPACE[6],
               opacity: 0.3,
               border: BORDER.heavy,
               borderRadius: 999,
@@ -209,8 +204,8 @@ const RoundMarks: React.FC<{
             className={cls}
             title={m === "SOLVE" ? "Solved" : "Miss"}
             style={{
-              width: 20,
-              height: 20,
+              width: SPACE[6],
+              height: SPACE[6],
               borderRadius: 999,
               background: m === "SOLVE" ? COLORS.blue : COLORS.red,
               ...anim(i),
@@ -468,7 +463,7 @@ const ShareBlock: React.FC<{
           flexDirection: "row",
           alignItems: "stretch",
           alignSelf: "stretch",
-          gap: SPACE[8],
+          gap: SPACE[4],
         }}
       >
         <button
@@ -479,7 +474,7 @@ const ShareBlock: React.FC<{
           data-testid="results-invite"
           style={{
             ...buttonStyle("primary", "lg", { mobile }),
-            flex: "2 1 0",
+            flex: "1 1 0",
             minWidth: 0,
             whiteSpace: "nowrap",
             position: "relative",
@@ -567,15 +562,11 @@ const DailyResultCard: React.FC<{
   result: DailyResult;
   /** Null hides the streak line entirely — never show a zero. */
   streak: number | null;
-  /** Null hides the percentile line (withheld below 20 players). */
-  percentile: number | null;
   /**
    * The Whoop Score, read only AFTER today's run was written — otherwise the
    * change line would compare against yesterday. Null hides the block.
    */
   whoop: WhoopPoints | null;
-  /** Passed to the group line so switched devices resolve to one membership. */
-  knownEmail?: string | null;
   /** Called after an email signup so the parent can re-read streak/stats. */
   onSubscribed?: (email: string, restored: boolean) => void;
   /** Hides the signup form: an address is already on file (locally or server). */
@@ -595,9 +586,7 @@ const DailyResultCard: React.FC<{
   shareText,
   result,
   streak,
-  percentile,
   whoop,
-  knownEmail = null,
   onSubscribed,
   subscribed,
   mobile,
@@ -657,27 +646,8 @@ const DailyResultCard: React.FC<{
   const tierBurst = tierUp && !reducedMotion && !burst;
 
 
-  // Tile labels: all caps, Geist medium, 0.05em tracking.
-  //
-  // Caps plus tracking is wider than the sentence case it replaces, and the
-  // narrowest tile (four across at 360px) leaves 56px of inner width. So the
-  // label drops one step below the caption size — and the line box is pinned to
-  // the CAPTION line height in px, so every tile keeps exactly the height it
-  // had before, whatever the label's own size.
-  const capSize = mobile ? TEXT.caption.mobileSize : TEXT.caption.size;
   const tileLabelStyle: React.CSSProperties = {
-    ...textStyle("caption", mobile),
-    fontWeight: FONT_WEIGHT_UI,
-    fontSize: capSize - (mobile ? 2 : 1),
-    // Tighter leading so the two-line all-time labels (LONGEST STREAK,
-    // AVERAGE MISSES) sit close together. Single-line labels are unaffected.
-    lineHeight: 1.15,
-    // Single-line labels keep the box height they had when the leading was
-    // pinned in px, so those tiles do not move; the two-line all-time labels
-    // exceed it and get the tighter leading.
-    minHeight: `${capSize * TEXT.caption.lineHeight}px`,
-    letterSpacing: "0.05em",
-    textTransform: "uppercase",
+    ...textStyle("label", mobile),
     color: COLORS.inkMuted,
   };
 
@@ -699,14 +669,14 @@ const DailyResultCard: React.FC<{
         border: BORDER.heavy,
         borderRadius: RADIUS.sm,
         background: milestone ? COLORS.orange : COLORS.panel,
-        padding: `${SPACE[4]}px ${SPACE[3]}px`,
+        padding: `${SPACE[3]}px ${SPACE[2]}px`,
         textAlign: "center",
         ...(milestone ? { position: "relative", overflow: "hidden" } : null),
       }}
     >
       <div
         style={{
-          ...textStyle("display", mobile),
+          ...textStyle("heading", mobile),
           color: milestone ? RAW.warmBlack : COLORS.ink,
         }}
       >
@@ -816,21 +786,15 @@ const DailyResultCard: React.FC<{
             gridTemplateColumns: "auto 1fr auto",
             alignItems: "center",
             columnGap: SPACE[3],
-            // Tier 2 — a second group inside the same section.
-            marginTop: SPACE[8],
+             marginTop: SPACE[6],
           }}
         >
           {roundEvents.map((events, i) => {
             const cell: React.CSSProperties = {
-              fontFamily: FONT_FAMILY_UI,
-              fontWeight: FONT_WEIGHT_UI,
-              fontSize: mobile ? 13 : 14,
-              lineHeight: 1.35,
-              // A little more breathing room per row; content, dividers and
-              // circles are untouched.
-              paddingTop: i === 0 ? 0 : SPACE[5],
-              paddingBottom: i === roundEvents.length - 1 ? 0 : SPACE[5],
-              ...(i === 0 ? {} : { borderTop: "1px solid rgba(35, 31, 32, 0.18)" }),
+              ...textStyle("caption", mobile),
+              paddingTop: SPACE[4],
+              paddingBottom: SPACE[4],
+              ...(i === 0 ? {} : { borderTop: `1px solid ${COLORS.inkMuted}` }),
             };
 
             return (
@@ -864,13 +828,6 @@ const DailyResultCard: React.FC<{
             );
           })}
         </div>
-        {percentile !== null && (
-          <p
-            style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, textAlign: "center", margin: 0, marginTop: SPACE[8] }}
-          >
-            {formatPercentileLine(percentile)}
-          </p>
-        )}
       </div>
 
       {/* Did today move me. Slotted into the same staggered entry, directly
@@ -882,39 +839,19 @@ const DailyResultCard: React.FC<{
           alignSelf: "stretch",
           display: "flex",
           flexDirection: "column",
-          marginTop: SPACE[8],
-          paddingTop: SPACE[4],
-          borderTop: BORDER.heavy,
+          marginTop: SPACE[6],
           ...blockIn("score"),
         }}
       >
         <WhoopPointsChange points={whoop} mobile={mobile} tierUp={tierUp} />
-        {/* The four all-time stats and the recall trend now live on /you; this
-            is the one quiet way through to them. */}
-        <a
-          href="/you"
-          data-testid="result-you-link"
-          style={{
-            ...textStyle("caption", mobile),
-            color: COLORS.inkMuted,
-            textAlign: "center",
-            marginTop: SPACE[4],
-            textDecoration: "underline",
-          }}
-        >
-          See all your stats
-        </a>
       </div>
-
-      {/* One line, and nothing at all for a player who is not in a group. */}
-      <DailyGroupsLine puzzleNumber={result.puzzleNumber} email={knownEmail} mobile={mobile} />
 
 
 
 
 
       {/* Tier 4 — the actions are a different kind of thing from the readout. */}
-      <div className="ww-res-in" style={{ alignSelf: "stretch", marginTop: SPACE[16], ...blockIn("share") }}>
+      <div className="ww-res-in" style={{ alignSelf: "stretch", marginTop: SPACE[6], ...blockIn("share") }}>
         <ShareBlock
           text={shareText}
           result={result}
@@ -925,8 +862,19 @@ const DailyResultCard: React.FC<{
         />
       </div>
 
+      <button
+        type="button"
+        className="ww-press ww-res-in"
+        onClick={onLeave}
+        data-testid="results-done"
+        style={{ ...buttonStyle("ink", "lg", { mobile }), alignSelf: "stretch", marginTop: SPACE[4], ...blockIn("done") }}
+      >
+        Done
+      </button>
+
       {!subscribed && (
         <div
+          data-testid="results-email-capture"
           className="ww-res-in"
           style={{
             alignSelf: "stretch",
@@ -944,16 +892,6 @@ const DailyResultCard: React.FC<{
         </div>
       )}
 
-      {/* Buttons read as one group, so this stays tighter than tier 4. */}
-      <button
-        type="button"
-        className="ww-press ww-res-in"
-        onClick={onLeave}
-        style={{ ...buttonStyle("ink", "lg", { mobile }), alignSelf: "stretch", marginTop: SPACE[8], ...blockIn("done") }}
-      >
-
-        Done
-      </button>
     </div>
   );
 };
@@ -1839,9 +1777,7 @@ const DailyPage: React.FC = () => {
               )}
               result={daily.result!}
               streak={streak?.current ?? null}
-              percentile={percentile}
               whoop={whoop}
-              knownEmail={knownEmail}
               subscribed={subscribed}
               onSubscribed={(email) => {
                 // Restore or fresh signup, either way: the address is now on
