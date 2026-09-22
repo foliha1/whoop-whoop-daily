@@ -29,6 +29,8 @@ export const MAX_POINTS_PER_GAME = POINT_PLAY + POINT_FIRST_TRY_MAX + POINT_NO_P
 export const GRACE_DAYS = 7;
 /** Points lost per day beyond the grace window. */
 export const DECAY_PER_DAY = 3;
+/** Decay can never take a total below this, and never touches a total at or under it. */
+export const DECAY_PROTECTED_POINTS = 25;
 /** A player counts as active — and so counted in the population — with a result this recent. */
 export const ACTIVE_DAYS = 30;
 
