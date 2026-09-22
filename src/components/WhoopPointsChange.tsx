@@ -77,12 +77,12 @@ const WhoopPointsChange: React.FC<{
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            gap: SPACE[2],
+            gap: SPACE[3],
             textAlign: "center",
           }}
         >
           {tierHasArt && (
-            <div style={{ width: FONT_SIZE["4.5xl"], flex: "0 0 auto" }}>
+            <div style={{ width: FONT_SIZE["6xl"], flex: "0 0 auto" }}>
               <CurrentTierBadge tier={points.tier} size={FONT_SIZE["7xl"]} fluid testId="result-tier-badge" />
             </div>
           )}
@@ -104,14 +104,19 @@ const WhoopPointsChange: React.FC<{
             minWidth: 0,
             padding: SPACE[3],
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            ...textStyle("subhead", mobile),
-            color: ink,
+            gap: SPACE[1],
             textAlign: "center",
           }}
         >
-          {change.text ?? `+0 today`}
+          <span style={{ ...textStyle("display", mobile), color: ink }}>
+            +{points.todayPoints}
+          </span>
+          <span style={{ ...textStyle("caption", mobile), color: tierUp ? RAW.warmBlack : COLORS.inkMuted }}>
+            today
+          </span>
         </div>
         <div
           data-testid="result-points-total"
@@ -120,14 +125,19 @@ const WhoopPointsChange: React.FC<{
             minWidth: 0,
             padding: SPACE[3],
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            ...textStyle("subhead", mobile),
-            color: COLORS.ink,
+            gap: SPACE[1],
             textAlign: "center",
           }}
         >
-          {points.total} total
+          <span style={{ ...textStyle("display", mobile), color: COLORS.ink }}>
+            {points.total}
+          </span>
+          <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
+            total
+          </span>
         </div>
       </div>
       <div

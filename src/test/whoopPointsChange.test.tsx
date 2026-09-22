@@ -56,8 +56,8 @@ describe("Daily results score panel", () => {
     expect(await screen.findByTestId("result-tier-badge")).toHaveAttribute("alt", "Rookie badge");
     expect(screen.getByRole("link", { name: "Your Stats" })).toHaveAttribute("href", "/you");
     expect(screen.getByRole("link", { name: "Groups" })).toHaveAttribute("href", "/groups");
-    expect(screen.getByTestId("result-points-today")).toHaveTextContent("+2 today");
-    expect(screen.getByTestId("result-points-total")).toHaveTextContent("21 total");
+    expect(screen.getByTestId("result-points-today")).toHaveTextContent("+2today");
+    expect(screen.getByTestId("result-points-total")).toHaveTextContent("21total");
     expect(screen.queryByText("Your tier", { exact: false })).toBeNull();
     expect(screen.queryByText("Total score", { exact: false })).toBeNull();
   });
