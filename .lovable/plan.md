@@ -15,6 +15,7 @@ Replace the product’s mixed presentation timings with one motion language whil
 | Classic lobby and terminal entry screens | `MultiplayerWindow.tsx` | Mostly instant; intro handoff has 250ms `ease-out` plus 120ms delay | Add shared section reveal/stagger; keep frequently changing status content instant |
 | Daily results sections | `DailyPage.tsx`, `.ww-res-in` | 250ms, rise 8px, requested curve, 40ms blocks; constants local | Same visible behavior, now driven by central tokens |
 | Daily result dots | `DailyPage.tsx`, `.ww-mark-in` | 180ms, scale 0.6→1; 70ms per mark | 180ms, scale 0.8→1; 30ms list stagger capped at item 6 |
+| Daily small result elements (badges/chips) | `WhoopPointsChange.tsx`, badge/result children | Mixed inherited entry or hard appearance | Shared 180ms small-element fade/scale, 0.8→1 |
 | Daily revisit results | `DailyPage.tsx` | Replays full section and dot sequence | One 200ms opacity-only fade; zero stagger; dots do not replay |
 | Daily ready/play/results cross-fade | `DailyScreenFade.tsx` | 250ms `ease`, opacity; background also transitions | At most 250ms with shared curve; opacity/transform-only rule means background color changes instantly rather than animating |
 | App route changes | `App.tsx` | 200ms `ease` out, then 200ms in | 150ms exit and 250ms enter with shared curve |
