@@ -377,7 +377,7 @@ const YouPage: React.FC = () => {
           to="/groups"
           className="ww-press"
           data-testid="you-groups-link"
-          style={{ ...buttonStyle("secondary", "lg", { mobile }), alignSelf: "stretch" }}
+          style={{ ...buttonStyle("secondary", "lg", { mobile }), width: "100%" }}
         >
           Your Groups
         </Link></MotionReveal>

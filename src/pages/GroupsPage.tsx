@@ -248,7 +248,7 @@ const GroupsPage: React.FC = () => {
           )}
 
           {groups.map((g: MyGroup, i) => (
-            <MotionReveal kind="list" index={i} key={g.group_id}><button
+            <MotionReveal kind="list" index={i} key={g.group_id} style={{ alignSelf: "stretch" }}><button
               type="button"
               className="ww-press"
               onClick={() => setOpenId(g.group_id)}
@@ -276,23 +276,23 @@ const GroupsPage: React.FC = () => {
             </button></MotionReveal>
           ))}
 
-          <MotionReveal index={3}><button
+          <MotionReveal index={3} style={{ alignSelf: "stretch" }}><button
             type="button"
             className="ww-press"
             onClick={() => setShowCreate(true)}
             disabled={atGroupCap}
             data-testid="groups-create"
-            style={{ ...buttonStyle("primary", "lg", { mobile, disabled: atGroupCap }), alignSelf: "stretch" }}
+            style={{ ...buttonStyle("primary", "lg", { mobile, disabled: atGroupCap }), width: "100%" }}
           >
             Create a Group
           </button></MotionReveal>
-          <MotionReveal index={4}><button
+          <MotionReveal index={4} style={{ alignSelf: "stretch" }}><button
             type="button"
             className="ww-press"
             onClick={() => setShowJoin(true)}
             disabled={atGroupCap}
             data-testid="groups-join"
-            style={{ ...buttonStyle("secondary", "lg", { mobile, disabled: atGroupCap }), alignSelf: "stretch" }}
+            style={{ ...buttonStyle("secondary", "lg", { mobile, disabled: atGroupCap }), width: "100%" }}
           >
             Join with a Code
           </button></MotionReveal>
