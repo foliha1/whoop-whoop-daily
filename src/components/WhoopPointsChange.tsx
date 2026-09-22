@@ -36,6 +36,7 @@ const WhoopPointsChange: React.FC<{
       style={{
         alignSelf: "stretch",
         boxSizing: "border-box",
+        position: "relative",
         border: BORDER.heavy,
         borderRadius: RADIUS.sm,
         background: tierUp ? COLORS.orange : COLORS.panel,
@@ -82,14 +83,21 @@ const WhoopPointsChange: React.FC<{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: SPACE[3],
           minWidth: 0,
         }}
       >
-        <CurrentTierBadge tier={points.tier} size={mobile ? 36 : 42} testId="result-tier-badge" />
         <span style={{ ...textStyle("control", mobile), color: ink }}>
           {tierName(points.tier)}
         </span>
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          right: SPACE[6],
+          bottom: tierUp ? SPACE[6] : SPACE[4],
+        }}
+      >
+        <CurrentTierBadge tier={points.tier} size={mobile ? 36 : 42} testId="result-tier-badge" />
       </div>
       {tierUp && (
         <span
