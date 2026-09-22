@@ -9,7 +9,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import CurrentTierBadge from "@/components/CurrentTierBadge";
 import type { WhoopPoints } from "@/lib/whoopPoints";
-import { SCORE_LABEL, badgeArt, formatPointsChange, tierName } from "@/lib/whoopTiers";
+import { SCORE_LABEL, badgeArt, tierName } from "@/lib/whoopTiers";
 import { BORDER, COLORS, FONT_SIZE, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
 
 const WhoopPointsChange: React.FC<{
@@ -20,11 +20,6 @@ const WhoopPointsChange: React.FC<{
 }> = ({ points, mobile, tierUp = false }) => {
   if (points === null) return null;
 
-  const change = formatPointsChange(
-    points.todayPoints,
-    points.totalBeforeToday,
-    points.total
-  );
   const ink = tierUp ? RAW.warmBlack : COLORS.ink;
   const tierHasArt = badgeArt(points.tier) !== null;
   const innerPanel: React.CSSProperties = {
