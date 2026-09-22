@@ -29,6 +29,8 @@ export const MAX_POINTS_PER_GAME = POINT_PLAY + POINT_FIRST_TRY_MAX + POINT_NO_P
 export const GRACE_DAYS = 7;
 /** Points lost per day beyond the grace window. */
 export const DECAY_PER_DAY = 3;
+/** Decay can never take a total below this, and never touches a total at or under it. */
+export const DECAY_PROTECTED_POINTS = 25;
 /** A player counts as active — and so counted in the population — with a result this recent. */
 export const ACTIVE_DAYS = 30;
 
@@ -118,16 +120,25 @@ export function gamePoints(game: PointsGame): number {
   );
 }
 
-/** Points lost to a gap of `days` between two appearances. */
+/** Raw points a gap of `days` would cost, before the protected floor applies. */
 export function decayForGap(days: number): number {
   return Math.max(0, days - GRACE_DAYS) * DECAY_PER_DAY;
 }
 
 /**
+ * Apply a gap's decay to a running total. Decay may only remove points above
+ * `DECAY_PROTECTED_POINTS`: a total already at or below it never decays.
+ */
+export function applyDecay(total: number, days: number): number {
+  if (total <= DECAY_PROTECTED_POINTS) return Math.max(0, total);
+  return Math.max(DECAY_PROTECTED_POINTS, total - decayForGap(days));
+}
+
+/**
  * Pure mirror of the SQL walk. Results are taken in `puzzle_date` order; each
- * game adds its points, each gap past the grace window subtracts, and the total
- * is floored at zero at every step — so a returning player rebuilds from where
- * decay left them. Deterministic: the same history always gives the same total.
+ * game adds its points and each gap past the grace window subtracts, never
+ * below the protected floor — so a returning player rebuilds from where decay
+ * left them. Deterministic: the same history always gives the same total.
  */
 export function computeWhoopPoints(
   games: PointsGame[],
@@ -169,7 +180,7 @@ export function computeWhoopPoints(
   const earned = new Map<string, string>();
 
   for (const g of ordered) {
-    if (prev) total = Math.max(0, total - decayForGap(dayDiff(g.puzzleDate, prev)));
+    if (prev) total = applyDecay(total, dayDiff(g.puzzleDate, prev));
     if (g.puzzleDate === asOf && todayPoints === null) {
       totalBeforeToday = total;
       todayPoints = 0;
@@ -187,9 +198,9 @@ export function computeWhoopPoints(
 
   const lastPlayed = ordered[ordered.length - 1].puzzleDate;
   const daysAway = dayDiff(asOf, lastPlayed);
-  const decay = decayForGap(daysAway);
-  const decayApplied = Math.min(decay, total);
-  total = Math.max(0, total - decay);
+  const afterDecay = applyDecay(total, daysAway);
+  const decayApplied = total - afterDecay;
+  total = afterDecay;
 
   const badges: EarnedBadge[] = [...POINTS_TIER_FLOORS]
     .reverse()

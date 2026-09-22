@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   ACTIVE_DAYS,
   DECAY_PER_DAY,
+  DECAY_PROTECTED_POINTS,
   GRACE_DAYS,
   MAX_POINTS_PER_GAME,
+  applyDecay,
   computeWhoopPoints,
   decayForGap,
   gamePoints,
@@ -26,7 +28,9 @@ const perfect = (i: number): PointsGame => ({
 
 describe("config", () => {
   it("keeps the tunable values in one place", () => {
-    expect([MAX_POINTS_PER_GAME, GRACE_DAYS, DECAY_PER_DAY, ACTIVE_DAYS]).toEqual([5, 7, 3, 30]);
+    expect([
+      MAX_POINTS_PER_GAME, GRACE_DAYS, DECAY_PER_DAY, DECAY_PROTECTED_POINTS, ACTIVE_DAYS,
+    ]).toEqual([5, 7, 3, 25, 30]);
   });
 
   it("maps totals to stable tier keys", () => {
@@ -104,25 +108,52 @@ describe("the running total", () => {
     expect(r.todayPoints).toBeNull();
   });
 
-  it("floors a long-lapsed player at zero without going negative", () => {
+  it("protects a casual player's small total from any decay", () => {
+    const games = [perfect(0), perfect(1)]; // 10 points
+    const r = computeWhoopPoints(games, day(1 + 30));
+    expect(r.total).toBe(10);
+    expect(r.decayApplied).toBe(0);
+    expect(r.tier).toBe("rookie");
+  });
+
+  it("does not decay a total sitting at exactly the protected amount", () => {
+    const games = Array.from({ length: 5 }, (_, i) => perfect(i)); // 25 points
+    const r = computeWhoopPoints(games, day(4 + 100));
+    expect(r.total).toBe(DECAY_PROTECTED_POINTS);
+    expect(r.decayApplied).toBe(0);
+    expect(r.tier).toBe("great_eye");
+    expect(applyDecay(25, 100)).toBe(25);
+  });
+
+  it("stops a lapsed veteran at the protected amount, never lower", () => {
+    const games = Array.from({ length: 40 }, (_, i) => perfect(i)); // 200 points
+    const r = computeWhoopPoints(games, day(39 + 400));
+    expect(r.total).toBe(25);
+    expect(r.tier).toBe("great_eye");
+    expect(r.decayApplied).toBe(175);
+    expect(r.peakTotal).toBe(200);
+    expect(r.highestTierEver).toBe("xray_vision");
+  });
+
+  it("lands a long-lapsed small player on the protected floor", () => {
     const games = Array.from({ length: 10 }, (_, i) => perfect(i)); // 50 points
     const r = computeWhoopPoints(games, day(9 + 200));
-    expect(r.total).toBe(0);
-    expect(r.tier).toBe("rookie");
+    expect(r.total).toBe(25);
+    expect(r.tier).toBe("great_eye");
     expect(r.peakTotal).toBe(50);
     expect(r.highestTierEver).toBe("great_eye");
   });
 
   it("rebuilds from where decay left a returning player", () => {
-    // 10 perfect days (50), away 200 days (floored to 0), then 3 perfect days.
+    // 10 perfect days (50), away 200 days (down to the protected 25), then 3 perfect days.
     const games = [
       ...Array.from({ length: 10 }, (_, i) => perfect(i)),
       perfect(209), perfect(210), perfect(211),
     ];
     const r = computeWhoopPoints(games, day(211));
-    expect(r.total).toBe(15);
+    expect(r.total).toBe(40);
     expect(r.todayPoints).toBe(5);
-    expect(r.totalBeforeToday).toBe(10);
+    expect(r.totalBeforeToday).toBe(35);
   });
 
   it("keeps the match_maker badge after dropping back to great_eye", () => {
