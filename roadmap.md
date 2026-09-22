@@ -10,3 +10,4 @@
 - [x] Normalize shared button typography and visible button labels only; preserve sentence copy and accessibility descriptions.
 - [x] Build the Whoop Score engine: Daily-only scoring RPCs, tunable constants, and formula unit tests.
 - [x] Redesign the Daily results presentation to the supplied reference layout; verify themes, short-screen scrolling, Rookie fallback, and email capture.
+- [x] Simplify the Daily score panel into one badge/points row, widen its links, and change Share to orange.
