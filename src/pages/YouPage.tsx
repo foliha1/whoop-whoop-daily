@@ -18,6 +18,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import DailyFrame from "@/components/DailyFrame";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
 import DailyStatsBlock from "@/components/DailyStatsBlock";
+import CurrentTierBadge from "@/components/CurrentTierBadge";
 import { useDailyProfile } from "@/hooks/useDailyProfile";
 import useDailyRecall from "@/hooks/useDailyRecall";
 import { usePointsPopulation, useWhoopPointsState } from "@/hooks/useWhoopPoints";
@@ -138,17 +139,38 @@ const YouPage: React.FC = () => {
               }}
             >
               {sectionLabel(SCORE_LABEL)}
-              <span style={{ ...textStyle("resultHero", mobile), color: COLORS.ink }}>
-                {points.total}
-              </span>
-              <span
-                data-testid="you-tier"
-                style={{ ...textStyle("subhead", mobile), color: COLORS.ink, textAlign: "center" }}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: SPACE[6],
+                  minWidth: 0,
+                }}
               >
-                {droppedTier
-                  ? `${tierName(points.tier)} \u00b7 Highest: ${tierName(points.highestTierEver)}`
-                  : tierName(points.tier)}
-              </span>
+                <CurrentTierBadge tier={points.tier} size={mobile ? 72 : 88} testId="you-tier-badge" />
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: SPACE[1],
+                    minWidth: 0,
+                  }}
+                >
+                  <span style={{ ...textStyle("resultHero", mobile), color: COLORS.ink }}>
+                    {points.total}
+                  </span>
+                  <span
+                    data-testid="you-tier"
+                    style={{ ...textStyle("subhead", mobile), color: COLORS.ink, textAlign: "center" }}
+                  >
+                    {droppedTier
+                      ? `${tierName(points.tier)} \u00b7 Highest: ${tierName(points.highestTierEver)}`
+                      : tierName(points.tier)}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* 2 — two contained stats, the number leading. */}
