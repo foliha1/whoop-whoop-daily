@@ -1,95 +1,119 @@
 // ============================================================================
-// Whoop Score presentation — the only place a tier's display name lives, and
-// the only place the results-screen change line is formatted.
+// Whoop Whoop Score presentation — the only place a tier's display name lives,
+// the only place badge art is mapped, and the only place the results-screen
+// change line is formatted.
 //
-// The engine (`src/lib/whoopScore.ts`, `get_whoop_score`) owns the numbers,
-// the weights and the tier boundaries. Nothing here touches them: this module
-// turns those numbers into the words a player reads, so a name can be changed
-// with one edit.
+// The engine (`src/lib/whoopPoints.ts`, `get_whoop_points`) owns the numbers,
+// the points values and the tier thresholds. Nothing here touches them: this
+// module turns those numbers into the words a player reads.
 // ============================================================================
 
-import { TIER_FLOORS, tierForScore, type WhoopTier } from "@/lib/whoopScore";
+import {
+  POINTS_TIER_FLOORS,
+  pointsTierForTotal,
+  type PointsTier,
+} from "@/lib/whoopPoints";
+
+/** What the score is called, everywhere it is labelled. */
+export const SCORE_LABEL = "Your Whoop Whoop Score";
 
 /** Tier key → the name shown to players. One map, one edit. */
-export const TIER_NAMES: Record<WhoopTier, string> = {
+export const TIER_NAMES: Record<PointsTier, string> = {
   rookie: "Rookie",
-  tier_2: "Sharp Eye",
-  tier_3: "Card Shark",
-  tier_4: "Master Matcher",
-  legend: "Whoop Legend",
+  great_eye: "Great Eye",
+  match_maker: "Match Maker",
+  xray_vision: "X-ray Vision",
+  legend: "Whoop Whoop Legend",
 };
 
-export function tierName(tier: WhoopTier | null | undefined): string {
+export function tierName(tier: PointsTier | null | undefined): string {
   return tier ? TIER_NAMES[tier] : "";
 }
 
+/**
+ * Badge key → its art. A badge renders only if it has an entry here: adding a
+ * future badge is one file in `public/badges` and one line below. Badge art is
+ * fixed brand artwork and does not follow the theme.
+ */
+export const BADGE_ART: Readonly<Record<string, string>> = {
+  great_eye: "/badges/great_eye.svg",
+};
+
+export function badgeArt(key: string): string | null {
+  return BADGE_ART[key] ?? null;
+}
+
 /** The ladder, lowest first — the order it is drawn in on the YOU page. */
-export const TIER_LADDER: ReadonlyArray<{ tier: WhoopTier; floor: number; name: string }> =
-  [...TIER_FLOORS]
+export const TIER_LADDER: ReadonlyArray<{ tier: PointsTier; floor: number; name: string }> =
+  [...POINTS_TIER_FLOORS]
     .slice()
     .reverse()
     .map((t) => ({ tier: t.tier, floor: t.floor, name: TIER_NAMES[t.tier] }));
 
-/** "0–39" / "85–100" — the band a tier covers, for the ladder rows. */
-export function tierRange(tier: WhoopTier): string {
+/** "25–74" / "300+" — the band a tier covers, for the ladder rows. */
+export function tierRange(tier: PointsTier): string {
   const idx = TIER_LADDER.findIndex((t) => t.tier === tier);
   const floor = TIER_LADDER[idx].floor;
   const next = TIER_LADDER[idx + 1];
-  return `${floor}–${next ? next.floor - 1 : 100}`;
+  return next ? `${floor}\u2013${next.floor - 1}` : `${floor}+`;
 }
 
 // ----------------------------------------------------------- change line ---
 
-export type ScoreChange = {
-  /** Null when there is nothing to compare against. */
+export type PointsChange = {
+  /** Null when today has not been played. */
   delta: number | null;
-  /** "+3 → 58", "−2 → 56", or just "58" when nothing moved. */
-  text: string;
-  /** True when today's game crossed into a higher tier, or unlocked the first score. */
+  /** "+4 today", or null when there is nothing earned today to show. */
+  text: string | null;
+  /** True when today's points moved the player into a higher tier. */
   tierUp: boolean;
 };
 
 /**
- * The results-screen hero line. A drop is shown honestly with a true minus
- * sign; an unchanged score is shown with no marker at all rather than "+0".
+ * Today's earning, from the engine's `today_points` and `total_before_today`.
+ * A tier-up is a real crossing: the tier the total sits in now is higher than
+ * the tier it sat in before today's game.
  */
-export function formatScoreChange(
-  previous: number | null | undefined,
-  current: number | null | undefined
-): ScoreChange | null {
-  if (current === null || current === undefined) return null;
-  if (previous === null || previous === undefined) {
-    return { delta: null, text: `${current}`, tierUp: true };
+export function formatPointsChange(
+  todayPoints: number | null | undefined,
+  totalBeforeToday: number | null | undefined,
+  total: number
+): PointsChange {
+  if (todayPoints === null || todayPoints === undefined) {
+    return { delta: null, text: null, tierUp: false };
   }
-  const delta = current - previous;
-  if (delta === 0) return { delta: 0, text: `${current}`, tierUp: false };
-  const sign = delta > 0 ? "+" : "\u2212";
+  const before = totalBeforeToday ?? total - todayPoints;
+  const tierUp =
+    todayPoints > 0 &&
+    TIER_LADDER.findIndex((t) => t.tier === pointsTierForTotal(total)) >
+      TIER_LADDER.findIndex((t) => t.tier === pointsTierForTotal(before));
   return {
-    delta,
-    text: `${sign}${Math.abs(delta)} \u2192 ${current}`,
-    tierUp: delta > 0 && tierForScore(current) !== tierForScore(previous),
+    delta: todayPoints,
+    text: `+${todayPoints} today`,
+    tierUp,
   };
 }
 
-/** "Top 12% of active players" — only ever called with a real band. */
-export function formatPercentileBand(band: number): string {
-  return `Top ${band}% of active players`;
-}
-
-/** "18% of players are Card Shark". */
-export function formatTierShare(share: number, tier: WhoopTier): string {
+/** "18% of players are Match Maker". */
+export function formatTierShare(share: number, tier: PointsTier): string {
   return `${Math.round(share * 100)}% of players are ${TIER_NAMES[tier]}`;
 }
 
-/** "2 more games unlock your Whoop Score" — the below-minimum line. */
-export function formatGamesNeeded(games: number): string {
-  return `${games} more ${games === 1 ? "game" : "games"} unlock${
-    games === 1 ? "s" : ""
-  } your Whoop Score`;
+/** "12 points to Match Maker". */
+export function formatPointsToNext(points: number, threshold: number): string {
+  return `${points} ${points === 1 ? "point" : "points"} to ${tierName(
+    pointsTierForTotal(threshold)
+  )}`;
 }
 
-/** "83%" from a 0–1 rate. */
-export function formatRate(rate: number | null | undefined): string {
-  if (rate === null || rate === undefined) return "—";
-  return `${Math.round(rate * 100)}%`;
+/** "14 Sep 2026" — the date a badge was earned. */
+export function formatBadgeDate(isoDate: string): string {
+  const d = new Date(`${isoDate}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return isoDate;
+  return d.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 }

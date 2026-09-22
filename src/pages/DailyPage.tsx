@@ -59,10 +59,10 @@ import {
 } from "@/lib/dailyResults";
 import { useDailyStreak } from "@/hooks/useDailyStreak";
 import { useDailyProfile } from "@/hooks/useDailyProfile";
-import { useWhoopScore } from "@/hooks/useWhoopScore";
-import WhoopScoreChange from "@/components/WhoopScoreChange";
-import { formatScoreChange } from "@/lib/whoopTiers";
-import type { WhoopScore } from "@/lib/whoopScore";
+import { useWhoopPoints } from "@/hooks/useWhoopPoints";
+import WhoopPointsChange from "@/components/WhoopPointsChange";
+import { badgeArt, formatPointsChange } from "@/lib/whoopTiers";
+import type { WhoopPoints } from "@/lib/whoopPoints";
 
 import { runDailyEndSequence } from "@/lib/dailyEndSequence";
 import {
@@ -573,7 +573,7 @@ const DailyResultCard: React.FC<{
    * The Whoop Score, read only AFTER today's run was written — otherwise the
    * change line would compare against yesterday. Null hides the block.
    */
-  whoop: WhoopScore | null;
+  whoop: WhoopPoints | null;
   /** Passed to the group line so switched devices resolve to one membership. */
   knownEmail?: string | null;
   /** Called after an email signup so the parent can re-read streak/stats. */
@@ -640,15 +640,20 @@ const DailyResultCard: React.FC<{
   }, [burst, milestonePreview, puzzleNumber]);
 
   // ── A new tier is a moment ────────────────────────────────────────────────
-  // Crossing into a higher tier than `previous_score` sat in — or unlocking a
-  // first score at all — is marked on the block and hooked to the SAME
+  // Crossing into a higher tier than the total sat in before today's game — or
+  // earning a badge dated today — is marked on the block and hooked to the SAME
   // milestone confetti. No second celebration was invented. On a streak
   // milestone day the milestone burst already fired, so this adds nothing.
   const scoreChange =
-    whoop !== null && whoop.score !== null
-      ? formatScoreChange(whoop.previousScore, whoop.score)
+    whoop !== null
+      ? formatPointsChange(whoop.todayPoints, whoop.totalBeforeToday, whoop.total)
       : null;
-  const tierUp = scoreChange?.tierUp ?? false;
+  const badgeToday =
+    whoop !== null &&
+    whoop.badges.some(
+      (b) => b.earnedOn === new Date().toISOString().slice(0, 10) && badgeArt(b.key) !== null
+    );
+  const tierUp = (scoreChange?.tierUp ?? false) || badgeToday;
   const tierBurst = tierUp && !reducedMotion && !burst;
 
 
@@ -883,7 +888,7 @@ const DailyResultCard: React.FC<{
           ...blockIn("score"),
         }}
       >
-        <WhoopScoreChange whoop={whoop} mobile={mobile} tierUp={tierUp} />
+        <WhoopPointsChange points={whoop} mobile={mobile} tierUp={tierUp} />
         {/* The four all-time stats and the recall trend now live on /you; this
             is the one quiet way through to them. */}
         <a
@@ -1340,9 +1345,9 @@ const DailyPage: React.FC = () => {
     dataReady,
     profileKey
   );
-  // Same gate as the streak: the score is read only after the run is written,
-  // so "+3 → 58" is the effect of today's game, not yesterday's standing.
-  const whoop = useWhoopScore(dataReady, profileKey);
+  // Same gate as the streak: the total is read only after the run is written,
+  // so "+4 today" is the effect of today's game, not yesterday's standing.
+  const whoop = useWhoopPoints(dataReady, profileKey);
 
   // -------------------------------------------------------------------------
   // Instrumentation. Read-only observers of the engine: nothing here changes

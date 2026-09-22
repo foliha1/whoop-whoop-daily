@@ -1,6 +1,7 @@
 // ============================================================================
-// YouPage — /you. The player's long-term self: the Whoop Score, the tier
-// ladder, the three parts that make the score, and their all-time numbers.
+// YouPage — /you. The player's long-term self: the Whoop Whoop Score as a
+// running points total, the tier ladder, how points are earned, badges, and
+// their all-time numbers.
 //
 // This is not a game screen, so it may scroll: `DailyFrame` without `fill`,
 // like the groups page. Everything else is the Daily's own shell — the pattern
@@ -19,14 +20,21 @@ import DailyLegalFooter from "@/components/DailyLegalFooter";
 import DailyStatsBlock from "@/components/DailyStatsBlock";
 import { useDailyProfile } from "@/hooks/useDailyProfile";
 import useDailyRecall from "@/hooks/useDailyRecall";
-import { useTierDistribution, useWhoopScoreState } from "@/hooks/useWhoopScore";
+import { usePointsPopulation, useWhoopPointsState } from "@/hooks/useWhoopPoints";
 import { getDailyNumber } from "@/lib/daily";
-import { tierForScore } from "@/lib/whoopScore";
 import {
+  DECAY_PER_DAY,
+  DECAY_PROTECTED_POINTS,
+  GRACE_DAYS,
+  POINT_FIRST_TRY_MAX,
+  MAX_POINTS_PER_GAME,
+} from "@/lib/whoopPoints";
+import {
+  SCORE_LABEL,
   TIER_LADDER,
-  formatGamesNeeded,
-  formatPercentileBand,
-  formatRate,
+  badgeArt,
+  formatBadgeDate,
+  formatPointsToNext,
   formatTierShare,
   tierName,
   tierRange,
@@ -41,28 +49,45 @@ import {
   textStyle,
 } from "@/lib/tokens";
 
-/** The three parts, each with the one line that makes its number readable. */
-const PART_COPY: ReadonlyArray<{ label: string; help: string }> = [
-  { label: "No-peek rate", help: "How often you finish without peeking." },
-  { label: "Clean-run rate", help: "How often you finish a day with no mistakes." },
-  { label: "Consistency", help: "Days you showed up in the last 30." },
+/** How points are earned — the table, in the order a day happens. */
+const EARN_ROWS: ReadonlyArray<{ label: string; value: string }> = [
+  { label: "Played", value: "+1" },
+  { label: `Each round solved on the first try (up to ${POINT_FIRST_TRY_MAX})`, value: "+1" },
+  { label: "No peek", value: "+1" },
+  { label: "Best possible day", value: `${MAX_POINTS_PER_GAME}` },
 ];
+
+const FADE_LINE = `After ${GRACE_DAYS} days away you lose ${DECAY_PER_DAY} points a day, and your first ${DECAY_PROTECTED_POINTS} points never fade.`;
 
 const YouPage: React.FC = () => {
   const mobile = useIsMobile();
   const puzzleNumber = React.useMemo(() => getDailyNumber(), []);
   const { stats } = useDailyProfile(puzzleNumber);
   const recall = useDailyRecall();
-  const { score: whoop, loading: whoopLoading } = useWhoopScoreState();
-  const dist = useTierDistribution();
+  const { points, loading } = useWhoopPointsState();
+  const pop = usePointsPopulation();
 
-  const hasScore = whoop !== null && whoop.score !== null;
-  const myTier = hasScore ? (whoop!.tier ?? tierForScore(whoop!.score!)) : null;
-  const myShare = dist && myTier ? dist.tiers.find((t) => t.tier === myTier) : null;
+  const myTier = points?.tier ?? null;
+  const myShare = pop && myTier ? pop.tiers.find((t) => t.tier === myTier) : null;
+  const droppedTier = points !== null && points.highestTierEver !== points.tier;
+  const isLegend = myTier === "legend";
+  const highestIdx = points
+    ? TIER_LADDER.findIndex((t) => t.tier === points.highestTierEver)
+    : -1;
+
+  /** Only badges with art render. No placeholders, nothing unfinished. */
+  const shownBadges = (points?.badges ?? []).filter((b) => badgeArt(b.key) !== null);
 
   const sectionLabel = (text: string) => (
     <h2 style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, margin: 0 }}>{text}</h2>
   );
+
+  const panel: React.CSSProperties = {
+    boxSizing: "border-box",
+    border: BORDER.heavy,
+    borderRadius: RADIUS.sm,
+    background: COLORS.panel,
+  };
 
   return (
     <DailyFrame gap={SPACE[6]}>
@@ -90,69 +115,114 @@ const YouPage: React.FC = () => {
 
         <h1 style={{ ...textStyle("title", mobile), color: COLORS.ink, margin: 0 }}>You</h1>
 
-        {/* 1 — the score itself, and the tier it sits in. */}
-        {hasScore ? (
-          <div
-            data-testid="you-score"
-            style={{
-              alignSelf: "stretch",
-              border: BORDER.heavy,
-              borderRadius: RADIUS.sm,
-              background: COLORS.panel,
-              padding: SPACE[8],
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: SPACE[2],
-            }}
-          >
-            {sectionLabel("Your Whoop Score")}
-            <span style={{ ...textStyle("resultHero", mobile), color: COLORS.ink }}>
-              {whoop!.score}
-            </span>
-            <span style={{ ...textStyle("subhead", mobile), color: COLORS.ink }}>
-              {tierName(myTier)}
-            </span>
-          </div>
-        ) : whoopLoading ? null : whoop === null ? (
-          // The read failed. Never claim the player has too few games.
+        {/* 1 — the total, and the tier it sits in. */}
+        {loading ? null : points === null ? (
           <p
             data-testid="you-score-error"
             style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, margin: 0 }}
           >
-            Your Whoop Score could not be loaded. Try again in a moment.
+            {SCORE_LABEL} could not be loaded. Try again in a moment.
           </p>
         ) : (
-          <p
-            data-testid="you-locked"
-            style={{ ...textStyle("body", mobile), color: COLORS.ink, margin: 0 }}
-          >
-            {formatGamesNeeded(whoop.gamesNeeded ?? 5)}.
-          </p>
-        )}
-
-        {hasScore && (
           <>
-            {/* 2 — the ladder, with your rung marked and the climb named. */}
+            <div
+              data-testid="you-score"
+              style={{
+                ...panel,
+                alignSelf: "stretch",
+                padding: SPACE[8],
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: SPACE[2],
+              }}
+            >
+              {sectionLabel(SCORE_LABEL)}
+              <span style={{ ...textStyle("resultHero", mobile), color: COLORS.ink }}>
+                {points.total}
+              </span>
+              <span
+                data-testid="you-tier"
+                style={{ ...textStyle("subhead", mobile), color: COLORS.ink, textAlign: "center" }}
+              >
+                {droppedTier
+                  ? `${tierName(points.tier)} \u00b7 Highest: ${tierName(points.highestTierEver)}`
+                  : tierName(points.tier)}
+              </span>
+            </div>
+
+            {/* 2 — two contained stats, the number leading. */}
+            <div
+              data-testid="you-stats"
+              style={{ alignSelf: "stretch", display: "flex", gap: SPACE[4] }}
+            >
+              {myShare && myTier && (
+                <div
+                  data-testid="you-tier-share"
+                  style={{
+                    ...panel,
+                    flex: 1,
+                    padding: `${SPACE[5]}px ${SPACE[5]}px`,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: SPACE[1],
+                  }}
+                >
+                  <span style={{ ...textStyle("subhead", mobile), color: COLORS.ink }}>
+                    {Math.round(myShare.share * 100)}%
+                  </span>
+                  <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
+                    of players are {tierName(myTier)}
+                  </span>
+                </div>
+              )}
+              <div
+                data-testid="you-next-tier"
+                style={{
+                  ...panel,
+                  flex: 1,
+                  padding: `${SPACE[5]}px ${SPACE[5]}px`,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: SPACE[1],
+                }}
+              >
+                <span style={{ ...textStyle("subhead", mobile), color: COLORS.ink }}>
+                  {isLegend || points.pointsToNextTier === null
+                    ? points.peakTotal
+                    : points.pointsToNextTier}
+                </span>
+                <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
+                  {isLegend || points.pointsToNextTier === null || points.nextTierThreshold === null
+                    ? "your highest ever total"
+                    : `points to ${tierName(
+                        TIER_LADDER.find((t) => t.floor === points.nextTierThreshold)?.tier ?? null
+                      )}`}
+                </span>
+              </div>
+            </div>
+
+            {/* 3 — the ladder, with your rung marked. */}
             <div
               data-testid="you-ladder"
               style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}
             >
               {sectionLabel("Tiers")}
-              {TIER_LADDER.map((t) => {
-                const here = t.tier === myTier;
+              {TIER_LADDER.map((t, i) => {
+                const here = t.tier === points.tier;
+                const highest = droppedTier && i === highestIdx;
                 return (
                   <div
                     key={t.tier}
                     data-testid="you-ladder-row"
                     data-here={here ? "1" : undefined}
+                    data-highest={highest ? "1" : undefined}
                     style={{
+                      ...panel,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
                       gap: SPACE[4],
-                      border: BORDER.heavy,
-                      borderRadius: RADIUS.sm,
                       background: here ? COLORS.orange : COLORS.panel,
                       padding: `${SPACE[4]}px ${SPACE[6]}px`,
                     }}
@@ -160,15 +230,16 @@ const YouPage: React.FC = () => {
                     <span
                       style={{
                         ...textStyle("control", mobile),
-                        color: here ? "#231f20" : COLORS.ink,
+                        color: here ? RAW.warmBlack : COLORS.ink,
                       }}
                     >
                       {t.name}
+                      {highest ? " \u00b7 Highest" : ""}
                     </span>
                     <span
                       style={{
                         ...textStyle("caption", mobile),
-                        color: here ? "#231f20" : COLORS.inkMuted,
+                        color: here ? RAW.warmBlack : COLORS.inkMuted,
                       }}
                     >
                       {tierRange(t.tier)}
@@ -176,80 +247,95 @@ const YouPage: React.FC = () => {
                   </div>
                 );
               })}
-              {whoop!.pointsToNext !== null && whoop!.nextTierThreshold !== null && (
-                <p
-                  data-testid="you-points-to-next"
-                  style={{ ...textStyle("body", mobile), color: COLORS.ink, margin: 0 }}
-                >
-                  {whoop!.pointsToNext} more{" "}
-                  {whoop!.pointsToNext === 1 ? "point" : "points"} to{" "}
-                  {tierName(tierForScore(whoop!.nextTierThreshold!))}.
-                </p>
-              )}
             </div>
 
-            {/* 3 — the three parts, as the player's own rates. */}
+            {/* 4 — how points are earned, and how they fade. */}
             <div
-              data-testid="you-parts"
+              data-testid="you-earning"
               style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}
             >
-              {sectionLabel("What makes your score")}
-              {[whoop!.noPeekRate, whoop!.zeroMistakeRate, whoop!.consistencyRate].map(
-                (rate, i) => (
+              {sectionLabel("How you earn points")}
+              <div style={{ ...panel, padding: `${SPACE[2]}px ${SPACE[6]}px` }}>
+                {EARN_ROWS.map((row, i) => (
                   <div
-                    key={PART_COPY[i].label}
-                    data-testid="you-part"
+                    key={row.label}
+                    data-testid="you-earn-row"
                     style={{
-                      border: BORDER.heavy,
-                      borderRadius: RADIUS.sm,
-                      background: COLORS.panel,
-                      padding: `${SPACE[5]}px ${SPACE[6]}px`,
                       display: "flex",
-                      flexDirection: "column",
-                      gap: SPACE[1],
+                      alignItems: "baseline",
+                      justifyContent: "space-between",
+                      gap: SPACE[4],
+                      paddingTop: SPACE[4],
+                      paddingBottom: SPACE[4],
+                      ...(i === 0
+                        ? null
+                        : { borderTop: "1px solid rgba(35, 31, 32, 0.18)" }),
                     }}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "baseline",
-                        justifyContent: "space-between",
-                        gap: SPACE[4],
-                      }}
-                    >
-                      <span style={{ ...textStyle("control", mobile), color: COLORS.ink }}>
-                        {PART_COPY[i].label}
-                      </span>
-                      <span style={{ ...textStyle("subhead", mobile), color: COLORS.ink }}>
-                        {formatRate(rate)}
-                      </span>
-                    </div>
-                    <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
-                      {PART_COPY[i].help}
+                    <span style={{ ...textStyle("body", mobile), color: COLORS.ink }}>
+                      {row.label}
+                    </span>
+                    <span style={{ ...textStyle("control", mobile), color: COLORS.ink }}>
+                      {row.value}
                     </span>
                   </div>
-                )
-              )}
+                ))}
+              </div>
+              <p style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>
+                {FADE_LINE}
+              </p>
             </div>
 
-            {/* 4 — the band, and nothing at all in its place when withheld. */}
-            {whoop!.percentileBand !== null && (
-              <p
-                data-testid="you-percentile"
-                style={{ ...textStyle("body", mobile), color: COLORS.ink, margin: 0 }}
+            {/* 5 — badges. Only art that exists is ever shown. */}
+            {shownBadges.length > 0 && (
+              <div
+                data-testid="you-badges"
+                style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}
               >
-                {formatPercentileBand(whoop!.percentileBand!)}
-              </p>
-            )}
-
-            {/* 5 — how crowded your own tier is. */}
-            {myShare && myTier && (
-              <p
-                data-testid="you-tier-share"
-                style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, margin: 0 }}
-              >
-                {formatTierShare(myShare.share, myTier)}
-              </p>
+                {sectionLabel("Badges")}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: SPACE[6] }}>
+                  {shownBadges.map((b) => (
+                    <div
+                      key={b.key}
+                      data-testid="you-badge"
+                      data-badge={b.key}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: SPACE[2],
+                        width: 96,
+                      }}
+                    >
+                      <img
+                        src={badgeArt(b.key) as string}
+                        alt={tierName(b.key as never) || b.key}
+                        width={72}
+                        height={72}
+                        style={{ display: "block" }}
+                      />
+                      <span
+                        style={{
+                          ...textStyle("caption", mobile),
+                          color: COLORS.ink,
+                          textAlign: "center",
+                        }}
+                      >
+                        {tierName(b.key as never) || b.key}
+                      </span>
+                      <span
+                        style={{
+                          ...textStyle("caption", mobile),
+                          color: COLORS.inkMuted,
+                          textAlign: "center",
+                        }}
+                      >
+                        {formatBadgeDate(b.earnedOn)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </>
         )}

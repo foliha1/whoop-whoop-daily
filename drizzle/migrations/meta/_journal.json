@@ -50,6 +50,20 @@
       "when": 1790067073236,
       "tag": "0006_whoop_points_decay_protection",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790067689819,
+      "tag": "0007_drop_old_whoop_score_engine",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790068055262,
+      "tag": "0008_whoop_points_population_single_pass",
+      "breakpoints": true
     }
   ]
 }
