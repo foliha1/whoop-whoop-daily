@@ -36,7 +36,11 @@ export function tierName(tier: PointsTier | null | undefined): string {
  * fixed brand artwork and does not follow the theme.
  */
 export const BADGE_ART: Readonly<Record<string, string>> = {
+  rookie: "/badges/rookie.svg",
   great_eye: "/badges/great_eye.svg",
+  match_maker: "/badges/match_maker.svg",
+  xray_vision: "/badges/xray_vision.svg",
+  legend: "/badges/legend.svg",
 };
 
 export function badgeArt(key: string): string | null {
