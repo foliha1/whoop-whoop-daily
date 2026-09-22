@@ -783,6 +783,31 @@ export type Database = {
         }[]
       }
       get_subscriber_email: { Args: { p_visitor_id: string }; Returns: string }
+      get_whoop_points: {
+        Args: { p_email?: string; p_visitor_id: string }
+        Returns: {
+          badges: Json
+          days_away: number
+          decay_applied: number
+          games_played: number
+          highest_tier_ever: string
+          next_tier_threshold: number
+          peak_total: number
+          points_to_next_tier: number
+          tier: string
+          today_points: number
+          total: number
+          total_before_today: number
+        }[]
+      }
+      get_whoop_points_population: {
+        Args: never
+        Returns: {
+          active_total: number
+          players: number
+          tier: string
+        }[]
+      }
       get_whoop_score: {
         Args: { p_email?: string; p_visitor_id: string }
         Returns: {
@@ -883,6 +908,78 @@ export type Database = {
             Args: { p_email: string; p_source: string; p_visitor_id: string }
             Returns: boolean
           }
+      whoop_points_active_identities: {
+        Args: { p_as_of?: string }
+        Returns: {
+          identity: string
+        }[]
+      }
+      whoop_points_config: { Args: never; Returns: Json }
+      whoop_points_first_try: {
+        Args: {
+          p_round_events: Json
+          p_rounds_solved: number
+          p_total_misses: number
+        }
+        Returns: number
+      }
+      whoop_points_for: {
+        Args: { p_as_of?: string; p_identity: string }
+        Returns: {
+          badges: Json
+          days_away: number
+          decay_applied: number
+          fallback_rows: number
+          games_played: number
+          highest_tier_ever: string
+          identity: string
+          last_played: string
+          peak_total: number
+          tier: string
+          today_points: number
+          total: number
+          total_before_today: number
+        }[]
+      }
+      whoop_points_game: {
+        Args: {
+          p_peek_used: boolean
+          p_round_events: Json
+          p_rounds_solved: number
+          p_total_misses: number
+        }
+        Returns: number
+      }
+      whoop_points_rows: {
+        Args: never
+        Returns: {
+          game_points: number
+          identity: string
+          puzzle_date: string
+          puzzle_number: number
+          used_fallback: boolean
+        }[]
+      }
+      whoop_points_table: {
+        Args: { p_as_of?: string }
+        Returns: {
+          badges: Json
+          days_away: number
+          decay_applied: number
+          fallback_rows: number
+          games_played: number
+          highest_tier_ever: string
+          identity: string
+          last_played: string
+          peak_total: number
+          tier: string
+          today_points: number
+          total: number
+          total_before_today: number
+        }[]
+      }
+      whoop_points_tier: { Args: { p_total: number }; Returns: string }
+      whoop_points_tier_floor: { Args: { p_tier: string }; Returns: number }
       whoop_score_active_identities: {
         Args: { p_as_of?: string }
         Returns: {
