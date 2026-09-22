@@ -17,7 +17,7 @@
 
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscriberStatus } from "@/hooks/useSubscriberStatus";
@@ -148,6 +148,11 @@ const CarryOverEmail: React.FC<{ mobile: boolean; onLinked: (email: string) => v
 const GroupsPage: React.FC = () => {
   const mobile = useIsMobile();
   const [params, setParams] = useSearchParams();
+  const location = useLocation();
+  // Arrived from the results screen's "Groups" button: Back returns there,
+  // and the Daily page reopens today's result directly.
+  const backToResults =
+    (location.state as { wwReturn?: string } | null)?.wwReturn === "results";
   const puzzleNumber = React.useMemo(() => getDailyNumber(), []);
   const { email: subscriberEmail } = useSubscriberStatus();
   const [linkedEmail, setLinkedEmail] = React.useState<string | null>(() => getGroupEmail());
@@ -185,6 +190,7 @@ const GroupsPage: React.FC = () => {
   const backLink = (
     <Link
       to="/"
+      state={backToResults ? { wwOpenResult: true } : undefined}
       className="ww-press"
       style={{ ...buttonStyle("ink", "md", { mobile }), alignSelf: "flex-start" }}
     >
