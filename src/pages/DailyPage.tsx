@@ -99,10 +99,8 @@ import {
 
   RADIUS,
   SPACE,
-  TEXT,
   buttonStyle,
   textStyle,
-  FONT_FAMILY_UI,
   FONT_WEIGHT_UI,
 
 
@@ -1779,9 +1777,7 @@ const DailyPage: React.FC = () => {
               )}
               result={daily.result!}
               streak={streak?.current ?? null}
-              percentile={percentile}
               whoop={whoop}
-              knownEmail={knownEmail}
               subscribed={subscribed}
               onSubscribed={(email) => {
                 // Restore or fresh signup, either way: the address is now on
