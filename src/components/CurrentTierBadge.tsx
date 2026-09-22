@@ -1,6 +1,7 @@
 import React from "react";
 import type { PointsTier } from "@/lib/whoopPoints";
 import { badgeArt, tierName } from "@/lib/whoopTiers";
+import { loadBadgeImage } from "@/lib/badgeImages";
 
 type CurrentTierBadgeProps = {
   tier: PointsTier;
@@ -22,25 +23,14 @@ const CurrentTierBadge: React.FC<CurrentTierBadgeProps> = ({ tier, size, testId 
     if (src === null) return;
 
     let active = true;
-    const preload = new Image();
-    const reveal = () => {
-      if (active) setReadySrc(src);
-    };
-    preload.onload = reveal;
-    preload.onerror = () => {
-      if (active) setReadySrc(null);
-    };
-    preload.src = src;
-
-    if (preload.complete && preload.naturalWidth > 0) reveal();
-    else if (typeof preload.decode === "function") preload.decode().then(reveal).catch(() => undefined);
+    void loadBadgeImage(tier).then((image) => {
+      if (active) setReadySrc(image === null ? null : src);
+    });
 
     return () => {
       active = false;
-      preload.onload = null;
-      preload.onerror = null;
     };
-  }, [src]);
+  }, [src, tier]);
 
   if (src === null || readySrc !== src) return null;
 
