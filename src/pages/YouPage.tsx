@@ -12,7 +12,7 @@
 
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DailyFrame from "@/components/DailyFrame";
@@ -62,6 +62,11 @@ const FADE_LINE = `After ${GRACE_DAYS} days away you lose ${DECAY_PER_DAY} point
 
 const YouPage: React.FC = () => {
   const mobile = useIsMobile();
+  const location = useLocation();
+  // Arrived from the results screen's "Your Stats" button: Back returns there,
+  // and the Daily page reopens today's result directly.
+  const backToResults =
+    (location.state as { wwReturn?: string } | null)?.wwReturn === "results";
   const puzzleNumber = React.useMemo(() => getDailyNumber(), []);
   const { stats } = useDailyProfile(puzzleNumber);
   const recall = useDailyRecall();
@@ -107,6 +112,7 @@ const YouPage: React.FC = () => {
       >
         <Link
           to="/"
+          state={backToResults ? { wwOpenResult: true } : undefined}
           className="ww-press"
           style={{ ...buttonStyle("ink", "md", { mobile }), alignSelf: "flex-start" }}
         >

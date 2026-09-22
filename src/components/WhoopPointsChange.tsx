@@ -8,6 +8,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import CurrentTierBadge from "@/components/CurrentTierBadge";
+import MaterialIcon from "@/components/MaterialIcon";
 import type { WhoopPoints } from "@/lib/whoopPoints";
 import { SCORE_LABEL, badgeArt, tierName } from "@/lib/whoopTiers";
 import { BORDER, COLORS, FONT_SIZE, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
@@ -145,18 +146,22 @@ const WhoopPointsChange: React.FC<{
       >
           <Link
             to="/you"
+            state={{ wwReturn: "results" }}
             data-testid="result-you-link"
             className="ww-press"
             style={{ ...buttonStyle("secondary", "md", { mobile, fullWidth: true }), minWidth: 0, paddingInline: SPACE[2] }}
           >
+            <MaterialIcon name="leaderboard" size={16} />
             Your Stats
           </Link>
           <Link
             to="/groups"
+            state={{ wwReturn: "results" }}
             data-testid="result-groups-link"
             className="ww-press"
             style={{ ...buttonStyle("secondary", "md", { mobile, fullWidth: true }), minWidth: 0, paddingInline: SPACE[2] }}
           >
+            <MaterialIcon name="group" size={16} />
             Groups
           </Link>
       </div>

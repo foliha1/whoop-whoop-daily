@@ -13,3 +13,4 @@
 - [x] Simplify the Daily score panel into one badge/points row, widen its links, and change Share to orange.
 - [x] Strengthen the Daily score row hierarchy with larger badge art and separated score numbers and captions.
 - [x] Align round-review dividers and dot markers on shared row planes.
+- [x] Return to the results screen from Your Stats and Groups, and add Material icons to both results buttons.
