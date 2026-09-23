@@ -140,31 +140,21 @@ const WhoopPointsChange: React.FC<{
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          gridTemplateColumns: "minmax(0, 1fr)",
           gap: SPACE[5],
           minWidth: 0,
         }}
       >
-          <Link
-            to="/you"
-            state={{ wwReturn: "results" }}
-            data-testid="result-you-link"
-            className="ww-press"
-            style={{ ...buttonStyle("secondary", "md", { mobile, fullWidth: true }), minWidth: 0, paddingInline: SPACE[2] }}
-          >
-            <MaterialIcon name="leaderboard" size={16} />
-            Your Stats
-          </Link>
-          <Link
-            to="/groups"
-            state={{ wwReturn: "results" }}
-            data-testid="result-groups-link"
-            className="ww-press"
-            style={{ ...buttonStyle("secondary", "md", { mobile, fullWidth: true }), minWidth: 0, paddingInline: SPACE[2] }}
-          >
-            <MaterialIcon name="group" size={16} />
-            Groups
-          </Link>
+        <Link
+          to="/you"
+          state={{ wwReturn: "results" }}
+          data-testid="result-you-link"
+          className="ww-press"
+          style={{ ...buttonStyle("secondary", "md", { mobile, fullWidth: true }), minWidth: 0, paddingInline: SPACE[2] }}
+        >
+          <MaterialIcon name="leaderboard" size={16} />
+          Your Stats
+        </Link>
       </div>
       {tierUp && (
         <span
