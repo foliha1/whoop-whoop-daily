@@ -58,6 +58,7 @@ const WhoopScoreAnnouncement: React.FC<{
       primaryLabel={SCORE_ANNOUNCEMENT.primary}
       secondaryLabel={SCORE_ANNOUNCEMENT.secondary}
       returnFocusSelector='[data-testid="results-done"]'
+      testId="score-announcement"
       onPrimary={() => close("primary")}
       onDismiss={() => close("dismissed")}
     >
