@@ -122,7 +122,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
                  </AppButton>
                </DialogPrimitive.Trigger>
                <DialogPrimitive.Portal>
-                 <DialogPrimitive.Overlay className="ww-ui-modal-backdrop" style={{ position: "fixed", inset: 0, zIndex: 1000, background: COLORS.ink, opacity: 0.65 }} />
+                 <DialogPrimitive.Overlay className="ww-ui-modal-backdrop" style={{ position: "fixed", inset: 0, zIndex: 1000, background: `color-mix(in srgb, ${COLORS.ink} 65%, transparent)` }} />
                  <DialogPrimitive.Content
                    data-testid="you-badge-detail"
                    className="ww-ui-revisit"

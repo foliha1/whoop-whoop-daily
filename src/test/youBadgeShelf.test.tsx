@@ -1,8 +1,9 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import YouBadgeShelf from "@/components/YouBadgeShelf";
 import type { EarnedBadge } from "@/lib/whoopPoints";
+import { formatBadgeDate } from "@/lib/whoopTiers";
 
 vi.mock("@/components/CurrentTierBadge", () => ({
   default: ({ tier }: { tier: string }) => <img alt={`${tier} badge`} src={`/badges/${tier}.svg`} />,
@@ -24,10 +25,10 @@ describe("YouBadgeShelf", () => {
   it("opens a focus-managed detail dialog with the earned date and tier threshold", async () => {
     render(<YouBadgeShelf badges={badges} mobile />);
     const trigger = screen.getByRole("button", { name: /View Great Eye badge details/ });
-    trigger.focus();
+    act(() => trigger.focus());
     fireEvent.click(trigger);
     const dialog = await screen.findByRole("dialog", { name: "Great Eye" });
-    expect(within(dialog).getByText("Earned 15 Sep 2026")).toBeVisible();
+    expect(within(dialog).getByText(`Earned ${formatBadgeDate("2026-09-15")}`)).toBeVisible();
     expect(within(dialog).getByText("Reach 25 total points.")).toBeVisible();
     await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true));
     fireEvent.keyDown(document, { key: "Escape" });
@@ -38,7 +39,7 @@ describe("YouBadgeShelf", () => {
   it("describes Rookie as earned by playing and keeps the shelf artwork and date", async () => {
     render(<YouBadgeShelf badges={[badges[0]]} mobile />);
     expect(screen.getByTestId("you-badge")).toHaveTextContent("Rookie");
-    expect(screen.getByTestId("you-badge")).toHaveTextContent("1 Sep 2026");
+    expect(screen.getByTestId("you-badge")).toHaveTextContent(formatBadgeDate("2026-09-01"));
     fireEvent.click(screen.getByRole("button", { name: /View Rookie badge details/ }));
     expect(within(await screen.findByRole("dialog")).getByText("Play your first Daily game.")).toBeVisible();
   });
