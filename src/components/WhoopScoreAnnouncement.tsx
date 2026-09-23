@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useDismiss } from "@/hooks/useDismiss";
 import { useMotionExit } from "@/hooks/useMotionExit";
 import { usePortalHost } from "@/hooks/usePortalHost";
+import { UI_ENTER_MS } from "@/lib/animationTiming";
 import { getSubscribedEmail } from "@/lib/dailySubscribe";
 import { trackDaily } from "@/lib/dailyEvents";
 import { fetchDailyResults } from "@/lib/dailyResults";
@@ -60,6 +61,7 @@ const WhoopScoreAnnouncement: React.FC<{
     onClose();
   }, [navigate, onClose]);
   const { exiting, requestExit } = useMotionExit(finish);
+  const [mounted, setMounted] = React.useState(false);
 
   const close = React.useCallback((action: "primary" | "dismissed") => {
     if (actionRef.current) return;
@@ -77,6 +79,7 @@ const WhoopScoreAnnouncement: React.FC<{
     if (!host) return;
     openerRef.current = document.activeElement as HTMLElement | null;
     buttonRef.current?.focus();
+    setMounted(true);
     return () => {
       const opener = openerRef.current;
       if (opener?.isConnected) window.setTimeout(() => opener.focus(), 0);
