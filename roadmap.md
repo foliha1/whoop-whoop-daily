@@ -14,3 +14,5 @@
 - [x] Verify loading transitions, themes, reduced motion, and responsive layout for both pages.
 - [x] Hide Groups player entry points, re-gate `/groups` for debug, and preserve all group data and code.
 - [x] Verify the gate and single full-width Your Stats action in the Daily results screen.
+- [x] Add reusable, one-time score announcement for returning Daily players, sharing the Your Stats tiles and tracking versioned show/action/dismiss events.
+- [x] Verify first-time, returning, seen, failed-points, fresh celebration timing, and 390×520 light/night display and dismissal.
