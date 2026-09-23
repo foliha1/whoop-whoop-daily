@@ -11,6 +11,8 @@ interface AppButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonEleme
   size?: ButtonSize;
   active?: boolean;
   fullWidth?: boolean;
+  /** Optional hover surface for controls placed on a custom panel. */
+  hoverBackground?: string;
   style?: React.CSSProperties;
 }
 
@@ -31,7 +33,7 @@ const SIZE_MAP: Record<ButtonSize, { fontSize: number; padding: string }> = {
 };
 
 export const AppButton = React.forwardRef<HTMLButtonElement, AppButtonProps>(
-  ({ variant = "primary", tone = "ink", size = "md", active = false, fullWidth = false, disabled, style, onMouseEnter, onMouseLeave, ...rest }, ref) => {
+  ({ variant = "primary", tone = "ink", size = "md", active = false, fullWidth = false, disabled, hoverBackground, style, onMouseEnter, onMouseLeave, ...rest }, ref) => {
     const [focusVisible, setFocusVisible] = React.useState(false);
     const toneColors = TONE_MAP[tone];
     const sizing = SIZE_MAP[size];
@@ -72,11 +74,11 @@ export const AppButton = React.forwardRef<HTMLButtonElement, AppButtonProps>(
         }}
         onBlur={() => setFocusVisible(false)}
         onMouseEnter={(e) => {
-          if (!disabled) e.currentTarget.style.background = hoverBg;
+          if (!disabled) e.currentTarget.style.background = hoverBackground ?? hoverBg;
           onMouseEnter?.(e);
         }}
         onMouseLeave={(e) => {
-          if (!disabled) e.currentTarget.style.background = active ? hoverBg : baseBg;
+          if (!disabled) e.currentTarget.style.background = active ? hoverBg : (typeof style?.background === "string" ? style.background : baseBg);
           onMouseLeave?.(e);
         }}
         {...rest}

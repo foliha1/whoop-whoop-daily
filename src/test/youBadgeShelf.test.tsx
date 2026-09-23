@@ -13,6 +13,7 @@ const badges: EarnedBadge[] = [
   { key: "rookie", earnedOn: "2026-09-01" },
   { key: "great_eye", earnedOn: "2026-09-15" },
   { key: "match_maker", earnedOn: "2026-09-20" },
+  { key: "xray_vision", earnedOn: "2026-09-21" },
 ];
 
 describe("YouBadgeShelf", () => {
@@ -36,17 +37,29 @@ describe("YouBadgeShelf", () => {
     await waitFor(() => expect(document.activeElement).toBe(trigger));
   });
 
-  it("describes Rookie as earned by playing and keeps the shelf artwork and date", async () => {
+  it("keeps names and dates only in details, not in the shelf", async () => {
     render(<YouBadgeShelf badges={[badges[0]]} mobile />);
-    expect(screen.getByTestId("you-badge")).toHaveTextContent("Rookie");
-    expect(screen.getByTestId("you-badge")).toHaveTextContent(formatBadgeDate("2026-09-01"));
+    expect(screen.getByTestId("you-badge")).not.toHaveTextContent("Rookie");
+    expect(screen.getByTestId("you-badge")).not.toHaveTextContent(formatBadgeDate("2026-09-01"));
     fireEvent.click(screen.getByRole("button", { name: /View Rookie badge details/ }));
-    expect(within(await screen.findByRole("dialog")).getByText("Play your first Daily game.")).toBeVisible();
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Play your first Daily game.")).toBeVisible();
+    expect(within(dialog).getByText(`Earned ${formatBadgeDate("2026-09-01")}`)).toBeVisible();
   });
 
-  it("pages with arrow keys and honors reduced motion", () => {
+  it("does not page or show paging instructions with three badges", () => {
+    render(<YouBadgeShelf badges={badges.slice(0, 3)} mobile />);
+    const track = screen.getByRole("region", { name: "Earned badges" });
+    expect(track).toHaveStyle({ overflowX: "hidden" });
+    fireEvent.keyDown(track, { key: "ArrowRight" });
+    expect(track.scrollBy).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Next badges" })).not.toBeInTheDocument();
+  });
+
+  it("pages with arrow keys from four badges and honors reduced motion", () => {
     render(<YouBadgeShelf badges={badges} mobile />);
     const track = screen.getByRole("region", { name: /Earned badges/ });
+    expect(track).toHaveStyle({ overflowX: "auto" });
     track.focus();
     fireEvent.keyDown(track, { key: "ArrowRight" });
     expect(track.scrollBy).toHaveBeenCalledWith(expect.objectContaining({ behavior: "smooth" }));
@@ -55,5 +68,13 @@ describe("YouBadgeShelf", () => {
     vi.spyOn(window, "matchMedia").mockReturnValue({ matches: true } as MediaQueryList);
     fireEvent.keyDown(track, { key: "ArrowLeft" });
     expect(track.scrollBy).toHaveBeenLastCalledWith(expect.objectContaining({ behavior: "instant" }));
+  });
+
+  it("restores the transparent background on leave", () => {
+    render(<YouBadgeShelf badges={[badges[0]]} mobile />);
+    const trigger = screen.getByRole("button", { name: /View Rookie badge details/ });
+    fireEvent.mouseEnter(trigger);
+    fireEvent.mouseLeave(trigger);
+    expect(trigger.style.background).toBe("transparent");
   });
 });
