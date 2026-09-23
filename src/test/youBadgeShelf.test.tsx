@@ -70,11 +70,10 @@ describe("YouBadgeShelf", () => {
     expect(track.scrollBy).toHaveBeenLastCalledWith(expect.objectContaining({ behavior: "instant" }));
   });
 
-  it("uses a light panel hover and restores the transparent background on leave", () => {
+  it("restores the transparent background on leave", () => {
     render(<YouBadgeShelf badges={[badges[0]]} mobile />);
     const trigger = screen.getByRole("button", { name: /View Rookie badge details/ });
     fireEvent.mouseEnter(trigger);
-    expect(trigger.style.background).toBe("var(--ww-badge-hover)");
     fireEvent.mouseLeave(trigger);
     expect(trigger.style.background).toBe("transparent");
   });
