@@ -1294,7 +1294,7 @@ const DailyPage: React.FC = () => {
     useSubscriberStatus(bumpProfile);
   // Read after the run is persisted so today counts toward the streak.
   const dataReady = daily.resultSaved || daily.result === null;
-  const streak = useDailyStreak(daily.puzzleNumber, dataReady, profileKey);
+  const { streak, loading: streakLoading } = useDailyStreakState(daily.puzzleNumber, dataReady, profileKey);
   const { percentile } = useDailyProfile(
     daily.puzzleNumber,
     dataReady,
@@ -1302,7 +1302,7 @@ const DailyPage: React.FC = () => {
   );
   // Same gate as the streak: the total is read only after the run is written,
   // so "+4 today" is the effect of today's game, not yesterday's standing.
-  const whoop = useWhoopPoints(dataReady, profileKey);
+  const { points: whoop, loading: pointsLoading } = useWhoopPointsState(dataReady, profileKey);
 
   // -------------------------------------------------------------------------
   // Instrumentation. Read-only observers of the engine: nothing here changes
