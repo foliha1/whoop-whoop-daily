@@ -30,10 +30,10 @@ export function hasSeenScoreAnnouncement(): boolean {
   try { return localStorage.getItem(SCORE_ANNOUNCEMENT.seenKey) === "1"; } catch { return false; }
 }
 
-/** The linked, caller-validated points RPC counts unique puzzle days. A saved
- * result today plus >1 days proves at least one game was played before today. */
+/** The linked, caller-validated points RPC counts unique puzzle days. On a
+ * saved result screen, >1 distinct days proves an earlier Daily result. */
 export function isReturningScorePlayer(points: WhoopPoints | null, saved: boolean): boolean {
-  return saved && points !== null && points.todayPoints !== null && points.gamesPlayed > 1;
+  return saved && points !== null && points.gamesPlayed > 1;
 }
 
 const FOCUSABLE = 'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
