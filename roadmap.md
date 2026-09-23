@@ -8,3 +8,5 @@
 - [x] Check YOU layout and badge paging at mobile and desktop widths in both themes.
 - [x] Add accessible badge detail views with earned date and tier unlock criteria while preserving shelf layout.
 - [x] Verify keyboard paging, focus, screen-reader labels, and reduced-motion behavior on the YOU page.
+- [ ] Move visible badge details into the modal, reveal shelf overflow only beyond three badges, and refine the hover state.
+- [ ] Enlarge modal badge, flip it once when decoded, and verify paging and light/night presentation.

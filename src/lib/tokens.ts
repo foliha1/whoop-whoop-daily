@@ -58,6 +58,7 @@ export const COLORS = {
   panel: "var(--ww-panel)",
   panelMuted: "var(--ww-panel-muted)",
   panelMutedHover: "var(--ww-panel-muted-hover)",
+  badgeHover: "var(--ww-badge-hover)",
   // Ink ramp: ink (strong text), inkMuted (secondary/subtle text) — themed
   ink: "var(--ww-ink)",
   inkMuted: "var(--ww-ink-muted)",

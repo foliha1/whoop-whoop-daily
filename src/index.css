@@ -165,6 +165,7 @@ All colors MUST be HSL.
     --ww-panel: #D0C3AF;
     --ww-panel-muted: #ADA290;
     --ww-panel-muted-hover: #bdb5a4;
+    --ww-badge-hover: color-mix(in srgb, var(--ww-panel) 70%, var(--ww-ink) 30%);
     --ww-ink: #231f20;
     /* Meets WCAG AA (4.5:1) on every light surface — including panel. */
     --ww-ink-muted: #544c4a;
@@ -178,6 +179,7 @@ All colors MUST be HSL.
     --ww-panel: #3A3335;
     --ww-panel-muted: #4A4243;
     --ww-panel-muted-hover: #564D4E;
+    --ww-badge-hover: color-mix(in srgb, var(--ww-panel) 70%, var(--ww-surface) 30%);
     --ww-ink: #F8F2E9;
     /* Warm grey: 7.66:1 on surface, 5.79:1 on panel. */
     --ww-ink-muted: #BAB0A9;
@@ -412,6 +414,25 @@ All colors MUST be HSL.
 .ww-you-badge-trigger:focus-visible {
   outline: 2px solid var(--ww-ink);
   outline-offset: -2px;
+}
+
+.ww-you-badge-track { scrollbar-width: none; }
+.ww-you-badge-track::-webkit-scrollbar { display: none; }
+
+@keyframes ww-you-badge-flip {
+  from { transform: rotateY(180deg); }
+  to { transform: rotateY(0deg); }
+}
+
+.ww-you-badge-detail .ww-ui-small-in {
+  backface-visibility: hidden;
+  animation: ww-you-badge-flip var(--ww-card-flip, 500ms) cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ww-you-badge-detail .ww-ui-small-in {
+    animation: ww-ui-revisit var(--ww-ui-small-enter, 180ms) var(--ww-ui-ease, ease-out) both;
+  }
 }
 
 .daily-intro {

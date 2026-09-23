@@ -111,6 +111,7 @@ export function applyAnimationTimingVars(root: HTMLElement = document.documentEl
   root.style.setProperty("--ww-deal-stagger", `${DEAL_STAGGER_MS}ms`);
   root.style.setProperty("--ww-deal-move", `${DEAL_MOVE_MS}ms`);
   root.style.setProperty("--ww-select-pulse", `${SELECT_PULSE_MS}ms`);
+  root.style.setProperty("--ww-card-flip", `${CARD_FLIP_MS}ms`);
   root.style.setProperty("--ww-ui-enter", `${UI_ENTER_MS}ms`);
   root.style.setProperty("--ww-ui-exit", `${UI_EXIT_MS}ms`);
   root.style.setProperty("--ww-ui-revisit", `${UI_REVISIT_MS}ms`);
