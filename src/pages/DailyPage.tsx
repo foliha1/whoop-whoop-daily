@@ -1561,27 +1561,32 @@ const DailyPage: React.FC = () => {
   // Use the same milestones, delays, and confetti lifetime as DailyResultCard.
   // Wait for the latest possible burst, then for the final result block entry.
   const reducedResultMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  const streakBurst = isMilestoneStreak(streak?.current ?? null) && !daily.alreadyPlayed && !reducedResultMotion && !hasCelebrated(daily.puzzleNumber);
+  const streakBurst = isMilestoneStreak(streak?.current ?? null) && !daily.alreadyPlayed && !reducedResultMotion;
   const scoreMilestone = whoop !== null && (
     formatPointsChange(whoop.todayPoints, whoop.totalBeforeToday, whoop.total).tierUp ||
     whoop.badges.some((badge) => badge.earnedOn === daily.dateKey && badgeArt(badge.key) !== null)
   );
-  const scoreBurst = scoreMilestone && !streakBurst && !daily.alreadyPlayed && !reducedResultMotion;
+  const scoreBurst = scoreMilestone && !daily.alreadyPlayed && !reducedResultMotion;
   useEffect(() => {
     if (!finished || !daily.resultSaved || pointsLoading || streakLoading || !whoop || whoop.todayPoints === null) return;
     setAnnouncementReady(false);
     const entryEnd = RESULT_BLOCK.email * BLOCK_STAGGER_MS + BLOCK_IN_MS;
-    const confettiEnd = streakBurst
-      ? RESULT_BLOCK.stats * BLOCK_STAGGER_MS + BLOCK_IN_MS + BURST_LIFETIME_MS
-      : scoreBurst
-        ? RESULT_BLOCK.score * BLOCK_STAGGER_MS + BLOCK_IN_MS + BURST_LIFETIME_MS
-        : 0;
+    const confettiEnd = Math.max(
+      streakBurst ? RESULT_BLOCK.stats * BLOCK_STAGGER_MS + BLOCK_IN_MS + BURST_LIFETIME_MS : 0,
+      scoreBurst ? RESULT_BLOCK.score * BLOCK_STAGGER_MS + BLOCK_IN_MS + BURST_LIFETIME_MS : 0,
+    );
     const timer = window.setTimeout(() => setAnnouncementReady(true),
       daily.alreadyPlayed || reducedResultMotion ? 0 : Math.max(entryEnd, confettiEnd));
     return () => window.clearTimeout(timer);
   }, [finished, daily.resultSaved, pointsLoading, streakLoading, whoop, streakBurst, scoreBurst, daily.alreadyPlayed, reducedResultMotion]);
   const showScoreAnnouncement = finished && daily.resultSaved && priorResult && announcementReady &&
     !announcementClosed && !pointsLoading && whoop !== null && whoop.todayPoints !== null && !hasSeenScoreAnnouncement();
+  const announcementShownRef = React.useRef(false);
+  useEffect(() => {
+    if (!showScoreAnnouncement || announcementShownRef.current) return;
+    announcementShownRef.current = true;
+    trackDaily("announcement_shown", { puzzleNumber: daily.puzzleNumber, props: { version: SCORE_ANNOUNCEMENT.version } });
+  }, [showScoreAnnouncement, daily.puzzleNumber]);
 
   // Back from Your Stats / Groups with today's result already saved: land
   // straight on the results screen instead of asking for the ready screen's
@@ -2006,6 +2011,13 @@ const DailyPage: React.FC = () => {
         </DailyFrame>
         )}
       </DailyScreenFade>
+      {showScoreAnnouncement && whoop && (
+        <WhoopScoreAnnouncement
+          points={whoop}
+          puzzleNumber={daily.puzzleNumber}
+          onClose={() => setAnnouncementClosed(true)}
+        />
+      )}
     </>
   );
 };
