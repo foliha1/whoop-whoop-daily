@@ -1580,7 +1580,7 @@ const DailyPage: React.FC = () => {
     return () => window.clearTimeout(timer);
   }, [finished, daily.resultSaved, pointsLoading, streakLoading, whoop, streakBurst, scoreBurst, daily.alreadyPlayed, reducedResultMotion]);
   const showScoreAnnouncement = finished && daily.resultSaved && priorResult && announcementReady &&
-    !announcementClosed && !pointsLoading && whoop !== null && whoop.todayPoints !== null && !hasSeenScoreAnnouncement();
+    !announcementClosed && !pointsLoading && whoop !== null && whoop.todayPoints !== null;
   const announcementShownRef = React.useRef(false);
   useEffect(() => {
     if (!showScoreAnnouncement || announcementShownRef.current) return;

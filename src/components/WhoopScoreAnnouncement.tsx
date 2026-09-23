@@ -74,6 +74,7 @@ const WhoopScoreAnnouncement: React.FC<{
   const { onBackdropClick } = useDismiss(dismiss, { escape: true, backdrop: true });
 
   React.useEffect(() => {
+    if (!host) return;
     openerRef.current = document.activeElement as HTMLElement | null;
     buttonRef.current?.focus();
     return () => {
