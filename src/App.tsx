@@ -69,9 +69,8 @@ const AnimatedRoutes: React.FC = () => {
         <Routes location={displayLocation}>
           <Route path="/" element={<DailyPage />} />
           <Route path="/today" element={<DailyPage />} />
-          {/* Groups is live. Shareable but not indexed: the page sets
-              noindex itself and robots.txt still disallows /groups. */}
-          <Route path="/groups" element={<Suspense fallback={<CardFlipLoader label="Loading Groups" layout="page" />}><GroupsPage /></Suspense>} />
+          {/* Groups remains available for testing under ?debug=1 only. */}
+          <Route path="/groups" element={<DebugOnlyRoute><Suspense fallback={<CardFlipLoader label="Loading Groups" layout="page" />}><GroupsPage /></Suspense></DebugOnlyRoute>} />
           {/* The player's long-term self. Not indexed, same as groups. */}
           <Route path="/you" element={<Suspense fallback={<CardFlipLoader label="Loading Your Stats" layout="page" />}><YouPage /></Suspense>} />
           <Route path="/about" element={<SupportPage />} />

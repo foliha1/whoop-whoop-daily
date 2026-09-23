@@ -272,13 +272,6 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
           </a>
         )}
 
-        {/* Groups are a Daily feature, and this is the permanent way back in. */}
-        {product === "daily" && (
-          <a href="/groups" style={howToStyle} data-testid="settings-groups-link">
-            Your Groups
-          </a>
-        )}
-
         {/* The Whoop Score and the all-time numbers live on the YOU page. */}
         {product === "daily" && (
           <a href="/you" style={howToStyle} data-testid="settings-you-link">

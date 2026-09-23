@@ -41,7 +41,7 @@ describe("Daily results score panel", () => {
     vi.stubGlobal("Image", MockImage);
   });
 
-  it("shows Rookie artwork only after it loads and includes both destinations", async () => {
+  it("shows Rookie artwork only after it loads and provides a full-width Your Stats link", async () => {
     render(
       <MemoryRouter>
         <WhoopPointsChange points={points} mobile />
@@ -55,7 +55,8 @@ describe("Daily results score panel", () => {
     act(() => MockImage.instances[0]?.onload?.());
     expect(await screen.findByTestId("result-tier-badge")).toHaveAttribute("alt", "Rookie badge");
     expect(screen.getByRole("link", { name: "Your Stats" })).toHaveAttribute("href", "/you");
-    expect(screen.getByRole("link", { name: "Groups" })).toHaveAttribute("href", "/groups");
+    expect(screen.getByTestId("result-you-link")).toHaveStyle({ width: "100%" });
+    expect(screen.queryByRole("link", { name: "Groups" })).not.toBeInTheDocument();
     expect(screen.getByTestId("result-points-today")).toHaveTextContent("+2today");
     expect(screen.getByTestId("result-points-total")).toHaveTextContent("21total");
     expect(screen.queryByText("Your tier", { exact: false })).toBeNull();
