@@ -57,7 +57,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
         onScroll={measure}
         aria-label="Earned badges"
         tabIndex={0}
-         style={{ display: "flex", justifyContent: "safe center", overflowX: "auto", overscrollBehaviorInline: "contain", scrollSnapType: "x mandatory", padding: SPACE[8], minWidth: 0 }}
+         style={{ display: "flex", justifyContent: "safe center", overflowX: "auto", overscrollBehaviorInline: "contain", scrollSnapType: "x mandatory", scrollPaddingInline: TOUCH_MIN + SPACE[4], padding: `${SPACE[8]}px ${TOUCH_MIN + SPACE[4]}px`, minWidth: 0 }}
       >
         {badges.map((badge, i) => (
           <div
