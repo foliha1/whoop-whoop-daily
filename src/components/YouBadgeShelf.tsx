@@ -84,7 +84,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
       <div
         ref={track}
         onScroll={measure}
-        aria-label="Earned badges"
+        aria-label="Earned badges, use Left and Right Arrow keys to page"
         role="region"
         tabIndex={0}
         onKeyDown={onTrackKeyDown}
@@ -125,7 +125,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
                  <DialogPrimitive.Overlay className="ww-ui-modal-backdrop" style={{ position: "fixed", inset: 0, zIndex: 1000, background: COLORS.ink, opacity: 0.65 }} />
                  <DialogPrimitive.Content
                    data-testid="you-badge-detail"
-                   className="ww-ui-modal-panel"
+                   className="ww-ui-revisit"
                    style={{ position: "fixed", zIndex: 1001, top: "50%", left: "50%", transform: "translate(-50%, -50%)", boxSizing: "border-box", width: `calc(100% - ${SPACE[12] * 2}px)`, maxWidth: FONT_SIZE["8xl"] * 3, maxHeight: "calc(100dvh - 48px)", overflowY: "auto", background: COLORS.surface, color: COLORS.ink, border: BORDER.heavy, borderRadius: RADIUS.md, padding: SPACE[8], display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[8], textAlign: "center" }}
                  >
                    <DialogPrimitive.Title style={{ ...textStyle("title", mobile), margin: 0 }}>{tierName(badge.key as PointsTier) || badge.key}</DialogPrimitive.Title>
