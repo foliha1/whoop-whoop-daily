@@ -65,7 +65,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
             data-testid="you-badge"
             data-badge={badge.key}
             style={{
-              boxSizing: "border-box", flex: `0 0 ${mobile ? "42%" : "20%"}`,
+               boxSizing: "border-box", flex: `0 0 ${mobile ? `calc(42% + ${SPACE[14]}px)` : `calc(20% + ${SPACE[8]}px)`}`,
               minWidth: 0, padding: SPACE[4], scrollSnapAlign: "start",
               display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: SPACE[4],
               borderRight: i < badges.length - 1 ? `1px solid ${COLORS.inkMuted}` : undefined,
