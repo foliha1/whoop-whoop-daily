@@ -36,11 +36,11 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
       type="button"
       aria-label={direction < 0 ? "Previous badges" : "Next badges"}
       onClick={() => page(direction)}
-      style={{
-        position: "absolute", zIndex: 1, top: "50%", transform: "translateY(-50%)",
+       style={{
+         position: "absolute", zIndex: 1, top: "50%", transform: "translateY(-50%)",
         [direction < 0 ? "left" : "right"]: SPACE[2],
-        width: TOUCH_MIN, height: TOUCH_MIN, border: BORDER.heavy, borderRadius: RADIUS.sm,
-        background: COLORS.panel, color: COLORS.ink, display: "grid", placeItems: "center", cursor: "pointer",
+         width: TOUCH_MIN, height: TOUCH_MIN, border: BORDER.heavy, borderRadius: RADIUS.sm,
+         background: COLORS.surface, color: COLORS.ink, display: "grid", placeItems: "center", cursor: "pointer",
       }}
     >
       <svg width={SPACE[8]} height={SPACE[8]} viewBox="0 0 16 16" aria-hidden="true">
