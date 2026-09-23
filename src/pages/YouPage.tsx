@@ -78,7 +78,7 @@ const YouPage: React.FC = () => {
               <div data-testid="you-score" aria-label={SCORE_LABEL} style={{ width: "100%", minWidth: 0, display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[6] }}>
                 <div style={{ ...tile, padding: SPACE[8], display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", gap: SPACE[6] }}>
                   <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, alignSelf: "flex-start" }}>Your Tier</span>
-                  <div style={{ width: "min(100%, 128px)", aspectRatio: "1", display: "grid", placeItems: "center" }}>
+                  <div style={{ width: "100%", maxWidth: FONT_SIZE["8xl"], aspectRatio: "1", display: "grid", placeItems: "center" }}>
                     {badgeArt(points.tier) ? (
                       <CurrentTierBadge tier={points.tier} size={FONT_SIZE["8xl"]} fluid testId="you-tier-badge" />
                     ) : (
@@ -89,7 +89,7 @@ const YouPage: React.FC = () => {
                 </div>
                 <div style={{ ...tile, padding: SPACE[8], display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: SPACE[4], containerType: "inline-size" }}>
                   <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, alignSelf: "flex-start" }}>Total Score</span>
-                  <span style={{ ...textStyle("scoreTotal", mobile), fontSize: `clamp(${TEXT.display.mobileSize}px, 26cqi, ${TEXT.scoreTotal.size}px)`, color: COLORS.ink, whiteSpace: "nowrap", maxWidth: "100%" }}>{points.total}</span>
+                  <span style={{ ...textStyle("scoreTotal", mobile), fontSize: `clamp(${TEXT.display.mobileSize}px, ${Math.min(26, Math.floor(90 / String(points.total).length))}cqi, ${TEXT.scoreTotal.size}px)`, color: COLORS.ink, whiteSpace: "nowrap", maxWidth: "100%" }}>{points.total}</span>
                 </div>
               </div>
               <div data-testid="you-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
