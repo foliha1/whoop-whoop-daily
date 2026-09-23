@@ -12,5 +12,5 @@
 - [x] Enlarge modal badge, flip it once when decoded, and verify paging and light/night presentation.
 - [x] Add the shared card-flip loading state to Your Stats and Groups, including first navigation, refresh, and join-link behavior.
 - [x] Verify loading transitions, themes, reduced motion, and responsive layout for both pages.
-- [ ] Hide Groups player entry points, re-gate `/groups` for debug, and preserve all group data and code.
-- [ ] Verify the gate and single full-width Your Stats action in the Daily results screen.
+- [x] Hide Groups player entry points, re-gate `/groups` for debug, and preserve all group data and code.
+- [x] Verify the gate and single full-width Your Stats action in the Daily results screen.
