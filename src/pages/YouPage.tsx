@@ -9,12 +9,13 @@ import CurrentTierBadge from "@/components/CurrentTierBadge";
 import MotionReveal from "@/components/MotionReveal";
 import CardFlipLoader from "@/components/CardFlipLoader";
 import YouBadgeShelf from "@/components/YouBadgeShelf";
+import YouScoreTiles from "@/components/YouScoreTiles";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePointsPopulation, useWhoopPointsState } from "@/hooks/useWhoopPoints";
 import { fetchDailyStats, type DailyStats } from "@/lib/dailyResults";
 import { DECAY_PER_DAY, DECAY_PROTECTED_POINTS, GRACE_DAYS, MAX_POINTS_PER_GAME, POINT_FIRST_TRY_MAX } from "@/lib/whoopPoints";
 import { SCORE_LABEL, TIER_LADDER, badgeArt, tierName, tierRange } from "@/lib/whoopTiers";
-import { BORDER, COLORS, FONT_SIZE, RADIUS, RAW, SPACE, TEXT, buttonStyle, textStyle } from "@/lib/tokens";
+import { BORDER, COLORS, FONT_SIZE, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
 
 const EARN_ROWS = [
   { label: "Played", value: "+1" },
@@ -76,23 +77,7 @@ const YouPage: React.FC = () => {
         ) : (
           <>
             <MotionReveal index={2} style={section}>
-              <div data-testid="you-score" aria-label={SCORE_LABEL} style={{ width: "100%", minWidth: 0, display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[6] }}>
-                <div style={{ ...tile, padding: SPACE[8], display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", gap: SPACE[6] }}>
-                  <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, textAlign: "center" }}>Your Tier</span>
-                  <div style={{ width: "80%", maxWidth: FONT_SIZE["8xl"] * 0.8, aspectRatio: "1", display: "grid", placeItems: "center" }}>
-                    {badgeArt(points.tier) ? (
-                      <CurrentTierBadge tier={points.tier} size={FONT_SIZE["8xl"]} fluid testId="you-tier-badge" />
-                    ) : (
-                      <span aria-hidden="true" style={{ width: "75%", aspectRatio: "1", borderRadius: "50%", background: COLORS.inkMuted }} />
-                    )}
-                  </div>
-                  <span data-testid="you-tier" style={{ ...textStyle("title", mobile), color: COLORS.ink, textAlign: "center", overflowWrap: "anywhere" }}>{tierName(points.tier)}</span>
-                </div>
-                <div style={{ ...tile, padding: SPACE[8], display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: SPACE[4], containerType: "inline-size" }}>
-                  <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, textAlign: "center" }}>Total Score</span>
-                  <span style={{ ...textStyle("scoreTotal", mobile), fontSize: `min(${TEXT.scoreTotal.size}px, ${Math.floor(240 / String(points.total).length)}cqi)`, color: COLORS.ink, whiteSpace: "nowrap", maxWidth: "100%" }}>{points.total}</span>
-                </div>
-              </div>
+              <YouScoreTiles points={points} mobile={mobile} />
               <div data-testid="you-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
                 {([
                   ["Days Played", points.gamesPlayed, COLORS.red],

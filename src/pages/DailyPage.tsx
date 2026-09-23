@@ -56,9 +56,9 @@ import {
 import {
   formatStreakLine,
 } from "@/lib/dailyResults";
-import { useDailyStreak } from "@/hooks/useDailyStreak";
+import { useDailyStreakState } from "@/hooks/useDailyStreak";
 import { useDailyProfile } from "@/hooks/useDailyProfile";
-import { useWhoopPoints } from "@/hooks/useWhoopPoints";
+import { useWhoopPointsState } from "@/hooks/useWhoopPoints";
 import WhoopPointsChange from "@/components/WhoopPointsChange";
 import { badgeArt, formatPointsChange } from "@/lib/whoopTiers";
 import type { WhoopPoints } from "@/lib/whoopPoints";
@@ -70,6 +70,7 @@ import {
   GREAT_MATCH_DELAY_MS,
   DEAL_MOVE_MS,
   UI_ENTER_MS,
+  UI_REVISIT_MS,
   UI_SECTION_STAGGER_MS,
   UI_SMALL_ENTER_MS,
 } from "@/lib/animationTiming";
@@ -110,7 +111,10 @@ import {
 
 } from "@/lib/tokens";
 import { useThemeMode } from "@/lib/nightMode";
-import DailyMilestoneConfetti from "@/components/DailyMilestoneConfetti";
+import DailyMilestoneConfetti, { BURST_LIFETIME_MS } from "@/components/DailyMilestoneConfetti";
+import WhoopScoreAnnouncement, { isReturningScorePlayer, hasEarlierDailyResult, hasSeenScoreAnnouncement, SCORE_ANNOUNCEMENT } from "@/components/WhoopScoreAnnouncement";
+import { fetchDailyResults } from "@/lib/dailyResults";
+import { getSubscribedEmail } from "@/lib/dailySubscribe";
 import {
   hasCelebrated,
   isMilestonePreview,
@@ -1293,7 +1297,7 @@ const DailyPage: React.FC = () => {
     useSubscriberStatus(bumpProfile);
   // Read after the run is persisted so today counts toward the streak.
   const dataReady = daily.resultSaved || daily.result === null;
-  const streak = useDailyStreak(daily.puzzleNumber, dataReady, profileKey);
+  const { streak, loading: streakLoading } = useDailyStreakState(daily.puzzleNumber, dataReady, profileKey);
   const { percentile } = useDailyProfile(
     daily.puzzleNumber,
     dataReady,
@@ -1301,7 +1305,7 @@ const DailyPage: React.FC = () => {
   );
   // Same gate as the streak: the total is read only after the run is written,
   // so "+4 today" is the effect of today's game, not yesterday's standing.
-  const whoop = useWhoopPoints(dataReady, profileKey);
+  const { points: whoop, loading: pointsLoading } = useWhoopPointsState(dataReady, profileKey);
 
   // -------------------------------------------------------------------------
   // Instrumentation. Read-only observers of the engine: nothing here changes
@@ -1544,6 +1548,54 @@ const DailyPage: React.FC = () => {
     daily.result !== null && (daily.alreadyPlayed || (phase === "DONE" && runSettled));
   const finished = playedToday && showResult;
   const ready = !finished && (phase === "READY" || playedToday);
+
+  // Results-only release note; caller-validated point history proves return.
+  const [announcementReady, setAnnouncementReady] = useState(false);
+  const [announcementClosed, setAnnouncementClosed] = useState(false);
+  const [earlierResult, setEarlierResult] = useState(false);
+  useEffect(() => {
+    if (!finished || !daily.resultSaved || pointsLoading || whoop === null || hasSeenScoreAnnouncement() || announcementClosed) return;
+    let live = true;
+    setEarlierResult(false);
+    void fetchDailyResults(undefined, getSubscribedEmail()).then((rows) => {
+      if (live) setEarlierResult(hasEarlierDailyResult(rows, daily.dateKey));
+    });
+    return () => { live = false; };
+  }, [finished, daily.resultSaved, pointsLoading, whoop, daily.dateKey, profileKey, announcementClosed]);
+
+  // Use the same milestones, delays, and confetti lifetime as DailyResultCard.
+  // Wait for the latest possible burst, then for the final result block entry.
+  const reducedResultMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  // Conservatively wait even if this streak already celebrated; the child may
+  // have set its once-per-day guard during the same results entry.
+  const streakBurst = (isMilestoneStreak(streak?.current ?? null) || isMilestonePreview()) &&
+    !daily.alreadyPlayed && !reducedResultMotion;
+  const scoreMilestone = whoop !== null && (
+    formatPointsChange(whoop.todayPoints, whoop.totalBeforeToday, whoop.total).tierUp ||
+    whoop.badges.some((badge) => badge.earnedOn === new Date().toISOString().slice(0, 10) && badgeArt(badge.key) !== null)
+  );
+  const scoreBurst = scoreMilestone && !daily.alreadyPlayed && !reducedResultMotion;
+  useEffect(() => {
+    if (!finished || pointsLoading || streakLoading || !isReturningScorePlayer(whoop, daily.resultSaved, earlierResult) ||
+        hasSeenScoreAnnouncement() || announcementClosed) return;
+    setAnnouncementReady(false);
+    const entryEnd = daily.alreadyPlayed ? UI_REVISIT_MS :
+      reducedResultMotion ? BLOCK_IN_MS : RESULT_BLOCK.email * BLOCK_STAGGER_MS + BLOCK_IN_MS;
+    const confettiEnd = Math.max(
+      streakBurst ? RESULT_BLOCK.stats * BLOCK_STAGGER_MS + BLOCK_IN_MS + BURST_LIFETIME_MS : 0,
+      scoreBurst ? RESULT_BLOCK.score * BLOCK_STAGGER_MS + BLOCK_IN_MS + BURST_LIFETIME_MS : 0,
+    );
+    const timer = window.setTimeout(() => setAnnouncementReady(true), Math.max(entryEnd, confettiEnd));
+    return () => window.clearTimeout(timer);
+  }, [finished, daily.resultSaved, pointsLoading, streakLoading, whoop, earlierResult, streakBurst, scoreBurst, daily.alreadyPlayed, reducedResultMotion, announcementClosed]);
+  const showScoreAnnouncement = finished && announcementReady &&
+    !announcementClosed && !pointsLoading && isReturningScorePlayer(whoop, daily.resultSaved, earlierResult);
+  const announcementShownRef = React.useRef(false);
+  useEffect(() => {
+    if (!showScoreAnnouncement || announcementShownRef.current) return;
+    announcementShownRef.current = true;
+    trackDaily("announcement_shown", { puzzleNumber: daily.puzzleNumber, props: { version: SCORE_ANNOUNCEMENT.version } });
+  }, [showScoreAnnouncement, daily.puzzleNumber]);
 
   // Back from Your Stats / Groups with today's result already saved: land
   // straight on the results screen instead of asking for the ready screen's
@@ -1968,6 +2020,13 @@ const DailyPage: React.FC = () => {
         </DailyFrame>
         )}
       </DailyScreenFade>
+      {showScoreAnnouncement && whoop && (
+        <WhoopScoreAnnouncement
+          points={whoop}
+          puzzleNumber={daily.puzzleNumber}
+          onClose={() => setAnnouncementClosed(true)}
+        />
+      )}
     </>
   );
 };

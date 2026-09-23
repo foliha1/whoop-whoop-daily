@@ -16,7 +16,7 @@ import { getBrandConfettiShapes } from "@/lib/confettiShapes";
 /** Brand-only palette: blue, orange, red, warm black. */
 const COLORS = ["#0072B2", "#E79024", "#D72229", "#231F20"];
 
-const BURST_LIFETIME_MS = 3000;
+export const BURST_LIFETIME_MS = 3000;
 export const CONFETTI_Z_INDEX = 9999;
 
 const DailyMilestoneConfetti: React.FC<{ delayMs?: number }> = ({ delayMs = 0 }) => {

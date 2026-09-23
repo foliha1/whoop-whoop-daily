@@ -27,7 +27,10 @@ export type DailyEventName =
   | "subscribe_shown"
   | "subscribe_submitted"
   | "invite_sent"
-  | "invite_landed";
+  | "invite_landed"
+  | "announcement_shown"
+  | "announcement_primary_tapped"
+  | "announcement_dismissed";
 
 
 export interface DailyEventRow {
