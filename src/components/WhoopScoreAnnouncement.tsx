@@ -1,16 +1,12 @@
 import React from "react";
-import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import YouScoreTiles from "@/components/YouScoreTiles";
-import { AppButton } from "@/components/ui/AppButton";
+import ReleaseAnnouncement, { hasSeenAnnouncement } from "@/components/ReleaseAnnouncement";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useDismiss } from "@/hooks/useDismiss";
-import { useMotionExit } from "@/hooks/useMotionExit";
-import { usePortalHost } from "@/hooks/usePortalHost";
 import { trackDaily } from "@/lib/dailyEvents";
 import type { WhoopPoints } from "@/lib/whoopPoints";
 import type { StoredDailyResult } from "@/lib/dailyResults";
-import { BORDER, COLORS, RADIUS, SPACE, textStyle } from "@/lib/tokens";
+import { SPACE, textStyle } from "@/lib/tokens";
 
 /** New releases use a new key; copy and version stay together here. */
 export const SCORE_ANNOUNCEMENT = {
@@ -28,7 +24,7 @@ export const SCORE_ANNOUNCEMENT = {
 } as const;
 
 export function hasSeenScoreAnnouncement(): boolean {
-  try { return localStorage.getItem(SCORE_ANNOUNCEMENT.seenKey) === "1"; } catch { return false; }
+  return hasSeenAnnouncement(SCORE_ANNOUNCEMENT.seenKey);
 }
 
 /** Compare stored puzzle dates, not completion timestamps or a UTC score count. */
@@ -40,100 +36,40 @@ export function isReturningScorePlayer(points: WhoopPoints | null, saved: boolea
   return saved && points !== null && hasEarlierResult;
 }
 
-const FOCUSABLE = 'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
-
-/** Reusable announcement shell with one-shot seen state and measured Daily events. */
+/** Score-specific content and measured actions in the reusable release shell. */
 const WhoopScoreAnnouncement: React.FC<{
   points: WhoopPoints;
   puzzleNumber: number;
   onClose: () => void;
 }> = ({ points, puzzleNumber, onClose }) => {
-  const host = usePortalHost("score-announcement");
   const mobile = useIsMobile();
   const navigate = useNavigate();
-  const dialogRef = React.useRef<HTMLDivElement>(null);
-  const buttonRef = React.useRef<HTMLButtonElement>(null);
-  const actionRef = React.useRef<"primary" | "dismissed" | null>(null);
-  const openerRef = React.useRef<HTMLElement | null>(null);
-
-  const finish = React.useCallback(() => {
-    if (actionRef.current === "primary") navigate("/you", { state: { wwReturn: "results" } });
-    onClose();
-  }, [navigate, onClose]);
-  const { exiting, requestExit } = useMotionExit(finish);
-
-  const close = React.useCallback((action: "primary" | "dismissed") => {
-    if (actionRef.current) return;
-    actionRef.current = action;
-    try { localStorage.setItem(SCORE_ANNOUNCEMENT.seenKey, "1"); } catch { /* storage unavailable */ }
+  const close = (action: "primary" | "dismissed") => {
     trackDaily(action === "primary" ? "announcement_primary_tapped" : "announcement_dismissed", {
       puzzleNumber, props: { version: SCORE_ANNOUNCEMENT.version },
     });
-    requestExit();
-  }, [puzzleNumber, requestExit]);
-  const dismiss = React.useCallback(() => close("dismissed"), [close]);
-  const { onBackdropClick } = useDismiss(dismiss, { escape: true, backdrop: true });
-
-  React.useEffect(() => {
-    if (!host) return;
-    const active = document.activeElement as HTMLElement | null;
-    openerRef.current = active && active !== document.body && !host.contains(active)
-      ? active : document.querySelector<HTMLElement>('[data-testid="results-done"]');
-    buttonRef.current?.focus();
-    return () => {
-      const opener = openerRef.current;
-      if (actionRef.current !== "primary" && opener?.isConnected) window.setTimeout(() => opener.focus(), 0);
-    };
-  }, [host]);
-  React.useEffect(() => {
-    const trap = (event: KeyboardEvent) => {
-      if (event.key !== "Tab") return;
-      const dialog = dialogRef.current;
-      if (!dialog) return;
-      const items = [...dialog.querySelectorAll<HTMLElement>(FOCUSABLE)];
-      if (!items.length) return;
-      const first = items[0], last = items[items.length - 1];
-      if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
-        event.preventDefault(); last.focus();
-      } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
-        event.preventDefault(); first.focus();
-      }
-    };
-    window.addEventListener("keydown", trap, true);
-    return () => window.removeEventListener("keydown", trap, true);
-  }, []);
-
-  if (!host) return null;
-  return createPortal(
-    <div
-      className="ww-ui-modal-backdrop"
-      data-motion-exit={exiting ? "true" : undefined}
-      data-testid="score-announcement-backdrop"
-      onClick={onBackdropClick}
-      style={{ position: "fixed", inset: 0, height: "var(--ww-vh)", zIndex: 1000, background: `color-mix(in srgb, ${COLORS.ink} 65%, transparent)`, display: "grid", placeItems: "center", padding: SPACE[4], boxSizing: "border-box" }}
+    if (action === "primary") navigate("/you", { state: { wwReturn: "results" } });
+    onClose();
+  };
+  return (
+    <ReleaseAnnouncement
+      seenKey={SCORE_ANNOUNCEMENT.seenKey}
+      title={SCORE_ANNOUNCEMENT.headline}
+      primaryLabel={SCORE_ANNOUNCEMENT.primary}
+      secondaryLabel={SCORE_ANNOUNCEMENT.secondary}
+      returnFocusSelector='[data-testid="results-done"]'
+      onPrimary={() => close("primary")}
+      onDismiss={() => close("dismissed")}
     >
-      <div
-        ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="score-announcement-title"
-        data-testid="score-announcement" data-motion-exit={exiting ? "true" : undefined}
-        className="ww-ui-modal-panel"
-        style={{ width: "100%", maxWidth: "min(100%, 480px)", maxHeight: "100%", minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box", background: COLORS.surface, color: COLORS.ink, border: BORDER.heavy, borderRadius: RADIUS.md }}
-      >
-        <div style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", padding: SPACE[6], display: "flex", flexDirection: "column", gap: SPACE[6] }}>
-          <YouScoreTiles points={points} mobile={mobile} compact />
-          <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-            <h2 id="score-announcement-title" style={{ ...textStyle("heading", mobile), margin: 0 }}>{SCORE_ANNOUNCEMENT.headline}</h2>
-            <p style={{ ...textStyle("body", mobile), margin: 0 }}>{SCORE_ANNOUNCEMENT.intro}</p>
-            <ul style={{ ...textStyle("body", mobile), margin: 0, paddingLeft: SPACE[8], display: "flex", flexDirection: "column", gap: SPACE[2] }}>
-              {SCORE_ANNOUNCEMENT.bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}
-            </ul>
-          </div>
-        </div>
-        <div style={{ flex: "0 0 auto", padding: SPACE[4], borderTop: BORDER.standard, display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[3], background: COLORS.surface }}>
-          <AppButton ref={buttonRef} fullWidth tone="blue" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={() => close("primary")}>{SCORE_ANNOUNCEMENT.primary}</AppButton>
-          <AppButton fullWidth variant="secondary" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={dismiss}>{SCORE_ANNOUNCEMENT.secondary}</AppButton>
-        </div>
+      <YouScoreTiles points={points} mobile={mobile} compact />
+      <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
+        <h2 id="score-announcement-title" style={{ ...textStyle("heading", mobile), margin: 0 }}>{SCORE_ANNOUNCEMENT.headline}</h2>
+        <p style={{ ...textStyle("body", mobile), margin: 0 }}>{SCORE_ANNOUNCEMENT.intro}</p>
+        <ul style={{ ...textStyle("body", mobile), margin: 0, paddingLeft: SPACE[8], display: "flex", flexDirection: "column", gap: SPACE[2] }}>
+          {SCORE_ANNOUNCEMENT.bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}
+        </ul>
       </div>
-    </div>, host
+    </ReleaseAnnouncement>
   );
 };
 
