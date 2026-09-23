@@ -62,6 +62,7 @@ const WhoopScoreAnnouncement: React.FC<{
   }, [navigate, onClose]);
   const { exiting, requestExit } = useMotionExit(finish);
   const [mounted, setMounted] = React.useState(false);
+  const [entryDone, setEntryDone] = React.useState(false);
 
   const close = React.useCallback((action: "primary" | "dismissed") => {
     if (actionRef.current) return;
@@ -80,7 +81,9 @@ const WhoopScoreAnnouncement: React.FC<{
     openerRef.current = document.activeElement as HTMLElement | null;
     buttonRef.current?.focus();
     setMounted(true);
+    const timer = window.setTimeout(() => setEntryDone(true), UI_ENTER_MS);
     return () => {
+      window.clearTimeout(timer);
       const opener = openerRef.current;
       if (opener?.isConnected) window.setTimeout(() => opener.focus(), 0);
     };
@@ -106,7 +109,7 @@ const WhoopScoreAnnouncement: React.FC<{
   if (!host) return null;
   return createPortal(
     <div
-      className="ww-ui-modal-backdrop"
+      className={mounted ? "ww-ui-modal-backdrop" : undefined}
       data-motion-exit={exiting ? "true" : undefined}
       data-testid="score-announcement-backdrop"
       onClick={onBackdropClick}
@@ -115,7 +118,7 @@ const WhoopScoreAnnouncement: React.FC<{
       <div
         ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="score-announcement-title"
         data-testid="score-announcement" data-motion-exit={exiting ? "true" : undefined}
-        className="ww-ui-modal-panel"
+        className={mounted && !entryDone ? "ww-ui-modal-panel" : undefined}
         style={{ width: "100%", maxWidth: "min(100%, 480px)", maxHeight: "100%", minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box", background: COLORS.surface, color: COLORS.ink, border: BORDER.heavy, borderRadius: RADIUS.md }}
       >
         <div style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", padding: SPACE[6], display: "flex", flexDirection: "column", gap: SPACE[6] }}>
