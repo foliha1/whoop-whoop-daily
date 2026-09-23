@@ -64,6 +64,13 @@
       "when": 1790068055262,
       "tag": "0008_whoop_points_population_single_pass",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790164535192,
+      "tag": "0009_allow_score_announcement_daily_events",
+      "breakpoints": true
     }
   ]
 }
