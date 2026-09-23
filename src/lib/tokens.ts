@@ -27,6 +27,8 @@ export const RAW = {
   blueHover: "#005a8f",
   orange: "#E79024",
   orangeHover: "#c47618",
+  /** Accessible large-stat companion to brand orange on cream (3.06:1). */
+  orangeStat: "#CC760C",
   success: "#59cd90",
   successHover: "#4ab87d",
   offWhite: "#fef9f0",
@@ -66,6 +68,7 @@ export const COLORS = {
   blueHover: RAW.blueHover,
   orange: RAW.orange,
   orangeHover: RAW.orangeHover,
+  orangeStat: RAW.orangeStat,
   success: RAW.success,
   successHover: RAW.successHover,
   // Theme background (backs the "Off-White" theme swatch — distinct from `surface`, the UI background)
@@ -157,6 +160,8 @@ export const FONT_SIZE = {
   "5.5xl": 36,
   "6xl": 48,
   "7xl": 72,
+  /** YOU page's oversized, fluid total-score display ceiling. */
+  "8xl": 128,
 } as const;
 
 
@@ -225,6 +230,8 @@ export const TEXT_ROLES = {
   /** Primary CTA lettering ("Let's Play!", table code). Italic needs descender room. */
   action:        { step: "4xl", mobileStep: "3xl", family: "display", weight: FONT_WEIGHT.regular, italic: true,  lineHeight: LINE_HEIGHT.snug },
   display:       { step: "5xl", mobileStep: "4xl", family: "display", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" },
+  /** Responsive total-score hero: components may fluidly scale below this ceiling. */
+  scoreTotal:    { step: "8xl", mobileStep: "7xl", family: "display", weight: FONT_WEIGHT.regular, italic: false, lineHeight: LINE_HEIGHT.tight, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" },
 } as const satisfies Record<string, TextRoleDef>;
 
 
