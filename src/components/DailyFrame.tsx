@@ -23,8 +23,10 @@ const DailyFrame: React.FC<{
   fill?: boolean;
   /** Page background tone. Gameplay uses `panel`; every other screen stays cream. */
   tone?: "surface" | "panel";
+  /** Let editorial pages use two Daily content columns on large windows. */
+  wide?: boolean;
   children?: React.ReactNode;
-}> = ({ gap = 24, pad = 24, railGap = 24, fill = false, tone = "surface", children }) => (
+}> = ({ gap = 24, pad = 24, railGap = 24, fill = false, tone = "surface", wide = false, children }) => (
   <div
     style={{
       position: "relative",
@@ -50,7 +52,7 @@ const DailyFrame: React.FC<{
     <div
       style={{
         width: "100%",
-        maxWidth: DAILY_CONTENT_MAX_W,
+        maxWidth: wide ? DAILY_CONTENT_MAX_W * 2 : DAILY_CONTENT_MAX_W,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
