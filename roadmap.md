@@ -6,5 +6,5 @@
 - [x] Verify reduced motion, Daily revisit behavior, modal exits, representative viewports/themes, and unchanged gameplay timings.
 - [x] Refine YOU tier/score labels and sizes, ladder badges, tier insight spacing, point typography, and centered badge shelf with usable overflow arrows.
 - [x] Check YOU layout and badge paging at mobile and desktop widths in both themes.
-- [ ] Add accessible badge detail views with earned date and tier unlock criteria while preserving shelf layout.
-- [ ] Verify keyboard paging, focus, screen-reader labels, and reduced-motion behavior on the YOU page.
+- [x] Add accessible badge detail views with earned date and tier unlock criteria while preserving shelf layout.
+- [x] Verify keyboard paging, focus, screen-reader labels, and reduced-motion behavior on the YOU page.
