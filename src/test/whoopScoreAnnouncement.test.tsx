@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import WhoopScoreAnnouncement, {
-  SCORE_ANNOUNCEMENT, hasSeenScoreAnnouncement, isReturningScorePlayer,
+  SCORE_ANNOUNCEMENT, hasSeenScoreAnnouncement, hasEarlierDailyResult, isReturningScorePlayer,
 } from "@/components/WhoopScoreAnnouncement";
 import type { WhoopPoints } from "@/lib/whoopPoints";
 import type { StoredDailyResult } from "@/lib/dailyResults";
@@ -45,11 +45,16 @@ describe("score announcement", () => {
   });
   afterEach(() => { resetDailyEvents(); vi.restoreAllMocks(); });
 
-  it("only qualifies a saved result when the resolved points include an earlier game", () => {
-    expect(isReturningScorePlayer(points, false)).toBe(false);
-    expect(isReturningScorePlayer(null, true)).toBe(false);
-    expect(isReturningScorePlayer({ ...points, gamesPlayed: 1 }, true)).toBe(false);
-    expect(isReturningScorePlayer(points, true)).toBe(true);
+  it("only qualifies a saved result with resolved points and a result before the local date", () => {
+    const dates = (values: string[]) => values.map((puzzle_date) => ({ puzzle_date })) as StoredDailyResult[];
+    expect(hasEarlierDailyResult(dates([]), "2026-09-22")).toBe(false);
+    expect(hasEarlierDailyResult(dates(["2026-09-22"]), "2026-09-22")).toBe(false);
+    expect(hasEarlierDailyResult(dates(["2026-09-23"]), "2026-09-22")).toBe(false);
+    expect(hasEarlierDailyResult(dates(["2026-09-21", "2026-09-22"]), "2026-09-22")).toBe(true);
+    expect(isReturningScorePlayer(points, false, true)).toBe(false);
+    expect(isReturningScorePlayer(null, true, true)).toBe(false);
+    expect(isReturningScorePlayer({ ...points, gamesPlayed: 9 }, true, false)).toBe(false);
+    expect(isReturningScorePlayer(points, true, true)).toBe(true);
   });
 
   it("shares Your Stats tiles and centrally defined copy with an accessible focus-trapped dialog", async () => {
