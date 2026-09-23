@@ -27,6 +27,7 @@ import { CreateGroupModal, JoinGroupModal } from "@/components/DailyGroupModals"
 import DailyFrame from "@/components/DailyFrame";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
 import MotionReveal from "@/components/MotionReveal";
+import CardFlipLoader from "@/components/CardFlipLoader";
 import { getDailyNumber } from "@/lib/daily";
 import { getVisitorId } from "@/lib/visitor";
 
@@ -236,7 +237,7 @@ const GroupsPage: React.FC = () => {
             a code and a name — nothing else.
           </p></MotionReveal>
 
-          {loading && <p style={{ ...metaLabel(mobile), margin: 0 }}>Loading…</p>}
+          {loading && <CardFlipLoader label="Loading Groups" />}
 
           {!loading && groups.length === 0 && (
             <p
@@ -247,7 +248,7 @@ const GroupsPage: React.FC = () => {
             </p>
           )}
 
-          {groups.map((g: MyGroup, i) => (
+          {!loading && groups.map((g: MyGroup, i) => (
             <MotionReveal kind="list" index={i} key={g.group_id} style={{ alignSelf: "stretch" }}><button
               type="button"
               className="ww-press"
@@ -276,7 +277,7 @@ const GroupsPage: React.FC = () => {
             </button></MotionReveal>
           ))}
 
-          <MotionReveal index={3} style={{ alignSelf: "stretch" }}><button
+          {!loading && <MotionReveal index={3} style={{ alignSelf: "stretch" }}><button
             type="button"
             className="ww-press"
             onClick={() => setShowCreate(true)}
@@ -285,8 +286,8 @@ const GroupsPage: React.FC = () => {
             style={{ ...buttonStyle("primary", "lg", { mobile, disabled: atGroupCap }), width: "100%" }}
           >
             Create a Group
-          </button></MotionReveal>
-          <MotionReveal index={4} style={{ alignSelf: "stretch" }}><button
+          </button></MotionReveal>}
+          {!loading && <MotionReveal index={4} style={{ alignSelf: "stretch" }}><button
             type="button"
             className="ww-press"
             onClick={() => setShowJoin(true)}
@@ -295,18 +296,18 @@ const GroupsPage: React.FC = () => {
             style={{ ...buttonStyle("secondary", "lg", { mobile, disabled: atGroupCap }), width: "100%" }}
           >
             Join with a Code
-          </button></MotionReveal>
-          {atGroupCap && (
+          </button></MotionReveal>}
+          {!loading && atGroupCap && (
             <p style={{ ...metaLabel(mobile), margin: 0 }}>
               {GROUP_MAX_PER_PERSON} groups is the limit. Leave one to join another.
             </p>
           )}
 
           {/* Offered only to a member with no address on file, and only once. */}
-          {groups.length > 0 && knownEmail === null && (
+          {!loading && groups.length > 0 && knownEmail === null && (
             <CarryOverEmail mobile={mobile} onLinked={(addr) => setLinkedEmail(addr)} />
           )}
-          {groups.length > 0 && knownEmail !== null && (
+          {!loading && groups.length > 0 && knownEmail !== null && (
             <p style={{ ...metaLabel(mobile), margin: 0 }}>
               Your standing follows {knownEmail} across devices.
             </p>
