@@ -34,7 +34,7 @@ afterEach(() => {
 describe("page card loaders", () => {
   it("uses the same card artwork and accessible labels on every surface", () => {
     const { rerender } = render(<ClassicLoading />);
-    expect(screen.getByRole("status", { name: "Loading WHOOP! WHOOP! Classic" })).toHaveClass("ww-loading-flip", { exact: false });
+    expect(screen.getByRole("status", { name: "Loading WHOOP! WHOOP! Classic" }).querySelector(".ww-loading-flip")).toBeInTheDocument();
     rerender(<CardFlipLoader label="Loading Your Stats" layout="page" />);
     expect(screen.getByRole("status", { name: "Loading Your Stats" }).querySelector(".ww-loading-flip")).toBeInTheDocument();
     expect(screen.getByRole("status", { name: "Loading Your Stats" }).querySelectorAll("img")).toHaveLength(2);
