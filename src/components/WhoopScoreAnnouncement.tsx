@@ -106,7 +106,7 @@ const WhoopScoreAnnouncement: React.FC<{
       data-motion-exit={exiting ? "true" : undefined}
       data-testid="score-announcement-backdrop"
       onClick={onBackdropClick}
-      style={{ position: "fixed", inset: 0, zIndex: 1000, background: COLORS.scrim, display: "grid", placeItems: "center", padding: SPACE[4], boxSizing: "border-box" }}
+      style={{ position: "fixed", inset: 0, zIndex: 1000, background: `color-mix(in srgb, ${COLORS.ink} 65%, transparent)`, display: "grid", placeItems: "center", padding: SPACE[4], boxSizing: "border-box" }}
     >
       <div
         ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="score-announcement-title"
