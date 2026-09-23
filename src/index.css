@@ -427,6 +427,7 @@ All colors MUST be HSL.
 .ww-you-badge-flip-host { perspective: 512px; }
 
 .ww-you-badge-detail .ww-ui-small-in {
+  opacity: 1;
   backface-visibility: hidden;
   animation-name: ww-you-badge-flip;
   animation-duration: var(--ww-card-flip, 500ms);
