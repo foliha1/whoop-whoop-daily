@@ -24,7 +24,6 @@ const ReleaseAnnouncement: React.FC<{
   returnFocusSelector?: string;
 }> = ({ seenKey, title, primaryLabel, secondaryLabel, children, onPrimary, onDismiss, returnFocusSelector }) => {
   const host = usePortalHost("release-announcement");
-  const titleId = React.useId();
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const actionRef = React.useRef<"primary" | "dismissed" | null>(null);
@@ -85,7 +84,7 @@ const ReleaseAnnouncement: React.FC<{
       style={{ position: "fixed", inset: 0, height: "var(--ww-vh)", zIndex: 1000, background: `color-mix(in srgb, ${COLORS.ink} 65%, transparent)`, display: "grid", placeItems: "center", padding: SPACE[4], boxSizing: "border-box" }}
     >
       <div
-        ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId}
+        ref={dialogRef} role="dialog" aria-modal="true" aria-label={title}
         data-testid="score-announcement" data-motion-exit={exiting ? "true" : undefined}
         className="ww-ui-modal-panel"
         style={{ width: "100%", maxWidth: "min(100%, 480px)", maxHeight: "100%", minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box", background: COLORS.surface, color: COLORS.ink, border: BORDER.heavy, borderRadius: RADIUS.md }}
