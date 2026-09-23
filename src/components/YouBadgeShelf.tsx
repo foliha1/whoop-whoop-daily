@@ -6,6 +6,7 @@ import { BORDER, COLORS, FONT_SIZE, RADIUS, SPACE, TOUCH_MIN, textStyle } from "
 
 /** Native horizontal scrolling supports touch swipes; arrows are just a second way to page. */
 const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ badges, mobile }) => {
+  const paged = badges.length > (mobile ? 2 : 4);
   const track = React.useRef<HTMLDivElement>(null);
   const [edges, setEdges] = React.useState({ left: false, right: false });
   const measure = React.useCallback(() => {
@@ -56,7 +57,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
         ref={track}
         onScroll={measure}
         aria-label="Earned badges"
-        style={{ display: "flex", overflowX: "auto", overscrollBehaviorInline: "contain", scrollSnapType: "x mandatory", padding: SPACE[8], minWidth: 0 }}
+        style={{ display: "flex", justifyContent: badges.length === 1 ? "center" : undefined, overflowX: "auto", overscrollBehaviorInline: "contain", scrollSnapType: "x mandatory", padding: `${SPACE[8]}px ${paged ? TOUCH_MIN + SPACE[8] : SPACE[8]}px`, minWidth: 0 }}
       >
         {badges.map((badge, i) => (
           <div

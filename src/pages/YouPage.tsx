@@ -136,7 +136,7 @@ const YouPage: React.FC = () => {
             </MotionReveal>
 
             {(currentShare || (nextTier && points.pointsToNextTier !== null)) && (
-              <MotionReveal index={4} style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[4] }}>
+              <MotionReveal index={4} style={{ display: "grid", gridTemplateColumns: currentShare && nextTier && points.pointsToNextTier !== null ? "repeat(2, minmax(0, 1fr))" : "minmax(0, 1fr)", gap: SPACE[4] }}>
                 {currentShare && (
                   <div data-testid="you-tier-share" style={{ ...creamTile, padding: SPACE[8], ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
                     {Math.round(currentShare.share * 100)}% of players are in the {tierName(points.tier)} Tier
