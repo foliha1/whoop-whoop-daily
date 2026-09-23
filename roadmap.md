@@ -10,5 +10,5 @@
 - [x] Verify keyboard paging, focus, screen-reader labels, and reduced-motion behavior on the YOU page.
 - [x] Move visible badge details into the modal, reveal shelf overflow only beyond three badges, and refine the hover state.
 - [x] Enlarge modal badge, flip it once when decoded, and verify paging and light/night presentation.
-- [ ] Add the shared card-flip loading state to Your Stats and Groups, including first navigation, refresh, and join-link behavior.
-- [ ] Verify loading transitions, themes, reduced motion, and responsive layout for both pages.
+- [x] Add the shared card-flip loading state to Your Stats and Groups, including first navigation, refresh, and join-link behavior.
+- [x] Verify loading transitions, themes, reduced motion, and responsive layout for both pages.
