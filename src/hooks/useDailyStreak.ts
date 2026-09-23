@@ -14,24 +14,30 @@ import { fetchStreak, type DailyStreak } from "@/lib/dailyResults";
  * @param ready        gate — only fetch once true (e.g. after the run is saved)
  * @param refreshKey   bump to re-read (e.g. after an email signup restores rows)
  */
-export function useDailyStreak(
+export function useDailyStreakState(
   puzzleNumber: number,
   ready = true,
   refreshKey = 0
-): DailyStreak | null {
+): { streak: DailyStreak | null; loading: boolean } {
   const [streak, setStreak] = useState<DailyStreak | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!ready) return;
     let live = true;
+    setLoading(true);
     void fetchStreak(puzzleNumber).then((s) => {
-      if (live) setStreak(s);
+      if (live) { setStreak(s); setLoading(false); }
     });
     return () => {
       live = false;
     };
   }, [puzzleNumber, ready, refreshKey]);
 
-  return streak;
+  return { streak, loading };
+}
+
+export function useDailyStreak(puzzleNumber: number, ready = true, refreshKey = 0): DailyStreak | null {
+  return useDailyStreakState(puzzleNumber, ready, refreshKey).streak;
 }
 

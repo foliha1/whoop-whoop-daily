@@ -56,9 +56,9 @@ import {
 import {
   formatStreakLine,
 } from "@/lib/dailyResults";
-import { useDailyStreak } from "@/hooks/useDailyStreak";
+import { useDailyStreakState } from "@/hooks/useDailyStreak";
 import { useDailyProfile } from "@/hooks/useDailyProfile";
-import { useWhoopPoints } from "@/hooks/useWhoopPoints";
+import { useWhoopPointsState } from "@/hooks/useWhoopPoints";
 import WhoopPointsChange from "@/components/WhoopPointsChange";
 import { badgeArt, formatPointsChange } from "@/lib/whoopTiers";
 import type { WhoopPoints } from "@/lib/whoopPoints";
@@ -110,7 +110,8 @@ import {
 
 } from "@/lib/tokens";
 import { useThemeMode } from "@/lib/nightMode";
-import DailyMilestoneConfetti from "@/components/DailyMilestoneConfetti";
+import DailyMilestoneConfetti, { BURST_LIFETIME_MS } from "@/components/DailyMilestoneConfetti";
+import WhoopScoreAnnouncement, { hasPriorDailyResult, hasSeenScoreAnnouncement, SCORE_ANNOUNCEMENT } from "@/components/WhoopScoreAnnouncement";
 import {
   hasCelebrated,
   isMilestonePreview,
