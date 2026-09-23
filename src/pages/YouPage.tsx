@@ -77,8 +77,8 @@ const YouPage: React.FC = () => {
             <MotionReveal index={2} style={section}>
               <div data-testid="you-score" aria-label={SCORE_LABEL} style={{ width: "100%", minWidth: 0, display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[6] }}>
                 <div style={{ ...tile, padding: SPACE[8], display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", gap: SPACE[6] }}>
-                  <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, alignSelf: "flex-start" }}>Your Tier</span>
-                  <div style={{ width: "100%", maxWidth: FONT_SIZE["8xl"], aspectRatio: "1", display: "grid", placeItems: "center" }}>
+                  <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, textAlign: "center" }}>Your Tier</span>
+                  <div style={{ width: "80%", maxWidth: FONT_SIZE["8xl"] * 0.8, aspectRatio: "1", display: "grid", placeItems: "center" }}>
                     {badgeArt(points.tier) ? (
                       <CurrentTierBadge tier={points.tier} size={FONT_SIZE["8xl"]} fluid testId="you-tier-badge" />
                     ) : (
@@ -88,8 +88,8 @@ const YouPage: React.FC = () => {
                   <span data-testid="you-tier" style={{ ...textStyle("title", mobile), color: COLORS.ink, textAlign: "center", overflowWrap: "anywhere" }}>{tierName(points.tier)}</span>
                 </div>
                 <div style={{ ...tile, padding: SPACE[8], display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: SPACE[4], containerType: "inline-size" }}>
-                  <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, alignSelf: "flex-start" }}>Total Score</span>
-                  <span style={{ ...textStyle("scoreTotal", mobile), fontSize: `min(${TEXT.scoreTotal.size}px, ${Math.floor(90 / String(points.total).length)}cqi)`, color: COLORS.ink, whiteSpace: "nowrap", maxWidth: "100%" }}>{points.total}</span>
+                  <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, textAlign: "center" }}>Total Score</span>
+                  <span style={{ ...textStyle("scoreTotal", mobile), fontSize: `min(${TEXT.scoreTotal.size}px, ${Math.floor(240 / String(points.total).length)}cqi)`, color: COLORS.ink, whiteSpace: "nowrap", maxWidth: "100%" }}>{points.total}</span>
                 </div>
               </div>
               <div data-testid="you-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
@@ -122,9 +122,11 @@ const YouPage: React.FC = () => {
                         background: here ? COLORS.blue : "transparent", color: here ? RAW.cream : earned ? COLORS.ink : COLORS.inkMuted,
                         opacity: !here && !earned ? 0.55 : 1,
                       }}>
-                        <div style={{ width: FONT_SIZE["6xl"], height: FONT_SIZE["6xl"], display: "grid", placeItems: "center" }}>
-                          {earned && badgeArt(row.tier) ? <CurrentTierBadge tier={row.tier} size={FONT_SIZE["6xl"]} fluid /> :
-                            <span aria-hidden="true" style={{ width: "70%", aspectRatio: "1", borderRadius: "50%", background: here ? RAW.cream : COLORS.inkMuted }} />}
+                         <div style={{ width: FONT_SIZE["6xl"], height: FONT_SIZE["6xl"], display: "grid", placeItems: "center" }}>
+                           <div style={{ width: "70%", aspectRatio: "1", display: "grid", placeItems: "center" }}>
+                             {earned && badgeArt(row.tier) ? <CurrentTierBadge tier={row.tier} size={FONT_SIZE["6xl"]} fluid /> :
+                               <span aria-hidden="true" style={{ width: "100%", aspectRatio: "1", borderRadius: "50%", background: here ? RAW.cream : COLORS.inkMuted }} />}
+                           </div>
                         </div>
                         <span style={{ ...textStyle("control", mobile), color: "inherit", overflowWrap: "anywhere" }}>{row.name}</span>
                         <span style={{ ...textStyle("caption", mobile), color: "inherit", whiteSpace: "nowrap" }}>{tierRange(row.tier)}</span>
@@ -133,22 +135,21 @@ const YouPage: React.FC = () => {
                   );
                 })}
               </div>
+              {(currentShare || (nextTier && points.pointsToNextTier !== null)) && (
+                <div style={{ display: "grid", gridTemplateColumns: currentShare && nextTier && points.pointsToNextTier !== null ? "repeat(2, minmax(0, 1fr))" : "minmax(0, 1fr)", gap: SPACE[4] }}>
+                  {currentShare && (
+                    <div data-testid="you-tier-share" style={{ ...creamTile, padding: SPACE[8], ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
+                      {Math.round(currentShare.share * 100)}% of players are in the {tierName(points.tier)} Tier
+                    </div>
+                  )}
+                  {nextTier && points.pointsToNextTier !== null && (
+                    <div data-testid="you-next-tier" style={{ ...creamTile, padding: SPACE[8], ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
+                      {points.pointsToNextTier} {points.pointsToNextTier === 1 ? "point" : "points"} to {nextTier.name} Tier
+                    </div>
+                  )}
+                </div>
+              )}
             </MotionReveal>
-
-            {(currentShare || (nextTier && points.pointsToNextTier !== null)) && (
-              <MotionReveal index={4} style={{ display: "grid", gridTemplateColumns: currentShare && nextTier && points.pointsToNextTier !== null ? "repeat(2, minmax(0, 1fr))" : "minmax(0, 1fr)", gap: SPACE[4] }}>
-                {currentShare && (
-                  <div data-testid="you-tier-share" style={{ ...creamTile, padding: SPACE[8], ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
-                    {Math.round(currentShare.share * 100)}% of players are in the {tierName(points.tier)} Tier
-                  </div>
-                )}
-                {nextTier && points.pointsToNextTier !== null && (
-                  <div data-testid="you-next-tier" style={{ ...creamTile, padding: SPACE[8], ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
-                    {points.pointsToNextTier} {points.pointsToNextTier === 1 ? "point" : "points"} to {nextTier.name} Tier
-                  </div>
-                )}
-              </MotionReveal>
-            )}
 
             <MotionReveal index={5} style={section}>
               {sectionLabel("How You Earn Daily Points", mobile)}
@@ -163,7 +164,7 @@ const YouPage: React.FC = () => {
                       borderTop: i > 0 && i < EARN_ROWS.length - 1 ? `1px solid ${COLORS.inkMuted}` : undefined,
                     }}>
                       <span style={{ ...textStyle("control", mobile), color: "inherit" }}>{row.label}</span>
-                      <span style={{ ...textStyle("control", mobile), color: "inherit", whiteSpace: "nowrap" }}>{row.value}</span>
+                      <span style={{ ...textStyle("caption", mobile), color: "inherit", whiteSpace: "nowrap" }}>{row.value}</span>
                     </div>
                   </MotionReveal>
                 ))}

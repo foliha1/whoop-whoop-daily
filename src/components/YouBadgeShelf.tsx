@@ -36,11 +36,11 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
       type="button"
       aria-label={direction < 0 ? "Previous badges" : "Next badges"}
       onClick={() => page(direction)}
-      style={{
-        position: "absolute", zIndex: 1, top: "50%", transform: "translateY(-50%)",
+       style={{
+         position: "absolute", zIndex: 1, bottom: SPACE[4],
         [direction < 0 ? "left" : "right"]: SPACE[2],
-        width: TOUCH_MIN, height: TOUCH_MIN, border: BORDER.heavy, borderRadius: RADIUS.sm,
-        background: COLORS.panel, color: COLORS.ink, display: "grid", placeItems: "center", cursor: "pointer",
+         width: TOUCH_MIN, height: TOUCH_MIN, border: BORDER.heavy, borderRadius: RADIUS.sm,
+         background: COLORS.surface, color: COLORS.ink, display: "grid", placeItems: "center", cursor: "pointer",
       }}
     >
       <svg width={SPACE[8]} height={SPACE[8]} viewBox="0 0 16 16" aria-hidden="true">
@@ -57,7 +57,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
         onScroll={measure}
         aria-label="Earned badges"
         tabIndex={0}
-        style={{ display: "flex", justifyContent: badges.length === 1 ? "center" : undefined, overflowX: "auto", overscrollBehaviorInline: "contain", scrollSnapType: "x mandatory", padding: SPACE[8], minWidth: 0 }}
+         style={{ display: "flex", justifyContent: "safe center", overflowX: "auto", overscrollBehaviorInline: "contain", scrollSnapType: "x mandatory", scrollPaddingInline: TOUCH_MIN + SPACE[4], padding: `${SPACE[8]}px ${TOUCH_MIN + SPACE[4]}px`, minWidth: 0 }}
       >
         {badges.map((badge, i) => (
           <div
@@ -65,7 +65,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
             data-testid="you-badge"
             data-badge={badge.key}
             style={{
-              boxSizing: "border-box", flex: `0 0 ${mobile ? "42%" : "20%"}`,
+               boxSizing: "border-box", flex: `0 0 ${mobile ? `calc(42% + ${SPACE[14]}px)` : `calc(20% + ${SPACE[8]}px)`}`,
               minWidth: 0, padding: SPACE[4], scrollSnapAlign: "start",
               display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: SPACE[4],
               borderRight: i < badges.length - 1 ? `1px solid ${COLORS.inkMuted}` : undefined,
