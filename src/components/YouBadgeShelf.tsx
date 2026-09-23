@@ -78,7 +78,10 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
               )}
             </div>
             <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, textAlign: "center" }}>
-              {tierName(badge.key as PointsTier) || badge.key} · {formatBadgeDate(badge.earnedOn)}
+              {tierName(badge.key as PointsTier) || badge.key}
+            </span>
+            <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, textAlign: "center" }}>
+              {formatBadgeDate(badge.earnedOn)}
             </span>
           </div>
         ))}

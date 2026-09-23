@@ -89,7 +89,7 @@ const YouPage: React.FC = () => {
                 </div>
                 <div style={{ ...tile, padding: SPACE[8], display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: SPACE[4], containerType: "inline-size" }}>
                   <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, alignSelf: "flex-start" }}>Total Score</span>
-                  <span style={{ ...textStyle("scoreTotal", mobile), fontSize: `clamp(${TEXT.display.mobileSize}px, ${Math.min(26, Math.floor(90 / String(points.total).length))}cqi, ${TEXT.scoreTotal.size}px)`, color: COLORS.ink, whiteSpace: "nowrap", maxWidth: "100%" }}>{points.total}</span>
+                  <span style={{ ...textStyle("scoreTotal", mobile), fontSize: `min(${TEXT.scoreTotal.size}px, ${Math.floor(90 / String(points.total).length)}cqi)`, color: COLORS.ink, whiteSpace: "nowrap", maxWidth: "100%" }}>{points.total}</span>
                 </div>
               </div>
               <div data-testid="you-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
