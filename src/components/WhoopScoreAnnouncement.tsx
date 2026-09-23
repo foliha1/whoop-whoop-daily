@@ -9,6 +9,7 @@ import { useMotionExit } from "@/hooks/useMotionExit";
 import { usePortalHost } from "@/hooks/usePortalHost";
 import { trackDaily } from "@/lib/dailyEvents";
 import type { WhoopPoints } from "@/lib/whoopPoints";
+import type { StoredDailyResult } from "@/lib/dailyResults";
 import { BORDER, COLORS, RADIUS, SPACE, textStyle } from "@/lib/tokens";
 
 /** New releases use a new key; copy and version stay together here. */
@@ -30,10 +31,13 @@ export function hasSeenScoreAnnouncement(): boolean {
   try { return localStorage.getItem(SCORE_ANNOUNCEMENT.seenKey) === "1"; } catch { return false; }
 }
 
-/** The linked, caller-validated points RPC counts unique puzzle days. On a
- * saved result screen, >1 distinct days proves an earlier Daily result. */
-export function isReturningScorePlayer(points: WhoopPoints | null, saved: boolean): boolean {
-  return saved && points !== null && points.gamesPlayed > 1;
+/** Compare stored puzzle dates, not completion timestamps or a UTC score count. */
+export function hasEarlierDailyResult(rows: StoredDailyResult[], today: string): boolean {
+  return rows.some((row) => row.puzzle_date < today);
+}
+
+export function isReturningScorePlayer(points: WhoopPoints | null, saved: boolean, hasEarlierResult: boolean): boolean {
+  return saved && points !== null && hasEarlierResult;
 }
 
 const FOCUSABLE = 'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';

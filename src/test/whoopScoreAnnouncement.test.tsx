@@ -6,6 +6,7 @@ import WhoopScoreAnnouncement, {
   SCORE_ANNOUNCEMENT, hasSeenScoreAnnouncement, isReturningScorePlayer,
 } from "@/components/WhoopScoreAnnouncement";
 import type { WhoopPoints } from "@/lib/whoopPoints";
+import type { StoredDailyResult } from "@/lib/dailyResults";
 import { pendingDailyEvents, resetDailyEvents, setDailyTrackingEnabled } from "@/lib/dailyEvents";
 
 vi.mock("@/components/CurrentTierBadge", () => ({

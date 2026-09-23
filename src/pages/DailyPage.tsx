@@ -112,7 +112,9 @@ import {
 } from "@/lib/tokens";
 import { useThemeMode } from "@/lib/nightMode";
 import DailyMilestoneConfetti, { BURST_LIFETIME_MS } from "@/components/DailyMilestoneConfetti";
-import WhoopScoreAnnouncement, { isReturningScorePlayer, hasSeenScoreAnnouncement, SCORE_ANNOUNCEMENT } from "@/components/WhoopScoreAnnouncement";
+import WhoopScoreAnnouncement, { isReturningScorePlayer, hasEarlierDailyResult, hasSeenScoreAnnouncement, SCORE_ANNOUNCEMENT } from "@/components/WhoopScoreAnnouncement";
+import { fetchDailyResults } from "@/lib/dailyResults";
+import { getSubscribedEmail } from "@/lib/dailySubscribe";
 import {
   hasCelebrated,
   isMilestonePreview,
@@ -1550,6 +1552,16 @@ const DailyPage: React.FC = () => {
   // Results-only release note; caller-validated point history proves return.
   const [announcementReady, setAnnouncementReady] = useState(false);
   const [announcementClosed, setAnnouncementClosed] = useState(false);
+  const [earlierResult, setEarlierResult] = useState(false);
+  useEffect(() => {
+    if (!finished || !daily.resultSaved || pointsLoading || whoop === null || hasSeenScoreAnnouncement() || announcementClosed) return;
+    let live = true;
+    setEarlierResult(false);
+    void fetchDailyResults(undefined, getSubscribedEmail()).then((rows) => {
+      if (live) setEarlierResult(hasEarlierDailyResult(rows, daily.dateKey));
+    });
+    return () => { live = false; };
+  }, [finished, daily.resultSaved, pointsLoading, whoop, daily.dateKey, profileKey, announcementClosed]);
 
   // Use the same milestones, delays, and confetti lifetime as DailyResultCard.
   // Wait for the latest possible burst, then for the final result block entry.
@@ -1564,7 +1576,7 @@ const DailyPage: React.FC = () => {
   );
   const scoreBurst = scoreMilestone && !daily.alreadyPlayed && !reducedResultMotion;
   useEffect(() => {
-    if (!finished || pointsLoading || streakLoading || !isReturningScorePlayer(whoop, daily.resultSaved) ||
+    if (!finished || pointsLoading || streakLoading || !isReturningScorePlayer(whoop, daily.resultSaved, earlierResult) ||
         hasSeenScoreAnnouncement() || announcementClosed) return;
     setAnnouncementReady(false);
     const entryEnd = daily.alreadyPlayed ? UI_REVISIT_MS :
@@ -1575,9 +1587,9 @@ const DailyPage: React.FC = () => {
     );
     const timer = window.setTimeout(() => setAnnouncementReady(true), Math.max(entryEnd, confettiEnd));
     return () => window.clearTimeout(timer);
-  }, [finished, daily.resultSaved, pointsLoading, streakLoading, whoop, streakBurst, scoreBurst, daily.alreadyPlayed, reducedResultMotion, announcementClosed]);
+  }, [finished, daily.resultSaved, pointsLoading, streakLoading, whoop, earlierResult, streakBurst, scoreBurst, daily.alreadyPlayed, reducedResultMotion, announcementClosed]);
   const showScoreAnnouncement = finished && announcementReady &&
-    !announcementClosed && !pointsLoading && isReturningScorePlayer(whoop, daily.resultSaved);
+    !announcementClosed && !pointsLoading && isReturningScorePlayer(whoop, daily.resultSaved, earlierResult);
   const announcementShownRef = React.useRef(false);
   useEffect(() => {
     if (!showScoreAnnouncement || announcementShownRef.current) return;
