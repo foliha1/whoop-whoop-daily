@@ -19,17 +19,18 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
   const previousArrow = React.useRef<HTMLButtonElement>(null);
   const nextArrow = React.useRef<HTMLButtonElement>(null);
   const [edges, setEdges] = React.useState({ left: false, right: false });
-  const measure = React.useCallback(() => {
+   const canPage = badges.length > 3;
+   const measure = React.useCallback(() => {
     const el = track.current;
     if (!el) return;
-    const left = el.scrollLeft > SPACE[1];
-    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - SPACE[1];
+    const left = canPage && el.scrollLeft > SPACE[1];
+    const right = canPage && el.scrollLeft + el.clientWidth < el.scrollWidth - SPACE[1];
     // A paging arrow can vanish at the end of the track. Keep keyboard focus in
     // the shelf instead of dropping it to the document when that happens.
     if ((!left && document.activeElement === previousArrow.current) ||
         (!right && document.activeElement === nextArrow.current)) el.focus({ preventScroll: true });
     setEdges({ left, right });
-  }, []);
+   }, [canPage]);
 
   React.useEffect(() => {
     measure();
@@ -43,12 +44,12 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
 
   const page = (direction: -1 | 1) => {
     const el = track.current;
-    if (!el) return;
+    if (!el || !canPage) return;
     el.scrollBy({ left: direction * el.clientWidth, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   };
 
   const onTrackKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.target !== event.currentTarget) return;
+    if (event.target !== event.currentTarget || !canPage) return;
     if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
       event.preventDefault();
       page(event.key === "ArrowRight" ? 1 : -1);
@@ -84,12 +85,12 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
       <div
         ref={track}
         onScroll={measure}
-        aria-label="Earned badges, use Left and Right Arrow keys to page"
+        aria-label={canPage ? "Earned badges, use Left and Right Arrow keys to page" : "Earned badges"}
         role="region"
         tabIndex={0}
         onKeyDown={onTrackKeyDown}
         className="ww-you-badge-track"
-        style={{ display: "flex", justifyContent: "safe center", overflowX: "auto", overscrollBehaviorInline: "contain", scrollSnapType: "x mandatory", scrollPaddingInline: TOUCH_MIN + SPACE[4], padding: `${SPACE[8]}px ${TOUCH_MIN + SPACE[4]}px`, minWidth: 0 }}
+        style={{ display: "flex", justifyContent: "safe center", overflowX: canPage ? "auto" : "hidden", overscrollBehaviorInline: "contain", scrollSnapType: canPage ? "x mandatory" : "none", scrollPaddingInline: canPage ? TOUCH_MIN + SPACE[4] : SPACE[8], padding: `${SPACE[8]}px ${canPage ? TOUCH_MIN + SPACE[4] : SPACE[8]}px`, minWidth: 0 }}
       >
         {badges.map((badge, i) => (
           <div
@@ -97,8 +98,8 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
             data-testid="you-badge"
             data-badge={badge.key}
             style={{
-               boxSizing: "border-box", flex: `0 0 ${mobile ? `calc(42% + ${SPACE[14]}px)` : `calc(20% + ${SPACE[8]}px)`}`,
-              minWidth: 0, padding: SPACE[4], scrollSnapAlign: "start",
+               boxSizing: "border-box", flex: canPage ? `0 0 calc(100% / 3)` : "1 1 0%",
+              minWidth: 0, padding: SPACE[4], scrollSnapAlign: canPage ? "start" : undefined,
               borderRight: i < badges.length - 1 ? `1px solid ${COLORS.inkMuted}` : undefined,
             }}
           >
@@ -108,7 +109,8 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
                    type="button"
                    aria-label={`View ${tierName(badge.key as PointsTier) || badge.key} badge details, earned ${formatBadgeDate(badge.earnedOn)}`}
                    className="ww-you-badge-trigger"
-                   style={{ boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: SPACE[4], width: "100%", height: "100%", minWidth: 0, padding: 0, border: 0, borderRadius: RADIUS.sm, background: "transparent", color: COLORS.inkMuted, fontStyle: "normal", whiteSpace: "normal" }}
+                    hoverBackground={COLORS.badgeHover}
+                    style={{ boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minHeight: TOUCH_MIN, minWidth: 0, padding: SPACE[2], border: 0, borderRadius: RADIUS.sm, background: "transparent", color: COLORS.inkMuted, fontStyle: "normal", whiteSpace: "normal" }}
                  >
                    <span aria-hidden="true" style={{ width: "100%", maxWidth: FONT_SIZE["7xl"], aspectRatio: "1", display: "grid", placeItems: "center" }}>
                      {badgeArt(badge.key) ? (
@@ -117,20 +119,18 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
                        <span style={{ width: "75%", aspectRatio: "1", borderRadius: "50%", background: COLORS.inkMuted }} />
                      )}
                    </span>
-                   <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, textAlign: "center" }}>{tierName(badge.key as PointsTier) || badge.key}</span>
-                   <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, textAlign: "center" }}>{formatBadgeDate(badge.earnedOn)}</span>
                  </AppButton>
                </DialogPrimitive.Trigger>
                <DialogPrimitive.Portal>
                  <DialogPrimitive.Overlay className="ww-ui-modal-backdrop" style={{ position: "fixed", inset: 0, zIndex: 1000, background: `color-mix(in srgb, ${COLORS.ink} 65%, transparent)` }} />
                  <DialogPrimitive.Content
                    data-testid="you-badge-detail"
-                   className="ww-ui-revisit"
+                    className="ww-ui-revisit ww-you-badge-detail"
                    style={{ position: "fixed", zIndex: 1001, top: "50%", left: "50%", transform: "translate(-50%, -50%)", boxSizing: "border-box", width: `calc(100% - ${SPACE[12] * 2}px)`, maxWidth: FONT_SIZE["8xl"] * 3, maxHeight: "calc(100dvh - 48px)", overflowY: "auto", background: COLORS.surface, color: COLORS.ink, border: BORDER.heavy, borderRadius: RADIUS.md, padding: SPACE[8], display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[8], textAlign: "center" }}
                  >
                    <DialogPrimitive.Title style={{ ...textStyle("title", mobile), margin: 0 }}>{tierName(badge.key as PointsTier) || badge.key}</DialogPrimitive.Title>
-                   <span aria-hidden="true" style={{ width: "100%", maxWidth: FONT_SIZE["7xl"], aspectRatio: "1", display: "grid", placeItems: "center" }}>
-                     {badgeArt(badge.key) ? <CurrentTierBadge tier={badge.key as PointsTier} size={FONT_SIZE["7xl"]} fluid /> : <span style={{ width: "75%", aspectRatio: "1", borderRadius: "50%", background: COLORS.inkMuted }} />}
+                    <span aria-hidden="true" style={{ width: "100%", maxWidth: FONT_SIZE["7xl"] * 1.5, aspectRatio: "1", display: "grid", placeItems: "center", perspective: FONT_SIZE["8xl"] * 4 }}>
+                      {badgeArt(badge.key) ? <CurrentTierBadge tier={badge.key as PointsTier} size={FONT_SIZE["7xl"] * 1.5} fluid /> : <span className="ww-ui-small-in" style={{ width: "75%", aspectRatio: "1", borderRadius: "50%", background: COLORS.inkMuted }} />}
                    </span>
                    <DialogPrimitive.Description asChild>
                      <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4], ...textStyle("body", mobile), color: COLORS.ink }}>
