@@ -111,7 +111,7 @@ import {
 } from "@/lib/tokens";
 import { useThemeMode } from "@/lib/nightMode";
 import DailyMilestoneConfetti, { BURST_LIFETIME_MS } from "@/components/DailyMilestoneConfetti";
-import WhoopScoreAnnouncement, { hasPriorDailyResult, hasSeenScoreAnnouncement, SCORE_ANNOUNCEMENT } from "@/components/WhoopScoreAnnouncement";
+import WhoopScoreAnnouncement, { isReturningScorePlayer, hasSeenScoreAnnouncement, SCORE_ANNOUNCEMENT } from "@/components/WhoopScoreAnnouncement";
 import {
   hasCelebrated,
   isMilestonePreview,
@@ -1546,17 +1546,9 @@ const DailyPage: React.FC = () => {
   const finished = playedToday && showResult;
   const ready = !finished && (phase === "READY" || playedToday);
 
-  // Results-only release note: a positive pre-today row proves this player is
-  // returning, including a linked-email restore. Nothing appears during play.
-  const [priorResult, setPriorResult] = useState(false);
+  // Results-only release note; caller-validated point history proves return.
   const [announcementReady, setAnnouncementReady] = useState(false);
   const [announcementClosed, setAnnouncementClosed] = useState(false);
-  useEffect(() => {
-    if (!finished || !daily.resultSaved || hasSeenScoreAnnouncement()) return;
-    let live = true;
-    void hasPriorDailyResult(daily.puzzleNumber).then((prior) => { if (live) setPriorResult(prior); });
-    return () => { live = false; };
-  }, [finished, daily.resultSaved, daily.puzzleNumber, profileKey]);
 
   // Use the same milestones, delays, and confetti lifetime as DailyResultCard.
   // Wait for the latest possible burst, then for the final result block entry.
@@ -1579,8 +1571,8 @@ const DailyPage: React.FC = () => {
       daily.alreadyPlayed || reducedResultMotion ? 0 : Math.max(entryEnd, confettiEnd));
     return () => window.clearTimeout(timer);
   }, [finished, daily.resultSaved, pointsLoading, streakLoading, whoop, streakBurst, scoreBurst, daily.alreadyPlayed, reducedResultMotion]);
-  const showScoreAnnouncement = finished && daily.resultSaved && priorResult && announcementReady &&
-    !announcementClosed && !pointsLoading && whoop !== null && whoop.todayPoints !== null;
+  const showScoreAnnouncement = finished && announcementReady &&
+    !announcementClosed && !pointsLoading && !hasSeenScoreAnnouncement() && isReturningScorePlayer(whoop, daily.resultSaved);
   const announcementShownRef = React.useRef(false);
   useEffect(() => {
     if (!showScoreAnnouncement || announcementShownRef.current) return;

@@ -7,10 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useDismiss } from "@/hooks/useDismiss";
 import { useMotionExit } from "@/hooks/useMotionExit";
 import { usePortalHost } from "@/hooks/usePortalHost";
-import { getSubscribedEmail } from "@/lib/dailySubscribe";
 import { trackDaily } from "@/lib/dailyEvents";
-import { fetchDailyResults } from "@/lib/dailyResults";
-import { getVisitorId } from "@/lib/visitor";
 import type { WhoopPoints } from "@/lib/whoopPoints";
 import { BORDER, COLORS, RADIUS, SPACE, textStyle } from "@/lib/tokens";
 
@@ -33,10 +30,10 @@ export function hasSeenScoreAnnouncement(): boolean {
   try { return localStorage.getItem(SCORE_ANNOUNCEMENT.seenKey) === "1"; } catch { return false; }
 }
 
-/** A positive older row is necessary; a failed history request ([]) is never eligible. */
-export async function hasPriorDailyResult(todayNumber: number): Promise<boolean> {
-  const rows = await fetchDailyResults(getVisitorId(), getSubscribedEmail());
-  return rows.some((row) => row.puzzle_number > 0 && row.puzzle_number < todayNumber);
+/** The linked, caller-validated points RPC counts unique puzzle days. A saved
+ * result today plus >1 days proves at least one game was played before today. */
+export function isReturningScorePlayer(points: WhoopPoints | null, saved: boolean): boolean {
+  return saved && points !== null && points.todayPoints !== null && points.gamesPlayed > 1;
 }
 
 const FOCUSABLE = 'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
