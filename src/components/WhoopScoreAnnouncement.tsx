@@ -27,9 +27,9 @@ export function hasSeenScoreAnnouncement(): boolean {
   return hasSeenAnnouncement(SCORE_ANNOUNCEMENT.seenKey);
 }
 
-/** Compare stored puzzle dates, not completion timestamps or a UTC score count. */
+/** Require the persisted result for today and a distinct earlier puzzle date. */
 export function hasEarlierDailyResult(rows: StoredDailyResult[], today: string): boolean {
-  return rows.some((row) => row.puzzle_date < today);
+  return rows.some((row) => row.puzzle_date === today) && rows.some((row) => row.puzzle_date < today);
 }
 
 export function isReturningScorePlayer(points: WhoopPoints | null, saved: boolean, hasEarlierResult: boolean): boolean {

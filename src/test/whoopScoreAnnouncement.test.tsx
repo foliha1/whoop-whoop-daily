@@ -50,6 +50,7 @@ describe("score announcement", () => {
     expect(hasEarlierDailyResult(dates([]), "2026-09-22")).toBe(false);
     expect(hasEarlierDailyResult(dates(["2026-09-22"]), "2026-09-22")).toBe(false);
     expect(hasEarlierDailyResult(dates(["2026-09-23"]), "2026-09-22")).toBe(false);
+    expect(hasEarlierDailyResult(dates(["2026-09-21"]), "2026-09-22")).toBe(false);
     expect(hasEarlierDailyResult(dates(["2026-09-21", "2026-09-22"]), "2026-09-22")).toBe(true);
     expect(isReturningScorePlayer(points, false, true)).toBe(false);
     expect(isReturningScorePlayer(null, true, true)).toBe(false);
