@@ -1560,7 +1560,8 @@ const DailyPage: React.FC = () => {
   );
   const scoreBurst = scoreMilestone && !daily.alreadyPlayed && !reducedResultMotion;
   useEffect(() => {
-    if (!finished || !daily.resultSaved || pointsLoading || streakLoading || !whoop || whoop.todayPoints === null) return;
+    if (!finished || pointsLoading || streakLoading || !isReturningScorePlayer(whoop, daily.resultSaved) ||
+        hasSeenScoreAnnouncement() || announcementClosed) return;
     setAnnouncementReady(false);
     const entryEnd = RESULT_BLOCK.email * BLOCK_STAGGER_MS + BLOCK_IN_MS;
     const confettiEnd = Math.max(
@@ -1570,7 +1571,7 @@ const DailyPage: React.FC = () => {
     const timer = window.setTimeout(() => setAnnouncementReady(true),
       daily.alreadyPlayed || reducedResultMotion ? 0 : Math.max(entryEnd, confettiEnd));
     return () => window.clearTimeout(timer);
-  }, [finished, daily.resultSaved, pointsLoading, streakLoading, whoop, streakBurst, scoreBurst, daily.alreadyPlayed, reducedResultMotion]);
+  }, [finished, daily.resultSaved, pointsLoading, streakLoading, whoop, streakBurst, scoreBurst, daily.alreadyPlayed, reducedResultMotion, announcementClosed]);
   const showScoreAnnouncement = finished && announcementReady &&
     !announcementClosed && !pointsLoading && !hasSeenScoreAnnouncement() && isReturningScorePlayer(whoop, daily.resultSaved);
   const announcementShownRef = React.useRef(false);
