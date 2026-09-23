@@ -72,11 +72,13 @@ const WhoopScoreAnnouncement: React.FC<{
 
   React.useEffect(() => {
     if (!host) return;
-    openerRef.current = document.activeElement as HTMLElement | null;
+    const active = document.activeElement as HTMLElement | null;
+    openerRef.current = active && active !== document.body && !host.contains(active)
+      ? active : document.querySelector<HTMLElement>('[data-testid="results-done"]');
     buttonRef.current?.focus();
     return () => {
       const opener = openerRef.current;
-      if (opener?.isConnected) window.setTimeout(() => opener.focus(), 0);
+      if (actionRef.current !== "primary" && opener?.isConnected) window.setTimeout(() => opener.focus(), 0);
     };
   }, [host]);
   React.useEffect(() => {
@@ -123,8 +125,8 @@ const WhoopScoreAnnouncement: React.FC<{
           </div>
         </div>
         <div style={{ flex: "0 0 auto", padding: SPACE[4], borderTop: BORDER.standard, display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[3], background: COLORS.surface }}>
-          <AppButton ref={buttonRef} fullWidth tone="blue" onClick={() => close("primary")}>{SCORE_ANNOUNCEMENT.primary}</AppButton>
-          <AppButton fullWidth variant="secondary" onClick={dismiss}>{SCORE_ANNOUNCEMENT.secondary}</AppButton>
+          <AppButton ref={buttonRef} fullWidth tone="blue" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={() => close("primary")}>{SCORE_ANNOUNCEMENT.primary}</AppButton>
+          <AppButton fullWidth variant="secondary" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={dismiss}>{SCORE_ANNOUNCEMENT.secondary}</AppButton>
         </div>
       </div>
     </div>, host

@@ -70,6 +70,7 @@ import {
   GREAT_MATCH_DELAY_MS,
   DEAL_MOVE_MS,
   UI_ENTER_MS,
+  UI_REVISIT_MS,
   UI_SECTION_STAGGER_MS,
   UI_SMALL_ENTER_MS,
 } from "@/lib/animationTiming";
@@ -1563,17 +1564,17 @@ const DailyPage: React.FC = () => {
     if (!finished || pointsLoading || streakLoading || !isReturningScorePlayer(whoop, daily.resultSaved) ||
         hasSeenScoreAnnouncement() || announcementClosed) return;
     setAnnouncementReady(false);
-    const entryEnd = RESULT_BLOCK.email * BLOCK_STAGGER_MS + BLOCK_IN_MS;
+    const entryEnd = daily.alreadyPlayed ? UI_REVISIT_MS :
+      reducedResultMotion ? BLOCK_IN_MS : RESULT_BLOCK.email * BLOCK_STAGGER_MS + BLOCK_IN_MS;
     const confettiEnd = Math.max(
       streakBurst ? RESULT_BLOCK.stats * BLOCK_STAGGER_MS + BLOCK_IN_MS + BURST_LIFETIME_MS : 0,
       scoreBurst ? RESULT_BLOCK.score * BLOCK_STAGGER_MS + BLOCK_IN_MS + BURST_LIFETIME_MS : 0,
     );
-    const timer = window.setTimeout(() => setAnnouncementReady(true),
-      daily.alreadyPlayed || reducedResultMotion ? 0 : Math.max(entryEnd, confettiEnd));
+    const timer = window.setTimeout(() => setAnnouncementReady(true), Math.max(entryEnd, confettiEnd));
     return () => window.clearTimeout(timer);
   }, [finished, daily.resultSaved, pointsLoading, streakLoading, whoop, streakBurst, scoreBurst, daily.alreadyPlayed, reducedResultMotion, announcementClosed]);
   const showScoreAnnouncement = finished && announcementReady &&
-    !announcementClosed && !pointsLoading && !hasSeenScoreAnnouncement() && isReturningScorePlayer(whoop, daily.resultSaved);
+    !announcementClosed && !pointsLoading && isReturningScorePlayer(whoop, daily.resultSaved);
   const announcementShownRef = React.useRef(false);
   useEffect(() => {
     if (!showScoreAnnouncement || announcementShownRef.current) return;
