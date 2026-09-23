@@ -1554,10 +1554,12 @@ const DailyPage: React.FC = () => {
   // Use the same milestones, delays, and confetti lifetime as DailyResultCard.
   // Wait for the latest possible burst, then for the final result block entry.
   const reducedResultMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  const streakBurst = isMilestoneStreak(streak?.current ?? null) && !daily.alreadyPlayed && !reducedResultMotion;
+  const streakBurst = (isMilestoneStreak(streak?.current ?? null) || isMilestonePreview()) &&
+    !daily.alreadyPlayed && !reducedResultMotion &&
+    (isMilestonePreview() || !hasCelebrated(daily.puzzleNumber));
   const scoreMilestone = whoop !== null && (
     formatPointsChange(whoop.todayPoints, whoop.totalBeforeToday, whoop.total).tierUp ||
-    whoop.badges.some((badge) => badge.earnedOn === daily.dateKey && badgeArt(badge.key) !== null)
+    whoop.badges.some((badge) => badge.earnedOn === new Date().toISOString().slice(0, 10) && badgeArt(badge.key) !== null)
   );
   const scoreBurst = scoreMilestone && !daily.alreadyPlayed && !reducedResultMotion;
   useEffect(() => {
