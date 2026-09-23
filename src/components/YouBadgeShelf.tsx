@@ -129,7 +129,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
                    style={{ position: "fixed", zIndex: 1001, top: "50%", left: "50%", transform: "translate(-50%, -50%)", boxSizing: "border-box", width: `calc(100% - ${SPACE[12] * 2}px)`, maxWidth: FONT_SIZE["8xl"] * 3, maxHeight: "calc(100dvh - 48px)", overflowY: "auto", background: COLORS.surface, color: COLORS.ink, border: BORDER.heavy, borderRadius: RADIUS.md, padding: SPACE[8], display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[8], textAlign: "center" }}
                  >
                    <DialogPrimitive.Title style={{ ...textStyle("title", mobile), margin: 0 }}>{tierName(badge.key as PointsTier) || badge.key}</DialogPrimitive.Title>
-                    <span aria-hidden="true" style={{ width: "100%", maxWidth: FONT_SIZE["7xl"] * 1.5, aspectRatio: "1", display: "grid", placeItems: "center", perspective: FONT_SIZE["8xl"] * 4 }}>
+                    <span aria-hidden="true" className="ww-you-badge-flip-host" style={{ width: "100%", maxWidth: FONT_SIZE["7xl"] * 1.5, aspectRatio: "1", display: "grid", placeItems: "center" }}>
                       {badgeArt(badge.key) ? <CurrentTierBadge tier={badge.key as PointsTier} size={FONT_SIZE["7xl"] * 1.5} fluid /> : <span className="ww-ui-small-in" style={{ width: "75%", aspectRatio: "1", borderRadius: "50%", background: COLORS.inkMuted }} />}
                    </span>
                    <DialogPrimitive.Description asChild>
