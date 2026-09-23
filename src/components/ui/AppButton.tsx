@@ -78,7 +78,7 @@ export const AppButton = React.forwardRef<HTMLButtonElement, AppButtonProps>(
           onMouseEnter?.(e);
         }}
         onMouseLeave={(e) => {
-          if (!disabled) e.currentTarget.style.background = active ? hoverBg : (style?.background ?? baseBg);
+          if (!disabled) e.currentTarget.style.background = active ? hoverBg : (typeof style?.background === "string" ? style.background : baseBg);
           onMouseLeave?.(e);
         }}
         {...rest}
