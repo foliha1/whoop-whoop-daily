@@ -109,7 +109,7 @@ const WhoopScoreAnnouncement: React.FC<{
   if (!host) return null;
   return createPortal(
     <div
-      className={mounted ? "ww-ui-modal-backdrop" : undefined}
+      className="ww-ui-modal-backdrop"
       data-motion-exit={exiting ? "true" : undefined}
       data-testid="score-announcement-backdrop"
       onClick={onBackdropClick}
@@ -118,7 +118,7 @@ const WhoopScoreAnnouncement: React.FC<{
       <div
         ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="score-announcement-title"
         data-testid="score-announcement" data-motion-exit={exiting ? "true" : undefined}
-        className={mounted && !entryDone ? "ww-ui-modal-panel" : undefined}
+        className="ww-ui-modal-panel"
         style={{ width: "100%", maxWidth: "min(100%, 480px)", maxHeight: "100%", minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box", background: COLORS.surface, color: COLORS.ink, border: BORDER.heavy, borderRadius: RADIUS.md }}
       >
         <div style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", padding: SPACE[6], display: "flex", flexDirection: "column", gap: SPACE[6] }}>
