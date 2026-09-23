@@ -408,6 +408,12 @@ All colors MUST be HSL.
 .ww-ui-modal-backdrop[data-motion-exit="true"] { animation: ww-ui-revisit var(--ww-ui-exit, 150ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) reverse both; }
 .ww-ui-modal-panel[data-motion-exit="true"] { animation: ww-ui-modal-out var(--ww-ui-exit, 150ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) both; }
 
+.ww-you-badge-track:focus-visible,
+.ww-you-badge-trigger:focus-visible {
+  outline: 2px solid var(--ww-ink);
+  outline-offset: -2px;
+}
+
 .daily-intro {
   --ww-ui-delay: 0ms;
 }
