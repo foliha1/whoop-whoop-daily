@@ -424,13 +424,14 @@ All colors MUST be HSL.
   to { transform: rotateY(0deg); }
 }
 
-.ww-you-badge-flip-host {
-  perspective: calc(var(--ww-badge-perspective, 512px));
-}
+.ww-you-badge-flip-host { perspective: 512px; }
 
 .ww-you-badge-detail .ww-ui-small-in {
   backface-visibility: hidden;
-  animation: ww-you-badge-flip var(--ww-card-flip, 500ms) cubic-bezier(0.4, 0, 0.2, 1) both !important;
+  animation-name: ww-you-badge-flip;
+  animation-duration: var(--ww-card-flip, 500ms);
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-fill-mode: both;
 }
 
 @media (prefers-reduced-motion: reduce) {
