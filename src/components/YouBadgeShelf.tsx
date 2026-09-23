@@ -37,7 +37,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
       aria-label={direction < 0 ? "Previous badges" : "Next badges"}
       onClick={() => page(direction)}
        style={{
-         position: "absolute", zIndex: 1, top: "50%", transform: "translateY(-50%)",
+         position: "absolute", zIndex: 1, bottom: SPACE[4],
         [direction < 0 ? "left" : "right"]: SPACE[2],
          width: TOUCH_MIN, height: TOUCH_MIN, border: BORDER.heavy, borderRadius: RADIUS.sm,
          background: COLORS.surface, color: COLORS.ink, display: "grid", placeItems: "center", cursor: "pointer",
