@@ -1546,6 +1546,43 @@ const DailyPage: React.FC = () => {
   const finished = playedToday && showResult;
   const ready = !finished && (phase === "READY" || playedToday);
 
+  // Results-only release note: a positive pre-today row proves this player is
+  // returning, including a linked-email restore. Nothing appears during play.
+  const [priorResult, setPriorResult] = useState(false);
+  const [announcementReady, setAnnouncementReady] = useState(false);
+  const [announcementClosed, setAnnouncementClosed] = useState(false);
+  useEffect(() => {
+    if (!finished || !daily.resultSaved || hasSeenScoreAnnouncement()) return;
+    let live = true;
+    void hasPriorDailyResult(daily.puzzleNumber).then((prior) => { if (live) setPriorResult(prior); });
+    return () => { live = false; };
+  }, [finished, daily.resultSaved, daily.puzzleNumber, profileKey]);
+
+  // Use the same milestones, delays, and confetti lifetime as DailyResultCard.
+  // Wait for the latest possible burst, then for the final result block entry.
+  const reducedResultMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const streakBurst = isMilestoneStreak(streak?.current ?? null) && !daily.alreadyPlayed && !reducedResultMotion && !hasCelebrated(daily.puzzleNumber);
+  const scoreMilestone = whoop !== null && (
+    formatPointsChange(whoop.todayPoints, whoop.totalBeforeToday, whoop.total).tierUp ||
+    whoop.badges.some((badge) => badge.earnedOn === daily.dateKey && badgeArt(badge.key) !== null)
+  );
+  const scoreBurst = scoreMilestone && !streakBurst && !daily.alreadyPlayed && !reducedResultMotion;
+  useEffect(() => {
+    if (!finished || !daily.resultSaved || pointsLoading || streakLoading || !whoop || whoop.todayPoints === null) return;
+    setAnnouncementReady(false);
+    const entryEnd = RESULT_BLOCK.email * BLOCK_STAGGER_MS + BLOCK_IN_MS;
+    const confettiEnd = streakBurst
+      ? RESULT_BLOCK.stats * BLOCK_STAGGER_MS + BLOCK_IN_MS + BURST_LIFETIME_MS
+      : scoreBurst
+        ? RESULT_BLOCK.score * BLOCK_STAGGER_MS + BLOCK_IN_MS + BURST_LIFETIME_MS
+        : 0;
+    const timer = window.setTimeout(() => setAnnouncementReady(true),
+      daily.alreadyPlayed || reducedResultMotion ? 0 : Math.max(entryEnd, confettiEnd));
+    return () => window.clearTimeout(timer);
+  }, [finished, daily.resultSaved, pointsLoading, streakLoading, whoop, streakBurst, scoreBurst, daily.alreadyPlayed, reducedResultMotion]);
+  const showScoreAnnouncement = finished && daily.resultSaved && priorResult && announcementReady &&
+    !announcementClosed && !pointsLoading && whoop !== null && whoop.todayPoints !== null && !hasSeenScoreAnnouncement();
+
   // Back from Your Stats / Groups with today's result already saved: land
   // straight on the results screen instead of asking for the ready screen's
   // "See Today's Result" tap again.
