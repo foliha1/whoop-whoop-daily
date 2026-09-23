@@ -7,6 +7,7 @@ import DailyFrame from "@/components/DailyFrame";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
 import CurrentTierBadge from "@/components/CurrentTierBadge";
 import MotionReveal from "@/components/MotionReveal";
+import CardFlipLoader from "@/components/CardFlipLoader";
 import YouBadgeShelf from "@/components/YouBadgeShelf";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePointsPopulation, useWhoopPointsState } from "@/hooks/useWhoopPoints";
@@ -68,7 +69,7 @@ const YouPage: React.FC = () => {
           <span aria-hidden="true" />
         </div>
 
-        {loading ? null : points === null ? (
+        {loading ? <CardFlipLoader label="Loading Your Stats" /> : points === null ? (
           <p data-testid="you-score-error" style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, margin: 0 }}>
             {SCORE_LABEL} could not be loaded. Try again in a moment.
           </p>

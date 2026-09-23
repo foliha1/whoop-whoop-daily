@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-context";
 import { COLORS } from "@/lib/tokens";
 import { UI_EASE, UI_ENTER_MS, UI_EXIT_MS } from "@/lib/animationTiming";
+import CardFlipLoader from "@/components/CardFlipLoader";
 
 import DebugOnlyRoute from "./components/DebugOnlyRoute.tsx";
 
@@ -70,9 +71,9 @@ const AnimatedRoutes: React.FC = () => {
           <Route path="/today" element={<DailyPage />} />
           {/* Groups is live. Shareable but not indexed: the page sets
               noindex itself and robots.txt still disallows /groups. */}
-          <Route path="/groups" element={<GroupsPage />} />
+          <Route path="/groups" element={<Suspense fallback={<CardFlipLoader label="Loading Groups" layout="page" />}><GroupsPage /></Suspense>} />
           {/* The player's long-term self. Not indexed, same as groups. */}
-          <Route path="/you" element={<YouPage />} />
+          <Route path="/you" element={<Suspense fallback={<CardFlipLoader label="Loading Your Stats" layout="page" />}><YouPage /></Suspense>} />
           <Route path="/about" element={<SupportPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
