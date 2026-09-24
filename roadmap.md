@@ -18,3 +18,9 @@
 - [x] Verify first-time, returning, seen, failed-points, fresh celebration timing, and 390×520 light/night display and dismissal.
 
 - [x] Daily replay exploit: first attempt counts everywhere; known-email browsers blocked from replaying
+
+## Optional sign-in with email code
+- [ ] Build approved plan: code sign-in, server-side identity, first sign-in merge, account deletion, admin lock, events, retention split
+- [ ] Reminder consent: yes/no prompt after verification, answer stored with timestamp (option C)
+- [ ] Existing subscribers: quiet merge, stay subscribed (option A)
+- [ ] Blocked: real code delivery waits on notify.whoop-whoop.com DNS verification
