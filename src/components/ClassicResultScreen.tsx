@@ -203,7 +203,7 @@ const ClassicResultScreen: React.FC<{
             gap: SPACE[12],
           }}
         >
-          <MotionReveal index={0}><ChaseHeadline mobile={mobile} /></MotionReveal>
+          <MotionReveal index={0}><ChaseHeadline text={HEADLINE} mobile={mobile} /></MotionReveal>
 
           {/* Results block — 40px below the headline. */}
           <MotionReveal index={1}><div
