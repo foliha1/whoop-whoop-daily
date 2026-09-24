@@ -31,7 +31,7 @@ const ReleaseAnnouncement: React.FC<{
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const actionRef = React.useRef<"primary" | "dismissed" | null>(null);
-  const openerRef = React.useRef<HTMLElement | null>(nullobserv;
+  const openerRef = React.useRef<HTMLElement | null>(null);
   const reducedMotionRef = React.useRef(
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
