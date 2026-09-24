@@ -110,6 +110,25 @@ interface NextDayRow {
   email_pct: number | null;
 }
 
+/** D1/D7/D30 return split by signed-in accounts vs anonymous browsers. */
+interface RetentionSplitRow {
+  segment: string;
+  players: number;
+  d1_base: number;
+  d1_returned: number;
+  d7_base: number;
+  d7_returned: number;
+  d30_base: number;
+  d30_returned: number;
+}
+
+/** Sign-in events over the last 30 days. */
+interface SigninFunnelRow {
+  event: string;
+  total: number;
+  visitors: number;
+}
+
 interface HeadlineRow {
   total_players: number;
   dau_today: number;
@@ -146,6 +165,8 @@ interface DashboardData {
   headline: HeadlineRow | null;
   nextDay: NextDayRow | null;
   classic: ClassicRow | null;
+  retentionSplit: RetentionSplitRow[];
+  signinFunnel: SigninFunnelRow[];
 }
 
 
@@ -527,7 +548,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       }
     };
 
-    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay, classic] =
+    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay, classic, retentionSplit, signinFunnel] =
       await Promise.all([
         call<FunnelRow>("admin_funnel", args),
         call<DifficultyRow>("admin_difficulty", args),
@@ -539,12 +560,14 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         call<RejectionRow>("admin_rejections", args),
         call<NextDayRow>("admin_next_day_return"),
         call<ClassicRow>("admin_classic", args),
+        call<RetentionSplitRow>("admin_retention_split"),
+        call<SigninFunnelRow>("admin_signin_funnel", { p_days: 30 }),
       ]);
 
     setFailures(failed);
 
     // Every report failing means the fetch itself is broken, not an empty range.
-    if (failed.length === 10) {
+    if (failed.length === 12) {
       setState("error");
       return;
     }
@@ -569,6 +592,8 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       headline: headline[0] ?? null,
       nextDay: nextDay[0] ?? null,
       classic: classic[0] ?? null,
+      retentionSplit,
+      signinFunnel,
     });
 
 
@@ -845,6 +870,35 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
                   label="Next-day return"
                   value={`${v} · ${e}`}
                   note={`#${nd.base_puzzle} → #${nd.next_puzzle} · by device ${nd.visitor_returned}/${nd.visitor_base} · by email ${nd.email_returned}/${nd.email_base} (more reliable)`}
+                />
+              );
+            })()}
+
+            {(data?.retentionSplit ?? []).map((r) => {
+              const pct = (ret: number, base: number) =>
+                base > 0 ? `${Math.round((ret / base) * 100)}%` : "—";
+              return (
+                <Stat
+                  key={r.segment}
+                  label={`Retention · ${r.segment === "signed_in" ? "Signed in" : "Anonymous"}`}
+                  value={`${pct(r.d1_returned, r.d1_base)} · ${pct(r.d7_returned, r.d7_base)} · ${pct(r.d30_returned, r.d30_base)}`}
+                  note={`D1 · D7 · D30 · ${r.players.toLocaleString()} players · D1 ${r.d1_returned}/${r.d1_base} · D7 ${r.d7_returned}/${r.d7_base} · D30 ${r.d30_returned}/${r.d30_base}`}
+                />
+              );
+            })}
+            {(() => {
+              const f = data?.signinFunnel ?? [];
+              const get = (e: string) => f.find((r) => r.event === e)?.visitors ?? 0;
+              const started = get("signin_started");
+              const sent = get("signin_code_sent");
+              const verified = get("signin_verified");
+              const failedN = get("signin_failed");
+              return (
+                <Stat
+                  label="Sign-in funnel (30 days)"
+                  value={started > 0 ? `${Math.round((verified / started) * 100)}% verified` : "No sign-ins yet"}
+                  note={`Started ${started} · code sent ${sent} · verified ${verified} · failed ${failedN} (browsers)`}
+                  muted={started === 0}
                 />
               );
             })()}
