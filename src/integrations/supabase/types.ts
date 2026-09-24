@@ -673,6 +673,12 @@ export type Database = {
         Args: { p_email: string; p_visitor_id: string }
         Returns: boolean
       }
+      email_visitor_ids: {
+        Args: { p_email: string }
+        Returns: {
+          visitor_id: string
+        }[]
+      }
       gen_daily_group_code: { Args: never; Returns: string }
       get_daily_event_counts: {
         Args: { p_days?: number }
@@ -711,6 +717,20 @@ export type Database = {
           best_streak: number
           clean_runs: number
           total_played: number
+        }[]
+      }
+      get_first_attempt: {
+        Args: { p_email: string; p_puzzle_number: number; p_visitor_id: string }
+        Returns: {
+          created_at: string
+          elapsed_ms: number
+          is_mine: boolean
+          peek_used: boolean
+          puzzle_date: string
+          puzzle_number: number
+          round_events: Json
+          rounds_solved: number
+          total_misses: number
         }[]
       }
       get_group_season: {
