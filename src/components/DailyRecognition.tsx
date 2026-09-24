@@ -138,6 +138,10 @@ const DailyRecognition: React.FC<{
         </InlineAction>
       </p>
     ) : email ? (
+      // (unchanged) signed-in line
+      // eslint-disable-next-line react/jsx-no-useless-fragment
+      <></>
+    ) : null;
       <p style={lineStyle} data-testid="daily-recognition">
         <span>
           Playing as <span data-testid="daily-recognition-email">{masked}</span>

@@ -32,6 +32,7 @@ import {
   setReminder,
   signOut,
 } from "@/lib/account";
+import { SIGN_IN_ENABLED } from "@/lib/featureFlags";
 
 const TOUCH = 44;
 
@@ -303,7 +304,7 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
           </a>
         )}
 
-        {product === "daily" && account && (
+        {SIGN_IN_ENABLED && product === "daily" && account && (
           <div data-testid="settings-account" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <p style={labelStyle}>Account</p>
             <p style={{ ...labelStyle, textTransform: "none", letterSpacing: 0, fontSize: 14, color: COLORS.ink, overflowWrap: "anywhere" }}>
