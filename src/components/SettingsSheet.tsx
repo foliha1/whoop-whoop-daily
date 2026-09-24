@@ -24,6 +24,14 @@ import {
 } from "@/lib/sounds";
 import CloseButton from "@/components/CloseButton";
 import { useMotionExit } from "@/hooks/useMotionExit";
+import {
+  deleteAccount,
+  getReminderStatus,
+  getSessionEmail,
+  onAccountChange,
+  setReminder,
+  signOut,
+} from "@/lib/account";
 
 const TOUCH = 44;
 
@@ -138,6 +146,20 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
   const [sfx, setSfx] = useState(() => getSfxEnabled());
   const [music, setMusic] = useState(() => getMusicEnabled());
   const { exiting, requestExit } = useMotionExit(onClose);
+  const [account, setAccount] = useState<string | null>(() => getSessionEmail());
+  const [reminder, setReminderState] = useState<boolean | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [accountMsg, setAccountMsg] = useState<string | null>(null);
+
+  useEffect(() => onAccountChange(setAccount), []);
+  useEffect(() => {
+    if (!account) return setReminderState(null);
+    let live = true;
+    void getReminderStatus().then((r) => live && setReminderState(r === true));
+    return () => {
+      live = false;
+    };
+  }, [account]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -177,6 +199,8 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
         style={{
           width: "100%",
           maxWidth: 340,
+          maxHeight: "calc(100dvh - 32px)",
+          overflowY: "auto",
           background: COLORS.surface,
           border: BORDER.heavy,
           borderRadius: RADIUS.sm,
@@ -277,6 +301,55 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
           <a href="/you" style={howToStyle} data-testid="settings-you-link">
             Your Whoop Score
           </a>
+        )}
+
+        {product === "daily" && account && (
+          <div data-testid="settings-account" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <p style={labelStyle}>Account</p>
+            <p style={{ ...labelStyle, textTransform: "none", letterSpacing: 0, fontSize: 14, color: COLORS.ink, overflowWrap: "anywhere" }}>
+              Signed in as {account}
+            </p>
+            {reminder !== null && (
+              <Toggle
+                label="Daily email"
+                checked={reminder}
+                onChange={(next) => {
+                  setReminderState(next);
+                  void setReminder(next, "settings");
+                }}
+              />
+            )}
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              style={{ ...howToStyle, cursor: "pointer", background: "transparent" }}
+            >
+              Sign Out
+            </button>
+            {confirmDelete ? (
+              <button
+                type="button"
+                onClick={async () => {
+                  const ok = await deleteAccount();
+                  setAccountMsg(ok ? "Your account was deleted." : "Couldn't delete right now. Try again.");
+                  setConfirmDelete(false);
+                  if (ok) window.location.reload();
+                }}
+                style={{ ...howToStyle, cursor: "pointer", background: COLORS.red, color: COLORS.surface }}
+              >
+                Tap Again to Delete Everything
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                style={{ ...howToStyle, cursor: "pointer", background: "transparent", color: COLORS.red }}
+              >
+                Delete Account
+              </button>
+            )}
+            {accountMsg && <p role="status" style={{ ...labelStyle, textTransform: "none" }}>{accountMsg}</p>}
+          </div>
         )}
       </div>
     </div>
