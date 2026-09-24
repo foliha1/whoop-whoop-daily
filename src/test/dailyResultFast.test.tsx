@@ -62,6 +62,15 @@ vi.mock("@/integrations/supabase/client", () => {
   };
 });
 
+// jsdom has no canvas; the share image is not what this test covers.
+vi.mock("@/hooks/useDailyShareImage", async (orig) => {
+  const actual = await orig<Record<string, unknown>>();
+  const out: Record<string, unknown> = { ...actual };
+  for (const [k, v] of Object.entries(actual))
+    if (typeof v === "function") out[k] = () => ({ url: null, blob: null, status: "idle" });
+  return out;
+});
+
 // Web Audio does not exist in jsdom: every sound export is a no-op.
 vi.mock("@/lib/sounds", async (orig) => {
   const actual = await orig<Record<string, unknown>>();
@@ -190,7 +199,7 @@ async function expectResultVisible() {
   // all the room they need.
   await tick(6000);
 
-  const heading = await screen.findByRole("heading", { name: /round review/i });
+  const heading = screen.getByRole("heading", { name: /round review/i });
   expect(heading).toBeInTheDocument();
 
   const { current, outgoing } = layers();
@@ -263,12 +272,8 @@ describe("daily end of run (fast, from round 3)", () => {
     const m = atRound3();
     preset.state = m;
     mount();
-    console.log("DBG mounted", document.querySelectorAll("[data-slot]").length, !!document.querySelector('[role="button"]'));
     const [i, j] = goodPair(m);
-    await tapSlot(i); console.log("DBG tap1");
-    await tapSlot(j); console.log("DBG tap2");
-    await tick(450); console.log("DBG t450");
-    await tick(2000); console.log("DBG t2000");
+    await claimInDom(i, j);
     await expectResultVisible();
     expect(saveDailyResultRemote).toHaveBeenCalledTimes(1);
     const saved = (saveDailyResultRemote as unknown as { mock: { calls: unknown[][] } }).mock.calls[0][0] as {
