@@ -29,8 +29,31 @@ const ReleaseAnnouncement: React.FC<{
   const host = usePortalHost("release-announcement");
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
   const actionRef = React.useRef<"primary" | "dismissed" | null>(null);
-  const openerRef = React.useRef<HTMLElement | null>(null);
+  const openerRef = React.useRef<HTMLElement | null>(nullobserv;
+  const reducedMotionRef = React.useRef(
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+  const [moreBelow, setMoreBelow] = React.useState(false);
+
+  /** Show the fade/chevron only while content still hides below the fold. */
+  const updateScrollHint = React.useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setMoreBelow(el.scrollHeight - el.scrollTop - el.clientHeight > 8);
+  }, []);
+
+  React.useEffect(() => {
+    if (!host) return;
+    updateScrollHint();
+    const el = scrollRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(updateScrollHint);
+    observer.observe(el);
+    el.querySelectorAll<HTMLElement>(":scope > *").forEach((child) => observer.observe(child));
+    return () => observer.disconnect();
+  }, [host, updateScrollHint]);
 
   const finish = React.useCallback(() => {
     if (actionRef.current === "primary") onPrimary();
