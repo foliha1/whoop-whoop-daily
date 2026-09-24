@@ -203,6 +203,7 @@ async function expectResultVisible() {
   expect(heading).toBeInTheDocument();
 
   const { current, outgoing } = layers();
+  console.log("DBGL", current?.style.opacity, current?.getAttribute("style"), !!outgoing);
   expect(current).not.toBeNull();
   // The results tree must be inside the LIVE layer, not a stale snapshot.
   expect(within(current!).getByRole("button", { name: /share/i })).toBeInTheDocument();
