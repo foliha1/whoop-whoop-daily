@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import YouScoreTiles from "@/components/YouScoreTiles";
+import ChaseHeadline from "@/components/ChaseHeadline";
 import ReleaseAnnouncement, { hasSeenAnnouncement } from "@/components/ReleaseAnnouncement";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { trackDaily } from "@/lib/dailyEvents";
