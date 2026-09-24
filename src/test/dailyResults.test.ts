@@ -47,7 +47,6 @@ describe("saveDailyResultRemote", () => {
       p_peek_used: true,
       p_round_events: [["SOLVE"], ["MISS", "MISS"], ["MISS", "SOLVE"]],
       p_elapsed_ms: 42_401,
-      p_email: null,
     });
   });
 
