@@ -29,7 +29,12 @@ import {
   type DailyResult,
   type DailyOverride,
 } from "@/lib/daily";
-import { saveDailyResultRemote } from "@/lib/dailyResults";
+import {
+  fetchFirstAttempt,
+  saveDailyResultRemote,
+  type FirstAttempt,
+} from "@/lib/dailyResults";
+import { getSubscribedEmail } from "@/lib/dailySubscribe";
 import {
   DAILY_MATCH_SETTLE_MS,
   WRONG_ANIM_MS as WRONG_TREATMENT_MS,
@@ -74,6 +79,36 @@ export interface UseDailyGameResult {
   start: () => void;
   select: (idx: number) => void;
   peek: () => void;
+  /**
+   * An email was just entered or restored. If it already has today's result
+   * from another browser, that first attempt replaces this run and nothing
+   * from here is submitted.
+   */
+  recheckEmail: (email: string) => Promise<void>;
+}
+
+/** How long Play waits on the already-played check before dealing anyway. */
+const FIRST_ATTEMPT_WAIT_MS = 3000;
+
+/** A stored first attempt, in the shape the result screen reads. */
+export function firstAttemptToResult(
+  row: FirstAttempt,
+  seed: string,
+  attributes: DailyResult["attributes"]
+): DailyResult {
+  return {
+    seed,
+    puzzleNumber: row.puzzle_number,
+    attributes,
+    elapsedMs: row.elapsed_ms,
+    roundsSolved: row.rounds_solved,
+    totalMisses: row.total_misses,
+    roundEvents: (row.round_events ?? []) as DailyResult["roundEvents"],
+    peekUsed: row.peek_used,
+    peekRound: null,
+    failed: row.rounds_solved === 0,
+    completedAt: row.created_at,
+  };
 }
 
 export function useDailyGame(): UseDailyGameResult {
@@ -97,7 +132,46 @@ export function useDailyGame(): UseDailyGameResult {
   // True once the finished run has been persisted (locally + remotely, or
   // skipped in debug). Gates the streak read so today counts.
   const [resultSaved, setResultSaved] = useState(stored !== null);
-  const alreadyPlayed = stored !== null;
+  const [alreadyPlayed, setAlreadyPlayed] = useState(stored !== null);
+  // Set once a first attempt from another browser has been adopted: from then
+  // on this browser never submits a result for today.
+  const adoptedRef = useRef(false);
+  const checkRef = useRef<Promise<void> | null>(null);
+  const resultRef = useRef<DailyResult | null>(stored);
+  resultRef.current = result;
+
+  const adopt = useCallback(
+    (row: FirstAttempt) => {
+      const r = firstAttemptToResult(
+        row,
+        seed,
+        initDailyState(seed).rolls.map((x) => x.attribute)
+      );
+      adoptedRef.current = true;
+      saveDailyResult(r);
+      setResult(r);
+      setAlreadyPlayed(true);
+      setResultSaved(true);
+    },
+    [seed]
+  );
+
+  // A browser that knows the player's email asks the server before dealing.
+  const checkEmail = useCallback(
+    async (email: string | null, onlyOthers: boolean) => {
+      if (!email || debugBypass || ctx.preLaunch) return;
+      const row = await fetchFirstAttempt(puzzleNumber, email);
+      if (!row || (onlyOthers && row.is_mine)) return;
+      adopt(row);
+    },
+    [adopt, debugBypass, ctx.preLaunch, puzzleNumber]
+  );
+
+  useEffect(() => {
+    if (stored !== null) return;
+    checkRef.current = checkEmail(getSubscribedEmail(), false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ---- phase sequence: (start gate) deal → study → hide → roll → play ----
   useEffect(() => {
@@ -216,7 +290,7 @@ export function useDailyGame(): UseDailyGameResult {
 
   // ---- persist the run, once ----
   useEffect(() => {
-    if (result !== null) return;
+    if (result !== null || adoptedRef.current) return;
     if (state.phase !== "DONE" || state.elapsedMs === null) return;
     const finished: DailyResult = {
       seed,
@@ -264,10 +338,29 @@ export function useDailyGame(): UseDailyGameResult {
   ]);
 
   // The gate is enforced here too, so no path can start a pre-launch run.
+  // A pending already-played check is awaited (briefly) so a known player's
+  // board is never dealt when their first attempt already exists.
   const start = useCallback(() => {
     if (ctx.preLaunch) return;
-    dispatch({ type: "START" });
+    const pending = checkRef.current;
+    if (!pending) {
+      dispatch({ type: "START" });
+      return;
+    }
+    const timeout = new Promise<void>((r) => setTimeout(r, FIRST_ATTEMPT_WAIT_MS));
+    void Promise.race([pending, timeout]).then(() => {
+      if (!adoptedRef.current) dispatch({ type: "START" });
+    });
   }, [ctx.preLaunch]);
+  const recheckEmail = useCallback(
+    (email: string) => {
+      // This browser's own saved run is fine to keep; anything else wins.
+      const p = checkEmail(email, resultRef.current !== null);
+      checkRef.current = p;
+      return p;
+    },
+    [checkEmail]
+  );
   const select = useCallback((idx: number) => dispatch({ type: "SELECT", idx }), []);
   const peek = useCallback(() => dispatch({ type: "PEEK" }), []);
 
@@ -292,5 +385,6 @@ export function useDailyGame(): UseDailyGameResult {
     start,
     select,
     peek,
+    recheckEmail,
   };
 }

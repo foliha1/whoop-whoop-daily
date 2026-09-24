@@ -71,6 +71,13 @@
       "when": 1790164535192,
       "tag": "0009_allow_score_announcement_daily_events",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790249920574,
+      "tag": "0010_daily_first_attempt_counts",
+      "breakpoints": true
     }
   ]
 }
