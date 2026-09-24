@@ -90,10 +90,10 @@ const ReleaseAnnouncement: React.FC<{
         className="ww-ui-modal-panel"
         style={{ width: "100%", maxWidth: "min(100%, 480px)", maxHeight: "100%", minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box", background: COLORS.surface, color: COLORS.ink, border: BORDER.heavy, borderRadius: RADIUS.md }}
       >
-        <div style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", padding: SPACE[8], display: "flex", flexDirection: "column", gap: SPACE[6] }}>
+        <div style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", padding: SPACE[10], display: "flex", flexDirection: "column", gap: SPACE[6] }}>
           {children}
         </div>
-        <div style={{ flex: "0 0 auto", padding: SPACE[8], display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[3], background: COLORS.surface }}>
+        <div style={{ flex: "0 0 auto", padding: SPACE[10], display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[3], background: COLORS.surface }}>
           <AppButton ref={buttonRef} fullWidth tone="blue" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={() => close("primary")}>{primaryLabel}</AppButton>
           <AppButton fullWidth variant="secondary" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={dismiss}>{secondaryLabel}</AppButton>
         </div>
