@@ -165,8 +165,8 @@ async function tapSlot(idx: number) {
 async function claimInDom(i: number, j: number) {
   await tapSlot(i);
   await tapSlot(j);
-  await tick(450);   // RESOLVE
-  await tick(2000);  // wrong shake / match ghost settle
+  await churn(450);  // RESOLVE — parent re-renders from here on
+  await churn(2000); // wrong shake / match ghost settle
 }
 
 /** Ready → PLAY of round 1 (start gate, deal, study, hide, roll). */
@@ -197,10 +197,9 @@ function layers() {
 async function expectResultVisible() {
   // Give the end chain (settle → reveal → hold → results) and the 250ms fade
   // all the room they need.
-  await tick(6000);
-  // Timers armed by the final screen change are scheduled when act() flushes
-  // effects, so they need one more advance: the 250ms fade, plus a frame.
-  await tick(600);
+  // The parent keeps re-rendering throughout, including across the fade.
+  await churn(6000);
+  await churn(600);
 
   const heading = screen.getByRole("heading", { name: /your daily results/i });
   expect(heading).toBeInTheDocument();
@@ -246,14 +245,37 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const mount = () =>
-  render(
+// A parent that re-renders on demand with unrelated state, the way the live
+// app re-renders during the ending (timers, audio, theme). Each bump gives
+// DailyPage — and so DailyScreenFade — brand-new `children` element identities.
+let bumpParent: () => void = () => {};
+const Harness: React.FC = () => {
+  const [n, setN] = React.useState(0);
+  bumpParent = () => setN((v) => v + 1);
+  return (
     <HelmetProvider>
       <MemoryRouter initialEntries={[`/?debug=1&seed=${SEED}`]}>
-        <DailyPage />
+        <div data-parent-renders={n}>
+          <DailyPage />
+        </div>
       </MemoryRouter>
     </HelmetProvider>
   );
+};
+const mount = () => render(<Harness />);
+
+/**
+ * Advance `ms` while re-rendering the parent every `step` ms. The step must be
+ * shorter than the 250ms fade and the 250ms stubbed frame: if an effect wrongly
+ * depends on `children`, every bump cancels its timers before they can fire,
+ * so the fade never finishes. Fully deterministic under fake timers.
+ */
+const churn = async (ms: number, step = 100) => {
+  for (let t = 0; t < ms; t += step) {
+    await act(async () => bumpParent());
+    await tick(step);
+  }
+};
 
 
 /** Round 3 in PLAY with rounds 1–2 already won, built by the real reducer. */
