@@ -4,6 +4,7 @@ import { usePortalHost } from "@/hooks/usePortalHost";
 import DailyShapeRule from "@/components/DailyShapeRule";
 import { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
 import MotionReveal from "@/components/MotionReveal";
+import ChaseHeadline from "@/components/ChaseHeadline";
 import {
   BORDER,
   MOTION,
@@ -15,8 +16,6 @@ import {
   panelStyle,
   textStyle,
 } from "@/lib/tokens";
-
-import { HEADLINE_CHASE_MS } from "@/lib/animationTiming";
 
 /**
  * The Classic (multiplayer + solo) result screen.
