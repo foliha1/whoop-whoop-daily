@@ -1,9 +1,11 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import { AppButton } from "@/components/ui/AppButton";
+import MaterialIcon from "@/components/MaterialIcon";
 import { useDismiss } from "@/hooks/useDismiss";
 import { useMotionExit } from "@/hooks/useMotionExit";
 import { usePortalHost } from "@/hooks/usePortalHost";
+import { UI_EASE, UI_EXIT_MS } from "@/lib/animationTiming";
 import { BORDER, COLORS, RADIUS, SPACE } from "@/lib/tokens";
 
 /** Supply a new key for each release; the shell owns dismissal and accessibility. */
