@@ -198,6 +198,7 @@ async function expectResultVisible() {
   // Give the end chain (settle → reveal → hold → results) and the 250ms fade
   // all the room they need.
   await tick(6000);
+  console.log("DBGPHASE", document.body.textContent?.slice(0,400));
 
   const heading = screen.getByRole("heading", { name: /round review/i });
   expect(heading).toBeInTheDocument();
