@@ -1,12 +1,16 @@
 // ============================================================================
-// useSubscriberStatus — is this player signed in?
+// useSubscriberStatus — is this player signed in (or, with sign-in off, has
+// this browser signed up for the daily reminder)?
 //
-// The name is kept for callers. The email is the verified account email from
-// the session, never a typed address. "Forget" signs out.
+// The email is the verified account email from the session, never a typed
+// address. "Forget" signs out. With sign-in off, `subscribed` follows the
+// local reminder flag only, so the results box doesn't reappear after signup.
 // ============================================================================
 
 import { useCallback, useEffect, useState } from "react";
 import { getSessionEmail, onAccountChange, signOut, whenAccountReady } from "@/lib/account";
+import { hasSubscribed } from "@/lib/dailySubscribe";
+import { SIGN_IN_ENABLED } from "@/lib/featureFlags";
 
 export function useSubscriberStatus(
   /** Fired when a stored session is found after mount. */
@@ -21,6 +25,7 @@ export function useSubscriberStatus(
   forgetLocal: () => void;
 } {
   const [email, setEmail] = useState<string | null>(() => getSessionEmail());
+  const [localSubscribed, setLocalSubscribed] = useState(() => hasSubscribed());
 
   useEffect(() => {
     let live = true;
@@ -42,6 +47,7 @@ export function useSubscriberStatus(
 
   const markLocal = useCallback(() => {
     setEmail(getSessionEmail());
+    setLocalSubscribed(hasSubscribed());
   }, []);
 
   const forgetLocal = useCallback(() => {
@@ -49,5 +55,6 @@ export function useSubscriberStatus(
     setEmail(null);
   }, []);
 
-  return { subscribed: email !== null, email, markLocal, forgetLocal };
+  const subscribed = SIGN_IN_ENABLED ? email !== null : email !== null || localSubscribed;
+  return { subscribed, email, markLocal, forgetLocal };
 }
