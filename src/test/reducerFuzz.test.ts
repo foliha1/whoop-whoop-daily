@@ -489,7 +489,7 @@ interface Summary {
   failures: Failure[];
 }
 
-function sweep(seatCount: number, label: string): Summary {
+async function sweep(seatCount: number, label: string): Promise<Summary> {
   const sum: Summary = {
     games: 0,
     dispatches: 0,
