@@ -263,8 +263,12 @@ describe("daily end of run (fast, from round 3)", () => {
     const m = atRound3();
     preset.state = m;
     mount();
+    console.log("DBG mounted", document.querySelectorAll("[data-slot]").length, !!document.querySelector('[role="button"]'));
     const [i, j] = goodPair(m);
-    await claimInDom(i, j);
+    await tapSlot(i); console.log("DBG tap1");
+    await tapSlot(j); console.log("DBG tap2");
+    await tick(450); console.log("DBG t450");
+    await tick(2000); console.log("DBG t2000");
     await expectResultVisible();
     expect(saveDailyResultRemote).toHaveBeenCalledTimes(1);
     const saved = (saveDailyResultRemote as unknown as { mock: { calls: unknown[][] } }).mock.calls[0][0] as {
