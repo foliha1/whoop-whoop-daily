@@ -9,13 +9,13 @@ DECLARE
   r record;
 BEGIN
   -- 1. The subscriber-linked first browser resolves to the same player as its stamped browsers.
-  SELECT * INTO r FROM public.whoop_points_for(public.legacy_email_for(v_old));
+  SELECT * INTO r FROM public.whoop_points_for(coalesce((SELECT min(lower(trim(d.email))) FROM public.daily_results d WHERE d.visitor_id = v_old AND d.email IS NOT NULL), (SELECT l.email FROM public.legacy_subscriber_links l WHERE l.visitor_id = v_old)));
   IF r.total <> 46 OR r.games_played <> 19 THEN
     RAISE EXCEPTION 'check 1 failed: % pts / % games', r.total, r.games_played;
   END IF;
 
   -- 2. A brand-new browser has no link and no score.
-  IF public.legacy_email_for(v_new) IS NOT NULL
+  IF EXISTS (SELECT 1 FROM public.legacy_subscriber_links l WHERE l.visitor_id = v_new)
      OR EXISTS (SELECT 1 FROM public.whoop_points_rows() w WHERE w.identity = v_new) THEN
     RAISE EXCEPTION 'check 2 failed: new browser resolved to someone';
   END IF;
@@ -42,7 +42,7 @@ BEGIN
       AND pg_get_functiondef(p.oid) ILIKE '%daily_subscribers%') THEN
     RAISE EXCEPTION 'check 3 failed: a resolver reads live daily_subscribers';
   END IF;
-  IF public.legacy_email_for(v_new) IS NOT NULL THEN
+  IF EXISTS (SELECT 1 FROM public.legacy_subscriber_links l WHERE l.visitor_id = v_new) THEN
     RAISE EXCEPTION 'check 3 failed: new browser linked';
   END IF;
 
