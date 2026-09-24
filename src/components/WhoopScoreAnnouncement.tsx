@@ -64,7 +64,7 @@ const WhoopScoreAnnouncement: React.FC<{
     >
       <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
         <h2 style={{ ...textStyle("hero", mobile), margin: 0 }}>{SCORE_ANNOUNCEMENT.headline}</h2>
-        <p style={{ ...textStyle("body", mobile), margin: 0 }}>{SCORE_ANNOUNCEMENT.intro}</p>
+        <p style={{ ...textStyle("caption", mobile), margin: 0 }}>{SCORE_ANNOUNCEMENT.intro}</p>
       </div>
       <YouScoreTiles points={points} mobile={mobile} compact />
       <ul style={{ ...textStyle("body", mobile), margin: 0, paddingLeft: SPACE[8], listStyleType: "disc", display: "flex", flexDirection: "column", gap: SPACE[2] }}>
