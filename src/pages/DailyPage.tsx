@@ -1294,7 +1294,11 @@ const DailyPage: React.FC = () => {
   // Local flag first, then a server check by visitor id: a cleared browser is
   // still recognised, and the local flag/email are repopulated for next time.
   const { subscribed, email: knownEmail, markLocal, forgetLocal } =
-    useSubscriberStatus(bumpProfile);
+    useSubscriberStatus(() => {
+      bumpProfile();
+      const found = getSubscribedEmail();
+      if (found) void daily.recheckEmail(found);
+    });
   // Read after the run is persisted so today counts toward the streak.
   const dataReady = daily.resultSaved || daily.result === null;
   const { streak, loading: streakLoading } = useDailyStreakState(daily.puzzleNumber, dataReady, profileKey);

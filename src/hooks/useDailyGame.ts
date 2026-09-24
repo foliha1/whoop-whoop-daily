@@ -137,6 +137,8 @@ export function useDailyGame(): UseDailyGameResult {
   // on this browser never submits a result for today.
   const adoptedRef = useRef(false);
   const checkRef = useRef<Promise<void> | null>(null);
+  const resultRef = useRef<DailyResult | null>(stored);
+  resultRef.current = result;
 
   const adopt = useCallback(
     (row: FirstAttempt) => {
@@ -352,7 +354,8 @@ export function useDailyGame(): UseDailyGameResult {
   }, [ctx.preLaunch]);
   const recheckEmail = useCallback(
     (email: string) => {
-      const p = checkEmail(email, true);
+      // This browser's own saved run is fine to keep; anything else wins.
+      const p = checkEmail(email, resultRef.current !== null);
       checkRef.current = p;
       return p;
     },
