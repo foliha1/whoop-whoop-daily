@@ -276,22 +276,23 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
 // ---------------------------------------------------------------------------
 // Background theme — music, behind musicEnabled, never an effect
 //
-// Looping is the element's own `loop = true`, nothing more. That is gapless for
-// OGG, so every track ships as OGG with the original MP3 kept as the fallback
-// for browsers that cannot decode Vorbis (Safari before 17.4). No fades: start
-// and stop are hard, at full theme level.
+// A media element's `loop = true` is NOT gapless in Chrome or Safari: the
+// element seeks back to 0 and re-buffers, leaving an audible hole at the loop
+// point. The theme therefore plays as a decoded AudioBuffer through a looping
+// AudioBufferSourceNode — the browser wraps it sample-accurately, so the loop
+// is seamless. Leading/trailing encoder padding (MP3 fallback) is trimmed via
+// loopStart/loopEnd. A plain <audio> element remains only as the fallback when
+// Web Audio or decoding is unavailable. No fades: start and stop are hard.
 // ---------------------------------------------------------------------------
 
 /** The Daily's theme. `startTheme()` with no argument always means this one. */
 const DEFAULT_THEME_FILE = "/sounds/theme.mp3";
-/** Classic's own tracks. Served straight out of `public/`, like the Daily's —
-    the CDN asset path is not resolvable in every environment, so a media
-    element got HTML back instead of audio and never played. */
+/** Classic's own tracks, served straight out of `public/`. */
 export const CLASSIC_THEME_FILE = "/sounds/classic-theme.mp3";
 export const HOW_TO_PLAY_THEME_FILE = "/sounds/how-to-play.mp3";
 const THEME_GAIN = 0.15;
 
-/** Gapless OGG masters, keyed by the MP3 path each screen asks for. */
+/** OGG masters, keyed by the MP3 path each screen asks for. */
 const OGG_FOR_MP3: Record<string, string> = {
   [DEFAULT_THEME_FILE]: "/sounds/Whoop_Whoop_Daily_Theme.ogg",
   [CLASSIC_THEME_FILE]: "/sounds/Whoop_Whoop_Classic_Theme.ogg",
@@ -315,18 +316,121 @@ export function themeSourceFor(url: string): string {
   return ogg && canPlayOgg() ? ogg : url;
 }
 
-/** The track the current screen wants. Screens with their own music (the
-    Classic lobby, the How to Play demo) pass their URL to startTheme(). */
+/** The track the current screen wants. */
 let themeUrl = DEFAULT_THEME_FILE;
 /** The screen wants music, regardless of whether it is audible right now. */
 let themeDesired = false;
 
-// The theme plays through a plain <audio> element, not the Web Audio graph.
-// On iOS the Web Audio session is "ambient": the hardware ring/silent switch
-// mutes it outright, so a phone with the switch flipped heard no music at all
-// however healthy the graph was. A media element uses the playback session and
-// is audible either way — and it needs no fetch/decode step, so it also starts
-// on the first gesture instead of a round-trip later.
+// iOS: Web Audio defaults to the "ambient" session, which the ring/silent
+// switch mutes. Declaring a playback session keeps the theme audible.
+function preferPlaybackSession(): void {
+  try {
+    const nav = navigator as unknown as { audioSession?: { type: string } };
+    if (nav.audioSession && nav.audioSession.type !== "playback") nav.audioSession.type = "playback";
+  } catch { /* ignore */ }
+}
+
+// ---- Web Audio path (seamless) ----
+interface LoopBuffer { buffer: AudioBuffer; loopStart: number; loopEnd: number }
+const loopBuffers = new Map<string, Promise<LoopBuffer | null>>();
+let themeBus: GainNode | null = null;
+let themeSrc: AudioBufferSourceNode | null = null;
+let themeSrcUrl: string | null = null;
+let themeStartedAt = 0;
+let themeLoop: LoopBuffer | null = null;
+/** Position to resume from after a stop (seconds into the loop). */
+let themeOffset = 0;
+/** Set when decoding failed: fall back to the media element for that track. */
+const elementFallback = new Set<string>();
+
+/** First/last sample above the noise floor — trims encoder padding only. */
+function findLoopBounds(buffer: AudioBuffer): { loopStart: number; loopEnd: number } {
+  const floor = 1e-4;
+  const n = buffer.length;
+  let first = n, last = 0;
+  for (let c = 0; c < buffer.numberOfChannels; c++) {
+    const d = buffer.getChannelData(c);
+    let i = 0;
+    while (i < first && Math.abs(d[i]) < floor) i++;
+    first = Math.min(first, i);
+    let j = n - 1;
+    while (j > last && Math.abs(d[j]) < floor) j--;
+    last = Math.max(last, j);
+  }
+  if (last <= first) return { loopStart: 0, loopEnd: buffer.duration };
+  return { loopStart: first / buffer.sampleRate, loopEnd: (last + 1) / buffer.sampleRate };
+}
+
+function loadLoop(url: string): Promise<LoopBuffer | null> {
+  const cached = loopBuffers.get(url);
+  if (cached) return cached;
+  const p = (async () => {
+    try {
+      const ctx = getCtx();
+      const res = await fetch(themeSourceFor(url), { cache: "force-cache" });
+      if (!res.ok) throw new Error("fetch failed");
+      const data = await res.arrayBuffer();
+      const buffer = await new Promise<AudioBuffer>((resolve, reject) => {
+        const r = ctx.decodeAudioData(data, resolve, reject);
+        if (r && typeof (r as Promise<AudioBuffer>).then === "function") {
+          (r as Promise<AudioBuffer>).then(resolve, reject);
+        }
+      });
+      return { buffer, ...findLoopBounds(buffer) };
+    } catch {
+      elementFallback.add(url);
+      loopBuffers.delete(url);
+      return null;
+    }
+  })();
+  loopBuffers.set(url, p);
+  return p;
+}
+
+function getThemeBus(ctx: AudioContext): GainNode {
+  if (!themeBus) {
+    themeBus = ctx.createGain();
+    themeBus.gain.value = THEME_GAIN;
+    themeBus.connect(ctx.destination);
+  }
+  return themeBus;
+}
+
+function startBufferLoop(ctx: AudioContext, loop: LoopBuffer): void {
+  if (themeSrc) return;
+  const src = ctx.createBufferSource();
+  src.buffer = loop.buffer;
+  src.loop = true;
+  src.loopStart = loop.loopStart;
+  src.loopEnd = loop.loopEnd;
+  src.connect(getThemeBus(ctx));
+  const span = loop.loopEnd - loop.loopStart;
+  const offset = loop.loopStart + (span > 0 ? themeOffset % span : 0);
+  src.start(0, offset);
+  themeSrc = src;
+  themeSrcUrl = themeUrl;
+  themeLoop = loop;
+  themeStartedAt = ctx.currentTime - (offset - loop.loopStart);
+}
+
+/** Stop the buffer loop, remembering where it was (keepPosition) or not. */
+function stopBufferLoop(keepPosition: boolean): void {
+  if (!themeSrc) { if (!keepPosition) themeOffset = 0; return; }
+  try {
+    if (keepPosition && audioCtx && themeLoop) {
+      const span = themeLoop.loopEnd - themeLoop.loopStart;
+      themeOffset = span > 0 ? (audioCtx.currentTime - themeStartedAt) % span : 0;
+    } else {
+      themeOffset = 0;
+    }
+    themeSrc.stop();
+    themeSrc.disconnect();
+  } catch { /* ignore */ }
+  themeSrc = null;
+  themeSrcUrl = null;
+}
+
+// ---- Media element fallback ----
 let themeEl: HTMLAudioElement | null = null;
 
 function makeThemeEl(url: string, volume: number): HTMLAudioElement {
@@ -334,73 +438,72 @@ function makeThemeEl(url: string, volume: number): HTMLAudioElement {
   el.loop = true;
   el.preload = "auto";
   el.volume = volume;
-  // Inline playback: iOS otherwise treats media as a fullscreen player.
   el.setAttribute("playsinline", "");
   return el;
 }
 
-/**
- * Begin fetching a screen's theme before anything wants to hear it, so the
- * first note is not waiting on a ~1MB download. Safe to call on mount: it only
- * builds the media element (preload="auto" starts the fetch) and never plays.
- * A track that is already loaded is left alone.
- */
-export function prewarmTheme(trackUrl?: string): void {
+function playElement(): void {
   if (typeof Audio === "undefined") return;
-  const url = trackUrl ?? DEFAULT_THEME_FILE;
-  if (themeEl) {
-    // An element already exists for another track: just warm the HTTP cache
-    // for this one so a later switch doesn't wait on the download.
-    if (url !== themeUrl) {
-      try { void fetch(themeSourceFor(url), { mode: "no-cors", cache: "force-cache" }).catch(() => {}); }
-      catch { /* never throw from audio */ }
-    }
-    return;
-  }
   try {
-    themeUrl = url;
-    themeEl = makeThemeEl(themeUrl, THEME_GAIN);
-    themeEl.load();
+    if (!themeEl) themeEl = makeThemeEl(themeUrl, THEME_GAIN);
+    themeEl.volume = THEME_GAIN;
+    void Promise.resolve(themeEl.play()).catch(() => { /* retried on next gesture */ });
   } catch { /* never throw from audio */ }
 }
 
-
+/**
+ * Begin fetching and decoding a screen's theme before anything wants to hear
+ * it, so the first note is not waiting on the download. Never plays.
+ */
+export function prewarmTheme(trackUrl?: string): void {
+  const url = trackUrl ?? DEFAULT_THEME_FILE;
+  if (!ctxCtor()) return;
+  void loadLoop(url);
+}
 
 /**
- * Start the looping theme at full level. Called from screens that should have
- * music; playback may be blocked until a gesture has unlocked audio, in which
- * case unlockAudio() retries it. Never restarts an already-running loop.
+ * Start the looping theme at full level. Playback waits for a gesture to have
+ * unlocked audio; unlockAudio() retries it. Never restarts a running loop.
  */
 export function startTheme(trackUrl?: string): void {
   const next = trackUrl ?? DEFAULT_THEME_FILE;
   themeDesired = true;
   if (next !== themeUrl) {
-    // Track switch: tear the current element down synchronously so the play()
-    // below cannot resume the *old* track.
     themeUrl = next;
     killTheme();
   }
   if (!musicEnabled) return;
-  if (typeof Audio === "undefined") return;
-  try {
-    if (!themeEl) themeEl = makeThemeEl(themeUrl, THEME_GAIN);
-    const el = themeEl;
-    el.volume = THEME_GAIN;
-    // play() rejects until the page has had a gesture; the site-wide gesture
-    // listener calls startTheme() again, so a rejection here is harmless.
-    void Promise.resolve(el.play()).catch(() => { /* retried on next gesture */ });
-  } catch { /* never throw from audio */ }
+  if (themeSrc && themeSrcUrl === themeUrl) return;
+
+  let ctx: AudioContext | null = null;
+  try { ctx = ctxCtor() && !elementFallback.has(themeUrl) ? getCtx() : null; } catch { ctx = null; }
+  if (!ctx) { playElement(); return; }
+
+  preferPlaybackSession();
+  const wanted = themeUrl;
+  const c = ctx;
+  void loadLoop(wanted).then((loop) => {
+    if (!themeDesired || !musicEnabled || themeUrl !== wanted) return;
+    if (!loop) { playElement(); return; }
+    whenRunning(c, () => {
+      if (c.state !== "running") return; // no gesture yet: retried on the next one
+      if (!themeDesired || !musicEnabled || themeUrl !== wanted) return;
+      try { startBufferLoop(c, loop); } catch { /* never throw from audio */ }
+    });
+  });
 }
 
 /** Stop and drop the running loop right now (used when switching tracks). */
 function killTheme(): void {
+  stopBufferLoop(false);
   try { themeEl?.pause(); } catch { /* ignore */ }
   themeEl = null;
 }
 
-/** Stop the theme immediately — no fade. */
+/** Stop the theme immediately — no fade. Resumes from the same spot later. */
 export function stopTheme(): void {
   themeDesired = false;
+  stopBufferLoop(true);
   try { themeEl?.pause(); } catch { /* ignore */ }
 }
 
@@ -412,8 +515,6 @@ export function stopTheme(): void {
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
   const wake = () => {
     try {
-      // The theme lives on a media element, so it can come back even if the
-      // effects graph was never built on this visit.
       if (themeDesired && musicEnabled) startTheme(themeUrl);
       const ctx = audioCtx;
       if (!ctx) return;
