@@ -21,7 +21,6 @@ import {
   formatAvgMisses,
   formatPercentileLine,
 } from "@/lib/dailyResults";
-import { markSubscribed } from "@/lib/dailySubscribe";
 import { formatDailyShare, type DailyResult } from "@/lib/daily";
 
 const result: DailyResult = {
@@ -73,7 +72,7 @@ describe("streak union across visitor ids sharing an email", () => {
   });
 
   it("still hides the line when the union read fails", async () => {
-    markSubscribed("player@example.com");
+    acct.email = "player@example.com";
     rpc.mockResolvedValue({ data: null, error: { message: "boom" } });
     await expect(fetchStreak(8)).resolves.toBeNull();
   });
