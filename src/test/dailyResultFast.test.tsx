@@ -198,12 +198,14 @@ async function expectResultVisible() {
   // Give the end chain (settle → reveal → hold → results) and the 250ms fade
   // all the room they need.
   await tick(6000);
+  // Timers armed by the final screen change are scheduled when act() flushes
+  // effects, so they need one more advance: the 250ms fade, plus a frame.
+  await tick(600);
 
   const heading = screen.getByRole("heading", { name: /your daily results/i });
   expect(heading).toBeInTheDocument();
 
   const { current, outgoing } = layers();
-  console.log("DBGL", current?.style.opacity, current?.getAttribute("style"), !!outgoing);
   expect(current).not.toBeNull();
   // The results tree must be inside the LIVE layer, not a stale snapshot.
   expect(within(current!).getByRole("button", { name: /share/i })).toBeInTheDocument();
