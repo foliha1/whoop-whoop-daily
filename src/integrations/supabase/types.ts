@@ -300,6 +300,7 @@ export type Database = {
           round_events: Json
           rounds_solved: number
           total_misses: number
+          user_id: string | null
           visitor_id: string
         }
         Insert: {
@@ -313,6 +314,7 @@ export type Database = {
           round_events?: Json
           rounds_solved?: number
           total_misses?: number
+          user_id?: string | null
           visitor_id: string
         }
         Update: {
@@ -326,6 +328,7 @@ export type Database = {
           round_events?: Json
           rounds_solved?: number
           total_misses?: number
+          user_id?: string | null
           visitor_id?: string
         }
         Relationships: []
@@ -396,6 +399,51 @@ export type Database = {
           source?: string
           synced_to_ac?: boolean
           visitor_id?: string | null
+        }
+        Relationships: []
+      }
+      player_devices: {
+        Row: {
+          linked_at: string
+          user_id: string
+          visitor_id: string
+        }
+        Insert: {
+          linked_at?: string
+          user_id: string
+          visitor_id: string
+        }
+        Update: {
+          linked_at?: string
+          user_id?: string
+          visitor_id?: string
+        }
+        Relationships: []
+      }
+      reminder_consents: {
+        Row: {
+          consented: boolean
+          created_at: string
+          email: string
+          id: string
+          source: string
+          user_id: string
+        }
+        Insert: {
+          consented: boolean
+          created_at?: string
+          email: string
+          id?: string
+          source?: string
+          user_id: string
+        }
+        Update: {
+          consented?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          source?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -591,6 +639,27 @@ export type Database = {
           visitors: number
         }[]
       }
+      admin_retention_split: {
+        Args: never
+        Returns: {
+          d1_base: number
+          d1_returned: number
+          d30_base: number
+          d30_returned: number
+          d7_base: number
+          d7_returned: number
+          players: number
+          segment: string
+        }[]
+      }
+      admin_signin_funnel: {
+        Args: { p_days?: number }
+        Returns: {
+          event: string
+          total: number
+          visitors: number
+        }[]
+      }
       admin_subscribers: {
         Args: never
         Returns: {
@@ -668,6 +737,10 @@ export type Database = {
         }[]
       }
       daily_season_start: { Args: { p_puzzle_number: number }; Returns: string }
+      delete_account_data: {
+        Args: { p_email: string; p_user_id: string }
+        Returns: number
+      }
       email_has_history: { Args: { p_email: string }; Returns: boolean }
       email_linked_to_visitor: {
         Args: { p_email: string; p_visitor_id: string }
@@ -782,6 +855,7 @@ export type Database = {
           puzzle_number: number
         }[]
       }
+      get_reminder_status: { Args: never; Returns: boolean }
       get_room_by_code: {
         Args: { p_code: string; p_visitor_id: string }
         Returns: {
@@ -845,6 +919,15 @@ export type Database = {
         Args: { p_group_id: string; p_visitor_id: string }
         Returns: boolean
       }
+      link_device_and_merge: {
+        Args: { p_visitor_id: string }
+        Returns: {
+          first_signin: boolean
+          games: number
+          reminder_answered: boolean
+          was_subscriber: boolean
+        }[]
+      }
       link_group_email: {
         Args: { p_email: string; p_visitor_id: string }
         Returns: boolean
@@ -896,6 +979,11 @@ export type Database = {
           p_total_misses: number
           p_visitor_id: string
         }
+        Returns: boolean
+      }
+      session_email: { Args: never; Returns: string }
+      set_reminder_consent: {
+        Args: { p_consented: boolean; p_source?: string }
         Returns: boolean
       }
       subscribe_daily:

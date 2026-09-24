@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { emailHasHistory, isValidEmail, subscribeDaily } from "@/lib/dailySubscribe";
+import { isValidEmail, subscribeDaily } from "@/lib/dailySubscribe";
+import DailySignIn from "@/components/DailySignIn";
 import { hapticError, hapticSuccess, hapticTap } from "@/lib/haptics";
 import { playSubscribed } from "@/lib/sounds";
 import { trackDaily } from "@/lib/dailyEvents";
@@ -47,7 +48,28 @@ const DailyEmailCapture: React.FC<{
   successMessage,
   autoFocus = false,
 }) => {
+  // The results box and the lobby restore are sign-in; pre-launch and the
+  // landing page stay an explicit reminder signup.
+  if (source !== "prelaunch" && source !== "landing") {
+    return <DailySignIn autoFocus={autoFocus} onSignedIn={onSubscribed} />;
+  }
+  return (
+    <ReminderSignup
+      {...{ source, onSubscribed, heading, body, note, submitLabel, successMessage, autoFocus }}
+    />
+  );
+};
 
+const ReminderSignup: React.FC<{
+  source?: "daily_result" | "landing" | "prelaunch" | "restore";
+  onSubscribed?: (email: string, restored: boolean) => void;
+  heading?: string;
+  body?: string;
+  note?: string | null;
+  submitLabel?: string;
+  successMessage?: string;
+  autoFocus?: boolean;
+}> = ({ source, onSubscribed, heading, body, note, submitLabel, successMessage, autoFocus = false }) => {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [restored, setRestored] = useState(false);
@@ -89,7 +111,7 @@ const DailyEmailCapture: React.FC<{
     setErrorMessage(null);
     // Asked before the write: afterwards this address owns today's row too, so
     // "has history" would always be true.
-    const returning = await emailHasHistory(email);
+    const returning = false;
     const ok = await subscribeDaily(email, undefined, source);
     if (ok) {
       setRestored(returning);

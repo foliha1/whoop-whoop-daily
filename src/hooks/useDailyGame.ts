@@ -34,7 +34,7 @@ import {
   saveDailyResultRemote,
   type FirstAttempt,
 } from "@/lib/dailyResults";
-import { getSubscribedEmail } from "@/lib/dailySubscribe";
+import { whenAccountReady } from "@/lib/account";
 import {
   DAILY_MATCH_SETTLE_MS,
   WRONG_ANIM_MS as WRONG_TREATMENT_MS,
@@ -169,7 +169,7 @@ export function useDailyGame(): UseDailyGameResult {
 
   useEffect(() => {
     if (stored !== null) return;
-    checkRef.current = checkEmail(getSubscribedEmail(), false);
+    checkRef.current = whenAccountReady().then((e) => checkEmail(e, false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

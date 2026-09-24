@@ -24,3 +24,8 @@
 - [ ] Reminder consent: yes/no prompt after verification, answer stored with timestamp (option C)
 - [ ] Existing subscribers: quiet merge, stay subscribed (option A)
 - [ ] Blocked: real code delivery waits on notify.whoop-whoop.com DNS verification
+- [x] Sign-in box on Daily results (code only), yes/no reminder prompt, quiet subscriber merge
+- [x] Settings: signed-in email, Daily email toggle, Sign Out, Delete Account; privacy policy updated
+- [ ] Admin panel: show signed-in vs visitor retention + sign-in funnel (server side ready)
+- [ ] BLOCKED: sender domain notify.whoop-whoop.com + code-only email template before real delivery
+- [ ] Tighten remaining legacy email branches in server functions

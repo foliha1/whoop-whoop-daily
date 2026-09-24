@@ -1,69 +1,53 @@
 // ============================================================================
-// useSubscriberStatus — is this player a subscriber?
+// useSubscriberStatus — is this player signed in?
 //
-// Two layers, in order:
-//   1. localStorage (`ww_daily_email`) — instant, no network.
-//   2. the server (`get_subscriber_email` by visitor id) — catches a cleared
-//      browser, and repopulates the local flag + email so layer 1 works next
-//      time.
-//
-// The stored *email* is the source of truth, not the boolean flag: the lifetime
-// stats read needs an address to union rows across devices.
+// The name is kept for callers. The email is the verified account email from
+// the session, never a typed address. "Forget" signs out.
 // ============================================================================
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  clearSubscribed,
-  fetchServerSubscriberEmail,
-  getSubscribedEmail,
-  markSubscribed,
-} from "@/lib/dailySubscribe";
+import { useCallback, useEffect, useState } from "react";
+import { getSessionEmail, onAccountChange, signOut, whenAccountReady } from "@/lib/account";
 
 export function useSubscriberStatus(
-  /** Fired when the server recognises a visitor local storage had forgotten. */
+  /** Fired when a stored session is found after mount. */
   onRecognized?: () => void
 ): {
   subscribed: boolean;
-  /** The stored address, or null. Drives the "Playing as …" line. */
+  /** The signed-in address, or null. Drives the "Playing as …" line. */
   email: string | null;
+  /** Kept for callers: sign-in already updated the session. */
   markLocal: (email: string) => void;
-  /** "Not you?" — forgets the address on this browser only. */
+  /** "Not you?" — signs out on this browser. */
   forgetLocal: () => void;
 } {
-  const [email, setEmail] = useState<string | null>(() => getSubscribedEmail());
-  // Once forgotten, an in-flight server lookup must not quietly re-recognise
-  // this browser — the player just said it is not them. A ref, because the
-  // mount effect's closure would never see a state update.
-  const forgotten = useRef(false);
+  const [email, setEmail] = useState<string | null>(() => getSessionEmail());
 
   useEffect(() => {
-    if (getSubscribedEmail() !== null) return;
     let live = true;
-    void fetchServerSubscriberEmail().then((found) => {
-      if (!live || !found || forgotten.current) return;
-      markSubscribed(found);
+    const initial = getSessionEmail();
+    void whenAccountReady().then((found) => {
+      if (!live) return;
       setEmail(found);
-      onRecognized?.();
+      if (found && !initial) onRecognized?.();
+    });
+    const off = onAccountChange((next) => {
+      if (live) setEmail(next);
     });
     return () => {
       live = false;
+      off();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const markLocal = useCallback((next: string) => {
-    forgotten.current = false;
-    markSubscribed(next);
-    setEmail(getSubscribedEmail());
+  const markLocal = useCallback(() => {
+    setEmail(getSessionEmail());
   }, []);
 
   const forgetLocal = useCallback(() => {
-    forgotten.current = true;
-    clearSubscribed();
+    void signOut();
     setEmail(null);
   }, []);
 
-
   return { subscribed: email !== null, email, markLocal, forgetLocal };
 }
-

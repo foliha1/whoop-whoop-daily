@@ -30,7 +30,13 @@ export type DailyEventName =
   | "invite_landed"
   | "announcement_shown"
   | "announcement_primary_tapped"
-  | "announcement_dismissed";
+  | "announcement_dismissed"
+  | "signin_started"
+  | "signin_code_sent"
+  | "signin_verified"
+  | "signin_failed"
+  | "account_deleted"
+  | "reminder_opt_in";
 
 
 export interface DailyEventRow {
