@@ -30,3 +30,6 @@
 - [ ] BLOCKED: sender domain notify.whoop-whoop.com + code-only email template before real delivery
 - [x] Email-as-identity removed from server and app (legacy stored-email bridge grandfathered)
 - [ ] BLOCKED: full Settings deletion test needs a disposable inbox the owner controls (data wipe verified)
+
+- [ ] Shorten sign-in code expiry to 10 min (blocked: auth setting not reachable from my tools; emails say 60 min until changed)
+- [x] Code-only auth emails (all 6) + fast end-of-run test + worker warning fixed
