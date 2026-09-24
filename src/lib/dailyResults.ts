@@ -46,12 +46,41 @@ export async function saveDailyResultRemote(
       p_peek_used: result.peekUsed,
       p_round_events: result.roundEvents ?? [],
       p_elapsed_ms: Math.round(result.elapsedMs ?? 0),
-      p_email: null,
+      // Lets the server refuse a replay when this email already has the puzzle.
+      p_email: getSubscribedEmail(),
     });
     if (error) return false;
     return data === true;
   } catch {
     return false;
+  }
+}
+
+export interface FirstAttempt extends StoredDailyResult {
+  /** Saved by this browser (vs. another browser known for the email). */
+  is_mine: boolean;
+}
+
+/**
+ * The player's first attempt at a puzzle — across this browser and every
+ * browser known for `email`. Null when none exists or the read fails.
+ */
+export async function fetchFirstAttempt(
+  puzzleNumber: number,
+  email: string | null,
+  visitorId: string = getVisitorId()
+): Promise<FirstAttempt | null> {
+  try {
+    const { data, error } = await supabase.rpc("get_first_attempt", {
+      p_visitor_id: visitorId,
+      p_email: email ?? "",
+      p_puzzle_number: puzzleNumber,
+    });
+    if (error) return null;
+    const row = Array.isArray(data) ? data[0] : data;
+    return row ? (row as unknown as FirstAttempt) : null;
+  } catch {
+    return null;
   }
 }
 
