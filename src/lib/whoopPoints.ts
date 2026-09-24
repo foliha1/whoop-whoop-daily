@@ -67,6 +67,17 @@ export interface PointsGame {
   roundsSolved: number;
   /** Per-round event marks. Missing on older rows — then the fallback applies. */
   roundEvents?: string[][] | null;
+  /** When the result was saved. The earliest per puzzle is the one counted. */
+  createdAt?: string;
+}
+
+/**
+ * True when `a` was saved before `b`. Without timestamps, input order wins —
+ * the first result seen stays counted.
+ */
+export function isEarlierAttempt(a: PointsGame, b: PointsGame): boolean {
+  if (!a.createdAt || !b.createdAt) return false;
+  return Date.parse(a.createdAt) < Date.parse(b.createdAt);
 }
 
 /** Generic badge shape, so streak badges and others can join later. */
@@ -144,11 +155,13 @@ export function computeWhoopPoints(
   games: PointsGame[],
   asOf: string = todayUtc()
 ): PointsBreakdown {
+  // First attempt counts, always: one result per puzzle, the earliest saved.
+  // A replay — however much better — never replaces it.
   const byPuzzle = new Map<number, PointsGame>();
   for (const g of games) {
     if (dayDiff(asOf, g.puzzleDate) < 0) continue;
     const seen = byPuzzle.get(g.puzzleNumber);
-    if (!seen || gamePoints(g) > gamePoints(seen)) byPuzzle.set(g.puzzleNumber, g);
+    if (!seen || isEarlierAttempt(g, seen)) byPuzzle.set(g.puzzleNumber, g);
   }
   const ordered = [...byPuzzle.values()].sort(
     (a, b) => dayDiff(a.puzzleDate, b.puzzleDate) || a.puzzleNumber - b.puzzleNumber
