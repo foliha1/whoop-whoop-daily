@@ -92,6 +92,13 @@
       "when": 1790255800908,
       "tag": "0012_session_only_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1790266343207,
+      "tag": "0013_legacy_subscriber_links_snapshot",
+      "breakpoints": true
     }
   ]
 }

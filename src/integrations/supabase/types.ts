@@ -402,6 +402,27 @@ export type Database = {
         }
         Relationships: []
       }
+      legacy_subscriber_links: {
+        Row: {
+          email: string
+          snapshot_at: string
+          subscribed_at: string
+          visitor_id: string
+        }
+        Insert: {
+          email: string
+          snapshot_at?: string
+          subscribed_at: string
+          visitor_id: string
+        }
+        Update: {
+          email?: string
+          snapshot_at?: string
+          subscribed_at?: string
+          visitor_id?: string
+        }
+        Relationships: []
+      }
       player_devices: {
         Row: {
           linked_at: string
@@ -883,6 +904,7 @@ export type Database = {
         Args: { p_group_id: string; p_visitor_id: string }
         Returns: boolean
       }
+      legacy_email_for: { Args: { p_visitor_id: string }; Returns: string }
       link_device_and_merge: {
         Args: { p_visitor_id: string }
         Returns: {
