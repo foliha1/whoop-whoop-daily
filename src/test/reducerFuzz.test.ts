@@ -489,7 +489,7 @@ interface Summary {
   failures: Failure[];
 }
 
-function sweep(seatCount: number, label: string): Summary {
+async function sweep(seatCount: number, label: string): Promise<Summary> {
   const sum: Summary = {
     games: 0,
     dispatches: 0,
@@ -500,6 +500,9 @@ function sweep(seatCount: number, label: string): Summary {
     failures: [],
   };
   for (let g = 0; g < GAMES_PER_COUNT; g++) {
+    // Yield to the event loop now and then so the test worker can answer the
+    // runner's heartbeat (otherwise: "Timeout calling onTaskUpdate").
+    if (g % 50 === 0) await new Promise((r) => setTimeout(r, 0));
     const seed = `${label}#${g}`;
     const r = runGame(seed, seatCount);
     sum.games++;
@@ -517,8 +520,8 @@ const report: Record<string, Summary> = {};
 
 describe("Classic reducer fuzz", () => {
   for (const seatCount of [2, 3, 4, 5, 6]) {
-    it(`holds every invariant across ${GAMES_PER_COUNT} games at ${seatCount} players`, () => {
-      const sum = sweep(seatCount, `p${seatCount}`);
+    it(`holds every invariant across ${GAMES_PER_COUNT} games at ${seatCount} players`, async () => {
+      const sum = await sweep(seatCount, `p${seatCount}`);
       report[`${seatCount}p`] = sum;
       if (sum.failures.length > 0) {
         const f = sum.failures[0];
@@ -531,8 +534,8 @@ describe("Classic reducer fuzz", () => {
     }, 300000);
   }
 
-  it(`holds every invariant across ${GAMES_PER_COUNT} solo games`, () => {
-    const sum = sweep(2, "solo");
+  it(`holds every invariant across ${GAMES_PER_COUNT} solo games`, async () => {
+    const sum = await sweep(2, "solo");
     report.solo = sum;
     if (sum.failures.length > 0) {
       const f = sum.failures[0];

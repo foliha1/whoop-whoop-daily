@@ -14,6 +14,18 @@ import { act, render, screen, within } from "@testing-library/react";
 import { HelmetProvider } from "react-helmet-async";
 import { MemoryRouter } from "react-router-dom";
 
+// Fast path: the page's own reducer starts from a state we built, one claim
+// before round 3 resolves, instead of playing two full rounds under fake time.
+const preset = vi.hoisted(() => ({ state: null as unknown }));
+vi.mock("@/lib/dailyEngine", async (orig) => {
+  const actual = await orig<typeof import("@/lib/dailyEngine")>();
+  return {
+    ...actual,
+    initDailyState: (seed: string, rng?: unknown) =>
+      preset.state ?? actual.initDailyState(seed, rng as never),
+  };
+});
+
 import {
   dailyReducer,
   initDailyState,
@@ -25,51 +37,56 @@ import {
 } from "@/lib/dailyEngine";
 
 // The streak line talks to the backend; the run itself must not.
-vi.mock("@/lib/dailyResults", () => ({
+vi.mock("@/lib/dailyResults", async (orig) => ({
+  ...(await orig<typeof import("@/lib/dailyResults")>()),
   saveDailyResultRemote: vi.fn(() => Promise.resolve()),
+  fetchDailyPercentile: vi.fn(() => Promise.resolve(null)),
+  fetchDailyStats: vi.fn(() => Promise.resolve(null)),
   fetchStreak: vi.fn(() => Promise.resolve(null)),
   formatStreakLine: () => null,
 }));
 
-// Web Audio does not exist in jsdom: every sound export is a no-op.
-vi.mock("@/lib/sounds", () => {
-  const noop = () => {};
+vi.mock("@/integrations/supabase/client", () => {
+  const q = () => Promise.resolve({ data: null, error: null });
   return {
-    getSfxEnabled: noop,
-    setSfxEnabled: noop,
-    getMusicEnabled: noop,
-    setMusicEnabled: noop,
-    setMuted: noop,
-    isMuted: noop,
-    hasAudioUnlocked: noop,
-    unlockAudio: noop,
-    startTheme: noop,
-    stopTheme: noop,
-    playFlip: noop,
-    playDeal: noop,
-    playSelect: noop,
-    playDeselect: noop,
-    playWhoopCall: noop,
-    playCorrect: noop,
-    playWrong: noop,
-    playDiceRoll: noop,
-    playDieLand: noop,
-    playPeek: noop,
-    playReveal: noop,
-    playStart: noop,
-    playRoundAdvance: noop,
-    playTick: noop,
-    playSubscribed: noop,
-    CLIP_GAIN: 1,
+    supabase: {
+      auth: {
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+        getUser: async () => ({ data: { user: null } }),
+        getSession: async () => ({ data: { session: null } }),
+      },
+      rpc: vi.fn(q),
+      functions: { invoke: vi.fn(q) },
+      from: () => ({ insert: q, select: () => ({ eq: q }) }),
+    },
   };
+});
+
+// jsdom has no canvas; the share image is not what this test covers.
+vi.mock("@/hooks/useDailyShareImage", async (orig) => {
+  const actual = await orig<Record<string, unknown>>();
+  const out: Record<string, unknown> = { ...actual };
+  for (const [k, v] of Object.entries(actual))
+    if (typeof v === "function") out[k] = () => ({ url: null, blob: null, status: "idle" });
+  return out;
+});
+
+// Web Audio does not exist in jsdom: every sound export is a no-op.
+vi.mock("@/lib/sounds", async (orig) => {
+  const actual = await orig<Record<string, unknown>>();
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(actual)) out[k] = typeof v === "function" ? () => undefined : v;
+  return out;
 });
 
 // lottie-web touches a real canvas on import; jsdom has none.
 vi.mock("lottie-react", () => ({ default: () => null }));
 
 import DailyPage from "@/pages/DailyPage";
+import { saveDailyResultRemote } from "@/lib/dailyResults";
 
-const SEED = "whoop-test-visible-result";
+
+const SEED = "whoop-test-visible-result-fast";
 
 // --- a mirror of the run, so the test knows which slots to tap -------------
 const R = (s: DailyState, a: DailyAction) => dailyReducer(s, a);
@@ -181,8 +198,11 @@ async function expectResultVisible() {
   // Give the end chain (settle → reveal → hold → results) and the 250ms fade
   // all the room they need.
   await tick(6000);
+  // Timers armed by the final screen change are scheduled when act() flushes
+  // effects, so they need one more advance: the 250ms fade, plus a frame.
+  await tick(600);
 
-  const heading = await screen.findByRole("heading", { name: /round review/i });
+  const heading = screen.getByRole("heading", { name: /your daily results/i });
   expect(heading).toBeInTheDocument();
 
   const { current, outgoing } = layers();
@@ -221,6 +241,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  preset.state = null;
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
@@ -234,46 +255,58 @@ const mount = () =>
     </HelmetProvider>
   );
 
-describe("daily run endings are visible on screen", () => {
-  // TODO: fake-timer + rAF driven full run still exceeds the test budget.
-  it.skip("shows the result screen after a round 3 correct match", async () => {
+
+/** Round 3 in PLAY with rounds 1–2 already won, built by the real reducer. */
+function atRound3(): DailyState {
+  preset.state = null;
+  let m = mirrorToPlay(SEED);
+  for (let round = 1; round <= 2; round++) {
+    const [i, j] = goodPair(m);
+    m = mirrorClaim(m, i, j, round * 100);
+    m = mirrorNextRound(m);
+  }
+  expect(m.phase).toBe("PLAY");
+  expect(m.roundIndex).toBe(3);
+  return m;
+}
+
+describe("daily end of run (fast, from round 3)", () => {
+  it("round 3 correct match: results appear with 3/3 solved and three round rows", async () => {
+    const m = atRound3();
+    preset.state = m;
     mount();
-    let m = mirrorToPlay(SEED);
-    await startRun();
-
-    for (let round = 1; round <= 3; round++) {
-      const [i, j] = goodPair(m);
-      await claimInDom(i, j);
-      m = mirrorClaim(m, i, j, round * 100);
-      if (round < 3) {
-        await advanceRound();
-        m = mirrorNextRound(m);
-      }
-    }
-
+    const [i, j] = goodPair(m);
+    await claimInDom(i, j);
     await expectResultVisible();
-  }, 30000);
+    // ?debug=1 runs never write a result (same rule as the live page).
+    expect(saveDailyResultRemote).not.toHaveBeenCalled();
+    // The right data: all three rounds solved, no misses, three round rows.
+    const live = layers().current!;
+    expect(live.textContent).toContain("3/3");
+    expect(live.textContent).toMatch(/0\s*Misses/);
+    for (const r of ["R1", "R2", "R3"]) expect(live.textContent).toContain(r);
+    // The sequence has fully settled: more time changes nothing.
+    await tick(5000);
+    expect(layers().outgoing).toBeNull();
+    expect(screen.getByRole("heading", { name: /your daily results/i })).toBeInTheDocument();
+    expect(saveDailyResultRemote).not.toHaveBeenCalled();
+  }, 15000);
 
-  // TODO: fake-timer + rAF driven full run still exceeds the test budget.
-  it.skip("shows the result screen after round 3 ends on two misses", async () => {
+  it("round 3 ends on misses: results still appear and settle", async () => {
+    const m0 = atRound3();
+    preset.state = m0;
     mount();
-    let m = mirrorToPlay(SEED);
-    await startRun();
-
-    for (let round = 1; round <= 2; round++) {
-      const [i, j] = goodPair(m);
-      await claimInDom(i, j);
-      m = mirrorClaim(m, i, j, round * 100);
-      await advanceRound();
-      m = mirrorNextRound(m);
-    }
-
+    let m = m0;
     for (let k = 0; k < MISSES_PER_ROUND; k++) {
       const [i, j] = badPair(m);
       await claimInDom(i, j);
       m = mirrorClaim(m, i, j, 500 + k);
     }
-
     await expectResultVisible();
-  }, 30000);
+    const live = layers().current!;
+    expect(live.textContent).toContain("2/3");
+    await tick(5000);
+    expect(layers().outgoing).toBeNull();
+    expect(saveDailyResultRemote).not.toHaveBeenCalled();
+  }, 15000);
 });
