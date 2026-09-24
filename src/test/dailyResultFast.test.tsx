@@ -198,9 +198,8 @@ async function expectResultVisible() {
   // Give the end chain (settle → reveal → hold → results) and the 250ms fade
   // all the room they need.
   await tick(6000);
-  console.log("DBGPHASE", document.body.textContent?.slice(0,400));
 
-  const heading = screen.getByRole("heading", { name: /round review/i });
+  const heading = screen.getByRole("heading", { name: /your daily results/i });
   expect(heading).toBeInTheDocument();
 
   const { current, outgoing } = layers();
@@ -281,10 +280,15 @@ describe("daily end of run (fast, from round 3)", () => {
       rounds?: unknown[];
     };
     if (saved && Array.isArray(saved.rounds)) expect(saved.rounds).toHaveLength(3);
+    // The right data: all three rounds solved, no misses, three round rows.
+    const live = layers().current!;
+    expect(live.textContent).toContain("3/3");
+    expect(live.textContent).toMatch(/0\s*Misses/);
+    for (const r of ["R1", "R2", "R3"]) expect(live.textContent).toContain(r);
     // The sequence has fully settled: more time changes nothing.
     await tick(5000);
     expect(layers().outgoing).toBeNull();
-    expect(screen.getByRole("heading", { name: /round review/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /your daily results/i })).toBeInTheDocument();
     expect(saveDailyResultRemote).toHaveBeenCalledTimes(1);
   }, 15000);
 
@@ -299,6 +303,8 @@ describe("daily end of run (fast, from round 3)", () => {
       m = mirrorClaim(m, i, j, 500 + k);
     }
     await expectResultVisible();
+    const live = layers().current!;
+    expect(live.textContent).toContain("2/3");
     await tick(5000);
     expect(layers().outgoing).toBeNull();
     expect(saveDailyResultRemote).toHaveBeenCalledTimes(1);
