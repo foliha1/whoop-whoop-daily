@@ -89,7 +89,7 @@ const DailySignIn: React.FC<{
     setError(null);
     const res = await sendSignInCode(email);
     setBusy(false);
-    if (!res.ok) return fail(FAILURE_COPY[res.reason]);
+    if ("reason" in res) return fail(FAILURE_COPY[res.reason]);
     setStep("code");
   };
 
@@ -102,9 +102,9 @@ const DailySignIn: React.FC<{
     setError(null);
     const res = await verifySignInCode(email, code);
     setBusy(false);
-    if (!res.ok) return fail(FAILURE_COPY[res.reason]);
+    if ("reason" in res) return fail(FAILURE_COPY[res.reason]);
     hapticSuccess();
-    const merge = res.merge;
+    const merge = "merge" in res ? res.merge : null;
     setGames(merge?.games ?? 0);
     const clean = email.trim().toLowerCase();
     onSignedIn?.(clean, (merge?.games ?? 0) > 0);
