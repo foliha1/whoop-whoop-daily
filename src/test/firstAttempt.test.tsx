@@ -9,6 +9,12 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: { rpc: (...args: unknown[]) => rpc(...args) },
 }));
 vi.mock("@/lib/visitor", () => ({ getVisitorId: () => "browser-b" }));
+const acct = vi.hoisted(() => ({ email: null as string | null }));
+vi.mock("@/lib/account", async (orig) => {
+  const m = await orig<typeof import("@/lib/account")>();
+  return { ...m, getSessionEmail: () => acct.email, whenAccountReady: async () => acct.email };
+});
+
 
 import { computeWhoopPoints, type PointsGame } from "@/lib/whoopPoints";
 import { useDailyGame } from "@/hooks/useDailyGame";
@@ -44,11 +50,12 @@ beforeEach(() => {
   rpc.mockReset();
   localStorage.clear();
   clearSubscribed();
+  acct.email = null;
 });
 
-describe("a browser that knows the email", () => {
-  it.skip("shows the first attempt instead of dealing the board", async () => {
-    markSubscribed("felix@example.com");
+describe("a browser signed in to the account", () => {
+  it("shows the first attempt instead of dealing the board", async () => {
+    acct.email = "felix@example.com"; // verified session, not a typed address
     rpc.mockImplementation((name: string) =>
       Promise.resolve({ data: name === "get_first_attempt" ? [serverRow] : null, error: null })
     );
@@ -58,9 +65,11 @@ describe("a browser that knows the email", () => {
     await new Promise((r) => setTimeout(r, 20));
     expect(result.current.phase).toBe("READY");
     expect(result.current.result?.roundsSolved).toBe(2);
-    expect(rpc).toHaveBeenCalledWith("get_first_attempt", expect.objectContaining({
-      p_email: "felix@example.com",
-    }));
+    // The server resolves the account from the session; no email is sent.
+    expect(rpc).toHaveBeenCalledWith("get_first_attempt", {
+      p_visitor_id: "browser-b",
+      p_puzzle_number: expect.any(Number),
+    });
   });
 
   it("entering an email that already played today never submits a new result", async () => {
