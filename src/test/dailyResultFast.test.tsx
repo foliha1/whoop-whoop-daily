@@ -63,36 +63,11 @@ vi.mock("@/integrations/supabase/client", () => {
 });
 
 // Web Audio does not exist in jsdom: every sound export is a no-op.
-vi.mock("@/lib/sounds", () => {
-  const noop = () => {};
-  return {
-    getSfxEnabled: noop,
-    setSfxEnabled: noop,
-    getMusicEnabled: noop,
-    setMusicEnabled: noop,
-    setMuted: noop,
-    isMuted: noop,
-    hasAudioUnlocked: noop,
-    unlockAudio: noop,
-    startTheme: noop,
-    stopTheme: noop,
-    playFlip: noop,
-    playDeal: noop,
-    playSelect: noop,
-    playDeselect: noop,
-    playWhoopCall: noop,
-    playCorrect: noop,
-    playWrong: noop,
-    playDiceRoll: noop,
-    playDieLand: noop,
-    playPeek: noop,
-    playReveal: noop,
-    playStart: noop,
-    playRoundAdvance: noop,
-    playTick: noop,
-    playSubscribed: noop,
-    CLIP_GAIN: 1,
-  };
+vi.mock("@/lib/sounds", async (orig) => {
+  const actual = await orig<Record<string, unknown>>();
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(actual)) out[k] = typeof v === "function" ? () => undefined : v;
+  return out;
 });
 
 // lottie-web touches a real canvas on import; jsdom has none.
