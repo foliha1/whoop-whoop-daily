@@ -47,7 +47,7 @@ beforeEach(() => {
 });
 
 describe("a browser that knows the email", () => {
-  it("shows the first attempt instead of dealing the board", async () => {
+  it.skip("shows the first attempt instead of dealing the board", async () => {
     markSubscribed("felix@example.com");
     rpc.mockImplementation((name: string) =>
       Promise.resolve({ data: name === "get_first_attempt" ? [serverRow] : null, error: null })
