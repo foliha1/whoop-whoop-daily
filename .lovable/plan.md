@@ -8,17 +8,17 @@ The custom 6-digit flow from the previous request is dropped. Nothing was built 
 - You stay signed in on that device. Settings shows "Signed in as f•••@gmail.com" with **Sign Out** and **Delete Account**.
 - "Playing as … Not you?" is replaced by the real signed-in state. An email with no sign-in behind it shows no history anywhere.
 
-## Decision 1: consent for the daily reminder (you choose)
-- **A. One box that promises both.** "Sign in and get the daily puzzle by email." Signing in adds you to the list, and the box says so plainly. It's simple, but in the EU consent then depends on sign-in, which is weak under GDPR because consent should be separate from the service.
-- **B. Sign-in with a separate, unticked reminder opt-in (recommended).** A checkbox under the code field, unticked by default: "Also email me the daily puzzle." Only a ticked box sends you to ActiveCampaign, and the tick is stored with a timestamp. Settings gets a Daily Reminder on/off switch. This works in both the EU and the US.
-- **C. Sign-in only, with the reminder offered later.** After you verify, a one-tap "Want the daily puzzle by email?" prompt appears on the confirmation step. It's cleanest for consent but adds one more tap.
+## Decision 1: reminder consent (decided: option C)
+- Signing in never adds anyone to the reminder list.
+- Right after verification, one step asks "Want the daily puzzle by email?" with two clear buttons, **Yes** and **No Thanks**. There's no checkbox, and nothing is pre-selected.
+- The answer and its timestamp are stored on the account. Only Yes sends the email to ActiveCampaign.
+- Settings has a Daily Reminder switch to change the answer later, and each change is stored with its timestamp.
 - The pre-launch "Notify Me" box stays a reminder signup, since it's explicitly that.
 
-## Decision 2: existing subscribers (you choose)
-Everyone already on the list stays subscribed. Nothing about their list membership changes.
-- **A. Quiet merge (recommended).** On their first sign-in they see "Welcome back — we found N games" and their full history, points and badges appear. The Settings reminder switch shows On.
-- **B. Merge plus a re-confirm prompt.** Same as A, but the first sign-in also asks "Keep getting the daily puzzle?" (Yes / No thanks). This gives a clean consent record for older signups.
-- On a new browser, until they sign in, a returning subscriber sees what an anonymous player sees. The fix for "zero on a new browser" is signing in.
+## Decision 2: existing subscribers (decided: option A)
+- They get a quiet merge. On their first sign-in they see "Welcome back — we found N games", and their full history, points and badges appear.
+- They stay subscribed and don't see the reminder question, because their earlier signup is already their consent. Settings shows the reminder as On.
+- On a new browser, until they sign in, they see what an anonymous player sees.
 
 ## Identity rules
 - Signed in: the account (`auth.uid()` on the server). Anonymous: `visitor_id`, as now.
