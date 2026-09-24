@@ -26,13 +26,13 @@ BEGIN
   BEGIN
     INSERT INTO public.legacy_subscriber_links(visitor_id, email, subscribed_at) VALUES (v_new, v_email, now());
     RAISE EXCEPTION 'check 3 failed: snapshot accepted a new link';
-  EXCEPTION WHEN raise_exception THEN
+  EXCEPTION WHEN raise_exception OR insufficient_privilege THEN
     IF SQLERRM LIKE 'check 3%' THEN RAISE; END IF;
   END;
   BEGIN
     UPDATE public.legacy_subscriber_links SET visitor_id = v_new WHERE visitor_id = v_old;
     RAISE EXCEPTION 'check 3 failed: snapshot accepted an update';
-  EXCEPTION WHEN raise_exception THEN
+  EXCEPTION WHEN raise_exception OR insufficient_privilege THEN
     IF SQLERRM LIKE 'check 3%' THEN RAISE; END IF;
   END;
   IF EXISTS (
