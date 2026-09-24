@@ -115,8 +115,31 @@ const ReleaseAnnouncement: React.FC<{
         className="ww-ui-modal-panel"
         style={{ width: "100%", maxWidth: "min(100%, 480px)", maxHeight: "100%", minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box", background: COLORS.surface, color: COLORS.ink, border: BORDER.heavy, borderRadius: RADIUS.md }}
       >
-        <div style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", padding: SPACE[10], display: "flex", flexDirection: "column", gap: SPACE[6] }}>
-          {children}
+        <div style={{ flex: "1 1 auto", minHeight: 0, position: "relative", display: "flex", flexDirection: "column" }}>
+          <div
+            ref={scrollRef}
+            onScroll={updateScrollHint}
+            data-testid={`${testId}-body`}
+            style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", padding: SPACE[10], display: "flex", flexDirection: "column", gap: SPACE[6] }}
+          >
+            {children}
+          </div>
+          <div
+            aria-hidden="true"
+            data-testid={`${testId}-scroll-hint`}
+            style={{
+              position: "absolute", left: 0, right: 0, bottom: 0, height: SPACE[14],
+              display: "flex", alignItems: "flex-end", justifyContent: "center",
+              paddingBottom: SPACE[1], pointerEvents: "none",
+              background: `linear-gradient(to top, ${COLORS.surface} 25%, transparent)`,
+              opacity: moreBelow ? 1 : 0,
+              transition: `opacity ${reducedMotionRef.current ? 0 : UI_EXIT_MS}ms ${UI_EASE}`,
+            }}
+          >
+            <span style={{ display: "flex", color: COLORS.inkMuted }}>
+              <MaterialIcon name="expand_more" size={18} />
+            </span>
+          </div>
         </div>
         <div style={{ flex: "0 0 auto", padding: SPACE[10], display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[3], background: COLORS.surface }}>
           <AppButton ref={buttonRef} fullWidth tone="blue" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={() => close("primary")}>{primaryLabel}</AppButton>
