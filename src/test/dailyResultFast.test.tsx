@@ -37,11 +37,30 @@ import {
 } from "@/lib/dailyEngine";
 
 // The streak line talks to the backend; the run itself must not.
-vi.mock("@/lib/dailyResults", () => ({
+vi.mock("@/lib/dailyResults", async (orig) => ({
+  ...(await orig<typeof import("@/lib/dailyResults")>()),
   saveDailyResultRemote: vi.fn(() => Promise.resolve()),
+  fetchDailyPercentile: vi.fn(() => Promise.resolve(null)),
+  fetchDailyStats: vi.fn(() => Promise.resolve(null)),
   fetchStreak: vi.fn(() => Promise.resolve(null)),
   formatStreakLine: () => null,
 }));
+
+vi.mock("@/integrations/supabase/client", () => {
+  const q = () => Promise.resolve({ data: null, error: null });
+  return {
+    supabase: {
+      auth: {
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+        getUser: async () => ({ data: { user: null } }),
+        getSession: async () => ({ data: { session: null } }),
+      },
+      rpc: vi.fn(q),
+      functions: { invoke: vi.fn(q) },
+      from: () => ({ insert: q, select: () => ({ eq: q }) }),
+    },
+  };
+});
 
 // Web Audio does not exist in jsdom: every sound export is a no-op.
 vi.mock("@/lib/sounds", () => {
