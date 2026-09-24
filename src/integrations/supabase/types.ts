@@ -677,13 +677,6 @@ export type Database = {
           runs_started: number
         }[]
       }
-      backfill_result_emails: {
-        Args: { p_email: string; p_limit?: number; p_visitor_id: string }
-        Returns: {
-          collisions: number
-          updated_rows: number
-        }[]
-      }
       classic_result_reject_reason: {
         Args: {
           p_correct_claims: number
@@ -728,7 +721,7 @@ export type Database = {
         Returns: string
       }
       daily_rows_for: {
-        Args: { p_email: string; p_visitor_id: string }
+        Args: { p_visitor_id: string }
         Returns: {
           elapsed_ms: number
           puzzle_number: number
@@ -741,17 +734,6 @@ export type Database = {
         Args: { p_email: string; p_user_id: string }
         Returns: number
       }
-      email_has_history: { Args: { p_email: string }; Returns: boolean }
-      email_linked_to_visitor: {
-        Args: { p_email: string; p_visitor_id: string }
-        Returns: boolean
-      }
-      email_visitor_ids: {
-        Args: { p_email: string }
-        Returns: {
-          visitor_id: string
-        }[]
-      }
       gen_daily_group_code: { Args: never; Returns: string }
       get_daily_event_counts: {
         Args: { p_days?: number }
@@ -763,15 +745,11 @@ export type Database = {
         }[]
       }
       get_daily_percentile: {
-        Args: {
-          p_email?: string
-          p_puzzle_number: number
-          p_visitor_id: string
-        }
+        Args: { p_puzzle_number: number; p_visitor_id: string }
         Returns: number
       }
       get_daily_results: {
-        Args: { p_email?: string; p_visitor_id: string }
+        Args: { p_visitor_id: string }
         Returns: {
           created_at: string
           elapsed_ms: number
@@ -784,7 +762,7 @@ export type Database = {
         }[]
       }
       get_daily_stats: {
-        Args: { p_email?: string; p_visitor_id: string }
+        Args: { p_visitor_id: string }
         Returns: {
           avg_misses: number
           best_streak: number
@@ -793,7 +771,7 @@ export type Database = {
         }[]
       }
       get_first_attempt: {
-        Args: { p_email: string; p_puzzle_number: number; p_visitor_id: string }
+        Args: { p_puzzle_number: number; p_visitor_id: string }
         Returns: {
           created_at: string
           elapsed_ms: number
@@ -840,11 +818,7 @@ export type Database = {
         }[]
       }
       get_my_groups: {
-        Args: {
-          p_email?: string
-          p_puzzle_number?: number
-          p_visitor_id: string
-        }
+        Args: { p_puzzle_number?: number; p_visitor_id: string }
         Returns: {
           code: string
           group_id: string
@@ -866,19 +840,14 @@ export type Database = {
         }[]
       }
       get_streak: {
-        Args: {
-          p_current_puzzle_number: number
-          p_email?: string
-          p_visitor_id: string
-        }
+        Args: { p_current_puzzle_number: number; p_visitor_id: string }
         Returns: {
           current_streak: number
           longest_streak: number
         }[]
       }
-      get_subscriber_email: { Args: { p_visitor_id: string }; Returns: string }
       get_whoop_points: {
-        Args: { p_email?: string; p_visitor_id: string }
+        Args: { p_visitor_id: string }
         Returns: {
           badges: Json
           days_away: number
@@ -904,12 +873,7 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       join_daily_group: {
-        Args: {
-          p_code: string
-          p_display_name: string
-          p_email?: string
-          p_visitor_id: string
-        }
+        Args: { p_code: string; p_display_name: string; p_visitor_id: string }
         Returns: {
           group_id: string
           name: string
@@ -927,10 +891,6 @@ export type Database = {
           reminder_answered: boolean
           was_subscriber: boolean
         }[]
-      }
-      link_group_email: {
-        Args: { p_email: string; p_visitor_id: string }
-        Returns: boolean
       }
       log_daily_events: {
         Args: { p_events: Json; p_visitor_id: string }
@@ -970,7 +930,6 @@ export type Database = {
       save_daily_result: {
         Args: {
           p_elapsed_ms: number
-          p_email?: string
           p_peek_used: boolean
           p_puzzle_date: string
           p_puzzle_number: number
