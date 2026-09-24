@@ -40,8 +40,8 @@ const INK = '#231F20'
 const RED = '#d72229'
 const FONT = "'Friend', 'Helvetica Neue', Helvetica, Arial, sans-serif"
 
-// Body stays white per email-client convention; the cream card carries the brand.
-const main = { backgroundColor: '#ffffff', fontFamily: FONT, margin: 0, padding: '24px 0' }
+// Cream throughout; dark mode swaps to warm black.
+const main = { backgroundColor: CREAM, fontFamily: FONT, margin: 0, padding: '24px 0' }
 const container = {
   backgroundColor: CREAM,
   borderRadius: '12px',
