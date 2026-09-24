@@ -7,6 +7,12 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 vi.mock("@/lib/visitor", () => ({ getVisitorId: () => "visitor-new" }));
+const acct = vi.hoisted(() => ({ email: null as string | null }));
+vi.mock("@/lib/account", async (orig) => {
+  const m = await orig<typeof import("@/lib/account")>();
+  return { ...m, getSessionEmail: () => acct.email, whenAccountReady: async () => acct.email };
+});
+
 
 import {
   fetchDailyPercentile,
@@ -15,7 +21,6 @@ import {
   formatAvgMisses,
   formatPercentileLine,
 } from "@/lib/dailyResults";
-import { markSubscribed } from "@/lib/dailySubscribe";
 import { formatDailyShare, type DailyResult } from "@/lib/daily";
 
 const result: DailyResult = {
@@ -35,6 +40,7 @@ const result: DailyResult = {
 beforeEach(() => {
   rpc.mockReset();
   localStorage.clear();
+  acct.email = null;
 });
 
 describe("streak union across visitor ids sharing an email", () => {
@@ -50,9 +56,9 @@ describe("streak union across visitor ids sharing an email", () => {
     });
   });
 
-  it.skip("passes the stored email so a fresh visitor id restores the streak", async () => {
-    // Device 1 played puzzles 5-7 and subscribed; device 2 is a new visitor id.
-    markSubscribed(" Player@Example.COM ");
+  it("a signed-in fresh visitor id restores the streak without sending an email", async () => {
+    // Device 1 played puzzles 5-7; device 2 is a new visitor id, signed in.
+    acct.email = "player@example.com";
     rpc.mockResolvedValue({
       data: [{ current_streak: 4, longest_streak: 4 }],
       error: null,
@@ -62,12 +68,11 @@ describe("streak union across visitor ids sharing an email", () => {
     expect(rpc).toHaveBeenCalledWith("get_streak", {
       p_visitor_id: "visitor-new",
       p_current_puzzle_number: 8,
-      p_email: "player@example.com",
     });
   });
 
   it("still hides the line when the union read fails", async () => {
-    markSubscribed("player@example.com");
+    acct.email = "player@example.com";
     rpc.mockResolvedValue({ data: null, error: { message: "boom" } });
     await expect(fetchStreak(8)).resolves.toBeNull();
   });
@@ -94,16 +99,15 @@ describe("fetchDailyStats", () => {
     });
   });
 
-  it.skip("includes the email so stats span devices", async () => {
-    markSubscribed("player@example.com");
+  it("a signed-in player's stats span devices without sending an email", async () => {
+    acct.email = "player@example.com";
     rpc.mockResolvedValue({
       data: [{ total_played: 4, clean_runs: 0, best_streak: 2, avg_misses: 0 }],
       error: null,
     });
-    await fetchDailyStats();
+    await expect(fetchDailyStats()).resolves.toMatchObject({ totalPlayed: 4 });
     expect(rpc).toHaveBeenCalledWith("get_daily_stats", {
       p_visitor_id: "visitor-new",
-      p_email: "player@example.com",
     });
   });
 

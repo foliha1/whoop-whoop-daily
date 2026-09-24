@@ -26,6 +26,7 @@
 - [ ] Blocked: real code delivery waits on notify.whoop-whoop.com DNS verification
 - [x] Sign-in box on Daily results (code only), yes/no reminder prompt, quiet subscriber merge
 - [x] Settings: signed-in email, Daily email toggle, Sign Out, Delete Account; privacy policy updated
-- [ ] Admin panel: show signed-in vs visitor retention + sign-in funnel (server side ready)
+- [x] Admin panel: signed-in vs anonymous retention + sign-in funnel
 - [ ] BLOCKED: sender domain notify.whoop-whoop.com + code-only email template before real delivery
-- [ ] Tighten remaining legacy email branches in server functions
+- [x] Email-as-identity removed from server and app (legacy stored-email bridge grandfathered)
+- [ ] BLOCKED: full Settings deletion test needs a disposable inbox the owner controls (data wipe verified)

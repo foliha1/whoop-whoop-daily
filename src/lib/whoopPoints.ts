@@ -261,7 +261,6 @@ export async function fetchWhoopPoints(
   try {
     const { data, error } = await supabase.rpc("get_whoop_points", {
       p_visitor_id: visitorId,
-      ...(email ? { p_email: email } : {}),
     });
     if (error) return null;
     const row = Array.isArray(data) ? data[0] : data;

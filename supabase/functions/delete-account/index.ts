@@ -13,6 +13,11 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+// Disposable test accounts never reach ActiveCampaign; the call is recorded
+// instead so an end-to-end deletion test can prove which address it targeted.
+const TEST_DOMAIN = "@whoop-test.invalid";
+const isTestAddress = (email: string) => email.endsWith(TEST_DOMAIN);
+
 async function acContactId(email: string): Promise<string | null> {
   const base = (Deno.env.get("AC_API_URL") ?? "").replace(/\/+$/, "");
   const key = Deno.env.get("AC_API_KEY") ?? "";
@@ -80,7 +85,11 @@ Deno.serve(async (req) => {
   if (action === "reminder_off") {
     let ok = false;
     try {
-      ok = await acUnsubscribe(email);
+      if (isTestAddress(email)) {
+        console.log(`delete-account: AC unsubscribe mocked for test address ${email}`);
+      } else {
+        ok = await acUnsubscribe(email);
+      }
     } catch (err) {
       console.error("delete-account: unsubscribe threw", err);
     }
@@ -98,7 +107,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    await acDelete(email);
+    if (isTestAddress(email)) {
+      console.log(`delete-account: AC delete mocked for test address ${email}`);
+    } else {
+      await acDelete(email);
+    }
   } catch (err) {
     console.error("delete-account: AC delete threw", err);
   }

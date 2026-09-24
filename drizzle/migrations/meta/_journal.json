@@ -85,6 +85,13 @@
       "when": 1790254280543,
       "tag": "0011_optional_account_signin",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1790255800908,
+      "tag": "0012_session_only_identity",
+      "breakpoints": true
     }
   ]
 }

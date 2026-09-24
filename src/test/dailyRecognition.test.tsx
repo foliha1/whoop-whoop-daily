@@ -4,12 +4,23 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 const rpc = vi.fn();
 const invoke = vi.fn();
 
+const signInWithOtp = vi.fn();
+const verifyOtp = vi.fn();
+const signOut = vi.fn();
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     rpc: (...args: unknown[]) => rpc(...args),
     functions: { invoke: (...args: unknown[]) => invoke(...args) },
+    auth: {
+      signInWithOtp: (...a: unknown[]) => signInWithOtp(...a),
+      verifyOtp: (...a: unknown[]) => verifyOtp(...a),
+      signOut: (...a: unknown[]) => signOut(...a),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+      getUser: async () => ({ data: { user: null } }),
+    },
   },
 }));
+vi.mock("@/lib/dailyEvents", () => ({ trackDaily: () => {} }));
 
 vi.mock("@/lib/visitor", () => ({ getVisitorId: () => "visitor-recognition" }));
 vi.mock("@/lib/haptics", () => ({
@@ -20,6 +31,8 @@ vi.mock("@/lib/haptics", () => ({
 vi.mock("@/lib/sounds", () => ({ playSubscribed: () => {} }));
 
 import DailyRecognition from "@/components/DailyRecognition";
+import { renderHook, act } from "@testing-library/react";
+import { useSubscriberStatus } from "@/hooks/useSubscriberStatus";
 import {
   clearSubscribed,
   getSubscribedEmail,
@@ -31,6 +44,9 @@ import {
 beforeEach(() => {
   rpc.mockReset();
   invoke.mockReset();
+  signInWithOtp.mockReset().mockResolvedValue({ error: null });
+  verifyOtp.mockReset();
+  signOut.mockReset().mockResolvedValue({ error: null });
   localStorage.clear();
   clearSubscribed();
 });
@@ -56,19 +72,15 @@ describe("maskEmail", () => {
   });
 });
 
-describe("clearSubscribed", () => {
-  it.skip("removes only the email and the subscribed flag", () => {
+describe("Not you? signs out on this device", () => {
+  it("signs out and leaves the visitor id and today's stored result alone", async () => {
     localStorage.setItem("ww_visitor_id", "visitor-recognition");
     localStorage.setItem("ww_daily_whoop-2026-08-18", '{"seed":"whoop-2026-08-18"}');
-    markSubscribed("felix+daily@gmail.com");
-    expect(getSubscribedEmail()).toBe("felix+daily@gmail.com");
-
-    clearSubscribed();
-
+    const { result } = renderHook(() => useSubscriberStatus());
+    act(() => result.current.forgetLocal());
+    await waitFor(() => expect(signOut).toHaveBeenCalledTimes(1));
+    expect(result.current.email).toBeNull();
     expect(getSubscribedEmail()).toBeNull();
-    expect(hasSubscribed()).toBe(false);
-    expect(localStorage.getItem("ww_daily_email")).toBeNull();
-    expect(localStorage.getItem("ww_daily_subscribed")).toBeNull();
     // Untouched: the visitor id and today's stored result.
     expect(localStorage.getItem("ww_visitor_id")).toBe("visitor-recognition");
     expect(localStorage.getItem("ww_daily_whoop-2026-08-18")).toBe(
@@ -109,61 +121,37 @@ describe("recognized state", () => {
   });
 });
 
-describe("not-recognized state opens the existing capture", () => {
-  it.skip("restores a known address through the same path, with the same response", async () => {
-    rpc.mockResolvedValue({ data: true, error: null }); // email_has_history
-    invoke.mockResolvedValue({ data: { ok: true }, error: null });
+describe("not-recognized state opens sign-in", () => {
+  async function signIn(merge: Record<string, unknown>) {
+    verifyOtp.mockResolvedValue({ data: { session: { user: { email: "player@example.com" } } }, error: null });
+    rpc.mockImplementation(async (name: string) =>
+      name === "link_device_and_merge" ? { data: [merge], error: null } : { data: true, error: null }
+    );
     const onRestored = vi.fn();
     render(<DailyRecognition email={null} onForget={() => {}} onRestored={onRestored} />);
-
-    expect(screen.getByTestId("daily-recognition").textContent).toContain(
-      "Already playing?"
-    );
-
+    expect(screen.getByTestId("daily-recognition").textContent).toContain("Already playing?");
     fireEvent.click(screen.getByTestId("daily-restore-open"));
-    // Restore wording, not subscribe wording.
-    expect(
-      screen.getByRole("heading", { name: "Restore your streak." })
-    ).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "player@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send Code" }));
+    fireEvent.change(await screen.findByLabelText("6-digit code"), { target: { value: "123456" } });
+    fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
+    return onRestored;
+  }
 
-    fireEvent.change(screen.getByLabelText("Email address"), {
-      target: { value: "player@example.com" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Restore" }));
-
-    // Exactly the existing subscribe path: same RPC, same edge function.
-    await waitFor(() => expect(screen.getByText("Welcome back.")).toBeTruthy());
-    expect(rpc).toHaveBeenCalledWith("email_has_history", {
-      p_email: "player@example.com",
-    });
-    expect(invoke).toHaveBeenCalledWith(
-      "ac-subscribe",
-      expect.objectContaining({
-        body: expect.objectContaining({
-          email: "player@example.com",
-          visitorId: "visitor-recognition",
-          source: "restore",
-        }),
-      })
-    );
+  it("restores a known player only after the code, with their history", async () => {
+    const onRestored = await signIn({ first_signin: true, games: 12, was_subscriber: true, reminder_answered: false });
+    await waitFor(() => expect(screen.getByText("Welcome back — we found 12 games.")).toBeTruthy());
+    // Nothing was looked up by the typed address before verification.
+    expect(rpc.mock.calls.map(([n]) => n)).toEqual(["link_device_and_merge"]);
+    expect(signInWithOtp).toHaveBeenCalledWith(expect.objectContaining({ email: "player@example.com" }));
     expect(onRestored).toHaveBeenCalledWith("player@example.com", true);
-    // The address is on file locally, so the streak read can union rows.
-    expect(getSubscribedEmail()).toBe("player@example.com");
+    expect(invoke).not.toHaveBeenCalled();
   });
 
-  it.skip("gives an unknown address the existing new-signup response", async () => {
-    rpc.mockResolvedValue({ data: false, error: null });
-    invoke.mockResolvedValue({ data: { ok: true }, error: null });
-    render(<DailyRecognition email={null} onForget={() => {}} />);
-
-    fireEvent.click(screen.getByTestId("daily-restore-open"));
-    fireEvent.change(screen.getByLabelText("Email address"), {
-      target: { value: "brand-new@example.com" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Restore" }));
-
-    await waitFor(() =>
-      expect(screen.getByText("You're in. See you tomorrow.")).toBeTruthy()
-    );
+  it("gives a new player the separate yes/no reminder question", async () => {
+    const onRestored = await signIn({ first_signin: true, games: 0, was_subscriber: false, reminder_answered: false });
+    await screen.findByText("Want the daily puzzle by email?");
+    expect(onRestored).toHaveBeenCalledWith("player@example.com", false);
+    expect(invoke).not.toHaveBeenCalled();
   });
 });
