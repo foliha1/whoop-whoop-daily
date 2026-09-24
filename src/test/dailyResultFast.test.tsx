@@ -271,18 +271,15 @@ function atRound3(): DailyState {
 }
 
 describe("daily end of run (fast, from round 3)", () => {
-  it("round 3 correct match: results appear, saved once, with a 3-round review", async () => {
+  it("round 3 correct match: results appear with 3/3 solved and three round rows", async () => {
     const m = atRound3();
     preset.state = m;
     mount();
     const [i, j] = goodPair(m);
     await claimInDom(i, j);
     await expectResultVisible();
-    expect(saveDailyResultRemote).toHaveBeenCalledTimes(1);
-    const saved = (saveDailyResultRemote as unknown as { mock: { calls: unknown[][] } }).mock.calls[0][0] as {
-      rounds?: unknown[];
-    };
-    if (saved && Array.isArray(saved.rounds)) expect(saved.rounds).toHaveLength(3);
+    // ?debug=1 runs never write a result (same rule as the live page).
+    expect(saveDailyResultRemote).not.toHaveBeenCalled();
     // The right data: all three rounds solved, no misses, three round rows.
     const live = layers().current!;
     expect(live.textContent).toContain("3/3");
@@ -292,7 +289,7 @@ describe("daily end of run (fast, from round 3)", () => {
     await tick(5000);
     expect(layers().outgoing).toBeNull();
     expect(screen.getByRole("heading", { name: /your daily results/i })).toBeInTheDocument();
-    expect(saveDailyResultRemote).toHaveBeenCalledTimes(1);
+    expect(saveDailyResultRemote).not.toHaveBeenCalled();
   }, 15000);
 
   it("round 3 ends on misses: results still appear and settle", async () => {
@@ -310,6 +307,6 @@ describe("daily end of run (fast, from round 3)", () => {
     expect(live.textContent).toContain("2/3");
     await tick(5000);
     expect(layers().outgoing).toBeNull();
-    expect(saveDailyResultRemote).toHaveBeenCalledTimes(1);
+    expect(saveDailyResultRemote).not.toHaveBeenCalled();
   }, 15000);
 });
