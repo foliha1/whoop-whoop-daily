@@ -21,6 +21,8 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 vi.mock("@/lib/dailyEvents", () => ({ trackDaily: () => {} }));
+// These cover the sign-in build: run them with the switch on.
+vi.mock("@/lib/featureFlags", () => ({ SIGN_IN_ENABLED: true }));
 
 vi.mock("@/lib/visitor", () => ({ getVisitorId: () => "visitor-recognition" }));
 vi.mock("@/lib/haptics", () => ({

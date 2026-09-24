@@ -5,6 +5,7 @@ import { hapticError, hapticSuccess, hapticTap } from "@/lib/haptics";
 import { playSubscribed } from "@/lib/sounds";
 import { trackDaily } from "@/lib/dailyEvents";
 import { BORDER, COLORS, FONT_FAMILY, RADIUS, SPACE, buttonStyle } from "@/lib/tokens";
+import { SIGN_IN_ENABLED } from "@/lib/featureFlags";
 
 
 const GEIST = '"Geist", "Geist Sans", system-ui, -apple-system, "Segoe UI", sans-serif';
@@ -49,13 +50,24 @@ const DailyEmailCapture: React.FC<{
   autoFocus = false,
 }) => {
   // The results box and the lobby restore are sign-in; pre-launch and the
-  // landing page stay an explicit reminder signup.
-  if (source !== "prelaunch" && source !== "landing") {
+  // landing page stay an explicit reminder signup. With sign-in off, every box
+  // is a reminder signup — and never promises a restore.
+  const reminderOnly = source === "prelaunch" || source === "landing";
+  if (SIGN_IN_ENABLED && !reminderOnly) {
     return <DailySignIn autoFocus={autoFocus} onSignedIn={onSubscribed} />;
   }
   return (
     <ReminderSignup
-      {...{ source, onSubscribed, heading, body, note, submitLabel, successMessage, autoFocus }}
+      {...{
+        source: reminderOnly ? source : "daily_result",
+        onSubscribed,
+        heading,
+        body,
+        note: reminderOnly ? note : null,
+        submitLabel,
+        successMessage,
+        autoFocus,
+      }}
     />
   );
 };

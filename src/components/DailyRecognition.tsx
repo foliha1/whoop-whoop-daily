@@ -21,6 +21,7 @@ import DailyEmailModal from "@/components/DailyEmailModal";
 import { maskEmail } from "@/lib/dailySubscribe";
 import { hapticTap } from "@/lib/haptics";
 import { COLORS, FONT_FAMILY_UI, FONT_WEIGHT_UI } from "@/lib/tokens";
+import { SIGN_IN_ENABLED } from "@/lib/featureFlags";
 
 
 /** Text link that keeps a 44px tap target without taking 44px of layout. */
@@ -153,7 +154,7 @@ const DailyRecognition: React.FC<{
           Not you?
         </InlineAction>
       </p>
-    ) : (
+    ) : SIGN_IN_ENABLED ? (
       <p style={lineStyle} data-testid="daily-recognition">
         <span>Already playing?</span>
         <InlineAction
@@ -167,7 +168,7 @@ const DailyRecognition: React.FC<{
           Restore your streak.
         </InlineAction>
       </p>
-    );
+    ) : null;
 
   return (
     <>
