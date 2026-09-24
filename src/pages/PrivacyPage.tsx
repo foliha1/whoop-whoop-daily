@@ -22,6 +22,19 @@ const PrivacyPage: React.FC = () => (
       giving us anything.
     </LegalText>
 
+    <LegalSection heading="Accounts">
+      <LegalText>
+        Accounts are optional and nobody needs one to play. If you sign in, we send a one-time code
+        to confirm an email is yours before showing its history. Your account stores that email,
+        the date you signed in, the browsers you signed in on, and your Daily results, so your
+        score, streak and badges follow you to any device.
+      </LegalText>
+      <LegalText>
+        Signing in does not add you to any mailing list. We ask separately whether you want the
+        daily puzzle by email, and store your yes or no with the time you answered.
+      </LegalText>
+    </LegalSection>
+
     <LegalSection heading="Your email address">
       <LegalText>
         We collect an email address only when you type one in and submit it, and only so we can send
@@ -41,9 +54,9 @@ const PrivacyPage: React.FC = () => (
         your name or to any other identifier, and it is not shared with anyone.
       </LegalText>
       <LegalText>
-        If you give us an email address, we link it to that visitor ID so your streak can follow you
-        to another device. Clearing your browser storage removes the ID; your streak can be restored
-        by entering the same email again.
+        If you sign in, we link that visitor ID to your account so your streak can follow you to
+        another device. Clearing your browser storage removes the ID; signing in again restores
+        your history.
       </LegalText>
     </LegalSection>
 
@@ -109,7 +122,9 @@ const PrivacyPage: React.FC = () => (
 
     <LegalSection heading="Unsubscribing and deletion">
       <LegalText>
-        To stop the emails, use the unsubscribe link in any email, or write to <MailLink />. To have
+        To stop the emails, use the unsubscribe link in any email, turn off Daily email in Settings,
+        or write to <MailLink />. To delete your account and all its data, sign in and choose
+        Delete Account in Settings; it takes effect immediately. You can also write to have
         your email address and your stored results deleted, write to <MailLink /> from the address
         you signed up with and ask for deletion. We will remove your address from our database and
         from ActiveCampaign, along with the results tied to it.
