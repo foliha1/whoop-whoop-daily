@@ -228,7 +228,6 @@ export async function joinGroup(
     p_code: code,
     p_visitor_id: visitorId,
     p_display_name: displayName,
-    p_email: email ?? undefined,
   });
   if (error) throw error;
   return (data ?? [])[0] ?? null;
@@ -248,21 +247,10 @@ export async function leaveGroup(groupId: string, visitorId: string) {
  * and stamps their existing results with it, so their standing follows them to
  * another device. Never a gate: a member without an address still ranks.
  */
-export async function linkGroupEmail(visitorId: string, email: string): Promise<void> {
-  const clean = email.trim().toLowerCase();
-  const { error } = await supabase.rpc("link_group_email", {
-    p_visitor_id: visitorId,
-    p_email: clean,
-  });
-  if (error) throw error;
-  rememberGroupEmail(clean);
-  await supabase
-    .rpc("backfill_result_emails", {
-      p_visitor_id: visitorId,
-      p_email: clean,
-      p_limit: 500,
-    })
-    .then(() => undefined, () => undefined);
+export async function linkGroupEmail(_visitorId: string, _email: string): Promise<void> {
+  // Retired: a typed email never links anything. Standing follows the player
+  // across devices through sign-in (the membership moves onto the account).
+  throw new Error("signin_required");
 }
 
 export async function fetchMyGroups(
@@ -272,7 +260,6 @@ export async function fetchMyGroups(
 ): Promise<MyGroup[]> {
   const { data, error } = await supabase.rpc("get_my_groups", {
     p_visitor_id: visitorId,
-    p_email: email ?? undefined,
     p_puzzle_number: puzzleNumber ?? undefined,
   });
   if (error) throw error;
