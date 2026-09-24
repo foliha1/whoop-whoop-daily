@@ -1,9 +1,11 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import { AppButton } from "@/components/ui/AppButton";
+import MaterialIcon from "@/components/MaterialIcon";
 import { useDismiss } from "@/hooks/useDismiss";
 import { useMotionExit } from "@/hooks/useMotionExit";
 import { usePortalHost } from "@/hooks/usePortalHost";
+import { UI_EASE, UI_EXIT_MS } from "@/lib/animationTiming";
 import { BORDER, COLORS, RADIUS, SPACE } from "@/lib/tokens";
 
 /** Supply a new key for each release; the shell owns dismissal and accessibility. */
@@ -27,8 +29,31 @@ const ReleaseAnnouncement: React.FC<{
   const host = usePortalHost("release-announcement");
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
   const actionRef = React.useRef<"primary" | "dismissed" | null>(null);
   const openerRef = React.useRef<HTMLElement | null>(null);
+  const reducedMotionRef = React.useRef(
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+  const [moreBelow, setMoreBelow] = React.useState(false);
+
+  /** Show the fade/chevron only while content still hides below the fold. */
+  const updateScrollHint = React.useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setMoreBelow(el.scrollHeight - el.scrollTop - el.clientHeight > 8);
+  }, []);
+
+  React.useEffect(() => {
+    if (!host) return;
+    updateScrollHint();
+    const el = scrollRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(updateScrollHint);
+    observer.observe(el);
+    el.querySelectorAll<HTMLElement>(":scope > *").forEach((child) => observer.observe(child));
+    return () => observer.disconnect();
+  }, [host, updateScrollHint]);
 
   const finish = React.useCallback(() => {
     if (actionRef.current === "primary") onPrimary();
@@ -90,8 +115,31 @@ const ReleaseAnnouncement: React.FC<{
         className="ww-ui-modal-panel"
         style={{ width: "100%", maxWidth: "min(100%, 480px)", maxHeight: "100%", minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden", boxSizing: "border-box", background: COLORS.surface, color: COLORS.ink, border: BORDER.heavy, borderRadius: RADIUS.md }}
       >
-        <div style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", padding: SPACE[10], display: "flex", flexDirection: "column", gap: SPACE[6] }}>
-          {children}
+        <div style={{ flex: "1 1 auto", minHeight: 0, position: "relative", display: "flex", flexDirection: "column" }}>
+          <div
+            ref={scrollRef}
+            onScroll={updateScrollHint}
+            data-testid={`${testId}-body`}
+            style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", padding: SPACE[10], display: "flex", flexDirection: "column", gap: SPACE[6] }}
+          >
+            {children}
+          </div>
+          <div
+            aria-hidden="true"
+            data-testid={`${testId}-scroll-hint`}
+            style={{
+              position: "absolute", left: 0, right: 0, bottom: 0, height: SPACE[14],
+              display: "flex", alignItems: "flex-end", justifyContent: "center",
+              paddingBottom: SPACE[1], pointerEvents: "none",
+              background: `linear-gradient(to top, ${COLORS.surface} 25%, transparent)`,
+              opacity: moreBelow ? 1 : 0,
+              transition: `opacity ${reducedMotionRef.current ? 0 : UI_EXIT_MS}ms ${UI_EASE}`,
+            }}
+          >
+            <span style={{ display: "flex", color: COLORS.inkMuted }}>
+              <MaterialIcon name="expand_more" size={18} />
+            </span>
+          </div>
         </div>
         <div style={{ flex: "0 0 auto", padding: SPACE[10], display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[3], background: COLORS.surface }}>
           <AppButton ref={buttonRef} fullWidth tone="blue" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={() => close("primary")}>{primaryLabel}</AppButton>
