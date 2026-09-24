@@ -1781,6 +1781,7 @@ const DailyPage: React.FC = () => {
               }}
               onRestored={(email) => {
                 markLocal(email);
+                void daily.recheckEmail(email);
                 bumpProfile();
               }}
               onNotify={() => {
@@ -1832,6 +1833,7 @@ const DailyPage: React.FC = () => {
                 }}
                 onSubscribed={(email) => {
                   markLocal(email);
+                void daily.recheckEmail(email);
                   bumpProfile();
                 }}
               />
@@ -1864,6 +1866,7 @@ const DailyPage: React.FC = () => {
                 // Restore or fresh signup, either way: the address is now on
                 // file, so the lifetime block and streak re-read immediately.
                 markLocal(email);
+                void daily.recheckEmail(email);
                 bumpProfile();
               }}
 
