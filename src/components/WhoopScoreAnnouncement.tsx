@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import YouScoreTiles from "@/components/YouScoreTiles";
+import ChaseHeadline from "@/components/ChaseHeadline";
 import ReleaseAnnouncement, { hasSeenAnnouncement } from "@/components/ReleaseAnnouncement";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { trackDaily } from "@/lib/dailyEvents";
@@ -63,7 +64,7 @@ const WhoopScoreAnnouncement: React.FC<{
       onDismiss={() => close("dismissed")}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-        <h2 style={{ ...textStyle("hero", mobile), margin: 0 }}>{SCORE_ANNOUNCEMENT.headline}</h2>
+        <ChaseHeadline text={SCORE_ANNOUNCEMENT.headline} mobile={mobile} role="hero" />
         <p style={{ ...textStyle("caption", mobile), margin: 0 }}>{SCORE_ANNOUNCEMENT.intro}</p>
       </div>
       <YouScoreTiles points={points} mobile={mobile} compact />
