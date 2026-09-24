@@ -12,12 +12,12 @@ import { SPACE, textStyle } from "@/lib/tokens";
 export const SCORE_ANNOUNCEMENT = {
   version: "score_v1",
   seenKey: "ww_announce_score_v1",
-  headline: "Your games now add up.",
-  intro: "These points come from the games you've already played.",
+  headline: "Introducing Tiers, Points, and more!",
+  intro: "After over 40 Whoop! Whoop! Daily challenges, it’s time to get a bit more competitive. You can now track your accumulated points, gain milestone badges, and keep tabs on many other stats in Your Stats. Don’t worry, all of the Daily’s you have played so far have been accounted for. Go check it out, and brag a little.",
   bullets: [
-    "Earn up to 5 points a day. Play, nail rounds on the first try, and skip the peek.",
-    "Climb five tiers, from Rookie to Whoop Whoop Legend.",
-    "Earn badges you keep forever.",
+    "Earn up to 5 points a day",
+    "Climb all 5 tiers to become a Legend",
+    "Show off your Milestone Badges",
   ],
   primary: "See Your Stats",
   secondary: "Got it",
@@ -63,7 +63,7 @@ const WhoopScoreAnnouncement: React.FC<{
       onDismiss={() => close("dismissed")}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-        <h2 style={{ ...textStyle("heading", mobile), margin: 0 }}>{SCORE_ANNOUNCEMENT.headline}</h2>
+        <h2 style={{ ...textStyle("hero", mobile), margin: 0 }}>{SCORE_ANNOUNCEMENT.headline}</h2>
         <p style={{ ...textStyle("body", mobile), margin: 0 }}>{SCORE_ANNOUNCEMENT.intro}</p>
       </div>
       <YouScoreTiles points={points} mobile={mobile} compact />
