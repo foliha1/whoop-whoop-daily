@@ -6,12 +6,12 @@ import * as React from 'npm:react@18.3.1'
 import { Body, Container, Head, Html, Img, Preview, Text } from 'npm:@react-email/components@0.0.22'
 
 /** Must match the auth OTP expiry. */
-export const OTP_MINUTES = 60
-export const AUTH_CODE = /^[0-9]{8}$/
+export const OTP_MINUTES = 20
+export const AUTH_CODE = /^[0-9]{6}$/
 
 export const requireAuthCode = (token?: string): string => {
   const code = token?.trim() ?? ''
-  if (!AUTH_CODE.test(code)) throw new Error('Auth code must contain exactly eight numeric digits')
+  if (!AUTH_CODE.test(code)) throw new Error('Auth code must contain exactly six numeric digits')
   return code
 }
 
@@ -61,8 +61,11 @@ export const CodeEmail = ({ token, purpose }: { token?: string; purpose: string 
 const CREAM = '#F8F2E9'
 const INK = '#231F20'
 const FONT = "'Friend', 'Helvetica Neue', Helvetica, Arial, sans-serif"
-const LIGHT_LOGO_URL = 'https://www.whoop-whoop.com/WhoopWhoop_Stacked_Logo.svg'
-const DARK_LOGO_URL = 'https://www.whoop-whoop.com/WhoopWhoop_Dark_Logo.svg'
+// The names describe the background each one sits on, not the artwork's ink:
+// WhoopWhoop_Dark_Logo.svg draws the wordmark in warm black (for the cream
+// email), WhoopWhoop_Stacked_Logo.svg draws it in cream (for the dark email).
+const LIGHT_LOGO_URL = 'https://www.whoop-whoop.com/WhoopWhoop_Dark_Logo.svg'
+const DARK_LOGO_URL = 'https://www.whoop-whoop.com/WhoopWhoop_Stacked_Logo.svg'
 
 // Cream throughout; dark mode swaps to warm black.
 const main = { backgroundColor: CREAM, fontFamily: FONT, margin: 0, padding: '24px 0' }
