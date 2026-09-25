@@ -1047,7 +1047,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
                     ["Games completed", games],
                     ["Median game length", mmss(c.median_seconds)],
                     ["Avg players per game", c.avg_players],
-                    ["Solo vs Whoop! Whoop!", `${solo} · ${share(solo)}`],
+                    ["Solo vs WHOOP", `${solo} · ${share(solo)}`],
                     ["Multiplayer", `${mp} · ${share(mp)}`],
                   ]}
                 />

@@ -307,7 +307,7 @@ Two digital products share this brand. Neither is a demo of the physical game.
 
 **WHOOP! WHOOP! Daily** is a once-a-day solo puzzle at whoop-whoop.com. Nine cards flip up for ten seconds, then down. Three rounds, one die roll each, two misses ends a round. Everyone in the world gets the same puzzle on the same date. Its rules deliberately differ from this document.
 
-**WHOOP! WHOOP! Classic** at whoop-whoop.com/classic is the multiplayer web game and follows these rules exactly, with two differences: the grid is always 3×3, and the solo opponent is a bot named Whoop! Whoop!.
+**WHOOP! WHOOP! Classic** at whoop-whoop.com/classic is the multiplayer web game and follows these rules exactly, with two differences: the grid is always 3×3, and the solo opponent is a bot named WHOOP.
 
 ---
 

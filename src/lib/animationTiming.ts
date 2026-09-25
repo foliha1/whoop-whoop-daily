@@ -127,7 +127,7 @@ export function applyAnimationTimingVars(root: HTMLElement = document.documentEl
 // ---- rotation claim window --------------------------------------------------
 /**
  * After the final flip of a rotation resolves with no correct claim, the board
- * settles and every seat gets this long to still call WHOOP! WHOOP! before the round
+ * settles and every seat gets this long to still call WHOOP! before the round
  * ends and the roll passes clockwise. Host-authoritative: the owner of the
  * reducer runs the single timer. A wrong claim inside the window does NOT
  * extend or restart it.

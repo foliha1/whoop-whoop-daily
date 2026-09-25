@@ -1,5 +1,5 @@
 // ============================================================================
-// claim-lock — the WHOOP! WHOOP! arbiter.
+// claim-lock — the WHOOP! arbiter.
 //
 // Fairness mechanism: a UNIQUE (room_id, claim_window) index on claim_locks.
 // First successful INSERT wins. Arrival order at Postgres is the ordering.

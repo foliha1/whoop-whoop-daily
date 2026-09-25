@@ -297,7 +297,7 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
           </a>
         )}
 
-        {/* The Whoop! Whoop! Score and all-time numbers require an account. */}
+        {/* The Whoop Score and all-time numbers require an account. */}
         {SIGN_IN_ENABLED && product === "daily" && account && (
           <a href="/you" style={howToStyle} data-testid="settings-you-link">
             Your Stats

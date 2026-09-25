@@ -38,7 +38,7 @@ const DAILY_PRODUCT_HEAD = {
   appleTouchIcon: versioned("/icons/daily/apple-touch-icon.png"),
   favicon32: versioned("/icons/daily/favicon-32.png"),
   favicon16: versioned("/icons/daily/favicon-16.png"),
-  appleTitle: "W! W! Daily",
+  appleTitle: "WHOOP! WHOOP! Daily",
 };
 
 const CLASSIC_PRODUCT_HEAD = {
@@ -47,7 +47,7 @@ const CLASSIC_PRODUCT_HEAD = {
   appleTouchIcon: versioned("/icons/classic/apple-touch-icon.png"),
   favicon32: versioned("/icons/classic/favicon-32.png"),
   favicon16: versioned("/icons/classic/favicon-16.png"),
-  appleTitle: "W! W! Classic",
+  appleTitle: "WHOOP! WHOOP! Classic",
 };
 
 /** Replace the content of a `<meta>` tag matched on name/property. */
