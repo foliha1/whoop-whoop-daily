@@ -127,6 +127,13 @@
       "when": 1790360028216,
       "tag": "0017_room_code_matches_client_format",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790367359888,
+      "tag": "0018_revoke_legacy_create_room",
+      "breakpoints": true
     }
   ]
 }
