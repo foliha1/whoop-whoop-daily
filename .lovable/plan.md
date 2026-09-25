@@ -2,7 +2,7 @@
 
 ## What will change
 
-- Sweep visible copy across Daily, Classic, Your Stats, Groups, Settings, sign-in, legal/support pages, install metadata, and all authentication emails. Change only British-to-American spelling and incomplete product-name references; keep all other wording and voice intact.
+- Sweep visible copy across Daily, Classic, Your Stats, Groups, Settings, sign-in, legal/support pages, install metadata, and all authentication emails. Change only British-to-American spelling and every product-name reference and every “WHOOP!” reference as “WHOOP! WHOOP!” / “Whoop! Whoop!”; keep all other wording and voice intact. Preserve the intentional “W! W!” abbreviation exactly.
 - Add a **Resend code** action to the six-digit code screen. It will show a visible 60-second countdown after every successful send, use the existing code-send path and its provider rate limits, restart only after a successful resend, and show the existing plain rate-limit message or a clear send-failure message without leaving the code screen.
 - Show **Your Stats** in Daily Settings only when a player is signed in. Keep `/you` available and verify it loads correctly for a signed-in player.
 - Add one stable build-version query string to Daily and Classic manifest links and every icon URL, including icons inside both manifests. The same build identifier will be reused throughout a release, so browsers can refresh changed assets after a release without refetching them on every page load.
@@ -22,5 +22,5 @@
 
 ## Assumptions
 
-- Product install names previously abbreviated as “W! W!” count as shortened game-name references and will become “WHOOP! WHOOP!” names.
-- “Whoop Score,” tier names, the gameplay call “WHOOP!”, and code identifiers are feature/gameplay terms rather than shortened references to the game title; they will not be renamed unless an on-screen sentence clearly uses them as the product name.
+- “W! W!” is the one intentional abbreviation and remains unchanged, including install names.
+- “Whoop Score” becomes “Whoop! Whoop! Score,” and visible “WHOOP!” references become “WHOOP! WHOOP!” / “Whoop! Whoop!” as context requires. Internal component and variable names remain unchanged where they are not shown to players.
