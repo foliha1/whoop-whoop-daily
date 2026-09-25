@@ -809,6 +809,7 @@ export type Database = {
           runs_started: number
         }[]
       }
+      caller_visitor: { Args: { p_visitor_id: string }; Returns: string }
       classic_result_reject_reason: {
         Args: {
           p_correct_claims: number
