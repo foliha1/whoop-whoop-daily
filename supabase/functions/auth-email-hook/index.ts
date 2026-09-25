@@ -141,26 +141,26 @@ const handler = createAuthEmailHandler({
       const token = authCode(data)
       return { subject: codeSubject(token), element: React.createElement(SignupEmail, { token }) }
     },
-    invite: (data) => ({
-      subject: codeSubject(data.token ?? ''),
-      element: React.createElement(InviteEmail, { token: data.token ?? '' }),
-    }),
+    invite: (data) => {
+      const token = authCode(data)
+      return { subject: codeSubject(token), element: React.createElement(InviteEmail, { token }) }
+    },
     magiclink: (data) => {
       const token = authCode(data)
       return { subject: codeSubject(token), element: React.createElement(MagicLinkEmail, { token }) }
     },
-    recovery: (data) => ({
-      subject: codeSubject(data.token ?? ''),
-      element: React.createElement(RecoveryEmail, { token: data.token ?? '' }),
-    }),
-    email_change: (data) => ({
-      subject: codeSubject(data.token ?? ''),
-      element: React.createElement(EmailChangeEmail, { token: data.token ?? '' }),
-    }),
-    reauthentication: (data) => ({
-      subject: codeSubject(data.token ?? ''),
-      element: React.createElement(ReauthenticationEmail, { token: data.token ?? '' }),
-    }),
+    recovery: (data) => {
+      const token = authCode(data)
+      return { subject: codeSubject(token), element: React.createElement(RecoveryEmail, { token }) }
+    },
+    email_change: (data) => {
+      const token = authCode(data)
+      return { subject: codeSubject(token), element: React.createElement(EmailChangeEmail, { token }) }
+    },
+    reauthentication: (data) => {
+      const token = authCode(data)
+      return { subject: codeSubject(token), element: React.createElement(ReauthenticationEmail, { token }) }
+    },
   },
 })
 
