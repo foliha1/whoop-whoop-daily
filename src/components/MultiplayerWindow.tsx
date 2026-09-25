@@ -25,6 +25,23 @@ import { joinRoomSession, fetchSeatKeys } from "@/lib/rooms";
 import { getVisitorId, getDisplayName, setDisplayName, DISPLAY_NAME_MAX } from "@/lib/visitor";
 import { trackEvent } from "@/lib/analytics";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
+import {
+  ACTIVE_TABLE_KEY,
+  hostLiveness,
+  registerSeatsWithRetry,
+  skippableSeats,
+  tableUrl,
+} from "@/lib/classicReliability";
+
+// Keep the table in the URL (and remember it for this tab) so a reload
+// returns to the same table. replaceState: the back button isn't polluted.
+function rememberTable(code: string | null) {
+  try {
+    window.history.replaceState(window.history.state, "", tableUrl(window.location.search, code));
+    if (code) sessionStorage.setItem(ACTIVE_TABLE_KEY, code.toUpperCase());
+    else sessionStorage.removeItem(ACTIVE_TABLE_KEY);
+  } catch { /* non-fatal */ }
+}
 import { useMultiplayerHost, useMultiplayerJoiner, useTransientEvents, type SeatMapEntry } from "@/hooks/useMultiplayerGame";
 import { useHeartbeatSender, useHeartbeatMonitor } from "@/hooks/useHeartbeat";
 import DailyFrame from "@/components/DailyFrame";
@@ -245,6 +262,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // constraint so consecutive games in the same room don't collide.
   const [gameId, setGameId] = useState<string>("");
   const [starting, setStarting] = useState(false);
+  // Seat registration failed twice: stay on "Starting…" and offer a retry.
+  const [startFailed, setStartFailed] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [shareFlash, setShareFlash] = useState(false);
   const [codeFlash, setCodeFlash] = useState(false);
@@ -742,8 +761,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     }
   }, [participants.length, activeRoom, view]);
 
-  const handleStartGame = useCallback(() => {
-    if (!isHostView || participants.length < 2 || starting) return;
+  const handleStartGame = useCallback(async () => {
+    if (!isHostView || participants.length < 2) return;
+    if (starting && !startFailed) return;
     unlockAudio();
     const seatMap: SeatMapEntry[] = participants.slice(0, ROOM_CAPACITY).map((p, i) => ({
       seat: i,
@@ -751,24 +771,30 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       display_name: p.display_name,
     }));
     setStarting(true);
+    setStartFailed(false);
+    const newGameId = crypto.randomUUID();
+    // Persist the frozen seat map BEFORE the game exists: the claim arbiter
+    // refuses every claim from a seat it has not registered, so a game that
+    // starts ahead of this would have nobody able to WHOOP.
+    if (!activeRoom?.id) { setStarting(false); return; }
+    const roomId = activeRoom.id;
+    const ok = await registerSeatsWithRetry(() =>
+      supabase.rpc("register_room_seats", {
+        p_room_id: roomId,
+        p_game_id: newGameId,
+        p_host_visitor_id: browserId,
+        p_seats: seatMap.map((e) => ({ seat: e.seat, player_key: e.player_key })),
+      }),
+    );
+    if (!ok) {
+      setStartFailed(true);
+      return;
+    }
     // Notify joiners so they can show a loading state immediately.
     try {
       channel?.send({ type: "broadcast", event: "msg", payload: { kind: "game_starting" } });
     } catch {
       /* non-fatal */
-    }
-    const newGameId = crypto.randomUUID();
-    // Persist the frozen seat map so the claim arbiter can verify that a
-    // WHOOP really comes from the seat it claims to come from.
-    if (activeRoom?.id) {
-      void supabase.rpc("register_room_seats", {
-        p_room_id: activeRoom.id,
-        p_game_id: newGameId,
-        p_host_visitor_id: browserId,
-        p_seats: seatMap.map((e) => ({ seat: e.seat, player_key: e.player_key })),
-      }).then(({ error }) => {
-        if (error) console.error("[register_room_seats] failed", error);
-      });
     }
     setGameId(newGameId);
     setFrozenSeats(seatMap);
@@ -788,7 +814,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       roomCode: activeRoom?.room_code,
       metadata: { player_count: seatMap.length, grid_size: FIXED_GRID },
     });
-  }, [isHostView, participants, activeRoom, starting, channel, browserId, host.dispatch, host.state.slotCount]);
+  }, [isHostView, participants, activeRoom, starting, startFailed, channel, browserId, host.dispatch, host.state.slotCount]);
 
 
   // Joiner: listen for the host's game_starting notice.
@@ -895,6 +921,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   }, []);
 
   const leaveToIdle = useCallback(() => {
+    rememberTable(null);
+    setStartFailed(false);
     setCodeInput("");
     setFrozenSeats(null);
     
@@ -1112,7 +1140,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         lastClaimReject={host.lastClaimReject ?? null}
         onIntent={(action) => {
           if (action.type === "REQUEST_ROLL") {
-            host.commitAndRoll();
+            host.commitAndRoll(0);
             return;
           }
           if (action.type === "PLAYER_ENTER_CLAIM") {
@@ -1190,6 +1218,28 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         presenceVisitorIds={participants.map((p) => p.player_key)}
         presenceStatus={presenceStatus}
       />
+      {waitingForHost ? (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: "absolute",
+            top: SPACE[8],
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 50,
+            padding: `${SPACE[4]}px ${SPACE[8]}px`,
+            borderRadius: RADIUS.sm,
+            ...panelStyle("panel", 8),
+            ...textStyle("control", mobile),
+            fontStyle: "italic",
+            color: COLORS.ink,
+            pointerEvents: "none",
+          }}
+        >
+          Waiting for the host…
+        </div>
+      ) : null}
       </GameShell>
     );
   }
@@ -1632,7 +1682,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       {isHost ? (
         <button
           type="button"
-          onClick={handleStartGame}
+          onClick={() => void handleStartGame()}
           disabled={startDisabled}
           aria-busy={starting}
           className={startDisabled ? undefined : "ww-press"} style={playButtonStyle(startDisabled)}
@@ -1664,7 +1714,14 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     textAlign: "center",
   };
 
-  const startingBanner = starting ? (
+  const startingBanner = starting && startFailed ? (
+    <div role="status" aria-live="polite" style={statusBarStyle}>
+      Starting…
+      <AppButton variant="secondary" size="sm" onClick={() => void handleStartGame()}>
+        Try again
+      </AppButton>
+    </div>
+  ) : starting ? (
     <div role="status" aria-live="polite" style={statusBarStyle}>
       <span
         aria-hidden="true"
