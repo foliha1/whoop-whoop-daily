@@ -460,7 +460,16 @@ export function useMultiplayerHost(opts: {
     deferredRef.current = null;
   }, []);
   useEffect(() => clearDeferred, [clearDeferred]);
-  useEffect(() => { clearDeferred(); }, [gameId, clearDeferred]);
+  // Per-game reset: everything scoped to ONE game is cleared in one place when
+  // the gameId changes. (claimWindowRef resets inline above, during render.)
+  useEffect(() => {
+    clearDeferred();
+    grantedRef.current = new Set();
+    resolvedWindowsRef.current = new Set();
+    endedForEmptyRef.current = false;
+    setRollCommit(null);
+    setLastClaimReject(null);
+  }, [gameId, clearDeferred]);
 
   // Refuse a grant for good: mark it consumed, release its row, tell the seat.
   const refuseGrant = useCallback(

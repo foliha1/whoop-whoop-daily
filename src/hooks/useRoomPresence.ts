@@ -128,6 +128,7 @@ export function useRoomPresence(
             } satisfies PresenceMeta);
             setChannel(ch);
             setStatus("connected");
+            setConnectEpoch((n) => n + 1);
           } catch (e) {
             console.warn("[presence] track failed", e);
             setStatus("error");
@@ -180,6 +181,7 @@ export function useRoomPresence(
           if (channelRef.current !== ch) return;
           setChannel(ch);
           setStatus("connected");
+          setConnectEpoch((n) => n + 1);
         } catch (e) {
           console.warn("[presence] rejoin failed", e);
         } finally {
@@ -232,8 +234,8 @@ export function useRoomPresence(
   }, []);
 
   return useMemo(
-    () => ({ participants, status, channel, channelRef, onBroadcast }),
-    [participants, status, channel, onBroadcast],
+    () => ({ participants, status, channel, channelRef, onBroadcast, connectEpoch }),
+    [participants, status, channel, onBroadcast, connectEpoch],
   );
 }
 

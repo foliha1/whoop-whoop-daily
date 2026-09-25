@@ -71,7 +71,16 @@ export interface ClaimGrantEnvelope {
   v: number;
   type: "claim_grant";
   seq: number;
-  payload: { claim_window: number; seat: number; player_key?: string };
+  // game_id scopes the grant: the host ignores grants for any other game.
+  payload: { claim_window: number; seat: number; player_key?: string; game_id?: string };
+}
+
+// Joiner → host: "send me your latest snapshot". Carries no identity.
+export interface StateRequestEnvelope {
+  v: number;
+  type: "state_request";
+  seq: number;
+  payload: Record<string, never>;
 }
 
 // Transient events (NICE!, Great Match!, NOPE!). Each carries a unique id so
@@ -209,7 +218,8 @@ export type Envelope =
   | RollCommittedEnvelope
   | RollRejectEnvelope
   | ClaimRejectEnvelope
-  | HeartbeatEnvelope;
+  | HeartbeatEnvelope
+  | StateRequestEnvelope;
 
 export function jsonSerialize(payload: unknown): string {
   return JSON.stringify(payload);
