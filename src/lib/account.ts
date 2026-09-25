@@ -29,13 +29,12 @@ function publish(next: string | null) {
   if (changed) listeners.forEach((fn) => fn(clean));
 }
 
-// Legacy: the browser used to remember a typed email as identity. Forget it.
-try {
-  localStorage.removeItem("ww_daily_email");
-  localStorage.removeItem("ww_daily_subscribed");
-} catch {
-  // ignore
-}
+// Legacy note: this module once wiped the typed-email keys ("ww_daily_email",
+// "ww_daily_subscribed") on import, treating them as identity. That wipe also
+// erased the live reminder flag every load, so subscribed players were asked
+// for their email again on every visit. Identity is resolved from the session
+// alone; those keys are owned by dailySubscribe (clearSubscribed forgets them
+// explicitly) and nothing reads the stored email. Nothing is removed here.
 
 try {
   supabase.auth.onAuthStateChange((_event, session) => {
