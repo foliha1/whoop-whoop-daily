@@ -42,10 +42,10 @@ describe("optional sign-in", () => {
   it("accepts only exactly six ASCII numeric digits at verification", async () => {
     expect(isValidSignInCode("123456")).toBe(true);
     expect(isValidSignInCode(" 123456 ")).toBe(true);
+    expect(isValidSignInCode("12345")).toBe(false);
     expect(isValidSignInCode("1234567")).toBe(false);
-    expect(isValidSignInCode("1234569")).toBe(false);
-    expect(isValidSignInCode("1234567a")).toBe(false);
-    expect(isValidSignInCode("１２３４５６７８")).toBe(false);
+    expect(isValidSignInCode("12345a")).toBe(false);
+    expect(isValidSignInCode("１２３４５６")).toBe(false);
 
     await expect(verifySignInCode("a@b.co", "12345")).resolves.toEqual({ ok: false, reason: "invalid_code" });
     expect(verifyOtp).not.toHaveBeenCalled();
