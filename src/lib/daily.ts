@@ -179,20 +179,25 @@ export interface DailyResult {
   completedAt: string;
   /**
    * Who this record belongs to on this browser: the anonymous player
-   * ("anon") or a signed-in account ("account"). Account records are removed
+   * ("anon") or the owning account ("user:<id>"; older records say
+   * "account"). Account records are removed
    * on sign-out and deletion so they never show to the next person.
    * Missing on older records, which are treated as the browser's own.
    */
   owner?: DailyResultOwner;
 }
 
-export type DailyResultOwner = "anon" | "account";
+export type DailyResultOwner = "anon" | "account" | `user:${string}`;
+
+function isAccountOwner(owner: unknown): owner is DailyResultOwner {
+  return owner === "account" || (typeof owner === "string" && /^user:.+/.test(owner));
+}
 
 /** True when a stored record belongs to a signed-in account, not this browser. */
 export function isAccountOwnedRecord(raw: string | null): boolean {
   if (!raw) return false;
   try {
-    return (JSON.parse(raw) as { owner?: unknown })?.owner === "account";
+    return isAccountOwner((JSON.parse(raw) as { owner?: unknown })?.owner);
   } catch {
     return false;
   }
@@ -240,7 +245,7 @@ export function loadDailyResult(seed: string): DailyResult | null {
       peekRound: typeof parsed.peekRound === "number" ? parsed.peekRound : null,
       failed: parsed.failed === true,
       completedAt: parsed.completedAt ?? new Date().toISOString(),
-      owner: parsed.owner === "account" ? "account" : "anon",
+      owner: isAccountOwner(parsed.owner) ? parsed.owner : "anon",
     };
   } catch {
     return null;

@@ -9,7 +9,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getVisitorId } from "@/lib/visitor";
 import { trackDaily } from "@/lib/dailyEvents";
-import { isAccountOwnedRecord } from "@/lib/daily";
+import { isAccountOwnedRecord, type DailyResultOwner } from "@/lib/daily";
 
 let sessionEmail: string | null = null;
 let sessionUserId: string | null = null;
@@ -70,6 +70,12 @@ try {
 /** The signed-in user id, or null. Synchronous; may be null until ready. */
 export function getSessionUserId(): string | null {
   return sessionUserId;
+}
+
+/** Owner tag for this browser's "already played" record. */
+export function currentRecordOwner(): DailyResultOwner {
+  if (sessionUserId) return `user:${sessionUserId}`;
+  return sessionEmail ? "account" : "anon";
 }
 
 /** The signed-in email, or null. Synchronous; may be null until ready. */
@@ -162,6 +168,7 @@ export async function verifySignInCode(
       trackDaily("signin_failed", { props: { reason } });
       return { ok: false, reason };
     }
+    if (sessionUserId === null) sessionUserId = data.session.user.id ?? null;
     publish(data.session.user.email ?? null);
     const merge = await linkDeviceAndMerge();
     trackDaily("signin_verified", {
