@@ -94,6 +94,22 @@ describe("Not you? signs out on this device", () => {
   });
 });
 
+describe("Delete Account keeps played games", () => {
+  it("clears identity but keeps today's played record", async () => {
+    const { deleteAccount } = await import("@/lib/account");
+    invoke.mockResolvedValue({ data: { ok: true }, error: null });
+    localStorage.setItem("ww_visitor_id", "visitor-recognition");
+    localStorage.setItem("ww_daily_whoop-2026-08-18", '{"seed":"whoop-2026-08-18"}');
+    localStorage.setItem("ww_daily_subscribed", "1");
+    expect(await deleteAccount()).toBe(true);
+    expect(localStorage.getItem("ww_visitor_id")).toBeNull();
+    expect(localStorage.getItem("ww_daily_subscribed")).toBeNull();
+    expect(localStorage.getItem("ww_daily_whoop-2026-08-18")).toBe(
+      '{"seed":"whoop-2026-08-18"}'
+    );
+  });
+});
+
 describe("recognized state", () => {
   it("shows the masked address and confirms before forgetting", () => {
     const onForget = vi.fn();
