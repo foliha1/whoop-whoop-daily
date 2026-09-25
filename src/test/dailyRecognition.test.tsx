@@ -169,10 +169,15 @@ describe("not-recognized state opens sign-in", () => {
     expect(invoke).not.toHaveBeenCalled();
   });
 
-  it("gives a new player the separate yes/no reminder question", async () => {
+  it("keeps the first-time choice open and blocks unrelated dialog dismissal", async () => {
     const onRestored = await signIn({ first_signin: true, games: 0, was_subscriber: false, reminder_answered: false });
-    await screen.findByText("Want the daily puzzle by email?");
-    expect(onRestored).toHaveBeenCalledWith("player@example.com", false);
+    await screen.findByText("We'll send you the daily puzzle.");
+    expect(onRestored).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("daily-restore-close")).toBeNull();
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.getByTestId("daily-email-modal")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "No thanks." }));
+    await waitFor(() => expect(onRestored).toHaveBeenCalledWith("player@example.com", false));
     expect(invoke).not.toHaveBeenCalled();
   });
 });
