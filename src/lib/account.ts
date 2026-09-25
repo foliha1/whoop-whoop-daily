@@ -9,6 +9,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getVisitorId } from "@/lib/visitor";
 import { trackDaily } from "@/lib/dailyEvents";
+import { isAccountOwnedRecord } from "@/lib/daily";
 
 let sessionEmail: string | null = null;
 let resolved = false;
@@ -168,8 +169,9 @@ export function clearLocalPlayerData(): void {
         (k) =>
           k.startsWith("ww_") &&
           !KEEP_ON_SIGN_OUT.has(k) &&
-          // Played-game records stay so today's Daily can't be replayed.
-          !k.startsWith("ww_daily_whoop-")
+          // The browser's own played-game records stay so today's Daily
+          // can't be replayed; an account's records leave with the account.
+          !(k.startsWith("ww_daily_whoop-") && !isAccountOwnedRecord(localStorage.getItem(k)))
       )
       .forEach((k) => localStorage.removeItem(k));
   } catch {
@@ -256,8 +258,8 @@ export async function deleteAccount(): Promise<boolean> {
         .filter(
           (k) =>
             (k.startsWith("ww_daily") || k === "ww_visitor_id") &&
-            // Played-game records stay so today's Daily can't be replayed.
-            !k.startsWith("ww_daily_whoop-")
+            // Only the browser's own played records stay (see above).
+            !(k.startsWith("ww_daily_whoop-") && !isAccountOwnedRecord(localStorage.getItem(k)))
         )
         .forEach((k) => localStorage.removeItem(k));
     } catch {

@@ -34,7 +34,7 @@ import {
   saveDailyResultRemote,
   type FirstAttempt,
 } from "@/lib/dailyResults";
-import { whenAccountReady } from "@/lib/account";
+import { getSessionEmail, whenAccountReady } from "@/lib/account";
 import {
   DAILY_MATCH_SETTLE_MS,
   WRONG_ANIM_MS as WRONG_TREATMENT_MS,
@@ -148,7 +148,8 @@ export function useDailyGame(): UseDailyGameResult {
         initDailyState(seed).rolls.map((x) => x.attribute)
       );
       adoptedRef.current = true;
-      saveDailyResult(r);
+      // Fetched for the signed-in account, so it leaves with the account.
+      saveDailyResult(r, "account");
       setResult(r);
       setAlreadyPlayed(true);
       setResultSaved(true);
@@ -311,7 +312,7 @@ export function useDailyGame(): UseDailyGameResult {
       return;
     }
     if (!debugBypass) {
-      saveDailyResult(finished);
+      saveDailyResult(finished, getSessionEmail() ? "account" : "anon");
       // Fire-and-forget: the result screen never waits on the network. The
       // streak read is gated on this settling so it counts today's run.
       void saveDailyResultRemote(finished).then(() => setResultSaved(true));
