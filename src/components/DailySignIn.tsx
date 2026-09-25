@@ -1,5 +1,5 @@
 // ============================================================================
-// DailySignIn — optional sign-in by an 8-digit email code.
+// DailySignIn — optional sign-in by a 6-digit email code.
 //
 // Steps: email → code → (first time, not already on the list) a separate
 // yes/no reminder question → done. Signing in never subscribes anyone.
@@ -98,7 +98,7 @@ const DailySignIn: React.FC<{
     e.preventDefault();
     if (busy) return;
     hapticTap();
-    if (!isValidSignInCode(code)) return fail("Enter the 8-digit code.");
+    if (!isValidSignInCode(code)) return fail("Enter the 6-digit code.");
     setBusy(true);
     setError(null);
     const res = await verifySignInCode(email, code);
@@ -174,7 +174,7 @@ const DailySignIn: React.FC<{
       <h2 style={headingStyle}>{isCode ? "Check your email." : "Save your score."}</h2>
       <p style={bodyStyle}>
         {isCode
-          ? `We sent an 8-digit code to ${email.trim().toLowerCase()}.`
+          ? `We sent a 6-digit code to ${email.trim().toLowerCase()}.`
           : "Sign in with your email to keep your streak and points on any device. No password, just a code."}
       </p>
       {isCode ? (
@@ -185,12 +185,12 @@ const DailySignIn: React.FC<{
           inputMode="numeric"
           pattern="[0-9]*"
           autoComplete="one-time-code"
-          maxLength={8}
-          aria-label="8-digit code"
-          placeholder="12345678"
+          maxLength={6}
+          aria-label="6-digit code"
+          placeholder="123456"
           value={code}
           onChange={(e) => {
-            setCode(e.target.value.replace(/\D/g, "").slice(0, 8));
+            setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
             setError(null);
           }}
           style={{ ...inputStyle, letterSpacing: "0.3em", textAlign: "center" }}
