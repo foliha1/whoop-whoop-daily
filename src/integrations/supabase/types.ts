@@ -1110,6 +1110,7 @@ export type Database = {
             Args: { p_email: string; p_source: string; p_visitor_id: string }
             Returns: boolean
           }
+      unlink_device: { Args: { p_visitor_id: string }; Returns: boolean }
       whoop_points_active_identities: {
         Args: { p_as_of?: string }
         Returns: {

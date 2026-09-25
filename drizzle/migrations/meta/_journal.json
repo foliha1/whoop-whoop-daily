@@ -99,6 +99,13 @@
       "when": 1790266343207,
       "tag": "0013_legacy_subscriber_links_snapshot",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1790338620361,
+      "tag": "0014_unlink_device",
+      "breakpoints": true
     }
   ]
 }
