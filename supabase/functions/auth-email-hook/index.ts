@@ -1,6 +1,7 @@
 import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { createAuthEmailHandler } from 'npm:@lovable.dev/email-js@0.1.0'
+import { codeSubject } from '../_shared/email-templates/code-email.tsx'
 import { SignupEmail } from '../_shared/email-templates/signup.tsx'
 import { InviteEmail } from '../_shared/email-templates/invite.tsx'
 import { MagicLinkEmail } from '../_shared/email-templates/magic-link.tsx'
@@ -129,53 +130,32 @@ const handler = createAuthEmailHandler({
   sendUrl: Deno.env.get('LOVABLE_SEND_URL'),
   emails: {
     signup: {
-      subject: 'Confirm your email',
+      subject: (data) => codeSubject(data.token ?? ''),
       render: (data) =>
-        React.createElement(SignupEmail, {
-          siteName: SITE_NAME,
-          siteUrl: SITE_URL,
-          recipient: data.email,
-          confirmationUrl: data.url,
-        }),
+        React.createElement(SignupEmail, { token: data.token ?? '' }),
     },
     invite: {
-      subject: "You've been invited",
+      subject: (data) => codeSubject(data.token ?? ''),
       render: (data) =>
-        React.createElement(InviteEmail, {
-          siteName: SITE_NAME,
-          siteUrl: SITE_URL,
-          confirmationUrl: data.url,
-        }),
+        React.createElement(InviteEmail, { token: data.token ?? '' }),
     },
     magiclink: {
-      subject: 'Your login link',
+      subject: (data) => codeSubject(data.token ?? ''),
       render: (data) =>
-        React.createElement(MagicLinkEmail, {
-          siteName: SITE_NAME,
-          confirmationUrl: data.url,
-        }),
+        React.createElement(MagicLinkEmail, { token: data.token ?? '' }),
     },
     recovery: {
-      subject: 'Reset your password',
+      subject: (data) => codeSubject(data.token ?? ''),
       render: (data) =>
-        React.createElement(RecoveryEmail, {
-          siteName: SITE_NAME,
-          confirmationUrl: data.url,
-        }),
+        React.createElement(RecoveryEmail, { token: data.token ?? '' }),
     },
     email_change: {
-      subject: 'Confirm your new email',
+      subject: (data) => codeSubject(data.token ?? ''),
       render: (data) =>
-        React.createElement(EmailChangeEmail, {
-          siteName: SITE_NAME,
-          oldEmail: data.old_email ?? '',
-          email: data.email,
-          newEmail: data.new_email ?? '',
-          confirmationUrl: data.url,
-        }),
+        React.createElement(EmailChangeEmail, { token: data.token ?? '' }),
     },
     reauthentication: {
-      subject: 'Your verification code',
+      subject: (data) => codeSubject(data.token ?? ''),
       render: (data) =>
         React.createElement(ReauthenticationEmail, { token: data.token ?? '' }),
     },
