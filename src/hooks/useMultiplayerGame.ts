@@ -37,9 +37,11 @@ import {
   type StateEnvelope,
   type TransientEvent,
   type TransientEventKind,
+  type StateRequestEnvelope,
 } from "@/lib/multiplayer";
 import { serverNow } from "@/hooks/useServerClock";
 import { warmClaimLock } from "@/lib/claimLock";
+import { SnapshotOrder, decideGrant, grantKey, mayRoll } from "@/lib/classicReliability";
 
 export interface SeatMapEntry {
   seat: number;
@@ -213,6 +215,12 @@ export function useMultiplayerHost(opts: {
   // A lone remaining player staring at a live board is worse than a clean
   // ending, but a false positive is worse still — hence the guard.
   const endedForEmptyRef = useRef(false);
+  // A rematch reuses the gameId, so also re-arm when play leaves GAME_OVER.
+  const prevPhaseForEmptyRef = useRef(g.state.phase);
+  if (prevPhaseForEmptyRef.current !== g.state.phase) {
+    if (prevPhaseForEmptyRef.current === "GAME_OVER") endedForEmptyRef.current = false;
+    prevPhaseForEmptyRef.current = g.state.phase;
+  }
   useEffect(() => {
     if (!enabled) return;
     const total = seatMap.length;
@@ -275,12 +283,17 @@ export function useMultiplayerHost(opts: {
   // hero animation joiners get from the wire. Cleared per-game so a stale
   // commit from a previous game never re-triggers.
   const [rollCommit, setRollCommit] = useState<RollCommitPayload | null>(null);
-  useEffect(() => { setRollCommit(null); }, [gameId]);
 
   const rollAttrs: readonly RollAttribute[] = ["SHAPE", "NUMBER", "COLOR"] as const;
-  const commitAndRoll = useCallback(() => {
+  const commitAndRoll = useCallback((bySeat: number) => {
     const s = latestStateRef.current;
     if (s.phase !== "AWAITING_ROLL" || s.rolling) return;
+    // Only the current roller may roll. A late request from a seat whose
+    // state is stale must never roll for someone else.
+    if (!mayRoll(bySeat, s.roller)) {
+      console.warn("[roll:reject-not-roller]", { bySeat, roller: s.roller });
+      return;
+    }
     const { attribute, faceIndex } = pickRoll(rollAttrs, rngOf(s));
     const tumbleSeed = pickTumbleSeed();
     // startAt is a SERVER-clock timestamp so every client can time the
@@ -340,6 +353,11 @@ export function useMultiplayerHost(opts: {
     const handler = (msg: { payload: unknown }) => {
       const env = msg.payload as Envelope;
       if (!env || env.v !== PROTOCOL_VERSION) return;
+      if (env.type === "state_request") {
+        // A joiner is catching up — reply with the latest full snapshot.
+        doSend();
+        return;
+      }
       if (env.type === "intent") {
         const intent: IntentPayload = env.payload;
         const seatEntry = seatMapRef.current.find((e) => e.seat === intent.seat);
@@ -362,7 +380,7 @@ export function useMultiplayerHost(opts: {
       }
     };
     return onBroadcast(handler);
-  }, [enabled, channel, onBroadcast, g.dispatch, commitAndRoll, rejectDuringRoll, hostVisitorId]);
+  }, [enabled, channel, onBroadcast, g.dispatch, commitAndRoll, rejectDuringRoll, hostVisitorId, doSend]);
 
   // Listen for authoritative claim grants from the arbiter edge function.
   // The host is the ONLY dispatcher of PLAYER_ENTER_CLAIM — even the host's
@@ -374,9 +392,12 @@ export function useMultiplayerHost(opts: {
   // but loudly: logged with both windows + seat + phase, and broadcast as
   // `claim_reject` so the pressing player sees the CONNECTION ISSUE banner
   // instead of a silently stuck "won-but-nothing-happens" state.
+  // Keys are gameId:claim_window:seat. Windows in which a grant was applied
+  // are tracked too, so a late or rebroadcast grant for a closed window is
+  // ignored instead of reopening it.
   const grantedRef = useRef<Set<string>>(new Set());
+  const resolvedWindowsRef = useRef<Set<number>>(new Set());
   const [lastClaimReject, setLastClaimReject] = useState<ClaimRejectPayload | null>(null);
-  useEffect(() => { setLastClaimReject(null); }, [gameId]);
 
   // Broadcast a rejection AND surface it locally. Every refusal path must go
   // through this — a joiner that never hears about a refused grant hangs until
@@ -439,7 +460,16 @@ export function useMultiplayerHost(opts: {
     deferredRef.current = null;
   }, []);
   useEffect(() => clearDeferred, [clearDeferred]);
-  useEffect(() => { clearDeferred(); }, [gameId, clearDeferred]);
+  // Per-game reset: everything scoped to ONE game is cleared in one place when
+  // the gameId changes. (claimWindowRef resets inline above, during render.)
+  useEffect(() => {
+    clearDeferred();
+    grantedRef.current = new Set();
+    resolvedWindowsRef.current = new Set();
+    endedForEmptyRef.current = false;
+    setRollCommit(null);
+    setLastClaimReject(null);
+  }, [gameId, clearDeferred]);
 
   // Refuse a grant for good: mark it consumed, release its row, tell the seat.
   const refuseGrant = useCallback(
@@ -484,6 +514,7 @@ export function useMultiplayerHost(opts: {
       if (claimablePhase(s.phase) && s.claimBy === null && !s.rolling) {
         clearDeferred();
         grantedRef.current.add(d.key);
+        resolvedWindowsRef.current.add(d.claim_window);
         g.dispatch({ type: "PLAYER_ENTER_CLAIM", by: d.seat });
         return;
       }
@@ -508,11 +539,18 @@ export function useMultiplayerHost(opts: {
       if (!env || env.v !== PROTOCOL_VERSION || env.type !== "claim_grant") return;
       const grant = (env as ClaimGrantEnvelope).payload;
       const hostWindow = claimWindowRef.current;
-      const dedupeKey = `${grant.claim_window}:${grant.seat}`;
-      if (grantedRef.current.has(dedupeKey)) return;
-      if (deferredRef.current?.key === dedupeKey) return;
+      const dedupeKey = grantKey(gameIdRef.current, grant.claim_window, grant.seat);
+      const decision = decideGrant({
+        grantGameId: grant.game_id,
+        currentGameId: gameIdRef.current,
+        grantWindow: grant.claim_window,
+        openWindow: hostWindow,
+        alreadyHandled: grantedRef.current.has(dedupeKey) || deferredRef.current?.key === dedupeKey,
+        windowResolved: resolvedWindowsRef.current.has(grant.claim_window),
+      });
+      if (decision === "ignore") return;
 
-      if (grant.claim_window !== hostWindow) {
+      if (decision === "refuse") {
         const reason: ClaimRejectPayload["reason"] =
           grant.claim_window < hostWindow ? "STALE_WINDOW" : "FUTURE_WINDOW";
         console.warn("[claim_grant:drop]", {
@@ -539,6 +577,7 @@ export function useMultiplayerHost(opts: {
       }
       if (claimablePhase(s.phase) && s.claimBy === null && !s.rolling) {
         grantedRef.current.add(dedupeKey);
+        resolvedWindowsRef.current.add(grant.claim_window);
         // PLAYER_ENTER_CLAIM cancels any flip in flight for us: it clears
         // inFlight and peekingCard, leaves flipsThisTurn untouched, and the
         // orphaned FLIP_COMPLETE timer no-ops on its token guard.
@@ -608,13 +647,14 @@ export function useMultiplayerHost(opts: {
 // broadcast handled by the grant listener above.
 function handleHostIntent(
   dispatch: (a: Action) => void,
-  commitAndRoll: () => void,
+  commitAndRoll: (bySeat: number) => void,
   seat: number,
   action: IntentAction,
 ) {
   switch (action.type) {
     case "REQUEST_ROLL":
-      commitAndRoll();
+      // commitAndRoll rejects the request unless `seat` is the current roller.
+      commitAndRoll(seat);
       return;
     case "PLAYER_ENTER_CLAIM":
       // Ignored — the arbiter is the only path into claim mode.
@@ -679,12 +719,17 @@ export function useMultiplayerJoiner(opts: {
   mySeat: number | null;
   visitorId: string;
   enabled: boolean;
+  // Bumps every time the room channel (re)subscribes. Each bump asks the host
+  // for its latest snapshot.
+  connectEpoch?: number;
 }) {
-  const { channel, onBroadcast, mySeat: mySeatProp, visitorId, enabled } = opts;
+  const { channel, onBroadcast, mySeat: mySeatProp, visitorId, enabled, connectEpoch = 0 } = opts;
   const [publicState, setPublicState] = useState<PublicState | null>(null);
   const [rollCommit, setRollCommit] = useState<RollCommitPayload | null>(null);
   const [lastClaimReject, setLastClaimReject] = useState<ClaimRejectPayload | null>(null);
-  const lastSeqRef = useRef(0);
+  // Ordering is scoped per game: a late snapshot from an older game is always
+  // dropped, never accepted after a blanket seq reset.
+  const orderRef = useRef(new SnapshotOrder());
   const seqRef = useRef(0);
   const events = useTransientEvents(channel, onBroadcast, enabled);
 
@@ -694,8 +739,7 @@ export function useMultiplayerJoiner(opts: {
       const env = msg.payload as Envelope;
       if (!env || env.v !== PROTOCOL_VERSION) return;
       if (env.type === "state") {
-        if (env.seq <= lastSeqRef.current) return;
-        lastSeqRef.current = env.seq;
+        if (!orderRef.current.accept(env.payload.gameId ?? "", env.seq)) return;
         setPublicState(env.payload);
       } else if (env.type === "roll_committed") {
         // Latest commit wins — game only ever has one pending roll.
@@ -708,6 +752,32 @@ export function useMultiplayerJoiner(opts: {
     };
     return onBroadcast(handler);
   }, [enabled, channel, onBroadcast]);
+
+  // Catch-up: ask the host for its latest snapshot on subscribe, on every
+  // reconnect, and when the tab becomes visible again. One reply is a full
+  // state, so it fully repairs a joiner that missed updates.
+  const requestState = useCallback(() => {
+    if (!channel) return;
+    const env: StateRequestEnvelope = { v: PROTOCOL_VERSION, type: "state_request", seq: 0, payload: {} };
+    channel.send({ type: "broadcast", event: "msg", payload: env }).catch(() => {});
+  }, [channel]);
+  useEffect(() => {
+    if (!enabled || !channel) return;
+    requestState();
+  }, [enabled, channel, connectEpoch, requestState]);
+  useEffect(() => {
+    if (!enabled || !channel) return;
+    let last = 0;
+    const onVis = () => {
+      if (document.visibilityState !== "visible") return;
+      const now = Date.now();
+      if (now - last < 1000) return;
+      last = now;
+      requestState();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [enabled, channel, requestState]);
 
   // Resolve seat from prop first, then fall back to publicState's seatMap.
   // Guests initially mount with mySeatProp=null; the seat is discovered from

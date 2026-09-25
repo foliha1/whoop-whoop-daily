@@ -67,10 +67,16 @@ async function attempt(input: Input): Promise<ClaimLockResult> {
       console.warn("[claim-lock] malformed response — outcome unknown", data);
       return unknown(new Error("malformed_response"));
     }
-    const d = data as { won?: boolean; winner_seat?: number; claim_window?: number; error?: string };
+    const d = data as { won?: boolean | null; outcome?: string; winner_seat?: number; claim_window?: number; error?: string };
     if (d.error) {
       console.warn("[claim-lock] server error — outcome unknown", d.error);
       return unknown(d.error);
+    }
+    // The row landed but its announcement did not. Retrying the identical
+    // window hits the conflict path, which rebroadcasts and returns "won".
+    if (d.outcome === "unknown") {
+      console.warn("[claim-lock] grant broadcast failed — outcome unknown, retrying");
+      return unknown(new Error("grant_broadcast_failed"));
     }
     const winner_seat = typeof d.winner_seat === "number" ? d.winner_seat : null;
     // A fresh insert wins. So does finding the existing row already owned by

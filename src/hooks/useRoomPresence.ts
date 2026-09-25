@@ -44,12 +44,15 @@ export function useRoomPresence(
   channel: RealtimeChannel | null;
   channelRef: React.MutableRefObject<RealtimeChannel | null>;
   onBroadcast: (listener: BroadcastListener) => () => void;
+  connectEpoch: number;
 } {
   const [participants, setParticipants] = useState<PresenceParticipant[]>([]);
   const [status, setStatus] = useState<PresenceStatus>("connecting");
   // Channel exposed as STATE so consumers re-render when it becomes available.
   // A ref alone silently strands hooks that gate on `channel != null`.
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
+  // Bumps on every successful (re)subscribe so joiners can ask for a snapshot.
+  const [connectEpoch, setConnectEpoch] = useState(0);
   const joinedAtRef = useRef<number>(Date.now());
   const channelRef = useRef<RealtimeChannel | null>(null);
   const listenersRef = useRef<Set<BroadcastListener>>(new Set());
@@ -128,6 +131,7 @@ export function useRoomPresence(
             } satisfies PresenceMeta);
             setChannel(ch);
             setStatus("connected");
+            setConnectEpoch((n) => n + 1);
           } catch (e) {
             console.warn("[presence] track failed", e);
             setStatus("error");
@@ -180,6 +184,7 @@ export function useRoomPresence(
           if (channelRef.current !== ch) return;
           setChannel(ch);
           setStatus("connected");
+          setConnectEpoch((n) => n + 1);
         } catch (e) {
           console.warn("[presence] rejoin failed", e);
         } finally {
@@ -232,8 +237,8 @@ export function useRoomPresence(
   }, []);
 
   return useMemo(
-    () => ({ participants, status, channel, channelRef, onBroadcast }),
-    [participants, status, channel, onBroadcast],
+    () => ({ participants, status, channel, channelRef, onBroadcast, connectEpoch }),
+    [participants, status, channel, onBroadcast, connectEpoch],
   );
 }
 

@@ -25,6 +25,23 @@ import { joinRoomSession, fetchSeatKeys } from "@/lib/rooms";
 import { getVisitorId, getDisplayName, setDisplayName, DISPLAY_NAME_MAX } from "@/lib/visitor";
 import { trackEvent } from "@/lib/analytics";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
+import {
+  ACTIVE_TABLE_KEY,
+  hostLiveness,
+  registerSeatsWithRetry,
+  skippableSeats,
+  tableUrl,
+} from "@/lib/classicReliability";
+
+// Keep the table in the URL (and remember it for this tab) so a reload
+// returns to the same table. replaceState: the back button isn't polluted.
+function rememberTable(code: string | null) {
+  try {
+    window.history.replaceState(window.history.state, "", tableUrl(window.location.search, code));
+    if (code) sessionStorage.setItem(ACTIVE_TABLE_KEY, code.toUpperCase());
+    else sessionStorage.removeItem(ACTIVE_TABLE_KEY);
+  } catch { /* non-fatal */ }
+}
 import { useMultiplayerHost, useMultiplayerJoiner, useTransientEvents, type SeatMapEntry } from "@/hooks/useMultiplayerGame";
 import { useHeartbeatSender, useHeartbeatMonitor } from "@/hooks/useHeartbeat";
 import DailyFrame from "@/components/DailyFrame";
@@ -245,6 +262,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // constraint so consecutive games in the same room don't collide.
   const [gameId, setGameId] = useState<string>("");
   const [starting, setStarting] = useState(false);
+  // Seat registration failed twice: stay on "Starting…" and offer a retry.
+  const [startFailed, setStartFailed] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [shareFlash, setShareFlash] = useState(false);
   const [codeFlash, setCodeFlash] = useState(false);
@@ -283,7 +302,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     });
     return () => { cancelled = true; };
   }, [activeRoomId, browserId, visitorId]);
-  const { participants, status: presenceStatus, channel, onBroadcast } = useRoomPresence(
+  const { participants, status: presenceStatus, channel, onBroadcast, connectEpoch } = useRoomPresence(
     activeRoom && sessionRoomId === activeRoom.id ? activeRoom.id : null,
     visitorId,
     displayName,
@@ -380,15 +399,12 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // All three signals feed SET_DISCONNECTED, which uses REPLACE semantics —
   // resuming heartbeats or presence rejoin automatically un-marks a seat.
   // The stricter end-game set below is unchanged and still excludes AWAY.
+  // Presence absence alone no longer counts: it only starts the grace period,
+  // and heartbeat age decides when a seat is actually skippable.
   const disconnectedSeats = useMemo(() => {
     if (!frozenSeats) return [] as number[];
-    const present = new Set(participants.map((p) => p.player_key));
-    const stale = new Set(heartbeatStaleVisitors);
-    const awaySkip = new Set(heartbeatAwaySkipVisitors);
-    return frozenSeats
-      .filter((e) => !present.has(e.player_key) || stale.has(e.player_key) || awaySkip.has(e.player_key))
-      .map((e) => e.seat);
-  }, [frozenSeats, participants, heartbeatStaleVisitors, heartbeatAwaySkipVisitors]);
+    return skippableSeats(frozenSeats, heartbeatStaleVisitors, heartbeatAwaySkipVisitors);
+  }, [frozenSeats, heartbeatStaleVisitors, heartbeatAwaySkipVisitors]);
 
   const awaySeats = useMemo(() => {
     if (!frozenSeats) return [] as number[];
@@ -476,6 +492,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     mySeat: null, // resolved from seatMap after first state msg
     visitorId,
     enabled: joinerEnabled,
+    connectEpoch,
   });
 
   const joinerPublicState = joiner.publicState;
@@ -503,19 +520,28 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     return me?.seat ?? null;
   }, [joinerPublicState, visitorId]);
 
-  // Watch for host departure once a game is in progress.
+  // Watch for host departure once a game is in progress. A host missing from
+  // presence is only "waiting" — the game ends only when the host's heartbeat
+  // goes stale by the existing thresholds.
+  const watchHost = view.kind === "joiner" && !!joinerPublicState && !!hostVisitorId;
+  const hostWatchIds = useMemo(() => (hostVisitorId ? [hostVisitorId] : []), [hostVisitorId]);
+  const { staleVisitors: hostStaleKeys } = useHeartbeatMonitor({
+    channel,
+    onBroadcast,
+    enabled: watchHost,
+    watchedVisitorIds: hostWatchIds,
+    hostVisitorId: visitorId, // the monitor skips its own key; here that's us
+  });
+  const hostState = hostLiveness({
+    hostKey: hostVisitorId,
+    presentKeys: participants.map((p) => p.player_key),
+    staleKeys: hostStaleKeys,
+  });
+  const waitingForHost = view.kind === "joiner" && !!joinerPublicState && hostState !== "here";
   useEffect(() => {
-    if (view.kind !== "joiner") return;
-    if (!joinerPublicState) return; // game hasn't started
-    if (!hostVisitorId) {
-      setView({ kind: "host-left" });
-      return;
-    }
-    const hostStillHere = participants.some((p) => p.player_key === hostVisitorId);
-    if (!hostStillHere) {
-      setView({ kind: "host-left" });
-    }
-  }, [view.kind, joinerPublicState, participants, hostVisitorId]);
+    if (view.kind !== "joiner" || !joinerPublicState) return;
+    if (hostState === "gone") setView({ kind: "host-left" });
+  }, [view.kind, joinerPublicState, hostState]);
 
   // Fire game_completed once when host reaches GAME_OVER normally (not on
   // host departure).
@@ -571,13 +597,24 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
 
 
+  // A reload of a table this tab was already at goes straight back in;
+  // a fresh invite link still shows the name prompt first.
+  const autoRejoinRef = useRef(false);
   useEffect(() => {
     if (!initialRoomCode) return;
     const normalized = initialRoomCode.toUpperCase();
     // Prefill the code so the player can see which table they are joining
     // before committing to it.
     setCodeInput(sanitizeCodeInput(normalized));
+    let remembered: string | null = null;
+    try { remembered = sessionStorage.getItem(ACTIVE_TABLE_KEY); } catch { /* ignore */ }
+    if (remembered === normalized && getDisplayName().trim() && !autoRejoinRef.current) {
+      autoRejoinRef.current = true;
+      void enterRoom({ kind: "join-code", code: normalized });
+      return;
+    }
     setView({ kind: "name-prompt", intent: "peeps", via: "link" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialRoomCode]);
 
   const enterRoom = useCallback(
@@ -588,6 +625,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           const room = await createRoom(browserId);
           trackEvent("room_created", { roomCode: room.room_code });
           setView({ kind: "host", room });
+          rememberTable(room.room_code);
           return;
         }
         const code = action.code;
@@ -608,6 +646,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         if (action.kind === "join-link") {
           trackEvent("invite_link_clicked", { roomCode: code, metadata: { room_found: true } });
         }
+        rememberTable(room.room_code);
         if (room.is_host) {
           setView({ kind: "host", room });
         } else {
@@ -722,8 +761,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     }
   }, [participants.length, activeRoom, view]);
 
-  const handleStartGame = useCallback(() => {
-    if (!isHostView || participants.length < 2 || starting) return;
+  const handleStartGame = useCallback(async () => {
+    if (!isHostView || participants.length < 2) return;
+    if (starting && !startFailed) return;
     unlockAudio();
     const seatMap: SeatMapEntry[] = participants.slice(0, ROOM_CAPACITY).map((p, i) => ({
       seat: i,
@@ -731,24 +771,30 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       display_name: p.display_name,
     }));
     setStarting(true);
+    setStartFailed(false);
+    const newGameId = crypto.randomUUID();
+    // Persist the frozen seat map BEFORE the game exists: the claim arbiter
+    // refuses every claim from a seat it has not registered, so a game that
+    // starts ahead of this would have nobody able to WHOOP.
+    if (!activeRoom?.id) { setStarting(false); return; }
+    const roomId = activeRoom.id;
+    const ok = await registerSeatsWithRetry(() =>
+      supabase.rpc("register_room_seats", {
+        p_room_id: roomId,
+        p_game_id: newGameId,
+        p_host_visitor_id: browserId,
+        p_seats: seatMap.map((e) => ({ seat: e.seat, player_key: e.player_key })),
+      }),
+    );
+    if (!ok) {
+      setStartFailed(true);
+      return;
+    }
     // Notify joiners so they can show a loading state immediately.
     try {
       channel?.send({ type: "broadcast", event: "msg", payload: { kind: "game_starting" } });
     } catch {
       /* non-fatal */
-    }
-    const newGameId = crypto.randomUUID();
-    // Persist the frozen seat map so the claim arbiter can verify that a
-    // WHOOP really comes from the seat it claims to come from.
-    if (activeRoom?.id) {
-      void supabase.rpc("register_room_seats", {
-        p_room_id: activeRoom.id,
-        p_game_id: newGameId,
-        p_host_visitor_id: browserId,
-        p_seats: seatMap.map((e) => ({ seat: e.seat, player_key: e.player_key })),
-      }).then(({ error }) => {
-        if (error) console.error("[register_room_seats] failed", error);
-      });
     }
     setGameId(newGameId);
     setFrozenSeats(seatMap);
@@ -768,7 +814,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       roomCode: activeRoom?.room_code,
       metadata: { player_count: seatMap.length, grid_size: FIXED_GRID },
     });
-  }, [isHostView, participants, activeRoom, starting, channel, browserId, host.dispatch, host.state.slotCount]);
+  }, [isHostView, participants, activeRoom, starting, startFailed, channel, browserId, host.dispatch, host.state.slotCount]);
 
 
   // Joiner: listen for the host's game_starting notice.
@@ -875,6 +921,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   }, []);
 
   const leaveToIdle = useCallback(() => {
+    rememberTable(null);
+    setStartFailed(false);
     setCodeInput("");
     setFrozenSeats(null);
     
@@ -1092,7 +1140,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         lastClaimReject={host.lastClaimReject ?? null}
         onIntent={(action) => {
           if (action.type === "REQUEST_ROLL") {
-            host.commitAndRoll();
+            host.commitAndRoll(0);
             return;
           }
           if (action.type === "PLAYER_ENTER_CLAIM") {
@@ -1170,6 +1218,28 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         presenceVisitorIds={participants.map((p) => p.player_key)}
         presenceStatus={presenceStatus}
       />
+      {waitingForHost ? (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: "absolute",
+            top: SPACE[8],
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 50,
+            padding: `${SPACE[4]}px ${SPACE[8]}px`,
+            borderRadius: RADIUS.sm,
+            ...panelStyle("panel", 8),
+            ...textStyle("control", mobile),
+            fontStyle: "italic",
+            color: COLORS.ink,
+            pointerEvents: "none",
+          }}
+        >
+          Waiting for the host…
+        </div>
+      ) : null}
       </GameShell>
     );
   }
@@ -1612,7 +1682,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       {isHost ? (
         <button
           type="button"
-          onClick={handleStartGame}
+          onClick={() => void handleStartGame()}
           disabled={startDisabled}
           aria-busy={starting}
           className={startDisabled ? undefined : "ww-press"} style={playButtonStyle(startDisabled)}
@@ -1644,7 +1714,14 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     textAlign: "center",
   };
 
-  const startingBanner = starting ? (
+  const startingBanner = starting && startFailed ? (
+    <div role="status" aria-live="polite" style={statusBarStyle}>
+      Starting…
+      <AppButton variant="secondary" size="sm" onClick={() => void handleStartGame()}>
+        Try again
+      </AppButton>
+    </div>
+  ) : starting ? (
     <div role="status" aria-live="polite" style={statusBarStyle}>
       <span
         aria-hidden="true"

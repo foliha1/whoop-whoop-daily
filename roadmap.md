@@ -57,3 +57,14 @@
 - [x] Rejoin confirmed by server (same browser as seat), never display name; test same-name takeover fails
 - [x] Signed-out save into linked browser refused; result kept, sign-in prompt, retry
 - [x] Verify two-browser game + payload capture + full suite (457/457); publish awaits approval
+
+## Classic reliability batch (approved, unpublished)
+- [x] Await seat registration before start (retry once, "Starting…" + retry)
+- [x] claim-lock: broadcast failure = unknown; conflict rebroadcasts winner (scoped game_id+claim_window)
+- [x] state_request catch-up (subscribe, reconnect, visible)
+- [x] ?r=CODE via replaceState
+- [x] Per-game reset; grant key gameId:window:seat; host applies grant only for current game AND open window
+- [x] Joiner snapshot ordering scoped per gameId; older-game snapshots dropped
+- [x] REQUEST_ROLL only from current roller
+- [x] Presence blip grace for host and joiners
+- [x] Tests incl. late grant after next roll, late game-one snapshot in game two; full suite
