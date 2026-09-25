@@ -135,7 +135,7 @@ describe("not-recognized state opens sign-in", () => {
     fireEvent.click(screen.getByTestId("daily-restore-open"));
     fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "player@example.com" } });
     fireEvent.click(screen.getByRole("button", { name: "Send Code" }));
-    fireEvent.change(await screen.findByLabelText("6-digit code"), { target: { value: "123456" } });
+    fireEvent.change(await screen.findByLabelText("8-digit code"), { target: { value: "12345678" } });
     fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
     return onRestored;
   }
