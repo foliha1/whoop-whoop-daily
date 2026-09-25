@@ -1,5 +1,5 @@
 // ============================================================================
-// Optional accounts — sign-in by a 6-digit email code (no links, no passwords).
+// Optional accounts — sign-in by an 8-digit email code (no links, no passwords).
 //
 // Identity is always resolved on the server from the session; the email held
 // here is only for display ("Signed in as f•••@…") and for choosing which
@@ -64,7 +64,7 @@ export function onAccountChange(fn: (email: string | null) => void): () => void 
 }
 
 export type SignInFailure = "invalid_code" | "expired" | "rate_limited" | "send_error";
-export const isSixDigitSignInCode = (code: string): boolean => /^[0-9]{6}$/.test(code.trim());
+export const isValidSignInCode = (code: string): boolean => /^[0-9]{8}$/.test(code.trim());
 
 function classify(message: string | undefined, sending: boolean): SignInFailure {
   const m = (message ?? "").toLowerCase();
@@ -125,7 +125,7 @@ export async function verifySignInCode(
   email: string,
   code: string
 ): Promise<{ ok: true; merge: MergeResult | null } | { ok: false; reason: SignInFailure }> {
-  if (!isSixDigitSignInCode(code)) return { ok: false, reason: "invalid_code" };
+  if (!isValidSignInCode(code)) return { ok: false, reason: "invalid_code" };
   try {
     const { data, error } = await supabase.auth.verifyOtp({
       email: email.trim().toLowerCase(),

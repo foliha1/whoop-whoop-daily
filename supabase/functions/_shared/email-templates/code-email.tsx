@@ -1,24 +1,24 @@
 /// <reference types="npm:@types/react@18.3.1" />
 // One code-only layout for every auth email. There is no link and no button:
-// the 6-digit code is the only way in, so sign-in always completes in the
+// the numeric code is the only way in, so sign-in always completes in the
 // browser the player is already using (e.g. Instagram's in-app browser).
 import * as React from 'npm:react@18.3.1'
 import { Body, Container, Head, Html, Img, Preview, Text } from 'npm:@react-email/components@0.0.22'
 
 /** Must match the auth OTP expiry. */
 export const OTP_MINUTES = 60
-export const SIX_DIGIT_CODE = /^[0-9]{6}$/
+export const AUTH_CODE = /^[0-9]{8}$/
 
-export const requireSixDigitCode = (token?: string): string => {
+export const requireAuthCode = (token?: string): string => {
   const code = token?.trim() ?? ''
-  if (!SIX_DIGIT_CODE.test(code)) throw new Error('Auth code must contain exactly six numeric digits')
+  if (!AUTH_CODE.test(code)) throw new Error('Auth code must contain exactly eight numeric digits')
   return code
 }
 
-export const codeSubject = (token?: string) => `Your WHOOP! WHOOP! code: ${requireSixDigitCode(token)}`
+export const codeSubject = (token?: string) => `Your WHOOP! WHOOP! code: ${requireAuthCode(token)}`
 
 export const CodeEmail = ({ token, purpose }: { token?: string; purpose: string }) => {
-  const codeValue = requireSixDigitCode(token)
+  const codeValue = requireAuthCode(token)
   return <Html lang="en" dir="ltr">
     <Head>
       <meta name="color-scheme" content="light dark" />

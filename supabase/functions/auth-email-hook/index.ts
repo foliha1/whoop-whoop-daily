@@ -22,6 +22,9 @@ const ROOT_DOMAIN = "whoop-whoop.com"
 const FROM_DOMAIN = "notify.whoop-whoop.com"
 const SITE_URL = `https://${ROOT_DOMAIN}`
 
+const authCode = (data: { token: string | null; new_token: string | null }): string =>
+  data.token ?? data.new_token ?? ''
+
 // Template mapping for preview mode
 const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
   signup: SignupEmail,
@@ -41,30 +44,30 @@ const SAMPLE_PROJECT_URL = "https://whoop-whoop.lovable.app"
 const SAMPLE_EMAIL = "user@example.test"
 const SAMPLE_DATA: Record<string, object> = {
   signup: {
-    token: '123456',
+    token: '12345678',
     siteName: SITE_NAME,
     siteUrl: SAMPLE_PROJECT_URL,
     recipient: SAMPLE_EMAIL,
     confirmationUrl: SAMPLE_PROJECT_URL,
   },
   magiclink: {
-    token: '123456',
+    token: '12345678',
     siteName: SITE_NAME,
     confirmationUrl: SAMPLE_PROJECT_URL,
   },
   recovery: {
-    token: '123456',
+    token: '12345678',
     siteName: SITE_NAME,
     confirmationUrl: SAMPLE_PROJECT_URL,
   },
   invite: {
-    token: '123456',
+    token: '12345678',
     siteName: SITE_NAME,
     siteUrl: SAMPLE_PROJECT_URL,
     confirmationUrl: SAMPLE_PROJECT_URL,
   },
   email_change: {
-    token: '123456',
+    token: '12345678',
     siteName: SITE_NAME,
     oldEmail: SAMPLE_EMAIL,
     email: SAMPLE_EMAIL,
@@ -72,7 +75,7 @@ const SAMPLE_DATA: Record<string, object> = {
     confirmationUrl: SAMPLE_PROJECT_URL,
   },
   reauthentication: {
-    token: '123456',
+    token: '12345678',
   },
 }
 
@@ -134,30 +137,30 @@ const handler = createAuthEmailHandler({
   senderDomain: SENDER_DOMAIN,
   sendUrl: Deno.env.get('LOVABLE_SEND_URL'),
   emails: {
-    signup: (data) => ({
-      subject: codeSubject(data.token ?? ''),
-      element: React.createElement(SignupEmail, { token: data.token ?? '' }),
-    }),
-    invite: (data) => ({
-      subject: codeSubject(data.token ?? ''),
-      element: React.createElement(InviteEmail, { token: data.token ?? '' }),
-    }),
-    magiclink: (data) => ({
-      subject: codeSubject(data.token ?? ''),
-      element: React.createElement(MagicLinkEmail, { token: data.token ?? '' }),
-    }),
-    recovery: (data) => ({
-      subject: codeSubject(data.token ?? ''),
-      element: React.createElement(RecoveryEmail, { token: data.token ?? '' }),
-    }),
-    email_change: (data) => ({
-      subject: codeSubject(data.token ?? ''),
-      element: React.createElement(EmailChangeEmail, { token: data.token ?? '' }),
-    }),
-    reauthentication: (data) => ({
-      subject: codeSubject(data.token ?? ''),
-      element: React.createElement(ReauthenticationEmail, { token: data.token ?? '' }),
-    }),
+    signup: (data) => {
+      const token = authCode(data)
+      return { subject: codeSubject(token), element: React.createElement(SignupEmail, { token }) }
+    },
+    invite: (data) => {
+      const token = authCode(data)
+      return { subject: codeSubject(token), element: React.createElement(InviteEmail, { token }) }
+    },
+    magiclink: (data) => {
+      const token = authCode(data)
+      return { subject: codeSubject(token), element: React.createElement(MagicLinkEmail, { token }) }
+    },
+    recovery: (data) => {
+      const token = authCode(data)
+      return { subject: codeSubject(token), element: React.createElement(RecoveryEmail, { token }) }
+    },
+    email_change: (data) => {
+      const token = authCode(data)
+      return { subject: codeSubject(token), element: React.createElement(EmailChangeEmail, { token }) }
+    },
+    reauthentication: (data) => {
+      const token = authCode(data)
+      return { subject: codeSubject(token), element: React.createElement(ReauthenticationEmail, { token }) }
+    },
   },
 })
 
