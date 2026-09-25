@@ -79,6 +79,7 @@ const DailyEmailModal: React.FC<{
   const closeRef = React.useRef<HTMLButtonElement>(null);
   const vv = useVisualViewportBox();
   const { exiting, requestExit } = useMotionExit(onClose);
+  const [choiceRequired, setChoiceRequired] = React.useState(false);
   // With the keyboard open the visible box is tiny; the decorative shape rules
   // and the 24px gutter are the first things to go so the submit stays in view.
   const compact = vv.height > 0 && vv.height < 560;
@@ -86,7 +87,7 @@ const DailyEmailModal: React.FC<{
 
   // Escape + focus return live in the shared hook; the Tab trap is local
   // because only this component knows what is focusable inside it.
-  useDismiss(requestExit, { escape: true, returnFocus: true });
+  useDismiss(requestExit, { escape: !choiceRequired, returnFocus: true });
 
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -168,14 +169,16 @@ const DailyEmailModal: React.FC<{
           gap: SPACE[4],
         }}
       >
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <CloseButton
-            ref={closeRef}
-            label="Close"
-            onClick={requestExit}
-            ariaLabel="Close"
-            data-testid="daily-restore-close"
-          />
+        <div style={{ display: "flex", justifyContent: "flex-end", minHeight: 36 }}>
+          {!choiceRequired && (
+            <CloseButton
+              ref={closeRef}
+              label="Close"
+              onClick={requestExit}
+              ariaLabel="Close"
+              data-testid="daily-restore-close"
+            />
+          )}
         </div>
 
         {/* Same component, same validation, same submit path. Only the heading
@@ -187,6 +190,7 @@ const DailyEmailModal: React.FC<{
           body="Enter the address you used before and your streak and history come back."
           note={null}
           submitLabel={mode === "restore" ? "Restore" : "Sign Me Up"}
+          onChoiceRequiredChange={setChoiceRequired}
           onSubscribed={(email, restored) => {
             onSubscribed?.(email, restored);
             // The success line shows inside the modal, then it closes itself.

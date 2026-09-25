@@ -39,6 +39,8 @@ const DailyEmailCapture: React.FC<{
   successMessage?: string;
   /** Focus the field on mount — used when the form opens in an overlay. */
   autoFocus?: boolean;
+  /** True only while a newly verified player must make the reminder choice. */
+  onChoiceRequiredChange?: (required: boolean) => void;
 }> = ({
   source,
   onSubscribed,
@@ -48,13 +50,20 @@ const DailyEmailCapture: React.FC<{
   submitLabel = "Sign Me Up",
   successMessage,
   autoFocus = false,
+  onChoiceRequiredChange,
 }) => {
   // The results box and the lobby restore are sign-in; pre-launch and the
   // landing page stay an explicit reminder signup. With sign-in off, every box
   // is a reminder signup — and never promises a restore.
   const reminderOnly = source === "prelaunch" || source === "landing";
   if (SIGN_IN_ENABLED && !reminderOnly) {
-    return <DailySignIn autoFocus={autoFocus} onSignedIn={onSubscribed} />;
+    return (
+      <DailySignIn
+        autoFocus={autoFocus}
+        onSignedIn={onSubscribed}
+        onChoiceRequiredChange={onChoiceRequiredChange}
+      />
+    );
   }
   return (
     <ReminderSignup

@@ -230,7 +230,9 @@ export async function setReminder(
       p_source: source,
     });
     if (error || data !== true) return false;
-    trackDaily("reminder_opt_in", { props: { answer: consented ? "yes" : "no", source } });
+    trackDaily("reminder_opt_in", {
+      props: { choice: consented ? "sounds_good" : "no_thanks", source },
+    });
     if (consented) {
       await supabase.functions.invoke("ac-subscribe", {
         body: { email, visitorId: getVisitorId(), source: "daily_result" },

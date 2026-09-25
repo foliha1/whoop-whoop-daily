@@ -601,6 +601,7 @@ const DailyResultCard: React.FC<{
   revisit,
   onLeave,
 }) => {
+  const [reminderChoiceRequired, setReminderChoiceRequired] = React.useState(false);
   // Rendered once, here: shown in the share modal and handed to the share sheet.
   // The card defaults to whatever theme the app is in; the modal's toggle is
   // per-share and never touches the app's own theme.
@@ -885,9 +886,12 @@ const DailyResultCard: React.FC<{
       <button
         type="button"
         className={["ww-press", resultClass].filter(Boolean).join(" ")}
-        onClick={onLeave}
+        onClick={() => {
+          if (!reminderChoiceRequired) onLeave();
+        }}
+        disabled={reminderChoiceRequired}
         data-testid="results-done"
-        style={{ ...buttonStyle("ink", "lg", { mobile }), alignSelf: "stretch", marginTop: SPACE[4], ...resultMotion("done") }}
+        style={{ ...buttonStyle("ink", "lg", { mobile, disabled: reminderChoiceRequired }), alignSelf: "stretch", marginTop: SPACE[4], ...resultMotion("done") }}
       >
         Done
       </button>
@@ -908,7 +912,10 @@ const DailyResultCard: React.FC<{
             ...resultMotion("email"),
           }}
         >
-          <DailyEmailCapture onSubscribed={onSubscribed} />
+          <DailyEmailCapture
+            onSubscribed={onSubscribed}
+            onChoiceRequiredChange={setReminderChoiceRequired}
+          />
         </div>
       )}
 

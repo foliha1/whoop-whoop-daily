@@ -67,22 +67,50 @@ describe("optional sign-in", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(/expired/i);
   });
 
-  it("a new player is asked yes/no and never subscribed silently", async () => {
+  it("keeps a new player's prompt mounted until an explicit decline", async () => {
     verifyOtp.mockResolvedValue({ data: { session: { user: { email: "a@b.co" } } }, error: null });
     rpc.mockImplementation(async (name: string) =>
       name === "link_device_and_merge"
         ? { data: [{ first_signin: true, games: 0, was_subscriber: false, reminder_answered: false }], error: null }
         : { data: true, error: null }
     );
-    await toCode();
+    const onSignedIn = vi.fn();
+    const onChoiceRequiredChange = vi.fn();
+    render(<DailySignIn onSignedIn={onSignedIn} onChoiceRequiredChange={onChoiceRequiredChange} />);
+    fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "a@b.co" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send Code" }));
+    await screen.findByLabelText("6-digit code");
     fireEvent.change(screen.getByLabelText("6-digit code"), { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
-    await screen.findByText("Want the daily puzzle by email?");
+    await screen.findByText("We'll send you the daily puzzle.");
+    expect(onSignedIn).not.toHaveBeenCalled();
+    expect(onChoiceRequiredChange).toHaveBeenCalledWith(true);
     expect(invoke).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "No Thanks" }));
+    fireEvent.click(screen.getByRole("button", { name: "No thanks." }));
     await screen.findByTestId("signin-done");
     expect(rpc).toHaveBeenCalledWith("set_reminder_consent", { p_consented: false, p_source: "post_signin" });
+    expect(onChoiceRequiredChange).toHaveBeenLastCalledWith(false);
+    expect(onSignedIn).toHaveBeenCalledWith("a@b.co", false);
     expect(invoke).not.toHaveBeenCalled();
+  });
+
+  it("records the affirmative action before completing sign-in", async () => {
+    verifyOtp.mockResolvedValue({ data: { session: { user: { email: "a@b.co" } } }, error: null });
+    rpc.mockImplementation(async (name: string) =>
+      name === "link_device_and_merge"
+        ? { data: [{ first_signin: true, games: 0, was_subscriber: false, reminder_answered: false }], error: null }
+        : { data: true, error: null }
+    );
+    const onSignedIn = vi.fn();
+    render(<DailySignIn onSignedIn={onSignedIn} />);
+    fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "a@b.co" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send Code" }));
+    fireEvent.change(await screen.findByLabelText("6-digit code"), { target: { value: "123456" } });
+    fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Sounds good" }));
+    await waitFor(() => expect(onSignedIn).toHaveBeenCalledWith("a@b.co", false));
+    expect(rpc).toHaveBeenCalledWith("set_reminder_consent", { p_consented: true, p_source: "post_signin" });
+    expect(invoke).toHaveBeenCalledWith("ac-subscribe", expect.objectContaining({ body: expect.objectContaining({ email: "a@b.co" }) }));
   });
 
   it("an existing subscriber merges quietly without the prompt", async () => {
@@ -92,5 +120,15 @@ describe("optional sign-in", () => {
     fireEvent.change(screen.getByLabelText("6-digit code"), { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
     await waitFor(() => expect(screen.getByTestId("signin-done")).toHaveTextContent("19 games"));
+  });
+
+  it("a previously answered player is never asked again", async () => {
+    verifyOtp.mockResolvedValue({ data: { session: { user: { email: "a@b.co" } } }, error: null });
+    rpc.mockResolvedValue({ data: [{ first_signin: false, games: 2, was_subscriber: false, reminder_answered: true }], error: null });
+    await toCode();
+    fireEvent.change(screen.getByLabelText("6-digit code"), { target: { value: "123456" } });
+    fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
+    await screen.findByTestId("signin-done");
+    expect(screen.queryByText("We'll send you the daily puzzle.")).toBeNull();
   });
 });

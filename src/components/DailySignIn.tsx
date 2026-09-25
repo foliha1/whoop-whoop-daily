@@ -2,7 +2,7 @@
 // DailySignIn — optional sign-in by a 6-digit email code.
 //
 // Steps: email → code → (first time, not already on the list) a separate
-// yes/no reminder question → done. Signing in never subscribes anyone.
+// affirmative reminder choice → done. Signing in never subscribes anyone.
 // ============================================================================
 
 import React, { useState } from "react";
@@ -61,7 +61,8 @@ type Step = "email" | "code" | "reminder" | "done";
 const DailySignIn: React.FC<{
   autoFocus?: boolean;
   onSignedIn?: (email: string, restored: boolean) => void;
-}> = ({ autoFocus = false, onSignedIn }) => {
+  onChoiceRequiredChange?: (required: boolean) => void;
+}> = ({ autoFocus = false, onSignedIn, onChoiceRequiredChange }) => {
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -69,6 +70,8 @@ const DailySignIn: React.FC<{
   const [error, setError] = useState<string | null>(null);
   const [games, setGames] = useState(0);
   const [reminderYes, setReminderYes] = useState<boolean | null>(null);
+  const [verifiedEmail, setVerifiedEmail] = useState("");
+  const [restored, setRestored] = useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
@@ -108,19 +111,32 @@ const DailySignIn: React.FC<{
     const merge = "merge" in res ? res.merge : null;
     setGames(merge?.games ?? 0);
     const clean = email.trim().toLowerCase();
-    onSignedIn?.(clean, (merge?.games ?? 0) > 0);
+    const restoredHistory = (merge?.games ?? 0) > 0;
+    setVerifiedEmail(clean);
+    setRestored(restoredHistory);
     // Existing subscribers already said yes; anyone who answered already, too.
-    if (merge && !merge.wasSubscriber && !merge.reminderAnswered) setStep("reminder");
-    else setStep("done");
+    if (merge && !merge.wasSubscriber && !merge.reminderAnswered) {
+      onChoiceRequiredChange?.(true);
+      setStep("reminder");
+    } else {
+      setStep("done");
+      onSignedIn?.(clean, restoredHistory);
+    }
   };
 
   const answer = async (yes: boolean) => {
     hapticTap();
     setBusy(true);
-    await setReminder(yes, "post_signin");
+    const saved = await setReminder(yes, "post_signin");
     setBusy(false);
+    if (!saved) {
+      fail("We couldn't save that choice. Try again.");
+      return;
+    }
     setReminderYes(yes);
+    onChoiceRequiredChange?.(false);
     setStep("done");
+    onSignedIn?.(verifiedEmail, restored);
   };
 
   if (step === "done") {
@@ -139,7 +155,7 @@ const DailySignIn: React.FC<{
   if (step === "reminder") {
     return (
       <div data-testid="signin-reminder" style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-        <h2 style={headingStyle}>Want the daily puzzle by email?</h2>
+        <h2 style={headingStyle}>We'll send you the daily puzzle.</h2>
         <p style={bodyStyle}>One email each morning. Turn it off any time in Settings.</p>
         <button
           type="button"
@@ -148,7 +164,7 @@ const DailySignIn: React.FC<{
           onClick={() => void answer(true)}
           style={{ ...buttonStyle("secondary", "lg", { fullWidth: true, disabled: busy }), width: "100%" }}
         >
-          Yes
+          Sounds good
         </button>
         <button
           type="button"
@@ -157,8 +173,13 @@ const DailySignIn: React.FC<{
           onClick={() => void answer(false)}
           style={{ ...buttonStyle("ghost", "lg", { fullWidth: true, disabled: busy }), width: "100%" }}
         >
-          No Thanks
+          No thanks.
         </button>
+        {error && (
+          <p role="alert" style={{ ...bodyStyle, fontStyle: "italic" }}>
+            {error}
+          </p>
+        )}
       </div>
     );
   }
