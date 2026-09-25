@@ -283,7 +283,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     });
     return () => { cancelled = true; };
   }, [activeRoomId, browserId, visitorId]);
-  const { participants, status: presenceStatus, channel, onBroadcast } = useRoomPresence(
+  const { participants, status: presenceStatus, channel, onBroadcast, connectEpoch } = useRoomPresence(
     activeRoom && sessionRoomId === activeRoom.id ? activeRoom.id : null,
     visitorId,
     displayName,
@@ -380,15 +380,12 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // All three signals feed SET_DISCONNECTED, which uses REPLACE semantics —
   // resuming heartbeats or presence rejoin automatically un-marks a seat.
   // The stricter end-game set below is unchanged and still excludes AWAY.
+  // Presence absence alone no longer counts: it only starts the grace period,
+  // and heartbeat age decides when a seat is actually skippable.
   const disconnectedSeats = useMemo(() => {
     if (!frozenSeats) return [] as number[];
-    const present = new Set(participants.map((p) => p.player_key));
-    const stale = new Set(heartbeatStaleVisitors);
-    const awaySkip = new Set(heartbeatAwaySkipVisitors);
-    return frozenSeats
-      .filter((e) => !present.has(e.player_key) || stale.has(e.player_key) || awaySkip.has(e.player_key))
-      .map((e) => e.seat);
-  }, [frozenSeats, participants, heartbeatStaleVisitors, heartbeatAwaySkipVisitors]);
+    return skippableSeats(frozenSeats, heartbeatStaleVisitors, heartbeatAwaySkipVisitors);
+  }, [frozenSeats, heartbeatStaleVisitors, heartbeatAwaySkipVisitors]);
 
   const awaySeats = useMemo(() => {
     if (!frozenSeats) return [] as number[];
@@ -476,6 +473,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     mySeat: null, // resolved from seatMap after first state msg
     visitorId,
     enabled: joinerEnabled,
+    connectEpoch,
   });
 
   const joinerPublicState = joiner.publicState;
@@ -503,19 +501,28 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     return me?.seat ?? null;
   }, [joinerPublicState, visitorId]);
 
-  // Watch for host departure once a game is in progress.
+  // Watch for host departure once a game is in progress. A host missing from
+  // presence is only "waiting" — the game ends only when the host's heartbeat
+  // goes stale by the existing thresholds.
+  const watchHost = view.kind === "joiner" && !!joinerPublicState && !!hostVisitorId;
+  const hostWatchIds = useMemo(() => (hostVisitorId ? [hostVisitorId] : []), [hostVisitorId]);
+  const { staleVisitors: hostStaleKeys } = useHeartbeatMonitor({
+    channel,
+    onBroadcast,
+    enabled: watchHost,
+    watchedVisitorIds: hostWatchIds,
+    hostVisitorId: visitorId, // the monitor skips its own key; here that's us
+  });
+  const hostState = hostLiveness({
+    hostKey: hostVisitorId,
+    presentKeys: participants.map((p) => p.player_key),
+    staleKeys: hostStaleKeys,
+  });
+  const waitingForHost = view.kind === "joiner" && !!joinerPublicState && hostState !== "here";
   useEffect(() => {
-    if (view.kind !== "joiner") return;
-    if (!joinerPublicState) return; // game hasn't started
-    if (!hostVisitorId) {
-      setView({ kind: "host-left" });
-      return;
-    }
-    const hostStillHere = participants.some((p) => p.player_key === hostVisitorId);
-    if (!hostStillHere) {
-      setView({ kind: "host-left" });
-    }
-  }, [view.kind, joinerPublicState, participants, hostVisitorId]);
+    if (view.kind !== "joiner" || !joinerPublicState) return;
+    if (hostState === "gone") setView({ kind: "host-left" });
+  }, [view.kind, joinerPublicState, hostState]);
 
   // Fire game_completed once when host reaches GAME_OVER normally (not on
   // host departure).
@@ -571,13 +578,24 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
 
 
+  // A reload of a table this tab was already at goes straight back in;
+  // a fresh invite link still shows the name prompt first.
+  const autoRejoinRef = useRef(false);
   useEffect(() => {
     if (!initialRoomCode) return;
     const normalized = initialRoomCode.toUpperCase();
     // Prefill the code so the player can see which table they are joining
     // before committing to it.
     setCodeInput(sanitizeCodeInput(normalized));
+    let remembered: string | null = null;
+    try { remembered = sessionStorage.getItem(ACTIVE_TABLE_KEY); } catch { /* ignore */ }
+    if (remembered === normalized && getDisplayName().trim() && !autoRejoinRef.current) {
+      autoRejoinRef.current = true;
+      void enterRoom({ kind: "join-code", code: normalized });
+      return;
+    }
     setView({ kind: "name-prompt", intent: "peeps", via: "link" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialRoomCode]);
 
   const enterRoom = useCallback(
@@ -588,6 +606,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           const room = await createRoom(browserId);
           trackEvent("room_created", { roomCode: room.room_code });
           setView({ kind: "host", room });
+          rememberTable(room.room_code);
           return;
         }
         const code = action.code;
@@ -608,6 +627,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         if (action.kind === "join-link") {
           trackEvent("invite_link_clicked", { roomCode: code, metadata: { room_found: true } });
         }
+        rememberTable(room.room_code);
         if (room.is_host) {
           setView({ kind: "host", room });
         } else {
