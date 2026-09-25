@@ -5,14 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 export type PresenceStatus = "connecting" | "connected" | "error";
 
 export interface PresenceParticipant {
-  visitor_id: string;
+  player_key: string;
   display_name: string;
   joined_at: number;
   is_host: boolean;
 }
 
 interface PresenceMeta {
-  visitor_id: string;
+  player_key: string;
   display_name: string;
   joined_at: number;
   is_host: boolean;
@@ -91,8 +91,8 @@ export function useRoomPresence(
           if (!best || m.joined_at < best.joined_at) best = m;
         }
         if (best) {
-          seen.set(best.visitor_id, {
-            visitor_id: best.visitor_id,
+          seen.set(best.player_key, {
+            player_key: best.player_key,
             display_name: best.display_name,
             joined_at: best.joined_at,
             is_host: !!best.is_host,
@@ -103,7 +103,7 @@ export function useRoomPresence(
         // Host always seat 0 in lobby ordering.
         if (a.is_host !== b.is_host) return a.is_host ? -1 : 1;
         if (a.joined_at !== b.joined_at) return a.joined_at - b.joined_at;
-        return a.visitor_id.localeCompare(b.visitor_id);
+        return a.player_key.localeCompare(b.player_key);
       });
       setParticipants(list);
     };
@@ -121,7 +121,7 @@ export function useRoomPresence(
         if (subStatus === "SUBSCRIBED") {
           try {
             await ch.track({
-              visitor_id: visitorId,
+              player_key: visitorId,
               display_name: displayNameRef.current,
               joined_at: joinedAtRef.current,
               is_host: isHostRef.current,
@@ -172,7 +172,7 @@ export function useRoomPresence(
             if (channelRef.current !== ch) return;
           }
           await ch.track({
-            visitor_id: visitorId,
+            player_key: visitorId,
             display_name: displayNameRef.current,
             joined_at: joinedAtRef.current,
             is_host: isHostRef.current,
@@ -216,7 +216,7 @@ export function useRoomPresence(
     if (!ch) return;
     ch
       .track({
-        visitor_id: visitorId,
+        player_key: visitorId,
         display_name: displayName,
         joined_at: joinedAtRef.current,
         is_host: isHost,

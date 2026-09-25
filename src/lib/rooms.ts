@@ -2,7 +2,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const CODE_LEN = 6;
-const MAX_ATTEMPTS = 5;
 
 export function generateRoomCode(): string {
   let out = "";
@@ -30,42 +29,64 @@ export interface RoomRow {
   room_code: string;
   status: string;
   is_host: boolean;
-}
-
-function errorCode(e: unknown): string | undefined {
-  if (e && typeof e === "object" && "code" in e) {
-    const c = (e as { code?: unknown }).code;
-    if (typeof c === "string") return c;
-  }
-  return undefined;
+  host_key?: string | null;
 }
 
 export async function createRoom(hostVisitorId: string): Promise<RoomRow> {
-  let lastErr: unknown = null;
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    const code = generateRoomCode();
-    try {
-      const { data, error } = await supabase.rpc("create_room", {
-        p_code: code,
-        p_visitor_id: hostVisitorId,
-      });
-      if (!error && data && Array.isArray(data) && data.length > 0) {
-        return data[0] as RoomRow;
-      }
-      lastErr = error;
-      // 23505 = unique_violation. Retry only for that; otherwise bail.
-      if (error && errorCode(error) !== "23505") break;
-    } catch (e) {
-      // Network / thrown failure — do not retry blindly.
-      lastErr = e;
-      break;
-    }
-  }
+  // The server generates the code (collision-retried) and rate-caps creation.
+  const { data, error } = await supabase.rpc("create_room", { p_visitor_id: hostVisitorId });
+  if (!error && Array.isArray(data) && data.length > 0) return data[0] as RoomRow;
   const msg =
-    lastErr && typeof lastErr === "object" && "message" in lastErr
-      ? String((lastErr as { message: string }).message)
+    error && typeof error === "object" && "message" in error
+      ? String((error as { message: string }).message)
       : "Could not create a table. Please try again.";
   throw new Error(msg);
+}
+
+/**
+ * Registers this tab's session player key with the server over this
+ * browser's own request. Returns the seat this browser already holds in the
+ * room's latest game (server-verified rejoin), or null.
+ */
+export async function joinRoomSession(
+  roomId: string,
+  visitorId: string,
+  playerKey: string,
+): Promise<{ game_id: string; seat: number } | null> {
+  try {
+    const { data, error } = await supabase.rpc("join_room_session", {
+      p_room_id: roomId,
+      p_visitor_id: visitorId,
+      p_player_key: playerKey,
+    });
+    if (error) {
+      console.warn("[rooms] join session failed", error.message);
+      return null;
+    }
+    return Array.isArray(data) && data.length > 0 ? (data[0] as { game_id: string; seat: number }) : null;
+  } catch (e) {
+    console.warn("[rooms] join session threw", e);
+    return null;
+  }
+}
+
+/** Host-only: the server's current player key for each seat of a game. */
+export async function fetchSeatKeys(
+  roomId: string,
+  gameId: string,
+  hostVisitorId: string,
+): Promise<Array<{ seat: number; player_key: string | null }>> {
+  try {
+    const { data, error } = await supabase.rpc("room_seat_keys", {
+      p_room_id: roomId,
+      p_game_id: gameId,
+      p_host_visitor_id: hostVisitorId,
+    });
+    if (error || !Array.isArray(data)) return [];
+    return data as Array<{ seat: number; player_key: string | null }>;
+  } catch {
+    return [];
+  }
 }
 
 export async function findRoomByCode(

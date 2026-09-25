@@ -43,7 +43,7 @@ import { warmClaimLock } from "@/lib/claimLock";
 
 export interface SeatMapEntry {
   seat: number;
-  visitor_id: string;
+  player_key: string;
   display_name: string;
 }
 
@@ -60,7 +60,9 @@ export function useMultiplayerHost(opts: {
   channel: RealtimeChannel | null;
   onBroadcast: BroadcastSubscribe;
   seatMap: SeatMapEntry[];
-  hostVisitorId: string;
+  hostVisitorId: string; // host's session player key (channel identity)
+  // Host's own browser id — sent only to the server (release-lock), never broadcast.
+  hostBrowserId?: string;
   enabled: boolean;
   gameId: string;
   roomId: string;
@@ -83,7 +85,7 @@ export function useMultiplayerHost(opts: {
   lastSeenSpreadMs?: number | null;
 }) {
   const {
-    channel, onBroadcast, seatMap, hostVisitorId, enabled, gameId, roomId,
+    channel, onBroadcast, seatMap, hostVisitorId, hostBrowserId, enabled, gameId, roomId,
     disconnectedSeats, awaySeats = [], gridSize = "3x3", endGameDisconnectedSeats,
     presenceStatus, lastSeenSpreadMs = null,
   } = opts;
@@ -342,8 +344,8 @@ export function useMultiplayerHost(opts: {
         const intent: IntentPayload = env.payload;
         const seatEntry = seatMapRef.current.find((e) => e.seat === intent.seat);
         if (!seatEntry) return;
-        if (seatEntry.visitor_id !== intent.visitor_id) return;
-        if (seatEntry.visitor_id === hostVisitorId) return;
+        if (seatEntry.player_key !== intent.player_key) return;
+        if (seatEntry.player_key === hostVisitorId) return;
         // ROLLING gate: reject board-affecting intents while a roll is
         // resolving. Reducer would drop these anyway; we surface the reason
         // so callers see an explicit rejection.
@@ -396,8 +398,8 @@ export function useMultiplayerHost(opts: {
   // claim that does not resolve must never leave a claim_locks row behind, or
   // that window is consumed forever and nobody can claim in it again.
   const releaseClaimLock = useCallback(
-    (claim_window: number, seat: number, visitor_id: string, reason: string) => {
-      if (!roomId) return;
+    (claim_window: number, seat: number, _playerKey: string | undefined, reason: string) => {
+      if (!roomId || !hostBrowserId) return;
       void (async () => {
         try {
           const { supabase } = await import("@/integrations/supabase/client");
@@ -407,7 +409,7 @@ export function useMultiplayerHost(opts: {
               game_id: gameIdRef.current,
               claim_window,
               seat,
-              visitor_id,
+              visitor_id: hostBrowserId,
               reason,
             },
           });
@@ -416,7 +418,7 @@ export function useMultiplayerHost(opts: {
         }
       })();
     },
-    [roomId],
+    [roomId, hostBrowserId],
   );
 
   // ---- deferred grants ----
@@ -429,7 +431,7 @@ export function useMultiplayerHost(opts: {
   // window has not moved on.
   const DEFER_MS = 2600;
   const deferredRef = useRef<
-    | { claim_window: number; seat: number; visitor_id: string; key: string; timer: ReturnType<typeof setTimeout> }
+    | { claim_window: number; seat: number; player_key?: string; key: string; timer: ReturnType<typeof setTimeout> }
     | null
   >(null);
   const clearDeferred = useCallback(() => {
@@ -442,7 +444,7 @@ export function useMultiplayerHost(opts: {
   // Refuse a grant for good: mark it consumed, release its row, tell the seat.
   const refuseGrant = useCallback(
     (
-      grant: { claim_window: number; seat: number; visitor_id: string },
+      grant: { claim_window: number; seat: number; player_key?: string },
       key: string,
       hostWindow: number,
       reason: ClaimRejectPayload["reason"],
@@ -452,10 +454,10 @@ export function useMultiplayerHost(opts: {
         grant_claim_window: grant.claim_window,
         host_claim_window: hostWindow,
         seat: grant.seat,
-        visitor_id: grant.visitor_id,
+        player_key: grant.player_key,
         reason,
       });
-      releaseClaimLock(grant.claim_window, grant.seat, grant.visitor_id, reason);
+      releaseClaimLock(grant.claim_window, grant.seat, grant.player_key, reason);
     },
     [emitClaimReject, releaseClaimLock],
   );
@@ -518,7 +520,7 @@ export function useMultiplayerHost(opts: {
           grant_claim_window: grant.claim_window,
           host_claim_window: hostWindow,
           seat: grant.seat,
-          visitor_id: grant.visitor_id,
+          player_key: grant.player_key,
           phase: latestStateRef.current.phase,
           claimBy: latestStateRef.current.claimBy,
         });
@@ -556,7 +558,7 @@ export function useMultiplayerHost(opts: {
       deferredRef.current = {
         claim_window: grant.claim_window,
         seat: grant.seat,
-        visitor_id: grant.visitor_id,
+        player_key: grant.player_key,
         key: dedupeKey,
         timer: setTimeout(() => pumpDeferred(true), DEFER_MS),
       };
@@ -709,10 +711,10 @@ export function useMultiplayerJoiner(opts: {
 
   // Resolve seat from prop first, then fall back to publicState's seatMap.
   // Guests initially mount with mySeatProp=null; the seat is discovered from
-  // the first state broadcast that includes their visitor_id.
+  // the first state broadcast that includes their player_key.
   const mySeat =
     mySeatProp ??
-    publicState?.seatMap.find((e) => e.visitor_id === visitorId)?.seat ??
+    publicState?.seatMap.find((e) => e.player_key === visitorId)?.seat ??
     null;
 
   const sendIntent = useCallback(
@@ -723,7 +725,7 @@ export function useMultiplayerJoiner(opts: {
         v: PROTOCOL_VERSION,
         type: "intent",
         seq: seqRef.current,
-        payload: { seat: mySeat, visitor_id: visitorId, action },
+        payload: { seat: mySeat, player_key: visitorId, action },
       };
       channel.send({ type: "broadcast", event: "msg", payload: env }).catch(() => {});
     },

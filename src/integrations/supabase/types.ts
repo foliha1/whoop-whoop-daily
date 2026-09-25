@@ -555,11 +555,41 @@ export type Database = {
         }
         Relationships: []
       }
+      room_members: {
+        Row: {
+          created_at: string
+          player_key: string
+          room_id: string
+          visitor_id: string
+        }
+        Insert: {
+          created_at?: string
+          player_key: string
+          room_id: string
+          visitor_id: string
+        }
+        Update: {
+          created_at?: string
+          player_key?: string
+          room_id?: string
+          visitor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_members_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       room_seats: {
         Row: {
           created_at: string
           game_id: string
           id: string
+          player_key: string | null
           room_id: string
           seat: number
           visitor_id: string
@@ -568,6 +598,7 @@ export type Database = {
           created_at?: string
           game_id: string
           id?: string
+          player_key?: string | null
           room_id: string
           seat: number
           visitor_id: string
@@ -576,6 +607,7 @@ export type Database = {
           created_at?: string
           game_id?: string
           id?: string
+          player_key?: string | null
           room_id?: string
           seat?: number
           visitor_id?: string
@@ -593,6 +625,7 @@ export type Database = {
       rooms: {
         Row: {
           created_at: string
+          host_key: string | null
           host_visitor_id: string
           id: string
           last_active_at: string
@@ -601,6 +634,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          host_key?: string | null
           host_visitor_id: string
           id?: string
           last_active_at?: string
@@ -609,6 +643,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          host_key?: string | null
           host_visitor_id?: string
           id?: string
           last_active_at?: string
@@ -831,15 +866,26 @@ export type Database = {
           name: string
         }[]
       }
-      create_room: {
-        Args: { p_code: string; p_visitor_id: string }
-        Returns: {
-          id: string
-          is_host: boolean
-          room_code: string
-          status: string
-        }[]
-      }
+      create_room:
+        | {
+            Args: { p_code: string; p_visitor_id: string }
+            Returns: {
+              id: string
+              is_host: boolean
+              room_code: string
+              status: string
+            }[]
+          }
+        | {
+            Args: { p_visitor_id: string }
+            Returns: {
+              host_key: string
+              id: string
+              is_host: boolean
+              room_code: string
+              status: string
+            }[]
+          }
       daily_puzzle_date: { Args: { p_puzzle_number: number }; Returns: string }
       daily_result_reject_reason: {
         Args: {
@@ -966,6 +1012,7 @@ export type Database = {
       get_room_by_code: {
         Args: { p_code: string; p_visitor_id: string }
         Returns: {
+          host_key: string
           id: string
           is_host: boolean
           room_code: string
@@ -1012,6 +1059,13 @@ export type Database = {
           name: string
         }[]
       }
+      join_room_session: {
+        Args: { p_player_key: string; p_room_id: string; p_visitor_id: string }
+        Returns: {
+          game_id: string
+          seat: number
+        }[]
+      }
       leave_daily_group: {
         Args: { p_group_id: string; p_visitor_id: string }
         Returns: boolean
@@ -1043,6 +1097,17 @@ export type Database = {
       rl_hit: {
         Args: { p_bucket: string; p_key: string; p_max: number }
         Returns: boolean
+      }
+      room_seat_keys: {
+        Args: {
+          p_game_id: string
+          p_host_visitor_id: string
+          p_room_id: string
+        }
+        Returns: {
+          player_key: string
+          seat: number
+        }[]
       }
       save_classic_result: {
         Args: {

@@ -46,7 +46,7 @@ export type IntentAction =
 
 export interface IntentPayload {
   seat: number;
-  visitor_id: string; // sender identity for host-side validation
+  player_key: string; // sender identity for host-side validation
   action: IntentAction;
 }
 
@@ -71,7 +71,7 @@ export interface ClaimGrantEnvelope {
   v: number;
   type: "claim_grant";
   seq: number;
-  payload: { claim_window: number; seat: number; visitor_id: string };
+  payload: { claim_window: number; seat: number; player_key?: string };
 }
 
 // Transient events (NICE!, Great Match!, NOPE!). Each carries a unique id so
@@ -144,7 +144,7 @@ export interface ClaimRejectPayload {
   grant_claim_window: number;
   host_claim_window: number;
   seat: number;
-  visitor_id: string;
+  player_key?: string;
   reason: "STALE_WINDOW" | "FUTURE_WINDOW" | "NO_CALLS_LEFT";
 }
 export interface ClaimRejectEnvelope {
@@ -187,7 +187,7 @@ export const AWAY_SKIP_MS = 15000;
 // the sender interval plus a small buffer for jitter.
 export const ISOLATION_SPREAD_MS = HEARTBEAT_INTERVAL_MS + 2000;
 export interface HeartbeatPayload {
-  visitor_id: string;
+  player_key: string;
   at: number; // sender wall clock — informational; host uses local receive time
   // Set on visibilitychange transitions AND every regular tick so the host
   // does not need to correlate events with intervals. Absent (undefined) is

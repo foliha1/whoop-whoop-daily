@@ -54,6 +54,7 @@ export function handleAuthIdentity(event: string, nextUserId: string | null): bo
 try {
   supabase.auth.onAuthStateChange((event, session) => {
     handleAuthIdentity(event, session?.user?.id ?? null);
+    if (session?.user?.id) setDeviceLinkedHint(true);
     publish(session?.user?.email ?? null);
   });
   void supabase.auth
@@ -141,6 +142,7 @@ export async function linkDeviceAndMerge(): Promise<MergeResult | null> {
     if (error) return null;
     const row = Array.isArray(data) ? data[0] : data;
     if (!row) return null;
+    setDeviceLinkedHint(true);
     return {
       firstSignIn: !!row.first_signin,
       games: Number(row.games ?? 0),
@@ -182,7 +184,24 @@ export async function verifySignInCode(
 }
 
 /** Keys kept on sign-out: device preferences, not player identity or history. */
+/**
+ * Set while this browser is linked to an account on the server. It survives
+ * an expired session (which fires SIGNED_OUT without unlinking) so a refused
+ * signed-out save can ask the player to sign in; a real sign-out removes it.
+ */
+export const DEVICE_LINKED_KEY = "ww_device_linked";
+export function isDeviceLinkedHint(): boolean {
+  try { return localStorage.getItem(DEVICE_LINKED_KEY) === "1"; } catch { return false; }
+}
+function setDeviceLinkedHint(on: boolean): void {
+  try {
+    if (on) localStorage.setItem(DEVICE_LINKED_KEY, "1");
+    else localStorage.removeItem(DEVICE_LINKED_KEY);
+  } catch { /* ignore */ }
+}
+
 const KEEP_ON_SIGN_OUT = new Set([
+  DEVICE_LINKED_KEY,
   "ww_music_enabled",
   "ww_sfx_enabled",
   "ww_intro_seen",
@@ -224,6 +243,7 @@ export async function signOut(): Promise<void> {
     await supabase.auth.signOut();
   } finally {
     clearLocalPlayerData();
+    setDeviceLinkedHint(false);
     publish(null);
   }
   try {

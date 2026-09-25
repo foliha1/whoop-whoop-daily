@@ -98,6 +98,18 @@ Deno.serve(async (req) => {
   });
 
   if (!insertErr) {
+    // Never broadcast a browser id: announce the seat's session key. Games
+    // registered by the older build have no key and keep the legacy shape.
+    const { data: seatRow } = await supabase
+      .from("room_seats")
+      .select("player_key")
+      .eq("room_id", room_id)
+      .eq("game_id", game_id)
+      .eq("seat", player_seat)
+      .maybeSingle();
+    const grantPayload = seatRow?.player_key
+      ? { claim_window, seat: player_seat, player_key: seatRow.player_key }
+      : { claim_window, seat: player_seat, visitor_id };
     // We won — announce it authoritatively over Realtime via the REST
     // broadcast endpoint. `supabase.channel(...).send(...)` without
     // `.subscribe()` does NOT publish in supabase-js v2, so we POST
@@ -122,7 +134,7 @@ Deno.serve(async (req) => {
                 v: 1,
                 type: "claim_grant",
                 seq: 0,
-                payload: { claim_window, seat: player_seat, visitor_id },
+                payload: grantPayload,
               },
             },
           ],
