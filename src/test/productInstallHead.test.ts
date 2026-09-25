@@ -18,20 +18,20 @@ describe("product install metadata", () => {
   it("keeps Daily and Classic head links isolated", () => {
     expect(dailyHtml).toContain('href="/daily.webmanifest"');
     expect(dailyHtml).toContain('href="/icons/daily/apple-touch-icon.png"');
-    expect(dailyHtml).toContain('name="apple-mobile-web-app-title" content="Daily"');
+    expect(dailyHtml).toContain('name="apple-mobile-web-app-title" content="W! W! Daily"');
     expect(dailyHtml).not.toContain("/icons/classic/");
     expect(dailyHtml).not.toContain("/classic.webmanifest");
 
     expect(classicHtml).toContain('href="/classic.webmanifest"');
     expect(classicHtml).toContain('href="/icons/classic/apple-touch-icon.png"');
-    expect(classicHtml).toContain('name="apple-mobile-web-app-title" content="Classic"');
+    expect(classicHtml).toContain('name="apple-mobile-web-app-title" content="W! W! Classic"');
     expect(classicHtml).not.toContain("/icons/daily/");
     expect(classicHtml).not.toContain("/daily.webmanifest");
   });
 
   it("defines each manifest with its own product identity", () => {
     expect(readJson("public/daily.webmanifest")).toMatchObject({
-      name: "WHOOP! WHOOP! Daily",
+      name: "W! W! Daily",
       short_name: "Daily",
       start_url: "/",
       display: "standalone",
@@ -39,7 +39,7 @@ describe("product install metadata", () => {
       background_color: "#F8F2E9",
     });
     expect(readJson("public/classic.webmanifest")).toMatchObject({
-      name: "WHOOP! WHOOP! Classic",
+      name: "W! W! Classic",
       short_name: "Classic",
       start_url: "/classic.html",
       display: "standalone",
