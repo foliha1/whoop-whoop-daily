@@ -580,6 +580,8 @@ const DailyResultCard: React.FC<{
   onSubscribed?: (email: string, restored: boolean) => void;
   /** Hides the signup form: an address is already on file (locally or server). */
   subscribed: boolean;
+  /** Today's game is kept on this device until the player signs in to save it. */
+  needsSignInToSave?: boolean;
   mobile: boolean;
   revisit: boolean;
   onLeave: () => void;
@@ -598,6 +600,7 @@ const DailyResultCard: React.FC<{
   whoop,
   onSubscribed,
   subscribed,
+  needsSignInToSave = false,
   mobile,
   revisit,
   onLeave,
@@ -605,7 +608,10 @@ const DailyResultCard: React.FC<{
   // Once an unsigned player begins this capture, keep it mounted across the
   // auth-session update. Verification publishes the new session before the
   // merge response tells DailySignIn whether consent is still required.
-  const [emailCaptureOpen, setEmailCaptureOpen] = React.useState(() => !subscribed);
+  const [emailCaptureOpen, setEmailCaptureOpen] = React.useState(() => !subscribed || needsSignInToSave);
+  React.useEffect(() => {
+    if (needsSignInToSave) setEmailCaptureOpen(true);
+  }, [needsSignInToSave]);
   const [reminderChoiceRequired, setReminderChoiceRequired] = React.useState(false);
   // Rendered once, here: shown in the share modal and handed to the share sheet.
   // The card defaults to whatever theme the app is in; the modal's toggle is
@@ -917,6 +923,14 @@ const DailyResultCard: React.FC<{
             ...resultMotion("email"),
           }}
         >
+          {needsSignInToSave && (
+            <p
+              data-testid="sign-in-to-save"
+              style={{ ...textStyle("body", mobile), color: COLORS.ink, margin: 0, marginBottom: SPACE[4] }}
+            >
+              Sign in to save this game.
+            </p>
+          )}
           <DailyEmailCapture
             onSubscribed={(email, restored) => {
               setEmailCaptureOpen(false);
@@ -1881,6 +1895,7 @@ const DailyPage: React.FC = () => {
               streak={streak?.current ?? null}
               whoop={whoop}
               subscribed={subscribed}
+              needsSignInToSave={daily.needsSignInToSave}
               onSubscribed={(email) => {
                 // Restore or fresh signup, either way: the address is now on
                 // file, so the lifetime block and streak re-read immediately.

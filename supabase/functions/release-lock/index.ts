@@ -117,7 +117,7 @@ Deno.serve(async (req) => {
               grant_claim_window: claim_window,
               host_claim_window: claim_window,
               seat,
-              visitor_id,
+              // No browser id on the shared channel; clients match by seat.
               reason: reason ?? "STALE_WINDOW",
             },
           },

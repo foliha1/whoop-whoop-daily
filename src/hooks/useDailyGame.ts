@@ -34,7 +34,7 @@ import {
   saveDailyResultRemote,
   type FirstAttempt,
 } from "@/lib/dailyResults";
-import { currentRecordOwner, getSessionEmail, whenAccountReady } from "@/lib/account";
+import { currentRecordOwner, getSessionEmail, getSessionUserId, isDeviceLinkedHint, onAccountChange, whenAccountReady } from "@/lib/account";
 import {
   DAILY_MATCH_SETTLE_MS,
   WRONG_ANIM_MS as WRONG_TREATMENT_MS,
@@ -64,6 +64,8 @@ export interface UseDailyGameResult {
   result: DailyResult | null;
   /** True once the finished run has been persisted. Gates the streak read. */
   resultSaved: boolean;
+  /** Today's game is kept on this device until the player signs in to save it. */
+  needsSignInToSave: boolean;
   alreadyPlayed: boolean;
   /** True when ?debug=1 disables the one-attempt-per-day lock. */
   debugBypass: boolean;
@@ -132,6 +134,24 @@ export function useDailyGame(): UseDailyGameResult {
   // True once the finished run has been persisted (locally + remotely, or
   // skipped in debug). Gates the streak read so today counts.
   const [resultSaved, setResultSaved] = useState(stored !== null);
+  const [needsSignInToSave, setNeedsSignInToSave] = useState(() => hasPendingSave(puzzleNumber));
+  // Retry a kept game once the player is signed in again.
+  useEffect(() => {
+    if (!needsSignInToSave) return;
+    const retry = () => {
+      const r = resultRef.current;
+      if (!r || !getSessionUserId()) return;
+      void saveDailyResultRemote(r).then((ok) => {
+        // Refused again as a repeat means the account already has today's
+        // first attempt; either way the prompt is done.
+        clearPendingSave(puzzleNumber);
+        setNeedsSignInToSave(false);
+        if (ok) saveDailyResult(r, currentRecordOwner());
+      });
+    };
+    retry();
+    return onAccountChange(() => retry());
+  }, [needsSignInToSave, puzzleNumber]);
   const [alreadyPlayed, setAlreadyPlayed] = useState(stored !== null);
   // Set once a first attempt from another browser has been adopted: from then
   // on this browser never submits a result for today.
@@ -321,7 +341,16 @@ export function useDailyGame(): UseDailyGameResult {
       saveDailyResult(finished, currentRecordOwner());
       // Fire-and-forget: the result screen never waits on the network. The
       // streak read is gated on this settling so it counts today's run.
-      void saveDailyResultRemote(finished).then(() => setResultSaved(true));
+      void saveDailyResultRemote(finished).then((ok) => {
+        // A signed-out save into a browser still linked to an account (an
+        // expired session) is refused by the server. Keep the game on this
+        // device and ask the player to sign in; it is retried after sign-in.
+        if (!ok && !getSessionUserId() && isDeviceLinkedHint()) {
+          markPendingSave(puzzleNumber);
+          setNeedsSignInToSave(true);
+        }
+        setResultSaved(true);
+      });
     } else {
       setResultSaved(true);
     }
@@ -382,6 +411,7 @@ export function useDailyGame(): UseDailyGameResult {
     puzzleNumber,
     result,
     resultSaved,
+    needsSignInToSave,
     alreadyPlayed,
     debugBypass,
     preLaunch: ctx.preLaunch,
@@ -394,4 +424,15 @@ export function useDailyGame(): UseDailyGameResult {
     peek,
     recheckEmail,
   };
+}
+
+const pendingKey = (n: number) => `ww_daily_pending_save_${n}`;
+function markPendingSave(n: number): void {
+  try { localStorage.setItem(pendingKey(n), "1"); } catch { /* ignore */ }
+}
+function hasPendingSave(n: number): boolean {
+  try { return localStorage.getItem(pendingKey(n)) === "1"; } catch { return false; }
+}
+function clearPendingSave(n: number): void {
+  try { localStorage.removeItem(pendingKey(n)); } catch { /* ignore */ }
 }

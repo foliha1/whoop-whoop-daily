@@ -61,7 +61,7 @@ export function useHeartbeatSender(
         type: "heartbeat",
         seq: seqRef.current,
         payload: {
-          visitor_id: visitorId,
+          player_key: visitorId,
           at: Date.now(),
           hidden: typeof document !== "undefined" ? document.hidden : false,
         },
@@ -165,20 +165,20 @@ export function useHeartbeatMonitor(opts: {
       const env = msg.payload as Envelope;
       if (!env || env.v !== PROTOCOL_VERSION || env.type !== "heartbeat") return;
       const hb = (env as HeartbeatEnvelope).payload;
-      if (!hb?.visitor_id) return;
+      if (!hb?.player_key) return;
       const now = Date.now();
-      lastSeenRef.current.set(hb.visitor_id, now);
+      lastSeenRef.current.set(hb.player_key, now);
       const isHidden = !!hb.hidden;
-      hiddenRef.current.set(hb.visitor_id, isHidden);
+      hiddenRef.current.set(hb.player_key, isHidden);
       // Track when the CURRENT hidden run began. First hidden heartbeat
       // starts the clock; a visible heartbeat clears it. Subsequent hidden
       // heartbeats leave the existing start-time intact.
       if (isHidden) {
-        if (!hiddenSinceRef.current.has(hb.visitor_id)) {
-          hiddenSinceRef.current.set(hb.visitor_id, now);
+        if (!hiddenSinceRef.current.has(hb.player_key)) {
+          hiddenSinceRef.current.set(hb.player_key, now);
         }
       } else {
-        hiddenSinceRef.current.delete(hb.visitor_id);
+        hiddenSinceRef.current.delete(hb.player_key);
       }
     };
     return onBroadcast(handler);

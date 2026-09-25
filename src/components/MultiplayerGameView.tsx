@@ -87,7 +87,10 @@ interface Props {
   onLeave: () => void;
   mobile?: boolean;
   roomId: string;
+  // This tab's session player key (channel identity).
   visitorId: string;
+  // This browser's own id. Sent only to the claim arbiter, never broadcast.
+  browserId?: string;
   isHost: boolean;
   // Live list of visitor_ids currently present via Realtime Presence.
   // Diagnostic-only: used by the ?debug=1 overlay to compute the client's
@@ -763,7 +766,7 @@ const PresenceDebugOverlay: React.FC<{
   const present = new Set(presenceVisitorIds ?? []);
   const total = seatMap.length;
   const presenceOnlyMissing = seatMap
-    .filter((e) => !present.has(e.visitor_id))
+    .filter((e) => !present.has(e.player_key))
     .map((e) => e.seat);
   const connected = total - presenceOnlyMissing.length;
   return (
@@ -788,7 +791,7 @@ const PresenceDebugOverlay: React.FC<{
       data-testid="presence-debug-overlay"
     >
       {`mySeat: ${mySeat ?? "-"}
-visitor_id: ${visitorId}
+player_key: ${visitorId}
 connected: ${connected}/${total}
 presenceOnlyMissing: [${presenceOnlyMissing.join(",")}]
 heartbeatStale: [${heartbeatStale.join(",")}]
@@ -853,7 +856,7 @@ const DebugControls: React.FC<{
 
 
 const MultiplayerGameView: React.FC<Props> = ({
-  publicState: s, mySeat, events = [], rollCommit = null, lastClaimReject = null, onIntent, onLeave, mobile = false, roomId, visitorId, isHost, presenceVisitorIds,
+  publicState: s, mySeat, events = [], rollCommit = null, lastClaimReject = null, onIntent, onLeave, mobile = false, roomId, visitorId, browserId = "", isHost, presenceVisitorIds,
   heartbeatStale, awaySkip, hostDisconnectedSeats, presenceStatus, soloMode = false, onInvite,
 }) => {
   const [showSettings, setShowSettings] = React.useState(false);
@@ -1535,7 +1538,7 @@ const MultiplayerGameView: React.FC<Props> = ({
         game_id: s.gameId,
         claim_window: window_,
         player_seat: mySeat,
-        visitor_id: visitorId,
+        visitor_id: browserId,
       });
       setClaimBusy(false);
       // Tri-state. ONLY an explicit arbiter verdict naming another seat is a

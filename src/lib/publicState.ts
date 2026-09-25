@@ -55,9 +55,9 @@ export interface PublicState {
   // v7.2: wrong claims each seat has spent this round. UI reads ONLY its own
   // entry — a player never sees another seat's remaining calls.
   missesThisRound: number[];
-  // Frozen seat map — host's authoritative visitor_id → seat mapping. Joiners
+  // Frozen seat map — host's authoritative player_key → seat mapping. Joiners
   // learn their own seat by looking themselves up here.
-  seatMap: Array<{ seat: number; visitor_id: string; display_name: string }>;
+  seatMap: Array<{ seat: number; player_key: string; display_name: string }>;
   // The current claim arbitration window. Incremented by the host every time
   // the claim state REOPENS (after a claim resolves, or when a round ends).
   // The claim-lock edge function keys UNIQUE (room_id, claim_window) on this.
@@ -69,7 +69,7 @@ export interface PublicState {
   // UNIQUE (room_id, game_id, claim_window) constraint so a second game in
   // the same room does not collide with the first game's rows.
   gameId: string;
-  // Seats whose visitor_id is no longer in room presence, or whose heartbeat
+  // Seats whose player_key is no longer in room presence, or whose heartbeat
   // has gone stale past its applicable threshold. The seat is kept — score,
   // seat index and seatMap position stay valid — but the host auto-advances
   // past the seat when it becomes flipper. More urgent than PENALTY in the UI.
@@ -82,7 +82,7 @@ export interface PublicState {
 
 export function toPublicState(
   state: State,
-  seatMap: Array<{ seat: number; visitor_id: string; display_name: string }>,
+  seatMap: Array<{ seat: number; player_key: string; display_name: string }>,
   claimWindow: number = 0,
   gameId: string = "",
   disconnectedSeats: number[] = [],
