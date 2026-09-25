@@ -162,7 +162,13 @@ export function useDailyGame(): UseDailyGameResult {
     async (email: string | null, onlyOthers: boolean) => {
       if (!email || debugBypass || ctx.preLaunch) return;
       const row = await fetchFirstAttempt(puzzleNumber, email);
-      if (!row || (onlyOthers && row.is_mine)) return;
+      if (!row) return;
+      if (onlyOthers && row.is_mine) {
+        // This browser's own run now belongs to the signed-in account, so
+        // re-stamp it; it must leave the device with the account on sign-out.
+        if (resultRef.current) saveDailyResult(resultRef.current, currentRecordOwner());
+        return;
+      }
       adopt(row);
     },
     [adopt, debugBypass, ctx.preLaunch, puzzleNumber]
