@@ -16,7 +16,8 @@ const json = (body: unknown, status = 200) =>
 // Disposable test accounts never reach ActiveCampaign; the call is recorded
 // instead so an end-to-end deletion test can prove which address it targeted.
 const TEST_DOMAIN = "@whoop-test.invalid";
-const isTestAddress = (email: string) => email.endsWith(TEST_DOMAIN);
+const isTestAddress = (email: string) =>
+  email.endsWith(TEST_DOMAIN) || /^[^@]+\+deltest@/.test(email);
 
 async function acContactId(email: string): Promise<string | null> {
   const base = (Deno.env.get("AC_API_URL") ?? "").replace(/\/+$/, "");
