@@ -1,30 +1,17 @@
-# Product home-screen icons and manifests
+# Sign-in email icon and six-digit code hardening
 
 ## Scope
-- Add the supplied square source marks to the project unchanged: cream-backed Daily and warm-black-backed Classic.
-- Generate each product’s 180, 192, 512, maskable 512, 32, and 16 PNG files. Flatten every PNG onto its source background; keep standard icons square and add safe inset only to the maskable icon.
-- Add separate Daily and Classic web manifests with the requested names, standalone display mode, product start URLs, and matching theme/background colors.
-- Preserve every existing Open Graph, Twitter, canonical, title, description, and robots tag.
+- Replace the written email brand line with the existing Daily web-app icon in light mode and its warm-black inverted alternate in dark mode.
+- Use absolute URLs on the published `www.whoop-whoop.com` domain so mail clients can fetch both images.
+- Keep all six authentication email types code-only and otherwise unchanged.
 
-## Page ownership
-- **Daily:** `/` and `/today`.
-- **Classic:** `/classic.html` and its query-string invite/game variants; the emitted `/classic/index.html` and legacy `/play/index.html` static Classic documents receive the same Classic head through the existing prerender.
-- **Neither / Daily fallback:** marketing and legal routes, `/you`, `/groups`, `/admin`, debug pages, and unknown routes keep the Daily-family favicon/manifest because they share Daily’s cream shell and root HTML document.
-- The runtime `/classic` and `/classic/:roomCode` aliases will receive Classic head values in the browser, while share/invite links continue to use `/classic.html`, the existing raw-HTML Classic document. No routing or gameplay behavior changes.
+## Six-digit verification
+- Keep sign-in generation with the hosted authentication service, whose email OTP is six numeric digits.
+- Enforce exactly six ASCII digits before client verification and at the email subject/rendering boundary.
+- Preserve the configured 60-minute expiry and ensure the email copy matches it.
+- Add focused regression tests covering nonnumeric, short, long, valid, and expired-code behavior.
 
-## Implementation
-- Add icon source/output folders under `public`, keeping the two source SVGs available as source assets.
-- Use deterministic raster generation and inspect every PNG’s dimensions, alpha channel, and corner/background pixels.
-- Add Daily manifest, Apple icon, Apple title, and favicon tags to the root HTML head.
-- Extend the existing Classic head transformer only for product identity tags: swap Daily manifest/icon/title/favicon links for Classic equivalents without touching its metadata transformations.
-- Add route-aware head switching for `/classic` aliases so browser navigation cannot retain Daily product identity.
-- Add focused tests for the Classic transformer, route ownership, manifest values, no cross-linking, and generated file dimensions.
-
-## Verification
-- Fetch `/`, `/today`, and `/classic.html` without JavaScript and inspect their raw HTML.
-- Confirm each product has exactly its own manifest, Apple icon, Apple title, and favicons; confirm no Classic tags in Daily HTML and no Daily tags in Classic HTML.
-- Confirm fallback pages retain the chosen Daily identity and existing metadata is byte-for-byte unaffected outside the new product tags.
-- Check the final build diagnostics and report every generated file with dimensions.
-
-## Required asset handoff
-The mounted uploads currently contain no pair of square cream/warm-black eye-mark SVGs. Implementation can begin as soon as those two files are attached or their exact existing filenames are identified; I will not substitute or redraw brand art.
+## Delivery and checks
+- Deploy the updated authentication email sender so the last deployed version matches the project.
+- Verify the rendered email contains both absolute icon URLs, no written logo replacement, and an exact six-digit sample.
+- Run focused tests and check the final build diagnostics. Do not publish the app.
