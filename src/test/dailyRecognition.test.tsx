@@ -176,3 +176,32 @@ describe("not-recognized state opens sign-in", () => {
     expect(invoke).not.toHaveBeenCalled();
   });
 });
+
+describe("played-today state belongs to the current identity", () => {
+  const KEY = "ww_daily_whoop-2026-08-18";
+  it("sign in, play, sign out: the account's result does not stay", async () => {
+    const { saveDailyResult } = await import("@/lib/daily");
+    const { clearLocalPlayerData } = await import("@/lib/account");
+    saveDailyResult({ seed: "whoop-2026-08-18", elapsedMs: 1 } as never, "account");
+    clearLocalPlayerData();
+    expect(localStorage.getItem(KEY)).toBeNull();
+  });
+  it("anonymous play first, then sign in and out: its own result stays", async () => {
+    const { saveDailyResult, loadDailyResult } = await import("@/lib/daily");
+    const { clearLocalPlayerData, deleteAccount } = await import("@/lib/account");
+    saveDailyResult({ seed: "whoop-2026-08-18", elapsedMs: 1 } as never, "anon");
+    clearLocalPlayerData();
+    expect(loadDailyResult("whoop-2026-08-18")?.owner).toBe("anon");
+    invoke.mockResolvedValue({ data: { ok: true }, error: null });
+    expect(await deleteAccount()).toBe(true);
+    expect(loadDailyResult("whoop-2026-08-18")?.owner).toBe("anon");
+  });
+  it("deletion drops an account-owned record", async () => {
+    const { saveDailyResult } = await import("@/lib/daily");
+    const { deleteAccount } = await import("@/lib/account");
+    saveDailyResult({ seed: "whoop-2026-08-18", elapsedMs: 1 } as never, "account");
+    invoke.mockResolvedValue({ data: { ok: true }, error: null });
+    expect(await deleteAccount()).toBe(true);
+    expect(localStorage.getItem(KEY)).toBeNull();
+  });
+});
