@@ -5,6 +5,7 @@ const signInWithOtp = vi.fn();
 const verifyOtp = vi.fn();
 const rpc = vi.fn();
 const invoke = vi.fn();
+const trackDaily = vi.fn();
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: {
@@ -18,7 +19,7 @@ vi.mock("@/integrations/supabase/client", () => ({
     functions: { invoke: (...a: unknown[]) => invoke(...a) },
   },
 }));
-vi.mock("@/lib/dailyEvents", () => ({ trackDaily: vi.fn() }));
+vi.mock("@/lib/dailyEvents", () => ({ trackDaily: (...a: unknown[]) => trackDaily(...a) }));
 
 import DailySignIn from "@/components/DailySignIn";
 import { getSubscribedEmail, emailHasHistory } from "@/lib/dailySubscribe";
@@ -29,6 +30,7 @@ beforeEach(() => {
   verifyOtp.mockReset();
   rpc.mockReset();
   invoke.mockReset().mockResolvedValue({ data: { ok: true }, error: null });
+  trackDaily.mockReset();
 });
 
 async function toCode() {
@@ -111,6 +113,9 @@ describe("optional sign-in", () => {
     await waitFor(() => expect(onSignedIn).toHaveBeenCalledWith("a@b.co", false));
     expect(rpc).toHaveBeenCalledWith("set_reminder_consent", { p_consented: true, p_source: "post_signin" });
     expect(invoke).toHaveBeenCalledWith("ac-subscribe", expect.objectContaining({ body: expect.objectContaining({ email: "a@b.co" }) }));
+    expect(trackDaily).toHaveBeenCalledWith("reminder_opt_in", {
+      props: { choice: "sounds_good", source: "post_signin" },
+    });
   });
 
   it("an existing subscriber merges quietly without the prompt", async () => {

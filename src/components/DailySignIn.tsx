@@ -162,7 +162,7 @@ const DailySignIn: React.FC<{
           className="ww-press"
           disabled={busy}
           onClick={() => void answer(true)}
-          style={{ ...buttonStyle("secondary", "lg", { fullWidth: true, disabled: busy }), width: "100%" }}
+          style={{ ...buttonStyle("primary", "lg", { fullWidth: true, disabled: busy }), width: "100%" }}
         >
           Sounds good
         </button>

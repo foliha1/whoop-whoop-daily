@@ -601,6 +601,10 @@ const DailyResultCard: React.FC<{
   revisit,
   onLeave,
 }) => {
+  // Once an unsigned player begins this capture, keep it mounted across the
+  // auth-session update. Verification publishes the new session before the
+  // merge response tells DailySignIn whether consent is still required.
+  const [emailCaptureOpen, setEmailCaptureOpen] = React.useState(() => !subscribed);
   const [reminderChoiceRequired, setReminderChoiceRequired] = React.useState(false);
   // Rendered once, here: shown in the share modal and handed to the share sheet.
   // The card defaults to whatever theme the app is in; the modal's toggle is
@@ -896,7 +900,7 @@ const DailyResultCard: React.FC<{
         Done
       </button>
 
-      {!subscribed && (
+      {emailCaptureOpen && (
         <div
           data-testid="results-email-capture"
           className={resultClass}
@@ -913,7 +917,10 @@ const DailyResultCard: React.FC<{
           }}
         >
           <DailyEmailCapture
-            onSubscribed={onSubscribed}
+            onSubscribed={(email, restored) => {
+              setEmailCaptureOpen(false);
+              onSubscribed?.(email, restored);
+            }}
             onChoiceRequiredChange={setReminderChoiceRequired}
           />
         </div>
