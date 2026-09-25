@@ -50,6 +50,8 @@ export function useRoomPresence(
   // Channel exposed as STATE so consumers re-render when it becomes available.
   // A ref alone silently strands hooks that gate on `channel != null`.
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
+  // Bumps on every successful (re)subscribe so joiners can ask for a snapshot.
+  const [connectEpoch, setConnectEpoch] = useState(0);
   const joinedAtRef = useRef<number>(Date.now());
   const channelRef = useRef<RealtimeChannel | null>(null);
   const listenersRef = useRef<Set<BroadcastListener>>(new Set());
@@ -129,6 +131,7 @@ export function useRoomPresence(
             setChannel(ch);
             setStatus("connected");
             setConnectEpoch((n) => n + 1);
+            setConnectEpoch((n) => n + 1);
           } catch (e) {
             console.warn("[presence] track failed", e);
             setStatus("error");
@@ -181,6 +184,7 @@ export function useRoomPresence(
           if (channelRef.current !== ch) return;
           setChannel(ch);
           setStatus("connected");
+          setConnectEpoch((n) => n + 1);
           setConnectEpoch((n) => n + 1);
         } catch (e) {
           console.warn("[presence] rejoin failed", e);
