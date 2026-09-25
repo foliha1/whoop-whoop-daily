@@ -33,3 +33,5 @@
 
 - [ ] Shorten sign-in code expiry to 10 min (blocked: auth setting not reachable from my tools; emails say 60 min until changed)
 - [x] Code-only auth emails (all 6) + fast end-of-run test + worker warning fixed
+
+- [ ] Add product-specific Daily and Classic home-screen icon sets, manifests, raw head wiring, and verification.
