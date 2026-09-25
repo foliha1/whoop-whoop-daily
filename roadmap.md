@@ -46,4 +46,4 @@
 - [x] Hide Your Stats in Daily Settings while signed out and preserve signed-in direct access.
 - [x] Version Daily and Classic install metadata and icon URLs per build.
 - [x] Extend the existing Daily theme zone through Your Stats without restarting.
-- [ ] Verify focused flows, raw install metadata, email templates, and the full test suite; do not publish.
+- [x] Verify focused flows, raw install metadata, email templates, and the full test suite; do not publish.
