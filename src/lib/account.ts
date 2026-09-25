@@ -150,11 +150,48 @@ export async function verifySignInCode(
   }
 }
 
+/** Keys kept on sign-out: device preferences, not player identity or history. */
+const KEEP_ON_SIGN_OUT = new Set([
+  "ww_music_enabled",
+  "ww_sfx_enabled",
+  "ww_intro_seen",
+  "ww_classic_demo_seen",
+  "ww_daily_howto_seen",
+  "ww_display_name",
+]);
+
+/** Forgets this browser's player identity and history, keeping preferences. */
+export function clearLocalPlayerData(): void {
+  try {
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith("ww_") && !KEEP_ON_SIGN_OUT.has(k))
+      .forEach((k) => localStorage.removeItem(k));
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Signs out and disconnects this browser from the account: the server link
+ * is removed and the browser starts again as a brand-new anonymous player.
+ * The account's stats stay safe and return on the next sign-in.
+ */
 export async function signOut(): Promise<void> {
+  try {
+    await supabase.rpc("unlink_device", { p_visitor_id: getVisitorId() });
+  } catch {
+    // still sign out locally
+  }
   try {
     await supabase.auth.signOut();
   } finally {
+    clearLocalPlayerData();
     publish(null);
+  }
+  try {
+    window.location.reload();
+  } catch {
+    // ignore
   }
 }
 
