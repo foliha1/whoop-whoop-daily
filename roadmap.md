@@ -39,3 +39,11 @@
 - [x] Save the user-supplied Daily and Classic source marks exactly as provided.
 - [x] Replace the written email brand line with light/dark full WHOOP! WHOOP! logos.
 - [ ] Use the Daily web-app icon as the inbox avatar (blocked: managed sender has no avatar field; inbox avatars are provider/DNS controlled).
+
+## Final pre-launch batch
+- [ ] Convert user-facing UK spelling and shortened game-name references without changing voice.
+- [ ] Add a 60-second OTP resend cooldown with existing rate-limit handling.
+- [ ] Hide Your Stats in Daily Settings while signed out and preserve signed-in direct access.
+- [ ] Version Daily and Classic install metadata and icon URLs per build.
+- [ ] Extend the existing Daily theme zone through Your Stats without restarting.
+- [ ] Verify focused flows, raw install metadata, email templates, and the full test suite; do not publish.
