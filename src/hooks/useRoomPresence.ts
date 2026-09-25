@@ -44,6 +44,7 @@ export function useRoomPresence(
   channel: RealtimeChannel | null;
   channelRef: React.MutableRefObject<RealtimeChannel | null>;
   onBroadcast: (listener: BroadcastListener) => () => void;
+  connectEpoch: number;
 } {
   const [participants, setParticipants] = useState<PresenceParticipant[]>([]);
   const [status, setStatus] = useState<PresenceStatus>("connecting");
