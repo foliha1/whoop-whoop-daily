@@ -131,7 +131,6 @@ export function useRoomPresence(
             setChannel(ch);
             setStatus("connected");
             setConnectEpoch((n) => n + 1);
-            setConnectEpoch((n) => n + 1);
           } catch (e) {
             console.warn("[presence] track failed", e);
             setStatus("error");
@@ -184,7 +183,6 @@ export function useRoomPresence(
           if (channelRef.current !== ch) return;
           setChannel(ch);
           setStatus("connected");
-          setConnectEpoch((n) => n + 1);
           setConnectEpoch((n) => n + 1);
         } catch (e) {
           console.warn("[presence] rejoin failed", e);
