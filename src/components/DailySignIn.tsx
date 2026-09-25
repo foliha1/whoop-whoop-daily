@@ -9,6 +9,7 @@ import React, { useState } from "react";
 import { isValidEmail } from "@/lib/dailySubscribe";
 import {
   sendSignInCode,
+  isSixDigitSignInCode,
   setReminder,
   verifySignInCode,
   type SignInFailure,
@@ -97,7 +98,7 @@ const DailySignIn: React.FC<{
     e.preventDefault();
     if (busy) return;
     hapticTap();
-    if (!/^\d{6}$/.test(code.trim())) return fail("Enter the 6-digit code.");
+    if (!isSixDigitSignInCode(code)) return fail("Enter the 6-digit code.");
     setBusy(true);
     setError(null);
     const res = await verifySignInCode(email, code);
