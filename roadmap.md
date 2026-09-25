@@ -37,3 +37,5 @@
 - [x] Add product-specific Daily and Classic home-screen icon sets, manifests, raw head wiring, and verification.
 
 - [x] Save the user-supplied Daily and Classic source marks exactly as provided.
+- [x] Replace the written email brand line with light/dark full WHOOP! WHOOP! logos.
+- [ ] Use the Daily web-app icon as the inbox avatar (blocked: managed sender has no avatar field; inbox avatars are provider/DNS controlled).

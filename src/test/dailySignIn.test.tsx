@@ -22,6 +22,7 @@ vi.mock("@/lib/dailyEvents", () => ({ trackDaily: vi.fn() }));
 
 import DailySignIn from "@/components/DailySignIn";
 import { getSubscribedEmail, emailHasHistory } from "@/lib/dailySubscribe";
+import { isSixDigitSignInCode, verifySignInCode } from "@/lib/account";
 
 beforeEach(() => {
   signInWithOtp.mockReset().mockResolvedValue({ error: null });
@@ -38,6 +39,18 @@ async function toCode() {
 }
 
 describe("optional sign-in", () => {
+  it("accepts only exactly six ASCII numeric digits at verification", async () => {
+    expect(isSixDigitSignInCode("123456")).toBe(true);
+    expect(isSixDigitSignInCode(" 123456 ")).toBe(true);
+    expect(isSixDigitSignInCode("12345")).toBe(false);
+    expect(isSixDigitSignInCode("1234567")).toBe(false);
+    expect(isSixDigitSignInCode("12345a")).toBe(false);
+    expect(isSixDigitSignInCode("１２３４５６")).toBe(false);
+
+    await expect(verifySignInCode("a@b.co", "12345")).resolves.toEqual({ ok: false, reason: "invalid_code" });
+    expect(verifyOtp).not.toHaveBeenCalled();
+  });
+
   it("a typed email reveals nothing before verification", async () => {
     expect(getSubscribedEmail()).toBeNull();
     expect(await emailHasHistory("a@b.co")).toBe(false);

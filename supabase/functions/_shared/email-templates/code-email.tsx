@@ -3,16 +3,23 @@
 // the 6-digit code is the only way in, so sign-in always completes in the
 // browser the player is already using (e.g. Instagram's in-app browser).
 import * as React from 'npm:react@18.3.1'
-import { Body, Container, Head, Html, Preview, Text } from 'npm:@react-email/components@0.0.22'
+import { Body, Container, Head, Html, Img, Preview, Text } from 'npm:@react-email/components@0.0.22'
 
 /** Must match the auth OTP expiry. */
 export const OTP_MINUTES = 60
+export const SIX_DIGIT_CODE = /^[0-9]{6}$/
 
-export const codeSubject = (token?: string) =>
-  token ? `Your WHOOP! WHOOP! code: ${token}` : 'Your WHOOP! WHOOP! code'
+export const requireSixDigitCode = (token?: string): string => {
+  const code = token?.trim() ?? ''
+  if (!SIX_DIGIT_CODE.test(code)) throw new Error('Auth code must contain exactly six numeric digits')
+  return code
+}
 
-export const CodeEmail = ({ token, purpose }: { token?: string; purpose: string }) => (
-  <Html lang="en" dir="ltr">
+export const codeSubject = (token?: string) => `Your WHOOP! WHOOP! code: ${requireSixDigitCode(token)}`
+
+export const CodeEmail = ({ token, purpose }: { token?: string; purpose: string }) => {
+  const codeValue = requireSixDigitCode(token)
+  return <Html lang="en" dir="ltr">
     <Head>
       <meta name="color-scheme" content="light dark" />
       <meta name="supported-color-schemes" content="light dark" />
@@ -21,9 +28,25 @@ export const CodeEmail = ({ token, purpose }: { token?: string; purpose: string 
     <Preview>{`Your code: ${token ?? ''}`}</Preview>
     <Body className="dm-bg" style={main}>
       <Container className="dm-bg" style={container}>
-        <Text className="dm-accent" style={brand}>WHOOP! WHOOP!</Text>
+        <Img
+          className="logo-light"
+          src={LIGHT_LOGO_URL}
+          width="126"
+          height="100"
+          alt="WHOOP! WHOOP!"
+          style={logo}
+        />
+        <Img
+          className="logo-dark"
+          src={DARK_LOGO_URL}
+          width="126"
+          height="100"
+          alt=""
+          aria-hidden="true"
+          style={darkLogo}
+        />
         <Text className="dm-ink" style={text}>Here's your code:</Text>
-        <Text className="dm-ink" style={code}>{token}</Text>
+        <Text className="dm-ink" style={code}>{codeValue}</Text>
         <Text className="dm-ink" style={text}>
           Type it in to {purpose}. It works for {OTP_MINUTES} minutes.
         </Text>
@@ -33,12 +56,13 @@ export const CodeEmail = ({ token, purpose }: { token?: string; purpose: string 
       </Container>
     </Body>
   </Html>
-)
+}
 
 const CREAM = '#F8F2E9'
 const INK = '#231F20'
-const RED = '#d72229'
 const FONT = "'Friend', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+const LIGHT_LOGO_URL = 'https://www.whoop-whoop.com/WhoopWhoop_Stacked_Logo.svg'
+const DARK_LOGO_URL = 'https://www.whoop-whoop.com/WhoopWhoop_Dark_Logo.svg'
 
 // Cream throughout; dark mode swaps to warm black.
 const main = { backgroundColor: CREAM, fontFamily: FONT, margin: 0, padding: '24px 0' }
@@ -49,7 +73,8 @@ const container = {
   margin: '0 auto',
   padding: '32px 24px',
 }
-const brand = { fontSize: '26px', fontStyle: 'italic' as const, color: RED, margin: '0 0 24px', letterSpacing: '0.5px' }
+const logo = { display: 'block', height: '100px', margin: '0 0 24px', width: '126px' }
+const darkLogo = { ...logo, display: 'none' }
 const text = { fontSize: '16px', lineHeight: '1.5', color: INK, margin: '0 0 12px' }
 const code = {
   fontFamily: "'SF Mono', Menlo, Consolas, 'Courier New', monospace",
@@ -67,10 +92,12 @@ const darkModeCss = `
     .dm-bg { background-color: #231F20 !important; }
     .dm-ink { color: #F8F2E9 !important; }
     .dm-muted { color: #bdb4ab !important; }
-    .dm-accent { color: #ff5a5f !important; }
+    .logo-light { display: none !important; }
+    .logo-dark { display: block !important; }
   }
   [data-ogsc] .dm-ink { color: #F8F2E9 !important; }
   [data-ogsc] .dm-muted { color: #bdb4ab !important; }
-  [data-ogsc] .dm-accent { color: #ff5a5f !important; }
+  [data-ogsc] .logo-light { display: none !important; }
+  [data-ogsc] .logo-dark { display: block !important; }
   [data-ogsb] .dm-bg { background-color: #231F20 !important; }
 `
