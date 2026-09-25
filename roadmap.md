@@ -47,3 +47,6 @@
 - [x] Version Daily and Classic install metadata and icon URLs per build.
 - [x] Extend the existing Daily theme zone through Your Stats without restarting.
 - [x] Verify focused flows, raw install metadata, email templates, and the full test suite; do not publish.
+
+## Groups relaunch prerequisites
+- [ ] Key Groups membership by `auth.uid()` (not visitor id) before relaunch; group RPCs are server-only until then (2026-09-25 audit).

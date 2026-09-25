@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { signOut as accountSignOut } from "@/lib/account";
 import AdminBackupBanner from "@/components/AdminBackupBanner";
 import {
 
@@ -660,8 +661,9 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
     setConfirmList(false);
   }, [from, to]);
 
+  // The account wrapper unlinks this browser and clears account state.
   const signOut = useCallback(() => {
-    void supabase.auth.signOut();
+    void accountSignOut();
   }, []);
 
 

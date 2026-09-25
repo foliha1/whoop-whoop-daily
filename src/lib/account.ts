@@ -9,9 +9,10 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getVisitorId } from "@/lib/visitor";
 import { trackDaily } from "@/lib/dailyEvents";
-import { isAccountOwnedRecord } from "@/lib/daily";
+import { isAccountOwnedRecord, type DailyResultOwner } from "@/lib/daily";
 
 let sessionEmail: string | null = null;
+let sessionUserId: string | null = null;
 let resolved = false;
 const listeners = new Set<(email: string | null) => void>();
 let readyResolve: (email: string | null) => void = () => {};
@@ -30,6 +31,19 @@ function publish(next: string | null) {
   if (changed) listeners.forEach((fn) => fn(clean));
 }
 
+/**
+ * Identity boundary. Any sign-out, or a switch from one account to another,
+ * clears account-owned local state — however the sign-out was triggered, so a
+ * direct auth call elsewhere can never skip it.
+ */
+export function handleAuthIdentity(event: string, nextUserId: string | null): boolean {
+  const prev = sessionUserId;
+  sessionUserId = nextUserId;
+  const crossed = event === "SIGNED_OUT" || (prev !== null && prev !== nextUserId);
+  if (crossed) clearLocalPlayerData();
+  return crossed;
+}
+
 // Legacy note: this module once wiped the typed-email keys ("ww_daily_email",
 // "ww_daily_subscribed") on import, treating them as identity. That wipe also
 // erased the live reminder flag every load, so subscribed players were asked
@@ -38,15 +52,30 @@ function publish(next: string | null) {
 // explicitly) and nothing reads the stored email. Nothing is removed here.
 
 try {
-  supabase.auth.onAuthStateChange((_event, session) => {
+  supabase.auth.onAuthStateChange((event, session) => {
+    handleAuthIdentity(event, session?.user?.id ?? null);
     publish(session?.user?.email ?? null);
   });
   void supabase.auth
     .getUser()
-    .then(({ data }) => publish(data.user?.email ?? null))
+    .then(({ data }) => {
+      if (sessionUserId === null && data.user?.id) sessionUserId = data.user.id;
+      publish(data.user?.email ?? null);
+    })
     .catch(() => publish(null));
 } catch {
   publish(null);
+}
+
+/** The signed-in user id, or null. Synchronous; may be null until ready. */
+export function getSessionUserId(): string | null {
+  return sessionUserId;
+}
+
+/** Owner tag for this browser's "already played" record. */
+export function currentRecordOwner(): DailyResultOwner {
+  if (sessionUserId) return `user:${sessionUserId}`;
+  return sessionEmail ? "account" : "anon";
 }
 
 /** The signed-in email, or null. Synchronous; may be null until ready. */
@@ -139,6 +168,7 @@ export async function verifySignInCode(
       trackDaily("signin_failed", { props: { reason } });
       return { ok: false, reason };
     }
+    if (sessionUserId === null) sessionUserId = data.session.user.id ?? null;
     publish(data.session.user.email ?? null);
     const merge = await linkDeviceAndMerge();
     trackDaily("signin_verified", {
