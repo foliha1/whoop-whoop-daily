@@ -177,6 +177,25 @@ export interface DailyResult {
   /** True when no round was solved. */
   failed: boolean;
   completedAt: string;
+  /**
+   * Who this record belongs to on this browser: the anonymous player
+   * ("anon") or a signed-in account ("account"). Account records are removed
+   * on sign-out and deletion so they never show to the next person.
+   * Missing on older records, which are treated as the browser's own.
+   */
+  owner?: DailyResultOwner;
+}
+
+export type DailyResultOwner = "anon" | "account";
+
+/** True when a stored record belongs to a signed-in account, not this browser. */
+export function isAccountOwnedRecord(raw: string | null): boolean {
+  if (!raw) return false;
+  try {
+    return (JSON.parse(raw) as { owner?: unknown })?.owner === "account";
+  } catch {
+    return false;
+  }
 }
 
 export function dailyStorageKey(seed: string): string {
@@ -221,17 +240,18 @@ export function loadDailyResult(seed: string): DailyResult | null {
       peekRound: typeof parsed.peekRound === "number" ? parsed.peekRound : null,
       failed: parsed.failed === true,
       completedAt: parsed.completedAt ?? new Date().toISOString(),
+      owner: parsed.owner === "account" ? "account" : "anon",
     };
   } catch {
     return null;
   }
 }
 
-export function saveDailyResult(result: DailyResult): void {
+export function saveDailyResult(result: DailyResult, owner: DailyResultOwner): void {
   try {
     window.localStorage.setItem(
       dailyStorageKey(result.seed),
-      JSON.stringify(result)
+      JSON.stringify({ ...result, owner })
     );
   } catch {
     /* storage unavailable — the attempt just won't persist */
