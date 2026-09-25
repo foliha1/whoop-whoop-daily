@@ -29,13 +29,6 @@ export const CodeEmail = ({ token, purpose }: { token?: string; purpose: string 
     <Body className="dm-bg" style={main}>
       <Container className="dm-bg" style={container}>
         <Img
-          src={APP_ICON_URL}
-          width="48"
-          height="48"
-          alt="WHOOP! WHOOP! Daily app icon"
-          style={avatar}
-        />
-        <Img
           className="logo-light"
           src={LIGHT_LOGO_URL}
           width="126"
@@ -68,7 +61,6 @@ export const CodeEmail = ({ token, purpose }: { token?: string; purpose: string 
 const CREAM = '#F8F2E9'
 const INK = '#231F20'
 const FONT = "'Friend', 'Helvetica Neue', Helvetica, Arial, sans-serif"
-const APP_ICON_URL = 'https://www.whoop-whoop.com/icons/daily/icon-192.png'
 const LIGHT_LOGO_URL = 'https://www.whoop-whoop.com/WhoopWhoop_Stacked_Logo.svg'
 const DARK_LOGO_URL = 'https://www.whoop-whoop.com/WhoopWhoop_Dark_Logo.svg'
 
@@ -81,7 +73,6 @@ const container = {
   margin: '0 auto',
   padding: '32px 24px',
 }
-const avatar = { borderRadius: '8px', display: 'block', margin: '0 0 16px' }
 const logo = { display: 'block', height: '100px', margin: '0 0 24px', width: '126px' }
 const darkLogo = { ...logo, display: 'none' }
 const text = { fontSize: '16px', lineHeight: '1.5', color: INK, margin: '0 0 12px' }
