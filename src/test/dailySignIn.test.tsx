@@ -35,15 +35,15 @@ async function toCode() {
   render(<DailySignIn />);
   fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "a@b.co" } });
   fireEvent.click(screen.getByRole("button", { name: "Send Code" }));
-  await screen.findByLabelText("8-digit code");
+  await screen.findByLabelText("6-digit code");
 }
 
 describe("optional sign-in", () => {
-  it("accepts only exactly eight ASCII numeric digits at verification", async () => {
-    expect(isValidSignInCode("12345678")).toBe(true);
-    expect(isValidSignInCode(" 12345678 ")).toBe(true);
+  it("accepts only exactly six ASCII numeric digits at verification", async () => {
+    expect(isValidSignInCode("123456")).toBe(true);
+    expect(isValidSignInCode(" 123456 ")).toBe(true);
     expect(isValidSignInCode("1234567")).toBe(false);
-    expect(isValidSignInCode("123456789")).toBe(false);
+    expect(isValidSignInCode("1234569")).toBe(false);
     expect(isValidSignInCode("1234567a")).toBe(false);
     expect(isValidSignInCode("１２３４５６７８")).toBe(false);
 
@@ -56,13 +56,13 @@ describe("optional sign-in", () => {
     expect(await emailHasHistory("a@b.co")).toBe(false);
     await toCode();
     expect(rpc).not.toHaveBeenCalled();
-    expect(screen.getByLabelText("8-digit code")).toHaveAttribute("autocomplete", "one-time-code");
+    expect(screen.getByLabelText("6-digit code")).toHaveAttribute("autocomplete", "one-time-code");
   });
 
   it("refuses a wrong code", async () => {
     verifyOtp.mockResolvedValue({ data: { session: null }, error: { message: "Token has expired or is invalid" } });
     await toCode();
-    fireEvent.change(screen.getByLabelText("8-digit code"), { target: { value: "12345678" } });
+    fireEvent.change(screen.getByLabelText("6-digit code"), { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/expired/i);
   });
@@ -75,7 +75,7 @@ describe("optional sign-in", () => {
         : { data: true, error: null }
     );
     await toCode();
-    fireEvent.change(screen.getByLabelText("8-digit code"), { target: { value: "12345678" } });
+    fireEvent.change(screen.getByLabelText("6-digit code"), { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
     await screen.findByText("Want the daily puzzle by email?");
     expect(invoke).not.toHaveBeenCalled();
@@ -89,7 +89,7 @@ describe("optional sign-in", () => {
     verifyOtp.mockResolvedValue({ data: { session: { user: { email: "a@b.co" } } }, error: null });
     rpc.mockResolvedValue({ data: [{ first_signin: true, games: 19, was_subscriber: true, reminder_answered: false }], error: null });
     await toCode();
-    fireEvent.change(screen.getByLabelText("8-digit code"), { target: { value: "12345678" } });
+    fireEvent.change(screen.getByLabelText("6-digit code"), { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
     await waitFor(() => expect(screen.getByTestId("signin-done")).toHaveTextContent("19 games"));
   });
