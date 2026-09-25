@@ -75,7 +75,7 @@ describe("maskEmail", () => {
 });
 
 describe("Not you? signs out on this device", () => {
-  it("signs out and disconnects this browser, keeping only preferences", async () => {
+  it("signs out and disconnects this browser, keeping preferences and played games", async () => {
     localStorage.setItem("ww_visitor_id", "visitor-recognition");
     localStorage.setItem("ww_daily_whoop-2026-08-18", '{"seed":"whoop-2026-08-18"}');
     localStorage.setItem("ww_music_enabled", "1");
@@ -85,8 +85,10 @@ describe("Not you? signs out on this device", () => {
     await waitFor(() => expect(localStorage.getItem("ww_visitor_id")).toBeNull());
     expect(result.current.email).toBeNull();
     expect(getSubscribedEmail()).toBeNull();
-    // Account stats no longer show: identity and stored results are gone.
-    expect(localStorage.getItem("ww_daily_whoop-2026-08-18")).toBeNull();
+    // Played games stay recorded so the Daily can't be replayed.
+    expect(localStorage.getItem("ww_daily_whoop-2026-08-18")).toBe(
+      '{"seed":"whoop-2026-08-18"}'
+    );
     // Device preferences survive.
     expect(localStorage.getItem("ww_music_enabled")).toBe("1");
   });
