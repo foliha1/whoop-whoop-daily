@@ -30,6 +30,24 @@ export const CLASSIC_META = {
   imageAlt: "WHOOP! WHOOP! Classic — live multiplayer memory game for 2 to 6 players",
 };
 
+const DAILY_PRODUCT_HEAD = {
+  themeColor: "#F8F2E9",
+  manifest: "/daily.webmanifest",
+  appleTouchIcon: "/icons/daily/apple-touch-icon.png",
+  favicon32: "/icons/daily/favicon-32.png",
+  favicon16: "/icons/daily/favicon-16.png",
+  appleTitle: "Daily",
+};
+
+const CLASSIC_PRODUCT_HEAD = {
+  themeColor: "#231F20",
+  manifest: "/classic.webmanifest",
+  appleTouchIcon: "/icons/classic/apple-touch-icon.png",
+  favicon32: "/icons/classic/favicon-32.png",
+  favicon16: "/icons/classic/favicon-16.png",
+  appleTitle: "Classic",
+};
+
 /** Replace the content of a `<meta>` tag matched on name/property. */
 function setMeta(html, attr, key, value) {
   const re = new RegExp(`(<meta\\s+${attr}="${key}"\\s+content=")[^"]*(")`, "i");
@@ -53,6 +71,21 @@ export function toClassicHtml(dailyHtml) {
   html = setMeta(html, "name", "twitter:description", m.description);
   html = setMeta(html, "name", "twitter:image", m.image);
 
+  // Product-install identity only. Keep all existing Classic social metadata
+  // transformations above untouched while swapping Daily's install tags.
+  html = setMeta(html, "name", "theme-color", CLASSIC_PRODUCT_HEAD.themeColor);
+  html = setMeta(
+    html,
+    "name",
+    "apple-mobile-web-app-title",
+    CLASSIC_PRODUCT_HEAD.appleTitle,
+  );
+  html = html
+    .replace(DAILY_PRODUCT_HEAD.manifest, CLASSIC_PRODUCT_HEAD.manifest)
+    .replace(DAILY_PRODUCT_HEAD.appleTouchIcon, CLASSIC_PRODUCT_HEAD.appleTouchIcon)
+    .replace(DAILY_PRODUCT_HEAD.favicon32, CLASSIC_PRODUCT_HEAD.favicon32)
+    .replace(DAILY_PRODUCT_HEAD.favicon16, CLASSIC_PRODUCT_HEAD.favicon16);
+
   // Canonical points at itself; Classic stays out of search via robots.
   html = html.replace(
     /<link rel="canonical" href="[^"]*" \/>/i,
@@ -66,8 +99,17 @@ export function toClassicHtml(dailyHtml) {
 export function classicPrerender() {
   return {
     name: "ww-classic-prerender",
-    apply: "build",
     enforce: "post",
+    transformIndexHtml(html, context) {
+      const path = context.originalUrl?.split("?", 1)[0];
+      const classicRequest =
+        path === "/classic" ||
+        path === "/classic.html" ||
+        path?.startsWith("/classic/") ||
+        path === "/play" ||
+        path?.startsWith("/play/");
+      return classicRequest ? toClassicHtml(html) : html;
+    },
     generateBundle(_options, bundle) {
       const shell = bundle["index.html"];
       if (!shell || typeof shell.source !== "string") return;
