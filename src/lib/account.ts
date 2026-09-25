@@ -253,7 +253,12 @@ export async function deleteAccount(): Promise<boolean> {
     await signOut();
     try {
       Object.keys(localStorage)
-        .filter((k) => k.startsWith("ww_daily") || k === "ww_visitor_id")
+        .filter(
+          (k) =>
+            (k.startsWith("ww_daily") || k === "ww_visitor_id") &&
+            // Played-game records stay so today's Daily can't be replayed.
+            !k.startsWith("ww_daily_whoop-")
+        )
         .forEach((k) => localStorage.removeItem(k));
     } catch {
       // ignore
