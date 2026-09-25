@@ -35,3 +35,5 @@
 - [x] Code-only auth emails (all 6) + fast end-of-run test + worker warning fixed
 
 - [ ] Add product-specific Daily and Classic home-screen icon sets, manifests, raw head wiring, and verification.
+
+- [ ] Save the user-supplied Daily and Classic source marks exactly as provided.

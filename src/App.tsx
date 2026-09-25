@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -32,6 +33,25 @@ const ClassicRedirect: React.FC = () => {
   if (roomCode && !params.get("r")) params.set("r", roomCode);
   const qs = params.toString();
   return <Navigate to={`/classic${qs ? `?${qs}` : ""}`} replace />;
+};
+
+const ProductInstallHead: React.FC = () => {
+  const { pathname } = useLocation();
+  const classic = pathname === "/classic.html" || pathname === "/classic" || pathname.startsWith("/classic/");
+  const product = classic ? "classic" : "daily";
+  const title = classic ? "Classic" : "Daily";
+  const themeColor = classic ? "#231F20" : "#F8F2E9";
+
+  return (
+    <Helmet>
+      <link rel="icon" href={`/icons/${product}/favicon-32.png`} sizes="32x32" type="image/png" />
+      <link rel="icon" href={`/icons/${product}/favicon-16.png`} sizes="16x16" type="image/png" />
+      <link rel="apple-touch-icon" href={`/icons/${product}/apple-touch-icon.png`} sizes="180x180" />
+      <link rel="manifest" href={`/${product}.webmanifest`} />
+      <meta name="apple-mobile-web-app-title" content={title} />
+      <meta name="theme-color" content={themeColor} />
+    </Helmet>
+  );
 };
 
 const AnimatedRoutes: React.FC = () => {
@@ -108,6 +128,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ProductInstallHead />
           <AnimatedRoutes />
         </BrowserRouter>
       </TooltipProvider>
