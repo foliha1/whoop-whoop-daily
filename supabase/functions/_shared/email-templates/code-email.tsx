@@ -9,13 +9,18 @@ import { Body, Container, Head, Html, Img, Preview, Text } from 'npm:@react-emai
 export const OTP_MINUTES = 20
 export const AUTH_CODE = /^[0-9]{6}$/
 
+// Never throw: a failed render blocks the whole email. Send whatever code the
+// auth system produced; warn if it isn't the expected six digits.
 export const requireAuthCode = (token?: string): string => {
   const code = token?.trim() ?? ''
-  if (!AUTH_CODE.test(code)) throw new Error('Auth code must contain exactly six numeric digits')
+  if (!AUTH_CODE.test(code)) console.warn(`[auth-email] unexpected code format (length ${code.length})`)
   return code
 }
 
-export const codeSubject = (token?: string) => `Your WHOOP! WHOOP! code: ${requireAuthCode(token)}`
+export const codeSubject = (token?: string) => {
+  const code = requireAuthCode(token)
+  return code ? `Your WHOOP! WHOOP! code: ${code}` : 'Your WHOOP! WHOOP! code'
+}
 
 export const CodeEmail = ({ token, purpose }: { token?: string; purpose: string }) => {
   const codeValue = requireAuthCode(token)
