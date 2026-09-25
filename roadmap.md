@@ -41,7 +41,7 @@
 - [ ] Use the Daily web-app icon as the inbox avatar (blocked: managed sender has no avatar field; inbox avatars are provider/DNS controlled).
 
 ## Final pre-launch batch
-- [ ] Convert user-facing UK spelling and shortened game-name references without changing voice.
+- [ ] Convert user-facing UK spelling and spell out every product/WHOOP reference, while preserving intentional “W! W!” abbreviations.
 - [ ] Add a 60-second OTP resend cooldown with existing rate-limit handling.
 - [ ] Hide Your Stats in Daily Settings while signed out and preserve signed-in direct access.
 - [ ] Version Daily and Classic install metadata and icon URLs per build.
