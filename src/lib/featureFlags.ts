@@ -7,4 +7,4 @@
  * Off: the results email box is a plain daily-reminder signup, and the account
  * items in Settings and the lobby "Restore your streak" link are hidden.
  */
-export const SIGN_IN_ENABLED = true;
+export const SIGN_IN_ENABLED = false;
