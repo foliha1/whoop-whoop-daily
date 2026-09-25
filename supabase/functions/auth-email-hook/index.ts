@@ -129,36 +129,30 @@ const handler = createAuthEmailHandler({
   senderDomain: SENDER_DOMAIN,
   sendUrl: Deno.env.get('LOVABLE_SEND_URL'),
   emails: {
-    signup: {
-      subject: (data) => codeSubject(data.token ?? ''),
-      render: (data) =>
-        React.createElement(SignupEmail, { token: data.token ?? '' }),
-    },
-    invite: {
-      subject: (data) => codeSubject(data.token ?? ''),
-      render: (data) =>
-        React.createElement(InviteEmail, { token: data.token ?? '' }),
-    },
-    magiclink: {
-      subject: (data) => codeSubject(data.token ?? ''),
-      render: (data) =>
-        React.createElement(MagicLinkEmail, { token: data.token ?? '' }),
-    },
-    recovery: {
-      subject: (data) => codeSubject(data.token ?? ''),
-      render: (data) =>
-        React.createElement(RecoveryEmail, { token: data.token ?? '' }),
-    },
-    email_change: {
-      subject: (data) => codeSubject(data.token ?? ''),
-      render: (data) =>
-        React.createElement(EmailChangeEmail, { token: data.token ?? '' }),
-    },
-    reauthentication: {
-      subject: (data) => codeSubject(data.token ?? ''),
-      render: (data) =>
-        React.createElement(ReauthenticationEmail, { token: data.token ?? '' }),
-    },
+    signup: (data) => ({
+      subject: codeSubject(data.token ?? ''),
+      element: React.createElement(SignupEmail, { token: data.token ?? '' }),
+    }),
+    invite: (data) => ({
+      subject: codeSubject(data.token ?? ''),
+      element: React.createElement(InviteEmail, { token: data.token ?? '' }),
+    }),
+    magiclink: (data) => ({
+      subject: codeSubject(data.token ?? ''),
+      element: React.createElement(MagicLinkEmail, { token: data.token ?? '' }),
+    }),
+    recovery: (data) => ({
+      subject: codeSubject(data.token ?? ''),
+      element: React.createElement(RecoveryEmail, { token: data.token ?? '' }),
+    }),
+    email_change: (data) => ({
+      subject: codeSubject(data.token ?? ''),
+      element: React.createElement(EmailChangeEmail, { token: data.token ?? '' }),
+    }),
+    reauthentication: (data) => ({
+      subject: codeSubject(data.token ?? ''),
+      element: React.createElement(ReauthenticationEmail, { token: data.token ?? '' }),
+    }),
   },
 })
 
