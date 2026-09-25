@@ -17,6 +17,8 @@
 // ============================================================================
 
 const ORIGIN = "https://whoop-whoop.com";
+const INSTALL_ASSET_VERSION = "20260925";
+const versioned = (path) => `${path}?v=${INSTALL_ASSET_VERSION}`;
 
 /** The URL that actually serves the Classic document (real file, not fallback). */
 export const CLASSIC_DOC_PATH = "/classic.html";
@@ -32,19 +34,19 @@ export const CLASSIC_META = {
 
 const DAILY_PRODUCT_HEAD = {
   themeColor: "#F8F2E9",
-  manifest: "/daily.webmanifest",
-  appleTouchIcon: "/icons/daily/apple-touch-icon.png",
-  favicon32: "/icons/daily/favicon-32.png",
-  favicon16: "/icons/daily/favicon-16.png",
+  manifest: versioned("/daily.webmanifest"),
+  appleTouchIcon: versioned("/icons/daily/apple-touch-icon.png"),
+  favicon32: versioned("/icons/daily/favicon-32.png"),
+  favicon16: versioned("/icons/daily/favicon-16.png"),
   appleTitle: "W! W! Daily",
 };
 
 const CLASSIC_PRODUCT_HEAD = {
   themeColor: "#231F20",
-  manifest: "/classic.webmanifest",
-  appleTouchIcon: "/icons/classic/apple-touch-icon.png",
-  favicon32: "/icons/classic/favicon-32.png",
-  favicon16: "/icons/classic/favicon-16.png",
+  manifest: versioned("/classic.webmanifest"),
+  appleTouchIcon: versioned("/icons/classic/apple-touch-icon.png"),
+  favicon32: versioned("/icons/classic/favicon-32.png"),
+  favicon16: versioned("/icons/classic/favicon-16.png"),
   appleTitle: "W! W! Classic",
 };
 

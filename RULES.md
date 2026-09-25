@@ -8,9 +8,9 @@
 
 ## Game Summary
 
-**WHOOP! WHOOP!** is a competitive memory card game where the matching rule changes every round. Players flip cards face up to learn what is hiding, memorise where things are, and race to call out matching pairs.
+**WHOOP! WHOOP!** is a competitive memory card game where the matching rule changes every round. Players flip cards face up to learn what is hiding, memorize where things are, and race to call out matching pairs.
 
-The twist: a single Match Die decides what counts as a match — same shape, same number, or same colour — and it changes its mind constantly. The cards do not move. What matters about them does.
+The twist: a single Match Die decides what counts as a match — same shape, same number, or same color — and it changes its mind constantly. The cards do not move. What matters about them does.
 
 - **Players:** 2 to 6
 - **Ages:** 7 and up
@@ -27,9 +27,9 @@ Every card carries three attributes:
 
 - **Shape:** Circle, Square, Triangle, Star
 - **Number:** 1, 2, 3, 4
-- **Colour:** Red, Blue, Orange
+- **Color:** Red, Blue, Orange
 
-Every combination appears exactly once. Four shapes times four numbers times three colours is 48 unique cards.
+Every combination appears exactly once. Four shapes times four numbers times three colors is 48 unique cards.
 
 Example cards: Red Circle-3, Blue Square-1, Orange Star-4.
 
@@ -41,11 +41,11 @@ A single six-sided die. Three faces, each printed twice:
 |------|---------|-------|
 | SHAPE | ×2 | Same shape counts as a match |
 | NUMBER | ×2 | Same number counts as a match |
-| COLOUR | ×2 | Same colour counts as a match |
+| COLOR | ×2 | Same color counts as a match |
 
 ### Reference Cards — 2 Cards
 
-Player aids summarising the round and the claim procedure.
+Player aids summarizing the round and the claim procedure.
 
 ### Component Totals
 
@@ -95,7 +95,7 @@ The Roller rolls the die. Whatever face is showing is the rule for the whole rou
 |------|--------------------|---------|
 | SHAPE | Two cards with the same shape | Red Circle-3 + Blue Circle-1 |
 | NUMBER | Two cards with the same number | Red Circle-3 + Orange Star-3 |
-| COLOUR | Two cards with the same colour | Red Circle-3 + Red Square-1 |
+| COLOR | Two cards with the same color | Red Circle-3 + Red Square-1 |
 
 Leave the die where everyone can see it. Say the result out loud.
 
@@ -168,7 +168,7 @@ A round ends in one of two ways.
 
 Either way, face-up cards from wrong claims turn back over, the locks clear, and a new Roller rolls a fresh rule.
 
-**This is the whole game.** The rule just changed. Last round you were hunting colours. Now it is shapes. The cards did not move, but what matters about them did. Can your brain keep up?
+**This is the whole game.** The rule just changed. Last round you were hunting colors. Now it is shapes. The cards did not move, but what matters about them did. Can your brain keep up?
 
 ---
 
@@ -220,7 +220,7 @@ The bigger grid also works as a **handicap for mixed tables.** With more positio
 
 ### Memory carries across rolls
 
-What you learned under one rule stays true under the next. If you saw a Red Circle-2 in the corner, that fact does not change when the die goes from SHAPE to COLOUR. Players who re-index what they already know, rather than starting over, win.
+What you learned under one rule stays true under the next. If you saw a Red Circle-2 in the corner, that fact does not change when the die goes from SHAPE to COLOR. Players who re-index what they already know, rather than starting over, win.
 
 ### The Roller sees the least
 
@@ -240,7 +240,7 @@ Your two flips come back to back, so you can hold them against each other. Two c
 
 **Every round: ROLL · FLIP · WHOOP! WHOOP!**
 
-**ROLL** — one die. SHAPE, NUMBER or COLOUR is the rule for the round.
+**ROLL** — one die. SHAPE, NUMBER or COLOR is the rule for the round.
 
 **FLIP** — on your turn, flip two cards, one at a time, showing each for two or three seconds.
 
@@ -271,11 +271,11 @@ Your two flips come back to back, so you can hold them against each other. Two c
 ### Match Die
 
 - **Type:** 16mm six-sided die
-- **Faces:** SHAPE ×2, NUMBER ×2, COLOUR ×2
+- **Faces:** SHAPE ×2, NUMBER ×2, COLOR ×2
 
-### Colours
+### Colors
 
-| Colour | Hex | Use |
+| Color | Hex | Use |
 |--------|-----|-----|
 | Red | `#d72229` | Deck attribute |
 | Blue | `#0072b2` | Deck attribute |
@@ -287,11 +287,11 @@ Your two flips come back to back, so you can hold them against each other. Two c
 
 - **Brand font:** Friend Regular and Friend Italic, Beasts of England foundry
 - **Fallback:** Georgia, "Times New Roman", serif
-- **One weight only.** Hierarchy comes from size, tracking and case. Never synthesise a bold.
+- **One weight only.** Hierarchy comes from size, tracking and case. Never synthesize a bold.
 
 ### Visual Style
 
-Bold, graphic, type-forward. High-contrast warm black on cream with the three game colours as accents. Shapes are simple stroked outlines. Numbers are oversized and confident. Die icons echo the card iconography exactly.
+Bold, graphic, type-forward. High-contrast warm black on cream with the three game colors as accents. Shapes are simple stroked outlines. Numbers are oversized and confident. Die icons echo the card iconography exactly.
 
 ### Packaging
 
@@ -307,14 +307,14 @@ Two digital products share this brand. Neither is a demo of the physical game.
 
 **WHOOP! WHOOP! Daily** is a once-a-day solo puzzle at whoop-whoop.com. Nine cards flip up for ten seconds, then down. Three rounds, one die roll each, two misses ends a round. Everyone in the world gets the same puzzle on the same date. Its rules deliberately differ from this document.
 
-**WHOOP! WHOOP! Classic** at whoop-whoop.com/classic is the multiplayer web game and follows these rules exactly, with two differences: the grid is always 3×3, and the solo opponent is a bot named WHOOP.
+**WHOOP! WHOOP! Classic** at whoop-whoop.com/classic is the multiplayer web game and follows these rules exactly, with two differences: the grid is always 3×3, and the solo opponent is a bot named Whoop! Whoop!.
 
 ---
 
 ## Version History
 
 - **v1:** Face-up speed game, pure reflex
-- **v2:** Colour added as a third attribute
+- **v2:** Color added as a third attribute
 - **v3:** Double Callers introduced
 - **v4:** Converted to memory play with a face-down grid
 - **v5:** Edge cases refined, Caller rotation scaled by player count

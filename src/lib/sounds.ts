@@ -320,6 +320,7 @@ export function themeSourceFor(url: string): string {
 let themeUrl = DEFAULT_THEME_FILE;
 /** The screen wants music, regardless of whether it is audible right now. */
 let themeDesired = false;
+let themeZoneRelease: number | null = null;
 
 // iOS: Web Audio defaults to the "ambient" session, which the ring/silent
 // switch mutes. Declaring a playback session keeps the theme audible.
@@ -466,6 +467,10 @@ export function prewarmTheme(trackUrl?: string): void {
  * unlocked audio; unlockAudio() retries it. Never restarts a running loop.
  */
 export function startTheme(trackUrl?: string): void {
+  if (themeZoneRelease !== null) {
+    window.clearTimeout(themeZoneRelease);
+    themeZoneRelease = null;
+  }
   const next = trackUrl ?? DEFAULT_THEME_FILE;
   themeDesired = true;
   if (next !== themeUrl) {
@@ -502,9 +507,31 @@ function killTheme(): void {
 
 /** Stop the theme immediately — no fade. Resumes from the same spot later. */
 export function stopTheme(): void {
+  if (themeZoneRelease !== null) {
+    window.clearTimeout(themeZoneRelease);
+    themeZoneRelease = null;
+  }
   themeDesired = false;
   stopBufferLoop(true);
   try { themeEl?.pause(); } catch { /* ignore */ }
+}
+
+/** Enter a route-level music zone without restarting an already-running loop. */
+export function enterThemeZone(trackUrl?: string): void {
+  startTheme(trackUrl);
+}
+
+/**
+ * Leave a route-level music zone after the route transition has had time to
+ * mount its destination. Entering another music screen cancels this release,
+ * preserving the same source and playback position.
+ */
+export function leaveThemeZone(delayMs = 300): void {
+  if (themeZoneRelease !== null) window.clearTimeout(themeZoneRelease);
+  themeZoneRelease = window.setTimeout(() => {
+    themeZoneRelease = null;
+    stopTheme();
+  }, delayMs);
 }
 
 // iOS suspends (or "interrupts") the AudioContext when the page is backgrounded,

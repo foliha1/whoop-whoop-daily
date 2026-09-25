@@ -105,6 +105,7 @@ vi.mock("@/lib/sounds", () => {
     unlockAudio: noop,
     startTheme: noop,
     stopTheme: noop,
+    leaveThemeZone: noop,
     prewarmTheme: noop,
     playFlip: noop,
     playDeal: noop,

@@ -14,7 +14,7 @@ export type Theme = "light" | "night";
 
 const STORAGE_KEY = "ww-theme-mode";
 
-/** Surface colour per theme — mirrors --ww-surface, for the theme-color meta. */
+/** Surface color per theme — mirrors --ww-surface, for the theme-color meta. */
 const SURFACE: Record<Theme, string> = {
   light: "#F8F2E9",
   night: "#231F20",

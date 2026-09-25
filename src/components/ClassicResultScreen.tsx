@@ -363,7 +363,7 @@ const ClassicResultScreen: React.FC<{
           {/* Quiet footer: the one route out of Classic, to the Daily. No
               email capture here — Classic is not an acquisition surface. */}
           <MotionReveal index={3}><nav
-            aria-label="More from Whoop Whoop"
+            aria-label="More from Whoop! Whoop!"
             style={{
               display: "flex",
               justifyContent: "center",

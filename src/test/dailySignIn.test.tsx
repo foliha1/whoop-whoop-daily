@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 
 const signInWithOtp = vi.fn();
 const verifyOtp = vi.fn();
@@ -40,6 +40,12 @@ async function toCode() {
   await screen.findByLabelText("6-digit code");
 }
 
+async function finishResendCooldown() {
+  for (let second = 0; second < 60; second += 1) {
+    await act(async () => vi.advanceTimersByTime(1_000));
+  }
+}
+
 describe("optional sign-in", () => {
   it("accepts only exactly six ASCII numeric digits at verification", async () => {
     expect(isValidSignInCode("123456")).toBe(true);
@@ -59,6 +65,62 @@ describe("optional sign-in", () => {
     await toCode();
     expect(rpc).not.toHaveBeenCalled();
     expect(screen.getByLabelText("6-digit code")).toHaveAttribute("autocomplete", "one-time-code");
+  });
+
+  it("holds resend for 60 seconds, then sends another code through the same path", async () => {
+    vi.useFakeTimers();
+    try {
+      render(<DailySignIn />);
+      fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "a@b.co" } });
+      fireEvent.click(screen.getByRole("button", { name: "Send Code" }));
+      await act(async () => {});
+      expect(screen.getByRole("button", { name: "Resend code in 60s" })).toBeDisabled();
+
+      await finishResendCooldown();
+      fireEvent.click(screen.getByRole("button", { name: "Resend code" }));
+      await act(async () => {});
+
+      expect(signInWithOtp).toHaveBeenCalledTimes(2);
+      expect(screen.getByRole("status")).toHaveTextContent("A new code is on its way.");
+      expect(screen.getByRole("button", { name: "Resend code in 60s" })).toBeDisabled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("shows the provider's rate-limit guidance when a resend is rejected", async () => {
+    vi.useFakeTimers();
+    try {
+      render(<DailySignIn />);
+      fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "a@b.co" } });
+      fireEvent.click(screen.getByRole("button", { name: "Send Code" }));
+      await act(async () => {});
+      await finishResendCooldown();
+      signInWithOtp.mockResolvedValueOnce({ error: { message: "429 Too many requests" } });
+      fireEvent.click(screen.getByRole("button", { name: "Resend code" }));
+      await act(async () => {});
+      expect(screen.getByRole("alert")).toHaveTextContent("Too many tries. Wait a minute and try again.");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps the resend control available after a generic send failure", async () => {
+    vi.useFakeTimers();
+    try {
+      render(<DailySignIn />);
+      fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "a@b.co" } });
+      fireEvent.click(screen.getByRole("button", { name: "Send Code" }));
+      await act(async () => {});
+      await finishResendCooldown();
+      signInWithOtp.mockResolvedValueOnce({ error: { message: "Temporary provider error" } });
+      fireEvent.click(screen.getByRole("button", { name: "Resend code" }));
+      await act(async () => {});
+      expect(screen.getByRole("alert")).toHaveTextContent("We couldn't resend the code. Try again.");
+      expect(screen.getByRole("button", { name: "Resend code" })).toBeEnabled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("refuses a wrong code", async () => {

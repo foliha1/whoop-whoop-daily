@@ -1,4 +1,4 @@
-// Presentation rules for the Whoop Whoop Score: the names players read, the
+// Presentation rules for the Whoop! Whoop! Score: the names players read, the
 // badge art gate, and the results-screen change line.
 
 import { describe, expect, it } from "vitest";
@@ -14,14 +14,14 @@ import {
   tierRange,
 } from "@/lib/whoopTiers";
 
-describe("Whoop Whoop Score presentation", () => {
+describe("Whoop! Whoop! Score presentation", () => {
   it("names every tier exactly as the brand does", () => {
-    expect(SCORE_LABEL).toBe("Your Whoop Whoop Score");
+    expect(SCORE_LABEL).toBe("Your Whoop! Whoop! Score");
     expect(tierName("rookie")).toBe("Rookie");
     expect(tierName("great_eye")).toBe("Great Eye");
     expect(tierName("match_maker")).toBe("Match Maker");
     expect(tierName("xray_vision")).toBe("X-ray Vision");
-    expect(tierName("legend")).toBe("Whoop Whoop Legend");
+    expect(tierName("legend")).toBe("Whoop! Whoop! Legend");
   });
 
   it("draws the ladder lowest first, with the bands the engine uses", () => {
