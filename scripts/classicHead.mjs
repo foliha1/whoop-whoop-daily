@@ -36,7 +36,7 @@ const DAILY_PRODUCT_HEAD = {
   appleTouchIcon: "/icons/daily/apple-touch-icon.png",
   favicon32: "/icons/daily/favicon-32.png",
   favicon16: "/icons/daily/favicon-16.png",
-  appleTitle: "Daily",
+  appleTitle: "W! W! Daily",
 };
 
 const CLASSIC_PRODUCT_HEAD = {
@@ -45,7 +45,7 @@ const CLASSIC_PRODUCT_HEAD = {
   appleTouchIcon: "/icons/classic/apple-touch-icon.png",
   favicon32: "/icons/classic/favicon-32.png",
   favicon16: "/icons/classic/favicon-16.png",
-  appleTitle: "Classic",
+  appleTitle: "W! W! Classic",
 };
 
 /** Replace the content of a `<meta>` tag matched on name/property. */

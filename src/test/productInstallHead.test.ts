@@ -31,7 +31,7 @@ describe("product install metadata", () => {
 
   it("defines each manifest with its own product identity", () => {
     expect(readJson("public/daily.webmanifest")).toMatchObject({
-      name: "WHOOP! WHOOP! Daily",
+      name: "W! W! Daily",
       short_name: "Daily",
       start_url: "/",
       display: "standalone",
@@ -39,7 +39,7 @@ describe("product install metadata", () => {
       background_color: "#F8F2E9",
     });
     expect(readJson("public/classic.webmanifest")).toMatchObject({
-      name: "WHOOP! WHOOP! Classic",
+      name: "W! W! Classic",
       short_name: "Classic",
       start_url: "/classic.html",
       display: "standalone",
