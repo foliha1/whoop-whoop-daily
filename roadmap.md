@@ -52,8 +52,8 @@
 - [ ] Key Groups membership by `auth.uid()` (not visitor id) before relaunch; group RPCs are server-only until then (2026-09-25 audit).
 
 ## Containment (visitor ids off shared channels)
-- [ ] Rooms server-only: revoke grants, server-generated code, IP rate cap, no host id in lookups
-- [ ] Classic uses per-session player keys; server resolves keys to browser ids for seats
-- [ ] Rejoin confirmed by server (same browser as seat), never display name; test same-name takeover fails
-- [ ] Signed-out save into linked browser refused; result kept, sign-in prompt, retry
-- [ ] Verify two-browser game + payload capture + full suite; do not publish
+- [x] Rooms server-only: revoke grants, server-generated code, IP rate cap, no host id in lookups
+- [x] Classic uses per-session player keys; server resolves keys to browser ids for seats
+- [x] Rejoin confirmed by server (same browser as seat), never display name; test same-name takeover fails
+- [x] Signed-out save into linked browser refused; result kept, sign-in prompt, retry
+- [x] Verify two-browser game + payload capture + full suite (457/457); publish awaits approval
