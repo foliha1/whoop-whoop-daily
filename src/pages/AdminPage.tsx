@@ -202,7 +202,7 @@ function mmss(seconds: number): string {
 
 
 // ---------------------------------------------------------------------------
-// shared style atoms — dense, legible, no new colours
+// shared style atoms — dense, legible, no new colors
 // ---------------------------------------------------------------------------
 
 const mono: CSSProperties = {
@@ -1047,7 +1047,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
                     ["Games completed", games],
                     ["Median game length", mmss(c.median_seconds)],
                     ["Avg players per game", c.avg_players],
-                    ["Solo vs WHOOP", `${solo} · ${share(solo)}`],
+                    ["Solo vs Whoop! Whoop!", `${solo} · ${share(solo)}`],
                     ["Multiplayer", `${mp} · ${share(mp)}`],
                   ]}
                 />

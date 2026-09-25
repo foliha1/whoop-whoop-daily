@@ -5,7 +5,7 @@
 // affirmative reminder choice → done. Signing in never subscribes anyone.
 // ============================================================================
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { isValidEmail } from "@/lib/dailySubscribe";
 import {
   sendSignInCode,
@@ -56,6 +56,8 @@ const FAILURE_COPY: Record<SignInFailure, string> = {
   send_error: "We couldn't send the code. Try again.",
 };
 
+const RESEND_COOLDOWN_SECONDS = 60;
+
 type Step = "email" | "code" | "reminder" | "done";
 
 const DailySignIn: React.FC<{
@@ -72,7 +74,15 @@ const DailySignIn: React.FC<{
   const [reminderYes, setReminderYes] = useState<boolean | null>(null);
   const [verifiedEmail, setVerifiedEmail] = useState("");
   const [restored, setRestored] = useState(false);
+  const [resendSeconds, setResendSeconds] = useState(0);
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (resendSeconds <= 0) return;
+    const timer = window.setTimeout(() => setResendSeconds((seconds) => Math.max(0, seconds - 1)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendSeconds]);
 
   React.useEffect(() => {
     if (autoFocus || step === "code") inputRef.current?.focus();
@@ -94,7 +104,29 @@ const DailySignIn: React.FC<{
     const res = await sendSignInCode(email);
     setBusy(false);
     if ("reason" in res) return fail(FAILURE_COPY[res.reason]);
+    setResendSeconds(RESEND_COOLDOWN_SECONDS);
+    setResendStatus(null);
     setStep("code");
+  };
+
+  const resendCode = async () => {
+    if (busy || resendSeconds > 0) return;
+    hapticTap();
+    setBusy(true);
+    setError(null);
+    setResendStatus(null);
+    const res = await sendSignInCode(email);
+    setBusy(false);
+    if ("reason" in res) {
+      const message = res.reason === "rate_limited"
+        ? FAILURE_COPY.rate_limited
+        : "We couldn't resend the code. Try again.";
+      setError(message);
+      hapticError();
+      return;
+    }
+    setResendSeconds(RESEND_COOLDOWN_SECONDS);
+    setResendStatus("A new code is on its way.");
   };
 
   const submitCode = async (e: React.FormEvent) => {
@@ -247,17 +279,29 @@ const DailySignIn: React.FC<{
         {isCode ? "Sign In" : "Send Code"}
       </button>
       {isCode && (
-        <button
-          type="button"
-          onClick={() => {
-            setStep("email");
-            setCode("");
-            setError(null);
-          }}
-          style={{ ...bodyStyle, fontSize: 13, background: "none", border: "none", color: COLORS.inkMuted, textDecoration: "underline", cursor: "pointer", minHeight: 44 }}
-        >
-          Use a different email or send a new code
-        </button>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[2] }}>
+          <button
+            type="button"
+            disabled={busy || resendSeconds > 0}
+            onClick={() => void resendCode()}
+            style={{ ...bodyStyle, fontSize: 13, background: "none", border: "none", color: COLORS.inkMuted, textDecoration: "underline", cursor: busy || resendSeconds > 0 ? "default" : "pointer", minHeight: 44, opacity: busy || resendSeconds > 0 ? 0.65 : 1 }}
+          >
+            {resendSeconds > 0 ? `Resend code in ${resendSeconds}s` : "Resend code"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setStep("email");
+              setCode("");
+              setError(null);
+              setResendStatus(null);
+            }}
+            style={{ ...bodyStyle, fontSize: 13, background: "none", border: "none", color: COLORS.inkMuted, textDecoration: "underline", cursor: "pointer", minHeight: 44 }}
+          >
+            Use a different email
+          </button>
+          {resendStatus && <p role="status" style={{ ...bodyStyle, fontSize: 13, color: COLORS.inkMuted }}>{resendStatus}</p>}
+        </div>
       )}
       <p style={{ ...bodyStyle, fontSize: 12, color: COLORS.inkMuted }}>
         Signing in doesn't add you to any mailing list.{" "}

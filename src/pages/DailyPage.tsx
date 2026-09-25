@@ -93,6 +93,7 @@ import {
   playWrong,
   startTheme,
   stopTheme,
+  leaveThemeZone,
   prewarmTheme,
   unlockAudio,
 } from "@/lib/sounds";
@@ -141,7 +142,7 @@ const RESULT_BLOCK = {
   message: 1,
   stats: 2,
   rounds: 3,
-  /** The Whoop Score panel, directly after today's result. */
+  /** The Whoop! Whoop! Score panel, directly after today's result. */
   score: 4,
   share: 5,
   done: 6,
@@ -571,7 +572,7 @@ const DailyResultCard: React.FC<{
   /** Null hides the streak line entirely — never show a zero. */
   streak: number | null;
   /**
-   * The Whoop Score, read only AFTER today's run was written — otherwise the
+   * The Whoop! Whoop! Score, read only AFTER today's run was written — otherwise the
    * change line would compare against yesterday. Null hides the block.
    */
   whoop: WhoopPoints | null;
@@ -1642,7 +1643,7 @@ const DailyPage: React.FC = () => {
   // on the download when the ready/results screens start it.
   useEffect(() => {
     prewarmTheme();
-    return () => stopTheme();
+    return () => leaveThemeZone();
   }, []);
 
   const readout = (() => {

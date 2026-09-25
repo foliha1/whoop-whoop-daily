@@ -15,6 +15,7 @@ import { usePointsPopulation, useWhoopPointsState } from "@/hooks/useWhoopPoints
 import { fetchDailyStats, type DailyStats } from "@/lib/dailyResults";
 import { DECAY_PER_DAY, DECAY_PROTECTED_POINTS, GRACE_DAYS, MAX_POINTS_PER_GAME, POINT_FIRST_TRY_MAX } from "@/lib/whoopPoints";
 import { SCORE_LABEL, TIER_LADDER, badgeArt, tierName, tierRange } from "@/lib/whoopTiers";
+import { enterThemeZone, leaveThemeZone, prewarmTheme } from "@/lib/sounds";
 import { BORDER, COLORS, FONT_SIZE, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
 
 const EARN_ROWS = [
@@ -39,6 +40,11 @@ const YouPage: React.FC = () => {
     let live = true;
     void fetchDailyStats().then((result) => { if (live) setStats(result); });
     return () => { live = false; };
+  }, []);
+  React.useEffect(() => {
+    prewarmTheme();
+    enterThemeZone();
+    return () => leaveThemeZone();
   }, []);
 
   const tile: React.CSSProperties = {

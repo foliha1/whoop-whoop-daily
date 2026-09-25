@@ -149,7 +149,7 @@ interface ChipStyle {
 const CHIP: Record<ChipKind, ChipStyle> = {
   IDLE:         { bg: PANEL,  border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: INK,     labelText: null,           italic: false },
   ROLLING:      { bg: ORANGE, border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: INK,     labelText: "ROLLING",      italic: false },
-  WHOOP:        { bg: RED,    border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: SURFACE, labelText: "WHOOP WHOOP!", italic: true  },
+  WHOOP:        { bg: RED,    border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: SURFACE, labelText: "WHOOP! WHOOP!", italic: true  },
   FLIPPING:     { bg: BLUE,   border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: SURFACE, labelText: "FLIPPING",     italic: false },
   GREAT_MATCH:  { bg: GREEN,  border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: INK,     labelText: "GREAT MATCH!", italic: true  },
   // Round-scoped wrong-claim lockout (v6.4).

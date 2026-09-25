@@ -10,6 +10,8 @@ import { COLORS } from "@/lib/tokens";
 import { UI_EASE, UI_ENTER_MS, UI_EXIT_MS } from "@/lib/animationTiming";
 import CardFlipLoader from "@/components/CardFlipLoader";
 
+const INSTALL_ASSET_VERSION = "20260925";
+
 import DebugOnlyRoute from "./components/DebugOnlyRoute.tsx";
 
 const MultiplayerPage = lazy(() => import("./pages/MultiplayerPage.tsx"));
@@ -44,10 +46,10 @@ const ProductInstallHead: React.FC = () => {
 
   return (
     <Helmet>
-      <link rel="icon" href={`/icons/${product}/favicon-32.png`} sizes="32x32" type="image/png" />
-      <link rel="icon" href={`/icons/${product}/favicon-16.png`} sizes="16x16" type="image/png" />
-      <link rel="apple-touch-icon" href={`/icons/${product}/apple-touch-icon.png`} sizes="180x180" />
-      <link rel="manifest" href={`/${product}.webmanifest`} />
+      <link rel="icon" href={`/icons/${product}/favicon-32.png?v=${INSTALL_ASSET_VERSION}`} sizes="32x32" type="image/png" />
+      <link rel="icon" href={`/icons/${product}/favicon-16.png?v=${INSTALL_ASSET_VERSION}`} sizes="16x16" type="image/png" />
+      <link rel="apple-touch-icon" href={`/icons/${product}/apple-touch-icon.png?v=${INSTALL_ASSET_VERSION}`} sizes="180x180" />
+      <link rel="manifest" href={`/${product}.webmanifest?v=${INSTALL_ASSET_VERSION}`} />
       <meta name="apple-mobile-web-app-title" content={title} />
       <meta name="theme-color" content={themeColor} />
     </Helmet>

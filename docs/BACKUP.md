@@ -59,7 +59,7 @@ There is no weekly email. `hello@whoop-whoop.com` is a forward, so it can
 receive but not send, and setting up a sending service would mean touching the
 domain's DNS again. Instead, the status sits at the very top of `/admin`:
 
-1. **Healthy** — one quiet grey line, e.g. `Backups healthy. Last run 3 hours ago.`
+1. **Healthy** — one quiet gray line, e.g. `Backups healthy. Last run 3 hours ago.`
 2. **Failed or stopped** — a loud red block naming the table and the night that
    failed. It is the first thing on the page.
 3. **Stale counts as failed** — if the most recent successful run is more than

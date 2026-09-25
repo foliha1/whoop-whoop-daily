@@ -1,5 +1,5 @@
 // ============================================================================
-// Whoop Whoop Score presentation — the only place a tier's display name lives,
+// Whoop! Whoop! Score presentation — the only place a tier's display name lives,
 // the only place badge art is mapped, and the only place the results-screen
 // change line is formatted.
 //
@@ -15,7 +15,7 @@ import {
 } from "@/lib/whoopPoints";
 
 /** What the score is called, everywhere it is labelled. */
-export const SCORE_LABEL = "Your Whoop Whoop Score";
+export const SCORE_LABEL = "Your Whoop! Whoop! Score";
 
 /** Tier key → the name shown to players. One map, one edit. */
 export const TIER_NAMES: Record<PointsTier, string> = {
@@ -23,7 +23,7 @@ export const TIER_NAMES: Record<PointsTier, string> = {
   great_eye: "Great Eye",
   match_maker: "Match Maker",
   xray_vision: "X-ray Vision",
-  legend: "Whoop Whoop Legend",
+  legend: "Whoop! Whoop! Legend",
 };
 
 export function tierName(tier: PointsTier | null | undefined): string {
