@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-// @ts-expect-error - plain ESM build helper intentionally has no declarations
 import { toClassicHtml } from "../../scripts/classicHead.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
