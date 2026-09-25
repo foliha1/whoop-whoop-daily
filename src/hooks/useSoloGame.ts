@@ -34,7 +34,7 @@ import {
   pickReactionDelay,
   type Brain,
 } from "@/lib/whoopBrain";
-const OPPONENT_NAME = "Whoop! Whoop!";
+const OPPONENT_NAME = "WHOOP";
 
 const WHOOP_SEAT = 1;
 const HUMAN_SEAT = 0;

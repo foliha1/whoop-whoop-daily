@@ -41,7 +41,7 @@ const ProductInstallHead: React.FC = () => {
   const { pathname } = useLocation();
   const classic = pathname === "/classic.html" || pathname === "/classic" || pathname.startsWith("/classic/");
   const product = classic ? "classic" : "daily";
-  const title = classic ? "W! W! Classic" : "W! W! Daily";
+  const title = classic ? "WHOOP! WHOOP! Classic" : "WHOOP! WHOOP! Daily";
   const themeColor = classic ? "#231F20" : "#F8F2E9";
 
   return (

@@ -142,7 +142,7 @@ const RESULT_BLOCK = {
   message: 1,
   stats: 2,
   rounds: 3,
-  /** The Whoop! Whoop! Score panel, directly after today's result. */
+  /** The Whoop Score panel, directly after today's result. */
   score: 4,
   share: 5,
   done: 6,
@@ -572,7 +572,7 @@ const DailyResultCard: React.FC<{
   /** Null hides the streak line entirely — never show a zero. */
   streak: number | null;
   /**
-   * The Whoop! Whoop! Score, read only AFTER today's run was written — otherwise the
+   * The Whoop Score, read only AFTER today's run was written — otherwise the
    * change line would compare against yesterday. Null hides the block.
    */
   whoop: WhoopPoints | null;
