@@ -164,7 +164,13 @@ const KEEP_ON_SIGN_OUT = new Set([
 export function clearLocalPlayerData(): void {
   try {
     Object.keys(localStorage)
-      .filter((k) => k.startsWith("ww_") && !KEEP_ON_SIGN_OUT.has(k))
+      .filter(
+        (k) =>
+          k.startsWith("ww_") &&
+          !KEEP_ON_SIGN_OUT.has(k) &&
+          // Played-game records stay so today's Daily can't be replayed.
+          !k.startsWith("ww_daily_whoop-")
+      )
       .forEach((k) => localStorage.removeItem(k));
   } catch {
     // ignore
