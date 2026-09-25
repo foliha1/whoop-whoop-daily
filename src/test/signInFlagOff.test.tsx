@@ -22,8 +22,10 @@ vi.mock("@/lib/dailyEvents", () => ({ trackDaily: () => {} }));
 vi.mock("@/lib/visitor", () => ({ getVisitorId: () => "visitor-flag-off" }));
 vi.mock("@/lib/haptics", () => ({ hapticError: () => {}, hapticSuccess: () => {}, hapticTap: () => {} }));
 vi.mock("@/lib/sounds", () => ({ playSubscribed: () => {} }));
+// Pins the OFF behaviour for these tests regardless of the live flag value,
+// which is release-controlled (flipped on in preview to test the real flow).
+vi.mock("@/lib/featureFlags", () => ({ SIGN_IN_ENABLED: false }));
 
-import { SIGN_IN_ENABLED } from "@/lib/featureFlags";
 import DailyEmailCapture from "@/components/DailyEmailCapture";
 import DailyRecognition from "@/components/DailyRecognition";
 
@@ -35,10 +37,6 @@ beforeEach(() => {
 });
 
 describe("sign-in switched off", () => {
-  it("ships off", () => {
-    expect(SIGN_IN_ENABLED).toBe(false);
-  });
-
   it("results box subscribes to the reminder, no code, nothing looked up", async () => {
     invoke.mockResolvedValue({ data: { ok: true }, error: null });
     const onSubscribed = vi.fn();
