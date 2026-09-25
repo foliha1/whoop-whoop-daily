@@ -44,30 +44,30 @@ const SAMPLE_PROJECT_URL = "https://whoop-whoop.lovable.app"
 const SAMPLE_EMAIL = "user@example.test"
 const SAMPLE_DATA: Record<string, object> = {
   signup: {
-    token: '12345678',
+    token: '123456',
     siteName: SITE_NAME,
     siteUrl: SAMPLE_PROJECT_URL,
     recipient: SAMPLE_EMAIL,
     confirmationUrl: SAMPLE_PROJECT_URL,
   },
   magiclink: {
-    token: '12345678',
+    token: '123456',
     siteName: SITE_NAME,
     confirmationUrl: SAMPLE_PROJECT_URL,
   },
   recovery: {
-    token: '12345678',
+    token: '123456',
     siteName: SITE_NAME,
     confirmationUrl: SAMPLE_PROJECT_URL,
   },
   invite: {
-    token: '12345678',
+    token: '123456',
     siteName: SITE_NAME,
     siteUrl: SAMPLE_PROJECT_URL,
     confirmationUrl: SAMPLE_PROJECT_URL,
   },
   email_change: {
-    token: '12345678',
+    token: '123456',
     siteName: SITE_NAME,
     oldEmail: SAMPLE_EMAIL,
     email: SAMPLE_EMAIL,
@@ -75,7 +75,7 @@ const SAMPLE_DATA: Record<string, object> = {
     confirmationUrl: SAMPLE_PROJECT_URL,
   },
   reauthentication: {
-    token: '12345678',
+    token: '123456',
   },
 }
 
