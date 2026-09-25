@@ -265,6 +265,12 @@ Deno.serve(async (req) => {
     return json({ ok: false, error: "Could not save subscription" }, 500);
   }
 
+  // Disposable test addresses never reach ActiveCampaign.
+  if (email.endsWith("@whoop-test.invalid") || /^[^@]+\+deltest@/.test(email)) {
+    console.log(`ac-subscribe: AC sync mocked for test address ${email}`);
+    return json({ ok: true, syncedToAc: false, test: true });
+  }
+
   // 2. Best effort from here on: the address is already safe.
   let syncedToAc = false;
   let numberSynced = false;
