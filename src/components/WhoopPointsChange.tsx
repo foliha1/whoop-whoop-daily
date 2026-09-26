@@ -18,6 +18,7 @@ const WhoopPointsChange: React.FC<{
   mobile: boolean;
   /** True when today crossed into a higher tier: the block says so. */
   tierUp?: boolean;
+  /** The Daily results slot already owns its staggered entrance. */
   animate?: boolean;
 }> = ({ points, mobile, tierUp = false, animate = true }) => {
   if (points === null) return null;

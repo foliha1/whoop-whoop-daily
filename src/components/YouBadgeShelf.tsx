@@ -66,6 +66,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
       aria-label={direction < 0 ? "Previous badges" : "Next badges"}
       title={direction < 0 ? "Previous badges" : "Next badges"}
       onClick={() => page(direction)}
+      roleStyle="utility"
       style={{
         position: "absolute", zIndex: 1, bottom: SPACE[4], padding: 0,
         [direction < 0 ? "left" : "right"]: SPACE[2],
@@ -107,6 +108,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
                <DialogPrimitive.Trigger asChild>
                  <AppButton
                    type="button"
+                    roleStyle="quiet"
                    aria-label={`View ${tierName(badge.key as PointsTier) || badge.key} badge details, earned ${formatBadgeDate(badge.earnedOn)}`}
                    className="ww-you-badge-trigger"
                     hoverBackground={COLORS.badgeHover}
@@ -139,7 +141,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
                      </div>
                    </DialogPrimitive.Description>
                    <DialogPrimitive.Close asChild>
-                     <AppButton type="button" aria-label="Close badge details" style={{ minHeight: TOUCH_MIN, paddingInline: SPACE[8] }}>Close</AppButton>
+                      <AppButton type="button" roleStyle="utility" aria-label="Close badge details" style={{ minHeight: TOUCH_MIN, paddingInline: SPACE[8] }}>Close</AppButton>
                    </DialogPrimitive.Close>
                  </DialogPrimitive.Content>
                </DialogPrimitive.Portal>

@@ -194,7 +194,7 @@ const DailySignIn: React.FC<{
           className="ww-press"
           disabled={busy}
           onClick={() => void answer(true)}
-          style={{ ...buttonStyle("primary", "lg", { fullWidth: true, disabled: busy }), width: "100%" }}
+          style={{ ...buttonStyle("primary", "lg", { fullWidth: true }), width: "100%" }}
         >
           Sounds good
         </button>
@@ -203,7 +203,7 @@ const DailySignIn: React.FC<{
           className="ww-press"
           disabled={busy}
           onClick={() => void answer(false)}
-          style={{ ...buttonStyle("ghost", "lg", { fullWidth: true, disabled: busy }), width: "100%" }}
+          style={{ ...buttonStyle("ghost", "lg", { fullWidth: true }), width: "100%" }}
         >
           No thanks.
         </button>

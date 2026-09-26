@@ -133,7 +133,7 @@ const SupportPage: React.FC = () => {
               A memory game where the rules keep changing.
             </h1>
             <Link to="/" style={{ textDecoration: "none", width: "100%" }}>
-              <AppButton variant="primary" tone="red" size="md" fullWidth>
+              <AppButton roleStyle="primary" size="md" fullWidth>
                 Play Now
               </AppButton>
             </Link>

@@ -219,7 +219,7 @@ export const CreateGroupModal: React.FC<{
         onClick={submit}
         disabled={busy}
         data-testid="group-create-submit"
-        style={{ ...buttonStyle("primary", "lg", { mobile, disabled: busy }), alignSelf: "stretch" }}
+        style={{ ...buttonStyle("primary", "lg", { mobile }), alignSelf: "stretch" }}
       >
         {busy ? "Creating…" : "Create Group"}
       </button>
@@ -309,7 +309,7 @@ export const JoinGroupModal: React.FC<{
         onClick={submit}
         disabled={busy}
         data-testid="group-join-submit"
-        style={{ ...buttonStyle("primary", "lg", { mobile, disabled: busy }), alignSelf: "stretch" }}
+        style={{ ...buttonStyle("primary", "lg", { mobile }), alignSelf: "stretch" }}
       >
         {busy ? "Joining…" : "Join Group"}
       </button>

@@ -1733,6 +1733,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           animation: "spin 0.8s linear infinite",
           display: "inline-block",
         }}
+        className="ww-progress-spinner"
       />
       Starting game…
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
