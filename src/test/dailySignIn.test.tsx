@@ -47,6 +47,14 @@ async function finishResendCooldown() {
 }
 
 describe("optional sign-in", () => {
+  it("keeps text on the fixed orange score panel warm black in night mode", () => {
+    render(<DailySignIn onAccentSurface />);
+    expect(screen.getByRole("heading", { name: "Save your score." })).toHaveStyle({ color: "#231f20" });
+    expect(screen.getByText(/Sign in with your email/)).toHaveStyle({ color: "#231f20" });
+    expect(screen.getByText(/Signing in doesn't add/)).toHaveStyle({ color: "#231f20" });
+    expect(screen.getByRole("link", { name: "Privacy" })).toHaveStyle({ color: "#231f20" });
+  });
+
   it("accepts only exactly six ASCII numeric digits at verification", async () => {
     expect(isValidSignInCode("123456")).toBe(true);
     expect(isValidSignInCode(" 123456 ")).toBe(true);

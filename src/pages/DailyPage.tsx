@@ -913,7 +913,7 @@ const DailyResultCard: React.FC<{
           className={resultClass}
           style={{
             alignSelf: "stretch",
-            border: BORDER.heavy,
+            border: `2px solid ${RAW.warmBlack}`,
             borderRadius: RADIUS.sm,
             background: COLORS.orange,
             padding: SPACE[6],
@@ -926,12 +926,13 @@ const DailyResultCard: React.FC<{
           {needsSignInToSave && (
             <p
               data-testid="sign-in-to-save"
-              style={{ ...textStyle("body", mobile), color: COLORS.ink, margin: 0, marginBottom: SPACE[4] }}
+              style={{ ...textStyle("body", mobile), color: RAW.warmBlack, margin: 0, marginBottom: SPACE[4] }}
             >
               Sign in to save this game.
             </p>
           )}
           <DailyEmailCapture
+            onAccentSurface
             onSubscribed={(email, restored) => {
               setEmailCaptureOpen(false);
               onSubscribed?.(email, restored);
