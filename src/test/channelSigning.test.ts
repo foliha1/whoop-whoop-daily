@@ -239,8 +239,20 @@ describe("6. player_key never goes on the channel", () => {
       "src/hooks/useMultiplayerGame.ts",
       "src/components/MultiplayerGameView.tsx",
     ]) {
-      expect(read(f), f).not.toMatch(/player_key/);
+      // Security pass 2: the key may travel only inside a request to the
+      // claim arbiter or release-lock (server-only, never the channel).
+      const src = read(f)
+        .replace(/player_key: hostSessionKey,/g, "")
+        .replace(/player_key: playerKey,/g, "");
+      expect(src, f).not.toMatch(/player_key/);
     }
+    const hook = read("src/hooks/useMultiplayerGame.ts");
+    const releaseCall = hook.slice(hook.indexOf('invoke("release-lock"'), hook.indexOf('invoke("release-lock"') + 400);
+    expect(releaseCall).toMatch(/player_key: hostSessionKey/);
+    const view = read("src/components/MultiplayerGameView.tsx");
+    const claimCall = view.slice(view.indexOf("callClaimLock({"), view.indexOf("callClaimLock({") + 300);
+    expect(claimCall).toMatch(/player_key: playerKey/);
+    expect(view.match(/player_key: playerKey/g)?.length).toBe(1);
     // The server functions send public ids only.
     const claim = read("supabase/functions/claim-lock/index.ts");
     expect(claim).not.toMatch(/grantPayload\.player_key/);
@@ -253,8 +265,12 @@ describe("6. player_key never goes on the channel", () => {
     const uses = win.match(/sessionKey/g) ?? [];
     const rpcUses = win.match(/(joinRoomSessionSigned|fetchSignKeys)\([^)]*sessionKey/g) ?? [];
     expect(rpcUses.length).toBe(2);
-    // declaration + 2 RPC uses + effect deps
-    expect(uses.length).toBe(4);
+    // Plus the server-only paths from security pass 2: release-lock (host
+    // hook), the claim arbiter (two game views) and the result save.
+    const serverOnly = win.match(/hostSessionKey: sessionKey|playerKey: sessionKey|playerKey=\{sessionKey\}/g) ?? [];
+    expect(serverOnly.length).toBe(4);
+    // declaration + 2 RPC uses + effect deps + the server-only paths
+    expect(uses.length).toBe(4 + serverOnly.length);
   });
 });
 
