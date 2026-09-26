@@ -1326,10 +1326,29 @@ export type Database = {
         }
         Returns: boolean
       }
+      save_solo_game: {
+        Args: {
+          p_app_version: string
+          p_correct_claims: number
+          p_end_reason: string
+          p_game_id: string
+          p_rounds_played: number
+          p_seats: Json
+          p_wrong_claims: number
+        }
+        Returns: boolean
+      }
       session_email: { Args: never; Returns: string }
       set_reminder_consent: {
         Args: { p_consented: boolean; p_source?: string }
         Returns: boolean
+      }
+      start_solo_game: {
+        Args: { p_visitor_id: string }
+        Returns: {
+          id: string
+          started_at: string
+        }[]
       }
       subscribe_daily:
         | { Args: { p_email: string; p_visitor_id?: string }; Returns: boolean }
