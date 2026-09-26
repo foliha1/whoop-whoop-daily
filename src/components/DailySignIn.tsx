@@ -15,7 +15,7 @@ import {
   type SignInFailure,
 } from "@/lib/account";
 import { hapticError, hapticSuccess, hapticTap } from "@/lib/haptics";
-import { BORDER, COLORS, FONT_FAMILY, RADIUS, SPACE, buttonStyle } from "@/lib/tokens";
+import { BORDER, COLORS, FONT_FAMILY, RAW, RADIUS, SPACE, buttonStyle } from "@/lib/tokens";
 
 const GEIST = '"Geist", "Geist Sans", system-ui, -apple-system, "Segoe UI", sans-serif';
 
@@ -62,9 +62,11 @@ type Step = "email" | "code" | "reminder" | "done";
 
 const DailySignIn: React.FC<{
   autoFocus?: boolean;
+  /** Keep text readable when this form sits directly on the fixed orange results panel. */
+  onAccentSurface?: boolean;
   onSignedIn?: (email: string, restored: boolean) => void;
   onChoiceRequiredChange?: (required: boolean) => void;
-}> = ({ autoFocus = false, onSignedIn, onChoiceRequiredChange }) => {
+}> = ({ autoFocus = false, onAccentSurface = false, onSignedIn, onChoiceRequiredChange }) => {
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -77,6 +79,12 @@ const DailySignIn: React.FC<{
   const [resendSeconds, setResendSeconds] = useState(0);
   const [resendStatus, setResendStatus] = useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const panelBodyStyle: React.CSSProperties = onAccentSurface
+    ? { ...bodyStyle, color: RAW.warmBlack }
+    : bodyStyle;
+  const panelHeadingStyle: React.CSSProperties = onAccentSurface
+    ? { ...headingStyle, color: RAW.warmBlack }
+    : headingStyle;
 
   useEffect(() => {
     if (resendSeconds <= 0) return;
@@ -174,10 +182,10 @@ const DailySignIn: React.FC<{
   if (step === "done") {
     return (
       <div data-testid="signin-done" style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[2], textAlign: "center" }}>
-        <p style={headingStyle}>
+        <p style={panelHeadingStyle}>
           {games > 1 ? `Welcome back — we found ${games} games.` : "You're signed in."}
         </p>
-        <p style={{ ...bodyStyle, color: COLORS.inkMuted }}>
+        <p style={{ ...panelBodyStyle, color: onAccentSurface ? RAW.warmBlack : COLORS.inkMuted }}>
           {reminderYes ? "See you tomorrow morning." : "Your score now follows you to any device."}
         </p>
       </div>
@@ -187,8 +195,8 @@ const DailySignIn: React.FC<{
   if (step === "reminder") {
     return (
       <div data-testid="signin-reminder" style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-        <h2 style={headingStyle}>We'll send you the daily puzzle.</h2>
-        <p style={bodyStyle}>One email each morning. Turn it off any time in Settings.</p>
+        <h2 style={panelHeadingStyle}>We'll send you the daily puzzle.</h2>
+        <p style={panelBodyStyle}>One email each morning. Turn it off any time in Settings.</p>
         <button
           type="button"
           className="ww-press"
@@ -208,7 +216,7 @@ const DailySignIn: React.FC<{
           No thanks.
         </button>
         {error && (
-          <p role="alert" style={{ ...bodyStyle, fontStyle: "italic" }}>
+          <p role="alert" style={{ ...panelBodyStyle, fontStyle: "italic" }}>
             {error}
           </p>
         )}
@@ -224,8 +232,8 @@ const DailySignIn: React.FC<{
       data-testid="signin-form"
       style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}
     >
-      <h2 style={headingStyle}>{isCode ? "Check your email." : "Save your score."}</h2>
-      <p style={bodyStyle}>
+      <h2 style={panelHeadingStyle}>{isCode ? "Check your email." : "Save your score."}</h2>
+      <p style={panelBodyStyle}>
         {isCode
           ? `We sent a 6-digit code to ${email.trim().toLowerCase()}.`
           : "Sign in with your email to keep your streak and points on any device. No password, just a code."}
@@ -299,18 +307,18 @@ const DailySignIn: React.FC<{
           >
             Use a different email
           </button>
-          {resendStatus && <p role="status" style={{ ...bodyStyle, fontSize: 13, color: COLORS.inkMuted }}>{resendStatus}</p>}
+          {resendStatus && <p role="status" style={{ ...panelBodyStyle, fontSize: 13, color: onAccentSurface ? RAW.warmBlack : COLORS.inkMuted }}>{resendStatus}</p>}
         </div>
       )}
-      <p style={{ ...bodyStyle, fontSize: 12, color: COLORS.inkMuted }}>
+      <p style={{ ...panelBodyStyle, fontSize: 12, color: onAccentSurface ? RAW.warmBlack : COLORS.inkMuted }}>
         Signing in doesn't add you to any mailing list.{" "}
-        <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: COLORS.inkMuted, textDecoration: "underline" }}>
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: onAccentSurface ? RAW.warmBlack : COLORS.inkMuted, textDecoration: "underline" }}>
           Privacy
         </a>
         .
       </p>
       {error && (
-        <p role="alert" style={{ ...bodyStyle, fontStyle: "italic" }}>
+        <p role="alert" style={{ ...panelBodyStyle, fontStyle: "italic" }}>
           {error}
         </p>
       )}

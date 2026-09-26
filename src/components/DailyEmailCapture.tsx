@@ -41,6 +41,8 @@ const DailyEmailCapture: React.FC<{
   autoFocus?: boolean;
   /** True only while a newly verified player must make the reminder choice. */
   onChoiceRequiredChange?: (required: boolean) => void;
+  /** The result screen places this form directly on its fixed orange panel. */
+  onAccentSurface?: boolean;
 }> = ({
   source,
   onSubscribed,
@@ -51,6 +53,7 @@ const DailyEmailCapture: React.FC<{
   successMessage,
   autoFocus = false,
   onChoiceRequiredChange,
+  onAccentSurface = false,
 }) => {
   // The results box and the lobby restore are sign-in; pre-launch and the
   // landing page stay an explicit reminder signup. With sign-in off, every box
@@ -60,6 +63,7 @@ const DailyEmailCapture: React.FC<{
     return (
       <DailySignIn
         autoFocus={autoFocus}
+        onAccentSurface={onAccentSurface}
         onSignedIn={onSubscribed}
         onChoiceRequiredChange={onChoiceRequiredChange}
       />
