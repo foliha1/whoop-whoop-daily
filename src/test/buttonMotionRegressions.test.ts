@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
+const read = (path: string) => readFileSync(resolve(process.cwd(), "src", path), "utf8");
 
 describe("button and motion regressions", () => {
   it("keeps Classic's matched pair face up through the reveal beat", () => {
@@ -16,6 +17,7 @@ describe("button and motion regressions", () => {
     expect(css).toContain(".ww-card-flip");
     expect(css).toContain(".ww-match-ghost-flip");
     expect(css).toContain(".ww-music-marquee");
+    expect(css).toContain(".ww-card-shrink");
   });
 
   it("uses only the outer Daily result entrance for the score block", () => {

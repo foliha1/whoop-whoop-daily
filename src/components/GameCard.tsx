@@ -132,7 +132,7 @@ const GameCard = ({
   // sprung the whole tile right after a claim selection and read as a stray
   // bounce just before the reveal flip. Cards have their own selection
   // feedback (wash + ring), so the generic press is redundant here.
-  const wrapperClass = wrong ? "ww-wrong ww-no-press" : "ww-no-press";
+  const wrapperClass = `${wrong ? "ww-wrong " : ""}${shrinking ? "ww-card-shrink " : ""}ww-no-press`;
 
 
   // "Not for you": the viewing player already burned this card on a wrong

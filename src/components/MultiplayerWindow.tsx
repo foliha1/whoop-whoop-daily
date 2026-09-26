@@ -1251,7 +1251,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           <div style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, textAlign: "center" }}>
             Games end when the host leaves. Start your own table to play again.
           </div>
-          <AppButton variant="primary" tone="red" size="md" onClick={leaveToIdle} fullWidth>
+          <AppButton roleStyle="utility" size="md" onClick={leaveToIdle} fullWidth>
             Back to Lobby
           </AppButton>
         </div>
@@ -1423,7 +1423,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           <div style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, textAlign: "center" }}>
             Tables hold up to {ROOM_CAPACITY} players.
           </div>
-          <AppButton variant="secondary" tone="ink" size="md" onClick={leaveToIdle} fullWidth>
+          <AppButton roleStyle="utility" size="md" onClick={leaveToIdle} fullWidth>
             Back
           </AppButton>
         </div>
