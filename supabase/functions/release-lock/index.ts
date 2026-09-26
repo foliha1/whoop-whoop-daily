@@ -14,7 +14,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { signServerEnvelope } from "../_shared/classicSign.ts";
-import { verifySeatOwner } from "../_shared/seatOwnership.ts";
+import { REQUIRE_PLAYER_KEY, verifySeatOwner } from "../_shared/seatOwnership.ts";
 
 interface Body {
   room_id: string;
@@ -22,6 +22,7 @@ interface Body {
   claim_window: number;
   seat: number;
   visitor_id: string;
+  player_key?: string;
   reason?: string;
 }
 
@@ -38,7 +39,7 @@ Deno.serve(async (req) => {
 
   let body: Body;
   try { body = await req.json(); } catch { return bad(400, "invalid_json"); }
-  const { room_id, game_id, claim_window, seat, visitor_id, reason } = body ?? {};
+  const { room_id, game_id, claim_window, seat, visitor_id, player_key, reason } = body ?? {};
   if (
     typeof room_id !== "string" || !room_id ||
     typeof game_id !== "string" || !game_id ||
@@ -57,7 +58,7 @@ Deno.serve(async (req) => {
   // action for grants the host reducer refused, never a player action.
   const { data: room, error: roomErr } = await supabase
     .from("rooms")
-    .select("host_visitor_id")
+    .select("host_visitor_id, host_key")
     .eq("id", room_id)
     .maybeSingle();
   if (roomErr) {
@@ -66,9 +67,16 @@ Deno.serve(async (req) => {
   }
   if (!room) return bad(403, "unknown_room");
 
+  const keyGiven = typeof player_key === "string" && player_key.length > 0;
+  if (!keyGiven && (REQUIRE_PLAYER_KEY || player_key !== undefined)) return bad(403, "missing_seat_key");
+  if (room.host_visitor_id === visitor_id && keyGiven && room.host_key !== player_key) {
+    console.warn("[release-lock] refused bad_host_key", { room_id, game_id, seat });
+    return bad(403, "bad_host_key");
+  }
+
   if (room.host_visitor_id !== visitor_id) {
     // Non-host callers may only release a lock they themselves hold.
-    const seatCheck = await verifySeatOwner(supabase, { room_id, game_id, seat, visitor_id });
+    const seatCheck = await verifySeatOwner(supabase, { room_id, game_id, seat, visitor_id, player_key });
     if (!seatCheck.ok) {
       console.warn("[release-lock] refused", seatCheck.reason, { room_id, game_id, seat });
       return bad(403, seatCheck.reason);

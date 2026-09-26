@@ -42,6 +42,8 @@ type Input = {
   claim_window: number;
   player_seat: number;
   visitor_id: string;
+  /** This tab's secret session key; the arbiter matches it to the seat. */
+  player_key?: string;
 };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

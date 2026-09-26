@@ -2,10 +2,15 @@
 // useClassicResultRecorder — records a completed Classic game exactly once.
 //
 // Host / solo only: the caller passes `enabled: false` for joiners, so a joiner
-// never writes. The write is guarded three ways:
+// never writes. Guards:
 //   - a per-game "written" ref, so a double-firing end-of-game effect writes once
 //   - a game key, so a rematch is a new row rather than a lost one
-//   - a UNIQUE (game_id) at the server with ON CONFLICT DO NOTHING
+//   - the server allows one result per game id, ever
+//
+// The server decides identity, start time and duration. Multiplayer saves are
+// accepted only from the room's host (browser id + secret session key) for a
+// game whose seats were registered. Solo saves reference a server-issued id,
+// requested quietly when each solo game begins.
 //
 // It only reads the game state; it never dispatches, so the reducer, the game
 // loop and the claim arbiter are untouched.
@@ -13,8 +18,10 @@
 
 import { useEffect, useRef } from "react";
 import {
-  saveClassicResultRemote,
-  seatResults,
+  endReasonFor,
+  saveClassicGame,
+  saveSoloGame,
+  startSoloGame,
 } from "@/lib/classicResults";
 
 export interface ClassicSnapshot {
@@ -23,39 +30,37 @@ export interface ClassicSnapshot {
   scores: number[];
   names: string[];
   roundNum: number;
-  /** Host game id. Solo has no wire id, so the recorder mints one per game. */
+  /** Multiplayer: the server-registered game id. Solo: ignored. */
   gameId: string;
+  /** Reducer message type; "warning" on GAME_OVER marks the table-empty end. */
+  messageType?: string;
 }
 
 interface Opts {
   snapshot: ClassicSnapshot;
-  roomCode: string | null;
   isSolo: boolean;
   enabled: boolean;
-  hostVisitorId: string | null;
+  visitorId: string | null;
+  /** Multiplayer only. */
+  roomId?: string | null;
+  /** Multiplayer only: this tab's secret session key (host proof). */
+  playerKey?: string | null;
 }
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const newId = (): string => {
-  try {
-    return crypto.randomUUID();
-  } catch {
-    return "00000000-0000-4000-8000-" + Date.now().toString(16).padStart(12, "0").slice(-12);
-  }
-};
-
 export function useClassicResultRecorder({
   snapshot,
-  roomCode,
   isSolo,
   enabled,
-  hostVisitorId,
+  visitorId,
+  roomId = null,
+  playerKey = null,
 }: Opts): void {
   const keyRef = useRef<string | null>(null);
   const wireIdRef = useRef<string>("");
-  const startedRef = useRef<number>(0);
+  const soloIdRef = useRef<Promise<string | null> | null>(null);
   const correctRef = useRef(0);
   const wrongRef = useRef(0);
   const prevSettleRef = useRef<"MATCH" | "WRONG" | null>(null);
@@ -74,12 +79,12 @@ export function useClassicResultRecorder({
       (writtenRef.current && s.phase !== "GAME_OVER");
     if (isNew) {
       wireIdRef.current = wireId;
-      keyRef.current = !isSolo && UUID_RE.test(wireId) ? wireId : newId();
-      startedRef.current = Date.now();
+      keyRef.current = isSolo ? "solo" : wireId;
       correctRef.current = 0;
       wrongRef.current = 0;
       prevSettleRef.current = null;
       writtenRef.current = false;
+      soloIdRef.current = isSolo && visitorId ? startSoloGame(visitorId) : null;
     }
 
     // Claim tallies: every entry into a settle animation is one resolved claim.
@@ -91,21 +96,27 @@ export function useClassicResultRecorder({
 
     if (s.phase !== "GAME_OVER" || writtenRef.current) return;
     writtenRef.current = true;
-    const gameId = keyRef.current;
-    if (!gameId) return;
 
-    void saveClassicResultRemote({
-      gameId,
-      roomCode,
-      isSolo,
-      startedAt: new Date(startedRef.current).toISOString(),
-      endedAt: new Date().toISOString(),
-      playerCount: s.scores.length,
-      seats: seatResults(s.scores, s.names),
+    const report = {
+      endReason: endReasonFor(s.scores, s.messageType),
+      scores: s.scores,
+      names: s.names,
       roundsPlayed: s.roundNum,
       correctClaims: correctRef.current,
       wrongClaims: wrongRef.current,
-      hostVisitorId,
-    });
-  }, [snapshot, enabled, isSolo, roomCode, hostVisitorId]);
+    };
+
+    if (isSolo) {
+      const pending = soloIdRef.current;
+      if (!pending) return;
+      void pending.then((id) => {
+        if (id) void saveSoloGame({ ...report, gameId: id });
+      });
+      return;
+    }
+
+    const gameId = keyRef.current;
+    if (!gameId || !UUID_RE.test(gameId) || !roomId || !visitorId || !playerKey) return;
+    void saveClassicGame({ ...report, roomId, gameId, visitorId, playerKey });
+  }, [snapshot, enabled, isSolo, roomId, visitorId, playerKey]);
 }

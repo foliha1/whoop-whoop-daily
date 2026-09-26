@@ -9,15 +9,24 @@
 
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
+// Security pass 2: the seat's secret session key. While tabs from before this
+// change are still open, a missing key is accepted (a key that IS sent must
+// match). Flip to true on publish day — see docs/post-publish-classic-results.md.
+export const REQUIRE_PLAYER_KEY = false;
+
 export type SeatCheck = { ok: true } | { ok: false; reason: string };
 
 export async function verifySeatOwner(
   supabase: SupabaseClient,
-  input: { room_id: string; game_id: string; seat: number; visitor_id: string },
+  input: { room_id: string; game_id: string; seat: number; visitor_id: string; player_key?: unknown },
 ): Promise<SeatCheck> {
+  const keyGiven = typeof input.player_key === "string" && input.player_key.length > 0;
+  if (!keyGiven && (REQUIRE_PLAYER_KEY || input.player_key !== undefined)) {
+    return { ok: false, reason: "missing_seat_key" };
+  }
   const { data, error } = await supabase
     .from("room_seats")
-    .select("visitor_id")
+    .select("visitor_id, player_key")
     .eq("room_id", input.room_id)
     .eq("game_id", input.game_id)
     .eq("seat", input.seat)
@@ -29,5 +38,6 @@ export async function verifySeatOwner(
   }
   if (!data) return { ok: false, reason: "seat_not_registered" };
   if (data.visitor_id !== input.visitor_id) return { ok: false, reason: "seat_not_owned" };
+  if (keyGiven && data.player_key !== input.player_key) return { ok: false, reason: "bad_seat_key" };
   return { ok: true };
 }

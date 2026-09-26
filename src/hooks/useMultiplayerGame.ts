@@ -74,6 +74,8 @@ export function useMultiplayerHost(opts: {
   hostVisitorId: string; // host's session player key (channel identity)
   // Host's own browser id — sent only to the server (release-lock), never broadcast.
   hostBrowserId?: string;
+  // Host's secret session key — sent only to the server (release-lock).
+  hostSessionKey?: string;
   enabled: boolean;
   gameId: string;
   roomId: string;
@@ -96,7 +98,7 @@ export function useMultiplayerHost(opts: {
   lastSeenSpreadMs?: number | null;
 }) {
   const {
-    channel, onBroadcast, seatMap, hostVisitorId, hostBrowserId, enabled, gameId, roomId,
+    channel, onBroadcast, seatMap, hostVisitorId, hostBrowserId, hostSessionKey, enabled, gameId, roomId,
     disconnectedSeats, awaySeats = [], gridSize = "3x3", endGameDisconnectedSeats,
     presenceStatus, lastSeenSpreadMs = null,
   } = opts;
@@ -499,6 +501,7 @@ export function useMultiplayerHost(opts: {
               claim_window,
               seat,
               visitor_id: hostBrowserId,
+              player_key: hostSessionKey,
               reason,
             },
           });
@@ -507,7 +510,7 @@ export function useMultiplayerHost(opts: {
         }
       })();
     },
-    [roomId, hostBrowserId],
+    [roomId, hostBrowserId, hostSessionKey],
   );
 
   // ---- deferred grants ----

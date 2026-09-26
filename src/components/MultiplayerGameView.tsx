@@ -96,6 +96,8 @@ interface Props {
   visitorId: string;
   // This browser's own id. Sent only to the claim arbiter, never broadcast.
   browserId?: string;
+  /** Secret session key; sent only to the claim arbiter. */
+  playerKey?: string;
   isHost: boolean;
   // Live list of visitor_ids currently present via Realtime Presence.
   // Diagnostic-only: used by the ?debug=1 overlay to compute the client's
@@ -869,7 +871,7 @@ const DebugControls: React.FC<{
 
 
 const MultiplayerGameView: React.FC<Props> = ({
-  publicState: s, mySeat, events = [], rollCommit = null, lastClaimReject = null, onIntent, onLeave, mobile = false, roomId, visitorId, browserId = "", isHost, presenceVisitorIds,
+  publicState: s, mySeat, events = [], rollCommit = null, lastClaimReject = null, onIntent, onLeave, mobile = false, roomId, visitorId, browserId = "", playerKey, isHost, presenceVisitorIds,
   heartbeatStale, awaySkip, hostDisconnectedSeats, presenceStatus, soloMode = false, onInvite,
 }) => {
   const [showSettings, setShowSettings] = React.useState(false);
@@ -1600,6 +1602,7 @@ const MultiplayerGameView: React.FC<Props> = ({
         claim_window: window_,
         player_seat: mySeat,
         visitor_id: browserId,
+        player_key: playerKey,
       });
       setClaimBusy(false);
       // Tri-state. ONLY an explicit arbiter verdict naming another seat is a

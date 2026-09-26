@@ -153,11 +153,11 @@ const SoloView: React.FC<{ onLeave: () => void; mobile: boolean }> = ({ onLeave,
       names: solo.publicState.seatMap.map((e) => e.display_name),
       roundNum: solo.publicState.roundNum,
       gameId: solo.gameId,
+      messageType: solo.publicState.messageType,
     },
-    roomCode: null,
     isSolo: true,
     enabled: true,
-    hostVisitorId: getVisitorId(),
+    visitorId: getVisitorId(),
   });
 
   return (
@@ -267,6 +267,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // Host-minted game id. Scopes the arbiter's UNIQUE (room, game, window)
   // constraint so consecutive games in the same room don't collide.
   const [gameId, setGameId] = useState<string>("");
+  const rematchBusyRef = useRef(false);
   const [starting, setStarting] = useState(false);
   // Seat registration failed twice: stay on "Starting…" and offer a retry.
   const [startFailed, setStartFailed] = useState(false);
@@ -484,6 +485,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     seatMap: frozenSeats ?? [],
     hostVisitorId: visitorId,
     hostBrowserId: browserId,
+    hostSessionKey: sessionKey,
     enabled: gameEnabled,
     gameId,
     gridSize: FIXED_GRID,
@@ -610,6 +612,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         : host.state.names,
       roundNum: host.state.roundNum,
       gameId,
+      messageType: host.state.messageType,
     }),
     [
       host.state.phase,
@@ -617,16 +620,18 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       host.state.scores,
       host.state.names,
       host.state.roundNum,
+      host.state.messageType,
       frozenSeats,
       gameId,
     ],
   );
   useClassicResultRecorder({
     snapshot: classicSnapshot,
-    roomCode: activeRoom?.room_code ?? null,
     isSolo: false,
     enabled: gameEnabled,
-    hostVisitorId: browserId,
+    visitorId: browserId,
+    roomId: activeRoom?.id ?? null,
+    playerKey: sessionKey,
   });
 
 
@@ -1149,6 +1154,48 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     );
   };
 
+  // Rematch: register a fresh server game id for the same frozen seats, so
+  // every rematch is its own verified game (results, claim locks, signed
+  // channel ordering all follow the new id — the same path "Let's Play!"
+  // takes). If registration fails, the rematch still starts on the old id,
+  // exactly as before; only its result won't be saved.
+  async function startRematch() {
+    if (rematchBusyRef.current) return;
+    rematchBusyRef.current = true;
+    try {
+      const seats = frozenSeats;
+      const roomId = activeRoom?.id;
+      let nextId: string | null = null;
+      if (seats && roomId) {
+        const candidate = crypto.randomUUID();
+        const ok = await registerSeatsWithRetry(() =>
+          supabase.rpc("register_room_seats_by_pid", {
+            p_room_id: roomId,
+            p_game_id: candidate,
+            p_host_visitor_id: browserId,
+            p_seats: seats.map((e) => ({ seat: e.seat, pid: e.pid })),
+          }),
+        );
+        if (ok) {
+          await security?.directory.refresh(true);
+          nextId = candidate;
+        }
+      }
+      if (nextId) setGameId(nextId);
+      completedFiredRef.current = false;
+      host.dispatch({
+        type: "INIT",
+        slotCount: host.state.slotCount,
+        seatCount: host.state.seatCount,
+        names: host.state.names,
+      });
+    } finally {
+      rematchBusyRef.current = false;
+    }
+  }
+
+
+
 
   // ---------- SOLO ----------
   if (view.kind === "solo") {
@@ -1194,12 +1241,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           }
           if (action.type === "NEW_GAME") {
             // Rematch: same seats, same grid size, scores reset to zero.
-            host.dispatch({
-              type: "INIT",
-              slotCount: host.state.slotCount,
-              seatCount: host.state.seatCount,
-              names: host.state.names,
-            });
+            void startRematch();
             return;
           }
           if (action.type === "CANCEL_CLAIM") {
@@ -1220,6 +1262,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         roomId={activeRoom.id}
         visitorId={visitorId}
         browserId={browserId}
+        playerKey={sessionKey}
         isHost={true}
         onInvite={() => handleShare(activeRoom.room_code)}
         presenceVisitorIds={participants.map((p) => p.pid)}
@@ -1248,6 +1291,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         roomId={activeRoom.id}
         visitorId={visitorId}
         browserId={browserId}
+        playerKey={sessionKey}
         isHost={false}
         onInvite={() => handleShare(activeRoom.room_code)}
         presenceVisitorIds={participants.map((p) => p.pid)}

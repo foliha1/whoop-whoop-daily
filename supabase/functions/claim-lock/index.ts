@@ -22,6 +22,7 @@ interface Body {
   claim_window: number;
   player_seat: number;
   visitor_id: string;
+  player_key?: string;
 }
 
 function bad(status: number, error: string) {
@@ -63,7 +64,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  const { room_id, game_id, claim_window, player_seat, visitor_id } = body ?? {};
+  const { room_id, game_id, claim_window, player_seat, visitor_id, player_key } = body ?? {};
   if (
     typeof room_id !== "string" ||
     typeof game_id !== "string" ||
@@ -89,7 +90,7 @@ Deno.serve(async (req) => {
   // Authorize: the caller must actually occupy `player_seat` in this game.
   // Seats are frozen by the host at game start and persisted to room_seats.
   const seatCheck = await verifySeatOwner(supabase, {
-    room_id, game_id, seat: player_seat, visitor_id,
+    room_id, game_id, seat: player_seat, visitor_id, player_key,
   });
   if (!seatCheck.ok) {
     console.warn("[claim-lock] seat authorization refused", seatCheck.reason, { room_id, game_id, player_seat });
