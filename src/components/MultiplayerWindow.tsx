@@ -153,11 +153,11 @@ const SoloView: React.FC<{ onLeave: () => void; mobile: boolean }> = ({ onLeave,
       names: solo.publicState.seatMap.map((e) => e.display_name),
       roundNum: solo.publicState.roundNum,
       gameId: solo.gameId,
+      messageType: solo.publicState.messageType,
     },
-    roomCode: null,
     isSolo: true,
     enabled: true,
-    hostVisitorId: getVisitorId(),
+    visitorId: getVisitorId(),
   });
 
   return (
@@ -267,6 +267,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // Host-minted game id. Scopes the arbiter's UNIQUE (room, game, window)
   // constraint so consecutive games in the same room don't collide.
   const [gameId, setGameId] = useState<string>("");
+  const rematchBusyRef = useRef(false);
   const [starting, setStarting] = useState(false);
   // Seat registration failed twice: stay on "Starting…" and offer a retry.
   const [startFailed, setStartFailed] = useState(false);
@@ -484,6 +485,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     seatMap: frozenSeats ?? [],
     hostVisitorId: visitorId,
     hostBrowserId: browserId,
+    hostSessionKey: sessionKey,
     enabled: gameEnabled,
     gameId,
     gridSize: FIXED_GRID,
@@ -610,6 +612,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         : host.state.names,
       roundNum: host.state.roundNum,
       gameId,
+      messageType: host.state.messageType,
     }),
     [
       host.state.phase,
@@ -617,16 +620,18 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       host.state.scores,
       host.state.names,
       host.state.roundNum,
+      host.state.messageType,
       frozenSeats,
       gameId,
     ],
   );
   useClassicResultRecorder({
     snapshot: classicSnapshot,
-    roomCode: activeRoom?.room_code ?? null,
     isSolo: false,
     enabled: gameEnabled,
-    hostVisitorId: browserId,
+    visitorId: browserId,
+    roomId: activeRoom?.id ?? null,
+    playerKey: sessionKey,
   });
 
 
@@ -1257,6 +1262,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         roomId={activeRoom.id}
         visitorId={visitorId}
         browserId={browserId}
+        playerKey={sessionKey}
         isHost={true}
         onInvite={() => handleShare(activeRoom.room_code)}
         presenceVisitorIds={participants.map((p) => p.pid)}
@@ -1285,6 +1291,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         roomId={activeRoom.id}
         visitorId={visitorId}
         browserId={browserId}
+        playerKey={sessionKey}
         isHost={false}
         onInvite={() => handleShare(activeRoom.room_code)}
         presenceVisitorIds={participants.map((p) => p.pid)}
