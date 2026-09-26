@@ -57,6 +57,7 @@ import SettingsSheet from "@/components/SettingsSheet";
 import { HelpCircle, Settings as SettingsIcon } from "lucide-react";
 import { useViewportHeight, compressionFactor, lerpCompress } from "@/hooks/useViewportHeight";
 import MultiplayerGameView from "@/components/MultiplayerGameView";
+import { preloadGameArt } from "@/lib/preloadArt";
 import { useSoloGame } from "@/hooks/useSoloGame";
 import { useClassicResultRecorder } from "@/hooks/useClassicResultRecorder";
 
@@ -248,6 +249,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     if (initialMode === "multiplayer") return { kind: "name-prompt", intent: "peeps" };
     return { kind: "idle" };
   });
+  useEffect(() => {
+    if (view.kind === "host" || view.kind === "joiner" || view.kind === "solo") preloadGameArt();
+  }, [view.kind]);
   const [busy, setBusy] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [nameInput, setNameInput] = useState<string>(() => getDisplayName());

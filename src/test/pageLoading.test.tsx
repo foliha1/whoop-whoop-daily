@@ -14,6 +14,7 @@ let groupState: { groups: MyGroup[]; loading: boolean; reload: () => void } = { 
 vi.mock("@/hooks/useWhoopPoints", () => ({
   useWhoopPointsState: () => pointsState,
   usePointsPopulation: () => null,
+  usePointsPopulationState: () => ({ population: null, loading: false }),
 }));
 vi.mock("@/hooks/useMyGroups", () => ({ useMyGroups: () => groupState }));
 vi.mock("@/hooks/useSubscriberStatus", () => ({ useSubscriberStatus: () => ({ email: null }) }));
