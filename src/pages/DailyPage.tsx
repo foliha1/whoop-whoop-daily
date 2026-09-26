@@ -70,6 +70,7 @@ import {
   DAILY_MATCH_REVEAL_MS,
   GREAT_MATCH_DELAY_MS,
   DEAL_MOVE_MS,
+  PLAY_ART_WAIT_CEILING_MS,
   UI_ENTER_MS,
   UI_REVISIT_MS,
   UI_SECTION_STAGGER_MS,
@@ -1032,6 +1033,8 @@ const DailyReadyScreen: React.FC<{
   mobile?: boolean;
   onPlay: () => void;
   onHowToPlay: () => void;
+  /** True while a Play tap is waiting on board art (bounded by the ceiling). */
+  playLoading?: boolean;
 }> = ({
   today,
   streak,
@@ -1046,6 +1049,7 @@ const DailyReadyScreen: React.FC<{
   mobile = false,
   onPlay,
   onHowToPlay,
+  playLoading = false,
 }) => {
   // Vertical compression for short viewports (Instagram in-app browser lands
   // around 480–560px). t === 1 at 700px and above, so tall phones are
@@ -1145,8 +1149,9 @@ const DailyReadyScreen: React.FC<{
           data-testid="daily-cta"
           className={gated && subscribed ? "daily-btn-play" : "ww-press daily-btn-play"}
           onClick={gated ? (subscribed ? undefined : onNotify) : onPlay}
-          disabled={gated && subscribed}
-          aria-disabled={(gated && subscribed) || undefined}
+          disabled={(gated && subscribed) || playLoading}
+          aria-disabled={(gated && subscribed) || playLoading || undefined}
+          aria-busy={playLoading || undefined}
           style={{
             ...textStyle("action", mobile),
             width: "100%",
@@ -1159,13 +1164,15 @@ const DailyReadyScreen: React.FC<{
           }}
 
         >
-          {gated
-            ? subscribed
-              ? `Coming ${DAILY_LAUNCH_LABEL}`
-              : "Get the First Daily"
-            : played
-              ? "See Today's Result"
-              : "Play Today's Daily"}
+          {playLoading
+            ? "Dealing…"
+            : gated
+              ? subscribed
+                ? `Coming ${DAILY_LAUNCH_LABEL}`
+                : "Get the First Daily"
+              : played
+                ? "See Today's Result"
+                : "Play Today's Daily"}
         </button>
       </div>
 
@@ -1320,12 +1327,22 @@ const DailyPage: React.FC = () => {
   setDailyTrackingEnabled(!daily.debugBypass);
   // Single entry point for beginning a run: the play CTA and the stepper's
   // Start / Skip / Play controls all route through here.
+  // True while a Play tap is waiting on board art: the CTA shows its
+  // loading label so the tap never looks ignored.
+  const [playWaiting, setPlayWaiting] = useState(false);
   const startRun = React.useCallback(() => {
-    void todayArtReady.current.then(() => {
-    // 600ms cue; the deal lands at 700ms, so it clears cleanly.
-    playStart();
-    trackDaily("run_started", { puzzleNumber: daily.puzzleNumber });
-    daily.start();
+    setPlayWaiting(true);
+    // Wait for today's art, but never longer than the ceiling — the images
+    // are already requested, so a late decode beats a stalled button.
+    void Promise.race([
+      todayArtReady.current,
+      new Promise<void>((resolve) => setTimeout(resolve, PLAY_ART_WAIT_CEILING_MS)),
+    ]).then(() => {
+      setPlayWaiting(false);
+      // 600ms cue; the deal lands at 700ms, so it clears cleanly.
+      playStart();
+      trackDaily("run_started", { puzzleNumber: daily.puzzleNumber });
+      daily.start();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [daily.start, daily.puzzleNumber]);
@@ -1824,6 +1841,7 @@ const DailyPage: React.FC = () => {
               today={today}
               streak={streak?.current ?? null}
               played={playedToday}
+              playLoading={playWaiting}
               gated={daily.preLaunch}
               subscribed={subscribed}
               notifyRef={notifyRef}

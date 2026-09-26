@@ -104,6 +104,13 @@ export const ENTRY_STAGGER_DELAYS_MS = [0, 40, 80, 120] as const;
 /** Ceiling on the font/asset gate before the screen shows regardless. */
 export const ENTRY_ASSET_TIMEOUT_MS = 700;
 
+/**
+ * Longest the Play tap waits for today's board art before starting anyway.
+ * The images are already requested by then, so the worst case is a card
+ * finishing its decode a moment into the deal — never a stalled button.
+ */
+export const PLAY_ART_WAIT_CEILING_MS = 1500;
+
 
 
 export function applyAnimationTimingVars(root: HTMLElement = document.documentElement): void {

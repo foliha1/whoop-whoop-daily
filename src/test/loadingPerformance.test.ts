@@ -33,7 +33,7 @@ describe("startup loading boundaries", () => {
     expect(source).toContain("preloadEssentialGameArt()");
     expect(source).toContain("afterPaintIdleOrInteraction");
     expect(source).toContain("preloadDailyBoardArt(todayArtSources)");
-    expect(source).toContain("todayArtReady.current.then");
+    expect(source).toContain("todayArtReady.current");
     expect(source).toContain('if (phase === "READY") return');
   });
 
@@ -43,6 +43,17 @@ describe("startup loading boundaries", () => {
     expect(page).toContain('import MultiplayerWindow from "@/components/MultiplayerWindow"');
     expect(page).not.toContain('React.lazy(() => import("@/components/MultiplayerWindow"))');
     expect(window).toContain('view.kind === "host" || view.kind === "joiner" || view.kind === "solo"');
+  });
+
+  it("bounds the Play tap's wait for board art with a named ceiling", async () => {
+    const source = read("pages/DailyPage.tsx");
+    expect(source).toContain("PLAY_ART_WAIT_CEILING_MS");
+    expect(source).toContain("Promise.race([");
+    expect(source).toContain("setTimeout(resolve, PLAY_ART_WAIT_CEILING_MS)");
+    expect(source).toContain("setPlayWaiting(true)");
+    expect(source).toContain("playLoading={playWaiting}");
+    const timing = await import("@/lib/animationTiming");
+    expect(timing.PLAY_ART_WAIT_CEILING_MS).toBe(1500);
   });
 
   it("defers active logo and music work and gates results-only reads", () => {
