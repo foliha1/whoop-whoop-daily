@@ -12,7 +12,9 @@ import { p256 } from "npm:@noble/curves@1.4.0/p256";
 import { sha256 } from "npm:@noble/hashes@1.4.0/sha256";
 
 export function canonical(value: unknown): string {
-  if (value === null || typeof value !== "object") return JSON.stringify(value ?? null);
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value ?? null);
+  }
   if (Array.isArray(value)) {
     return `[${value.map((v) => (v === undefined ? "null" : canonical(v))).join(",")}]`;
   }
