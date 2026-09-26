@@ -143,7 +143,7 @@ describe("5 / correction 1. grants apply only to the current game's open window"
     await act(async () => { await Promise.resolve(); });
     // Window 0 is open; a grant for game g0 (a previous game) arrives.
     await act(async () => {
-      bus.deliver({ v: 1, type: "claim_grant", seq: 0, payload: { claim_window: 0, seat: 1, game_id: "g0" } });
+      bus.deliver({ v: 2, type: "claim_grant", seq: 0, payload: { claim_window: 0, seat: 1, game_id: "g0" } });
     });
     expect(result.current.state.claimBy).toBeNull();
     expect(bus.sent.some((p) => (p as { type?: string }).type === "claim_reject")).toBe(false);
@@ -186,7 +186,7 @@ describe("3. state request catch-up", () => {
     rerender({ epoch: 2 });
     expect(requests()).toBe(2);
     await act(async () => {
-      bus.deliver({ v: 1, type: "state", seq: 7, payload: { gameId: "g", seatMap: [{ seat: 1, pid: "k1", display_name: "J" }] } });
+      bus.deliver({ v: 2, type: "state", seq: 7, payload: { gameId: "g", seatMap: [{ seat: 1, pid: "k1", display_name: "J" }] } });
     });
     expect(result.current.mySeat).toBe(1);
   });
@@ -215,7 +215,7 @@ describe("3. state request catch-up", () => {
     }));
     await act(async () => { await new Promise((r) => setTimeout(r, 100)); });
     const before = bus.sent.filter((p) => (p as { type?: string }).type === "state").length;
-    await act(async () => { bus.deliver({ v: 1, type: "state_request", seq: 0, payload: {} }); });
+    await act(async () => { bus.deliver({ v: 2, type: "state_request", seq: 0, payload: {} }); });
     const states = bus.sent.filter((p) => (p as { type?: string }).type === "state") as Array<{ payload: { gameId: string } }>;
     expect(states.length).toBe(before + 1);
     expect(states[states.length - 1].payload.gameId).toBe("g1");
@@ -256,7 +256,7 @@ describe("6. only the current roller can roll", () => {
     }));
     expect(result.current.state.roller).toBe(0);
     await act(async () => {
-      bus.deliver({ v: 1, type: "intent", seq: 1, payload: { seat: 1, pid: "k1", action: { type: "REQUEST_ROLL" } } });
+      bus.deliver({ v: 2, type: "intent", seq: 1, payload: { seat: 1, pid: "k1", action: { type: "REQUEST_ROLL" } } });
     });
     expect(bus.sent.some((p) => (p as { type?: string }).type === "roll_committed")).toBe(false);
     await act(async () => { result.current.commitAndRoll(0); });

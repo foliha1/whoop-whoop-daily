@@ -119,7 +119,7 @@ describe("2b/3. roll catch-up and no tumble snapshots", () => {
     for (let i = 0; i < 6; i++) await act(async () => { vi.advanceTimersByTime(100); });
     expect(result.current.state.rolling).toBe(true);
     const beforeReq = bus.sent.length;
-    await act(async () => { bus.deliver({ v: 1, type: "state_request", seq: 0, payload: {} }); });
+    await act(async () => { bus.deliver({ v: 2, type: "state_request", seq: 0, payload: {} }); });
     const reply = bus.sent.slice(beforeReq).map((p) => p.type);
     expect(reply).toContain("state");
     expect(reply).toContain("roll_committed");
@@ -201,7 +201,7 @@ describe("4. host deadline catch-up on resume", () => {
         channel: bus.channel, onBroadcast: bus.onBroadcast, enabled: true,
         watchedVisitorIds: ["host", "k1", "k2"], hostVisitorId: "host",
       }));
-      const beat = (k: string) => bus.deliver({ v: 1, type: "heartbeat", seq: 1, payload: { pid: k, at: Date.now(), hidden: false } });
+      const beat = (k: string) => bus.deliver({ v: 2, type: "heartbeat", seq: 1, payload: { pid: k, at: Date.now(), hidden: false } });
       await act(async () => { beat("k1"); beat("k2"); vi.advanceTimersByTime(2000); });
       await act(async () => { setVisibility("hidden"); });
       // Host suspended: no timers, no heartbeats received.
