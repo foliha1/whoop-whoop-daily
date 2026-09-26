@@ -172,10 +172,13 @@ async function broadcastGrant(
   const grantPayload: Record<string, unknown> = { claim_window, seat, game_id, granted_at: Number.isFinite(grantedAt) ? grantedAt : Date.now() };
   // Public id only; the seat's secret session key never goes on the channel.
   if (seatRow?.pub_id) grantPayload.pid = seatRow.pub_id;
-  // v2 (signed) for current clients; v1 (unsigned, no ids) keeps already-open
-  // tabs of the previous build working until they reload. Remove v1 in pass 3.
+  // Signed v2 only. If the signing seed is missing, send nothing unsigned:
+  // the caller reports "unknown" and its retry heals via the conflict path.
   const signed = signServerEnvelope(room_id, { v: 2, type: "claim_grant", seq: 0, payload: grantPayload });
-  const legacy = { v: 1, type: "claim_grant", seq: 0, payload: { claim_window, seat, game_id, granted_at: grantPayload.granted_at } };
+  if (!signed) {
+    console.error("[claim-lock] signing unavailable — grant not broadcast");
+    return false;
+  }
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   try {
@@ -187,10 +190,7 @@ async function broadcastGrant(
         Authorization: `Bearer ${SERVICE_ROLE}`,
       },
       body: JSON.stringify({
-        messages: [
-          { topic: `room:${room_id}`, event: "msg", payload: legacy },
-          ...(signed ? [{ topic: `room:${room_id}`, event: "msg", payload: signed }] : []),
-        ],
+        messages: [{ topic: `room:${room_id}`, event: "msg", payload: signed }],
       }),
     });
     if (!res.ok) {

@@ -105,25 +105,25 @@ Deno.serve(async (req) => {
     // No browser id or session key on the shared channel; clients match by seat.
     reason: reason ?? "STALE_WINDOW",
   };
-  // v1 keeps already-open tabs of the previous build working; v2 is signed.
-  const legacyReject = { v: 1, type: "claim_reject", seq: 0, payload: rejectPayload };
+  // Signed v2 only. If signing is unavailable, skip the broadcast — the lock
+  // row is already deleted, which is the critical part.
   const signedReject = signServerEnvelope(room_id, { v: 2, type: "claim_reject", seq: 0, payload: rejectPayload });
   try {
-    await fetch(`${SUPABASE_URL}/realtime/v1/api/broadcast`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SERVICE_ROLE,
-        Authorization: `Bearer ${SERVICE_ROLE}`,
-      },
-      body: JSON.stringify({
-        messages: [legacyReject, ...(signedReject ? [signedReject] : [])].map((payload) => ({
-          topic: `room:${room_id}`,
-          event: "msg",
-          payload,
-        })),
-      }),
-    });
+    if (signedReject) {
+      await fetch(`${SUPABASE_URL}/realtime/v1/api/broadcast`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SERVICE_ROLE,
+          Authorization: `Bearer ${SERVICE_ROLE}`,
+        },
+        body: JSON.stringify({
+          messages: [{ topic: `room:${room_id}`, event: "msg", payload: signedReject }],
+        }),
+      });
+    } else {
+      console.error("[release-lock] signing unavailable — reject not broadcast");
+    }
   } catch (e) {
     console.error("[release-lock] broadcast POST threw", e);
     // Don't fail the release — the row is deleted, that's the critical bit.
