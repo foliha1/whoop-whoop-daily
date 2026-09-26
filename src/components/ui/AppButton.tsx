@@ -42,7 +42,8 @@ export const AppButton = React.forwardRef<HTMLButtonElement, AppButtonProps>(
       : tone === "ink" ? "ink" : "quiet";
     const canonicalStyle = buttonStyle(canonical, size, { fullWidth, disabled, selected: active });
     const baseBg = canonicalStyle.background as string;
-    const hoverBg = hoverBackground ?? buttonHoverBg(canonical);
+    const inverseSelected = active && canonical === "quiet";
+    const hoverBg = hoverBackground ?? (inverseSelected ? COLORS.inkMuted : buttonHoverBg(canonical));
 
     const mergedStyle: React.CSSProperties = {
       ...canonicalStyle,

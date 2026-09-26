@@ -77,4 +77,14 @@ describe("Daily results score panel", () => {
     expect(screen.queryByTestId("result-tier-badge")).toBeNull();
     expect(MockImage.instances).toHaveLength(0);
   });
+
+  it("can defer its entrance to the surrounding results slot", () => {
+    render(
+      <MemoryRouter>
+        <WhoopPointsChange points={points} mobile animate={false} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByTestId("result-points")).not.toHaveClass("daily-intro");
+  });
 });

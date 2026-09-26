@@ -379,14 +379,14 @@ const Header: React.FC<{
         aria-label="Leave game"
         style={{
           all: "unset",
+          ...buttonStyle("danger", "md"),
           boxSizing: "border-box",
           width: 44, height: 44, flex: "none",
           display: "flex", alignItems: "center", justifyContent: "center",
-          background: RED, border: BORDER_HEAVY, borderRadius: R_BOX,
           cursor: "pointer",
         }}
       >
-        <X size={22} color={SURFACE} aria-hidden="true" />
+        <X size={22} aria-hidden="true" />
       </button>
     </div>
   );

@@ -139,7 +139,7 @@ const CarryOverEmail: React.FC<{ mobile: boolean; onLinked: (email: string) => v
         onClick={submit}
         disabled={busy}
         data-testid="groups-carry-over-submit"
-        style={{ ...buttonStyle("secondary", "md", { mobile, disabled: busy }), alignSelf: "stretch" }}
+        style={{ ...buttonStyle("secondary", "md", { mobile }), alignSelf: "stretch" }}
       >
         {busy ? "Saving…" : "Save My Email"}
       </button>

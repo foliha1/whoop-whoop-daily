@@ -651,6 +651,10 @@ All colors MUST be HSL.
   .ww-match-ghost-flip,
   .ww-disclosure-icon,
   .ww-theme-swatch { transition: none !important; }
+  .ww-card-shrink {
+    transform: none !important;
+    transition: opacity 400ms ease !important;
+  }
   .ww-theme-swatch:hover { transform: none !important; }
   .ww-music-marquee,
   .ww-progress-spinner { animation: none !important; }
@@ -731,6 +735,8 @@ All colors MUST be HSL.
 /* Reduced motion: rest at the midpoint — 0.96 scale, full 2px stroke, full
    glow — so the active claim stays unmistakable without animating. */
 @media (prefers-reduced-motion: reduce) {
+  .ww-select-wash { animation: ww-select-wash 120ms ease-out 1 both; }
+  .ww-select-ring { animation: ww-select-ring 120ms ease-out 1 both; }
   .ww-select-pulse-scale {
     animation: none;
     transform: scale(0.96);

@@ -255,7 +255,6 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
                     fontSize: 15,
                     letterSpacing: "0.03em",
                     ...buttonStyle("quiet", "md", { selected: active }),
-                    color: active ? COLORS.surface : COLORS.ink,
                     boxSizing: "border-box",
                   }}
                 >
@@ -286,18 +285,18 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
         />
 
         {onHowTo ? (
-          <button type="button" onClick={onHowTo} style={{ ...howToStyle, cursor: "pointer", background: "transparent" }}>
+          <button type="button" onClick={onHowTo} style={{ ...buttonStyle("ink", "md", { fullWidth: true }), width: "100%" }}>
             How to Play
           </button>
         ) : (
-          <a href="/about#how-to-play" style={howToStyle}>
+          <a href="/about#how-to-play" style={{ ...buttonStyle("ink", "md", { fullWidth: true }), width: "100%" }}>
             How to Play
           </a>
         )}
 
         {/* The Whoop Score and all-time numbers require an account. */}
         {SIGN_IN_ENABLED && product === "daily" && account && (
-          <a href="/you" style={howToStyle} data-testid="settings-you-link">
+          <a href="/you" style={{ ...buttonStyle("secondary", "md", { fullWidth: true }), width: "100%" }} data-testid="settings-you-link">
             Your Stats
           </a>
         )}
@@ -321,7 +320,7 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
             <button
               type="button"
               onClick={() => void signOut()}
-              style={{ ...howToStyle, cursor: "pointer", background: "transparent" }}
+              style={{ ...buttonStyle("ink", "md", { fullWidth: true }), width: "100%" }}
             >
               Sign Out
             </button>
