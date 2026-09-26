@@ -148,6 +148,13 @@
       "when": 1790440249848,
       "tag": "0020_classic_timing_samples_lockdown",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790457351666,
+      "tag": "0021_classic_signed_channel",
+      "breakpoints": true
     }
   ]
 }

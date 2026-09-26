@@ -610,19 +610,25 @@ export type Database = {
         Row: {
           created_at: string
           player_key: string
+          pub_id: string | null
           room_id: string
+          sign_pubkey: string | null
           visitor_id: string
         }
         Insert: {
           created_at?: string
           player_key: string
+          pub_id?: string | null
           room_id: string
+          sign_pubkey?: string | null
           visitor_id: string
         }
         Update: {
           created_at?: string
           player_key?: string
+          pub_id?: string | null
           room_id?: string
+          sign_pubkey?: string | null
           visitor_id?: string
         }
         Relationships: [
@@ -641,6 +647,7 @@ export type Database = {
           game_id: string
           id: string
           player_key: string | null
+          pub_id: string | null
           room_id: string
           seat: number
           visitor_id: string
@@ -650,6 +657,7 @@ export type Database = {
           game_id: string
           id?: string
           player_key?: string | null
+          pub_id?: string | null
           room_id: string
           seat: number
           visitor_id: string
@@ -659,6 +667,7 @@ export type Database = {
           game_id?: string
           id?: string
           player_key?: string | null
+          pub_id?: string | null
           room_id?: string
           seat?: number
           visitor_id?: string
@@ -1125,13 +1134,31 @@ export type Database = {
           name: string
         }[]
       }
-      join_room_session: {
-        Args: { p_player_key: string; p_room_id: string; p_visitor_id: string }
-        Returns: {
-          game_id: string
-          seat: number
-        }[]
-      }
+      join_room_session:
+        | {
+            Args: {
+              p_player_key: string
+              p_room_id: string
+              p_visitor_id: string
+            }
+            Returns: {
+              game_id: string
+              seat: number
+            }[]
+          }
+        | {
+            Args: {
+              p_player_key: string
+              p_room_id: string
+              p_sign_pubkey: string
+              p_visitor_id: string
+            }
+            Returns: {
+              game_id: string
+              pub_id: string
+              seat: number
+            }[]
+          }
       leave_daily_group: {
         Args: { p_group_id: string; p_visitor_id: string }
         Returns: boolean
@@ -1160,6 +1187,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      register_room_seats_by_pid: {
+        Args: {
+          p_game_id: string
+          p_host_visitor_id: string
+          p_room_id: string
+          p_seats: Json
+        }
+        Returns: boolean
+      }
       request_ip: { Args: never; Returns: string }
       rl_hit: {
         Args: { p_bucket: string; p_key: string; p_max: number }
@@ -1174,6 +1210,15 @@ export type Database = {
         Returns: {
           player_key: string
           seat: number
+        }[]
+      }
+      room_sign_keys: {
+        Args: { p_player_key: string; p_room_id: string; p_visitor_id: string }
+        Returns: {
+          pub_id: string
+          role: string
+          seat: number
+          sign_pubkey: string
         }[]
       }
       save_classic_result: {
