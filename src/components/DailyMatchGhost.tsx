@@ -32,8 +32,10 @@ const DailyMatchGhost: React.FC<{
   onDone: () => void;
   /** True when the pair is already face up (multiplayer): skips the flip. */
   startFaceUp?: boolean;
-}> = ({ pair, onDone, startFaceUp = false }) => {
-  const { stage, faceUp } = useMatchGhostStage(onDone, startFaceUp);
+  /** How far into the timeline this client already is (late join). */
+  elapsedMs?: number;
+}> = ({ pair, onDone, startFaceUp = false, elapsedMs = 0 }) => {
+  const { stage, faceUp } = useMatchGhostStage(onDone, startFaceUp, elapsedMs);
 
   if (pair.length === 0) return null;
 

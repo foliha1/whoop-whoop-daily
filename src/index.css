@@ -684,6 +684,23 @@ All colors MUST be HSL.
   to   { box-shadow: inset 0 0 0 calc(2px * var(--ww-k)) #0072B2; }
 }
 
+/* ── Joiner tap acknowledgment ──
+   Immediate press + subtle ring while the host's flip is in flight. Never a
+   face reveal. Uses MOTION.fast (150ms ease-out) in and out. */
+.ww-card-pressed { transform: scale(0.97); }
+.ww-tap-target { transition: transform 150ms ease-out; }
+.ww-card-opening {
+  position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 0 calc(2px * var(--ww-k, 1)) #0072B2;
+  opacity: 0; transition: opacity 150ms ease-out;
+}
+.ww-card-opening.is-on { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  /* Static ring only: no scale, no fade. */
+  .ww-card-pressed { transform: none; }
+  .ww-card-opening, .ww-tap-target { transition: none; }
+}
+
 /* ── Active claim: every available card breathes in phase ──
    One 1000ms loop, three properties, all reversing at the 50% midpoint with
    cubic-bezier(0.5, 0, 0.5, 1) on both halves (ease in, ease out):

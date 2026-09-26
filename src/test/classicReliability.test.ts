@@ -79,7 +79,8 @@ describe("2. a server win is never lost", () => {
     const conflict = src.slice(src.indexOf('if (code === "23505")'), src.indexOf("insert_failed"));
     expect(conflict).toMatch(/\.eq\("game_id", game_id\)/);
     expect(conflict).toMatch(/\.eq\("claim_window", claim_window\)/);
-    expect(conflict).toMatch(/broadcastGrant\(supabase, room_id, game_id, claim_window, existing\.player_seat\)/);
+    // Rebroadcast carries the ORIGINAL win time so resume ordering stays fair.
+    expect(conflict).toMatch(/broadcastGrant\(supabase, room_id, game_id, claim_window, existing\.player_seat, Date\.parse\(existing\.created_at\)\)/);
   });
   it("grants carry game_id and never a browser id", () => {
     const fn = src.slice(src.indexOf("async function broadcastGrant"));

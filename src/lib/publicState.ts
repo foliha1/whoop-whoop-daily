@@ -78,6 +78,12 @@ export interface PublicState {
   // within the (much longer) hidden-stale grace window. UI-only — reducer
   // does NOT skip these, so a briefly backgrounded player isn't ghosted.
   awaySeats: number[];
+  // Server-clock end of the current settle / last-flip claim window, null when
+  // not active. Clients derive remaining presentation time from serverNow().
+  // The claim window has NO visible countdown — this only decides when the
+  // live WHOOP! WHOOP! button stops being live.
+  settleEndsAt?: number | null;
+  claimWindowEndsAt?: number | null;
 }
 
 export function toPublicState(

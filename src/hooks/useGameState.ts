@@ -10,6 +10,7 @@ import {
 } from "@/lib/animationTiming";
 
 import { createRng, type Rng } from "@/lib/rng";
+import { DeadlineQueue } from "@/lib/hostDeadlines";
 import { computeSafetySwap, rngOf } from "@/lib/rolls";
 
 type MessageType = "info" | "success" | "error" | "warning";
@@ -1067,6 +1068,12 @@ export function useGameState(
   useEffect(() => { stateRef.current = state; }, [state]);
 
   const tokenRef = useRef(0);
+  // Load-bearing timers are absolute deadlines (setTimeout is only a wake-up)
+  // so a host returning from the background can drain them in order.
+  const deadlinesRef = useRef<DeadlineQueue | null>(null);
+  if (deadlinesRef.current === null) deadlinesRef.current = new DeadlineQueue();
+  const deadlines = deadlinesRef.current;
+  useEffect(() => () => deadlines.clearAll(), [deadlines]);
   const nextToken = () => ++tokenRef.current;
 
   const memoryRef = useRef<OpponentMemory | null>(null);
@@ -1096,44 +1103,34 @@ export function useGameState(
   // is dropped and play continues in the same round.
   const claimAbandonTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    if (claimAbandonTimerRef.current) {
-      clearTimeout(claimAbandonTimerRef.current);
-      claimAbandonTimerRef.current = null;
+    void claimAbandonTimerRef;
+    if (state.phase !== "CLAIM_SELECTING") {
+      deadlines.cancel("claim_abandon");
+      return;
     }
-    if (state.phase !== "CLAIM_SELECTING") return;
     const seq = state.claimSeq;
-    claimAbandonTimerRef.current = setTimeout(() => {
-      claimAbandonTimerRef.current = null;
-      dispatch({ type: "CLAIM_ABANDONED", seq });
-    }, CLAIM_ABANDON_MS);
-    return () => {
-      if (claimAbandonTimerRef.current) {
-        clearTimeout(claimAbandonTimerRef.current);
-        claimAbandonTimerRef.current = null;
-      }
-    };
-  }, [state.phase, state.claimSeq]);
+    deadlines.after("claim_abandon", "claim_abandon", CLAIM_ABANDON_MS, () =>
+      dispatch({ type: "CLAIM_ABANDONED", seq }),
+    );
+    return () => deadlines.cancel("claim_abandon");
+  }, [state.phase, state.claimSeq, deadlines]);
 
 
 
   useEffect(() => {
+    void claimWindowTimerRef;
     if (!state.claimWindowOpen) {
-      if (claimWindowTimerRef.current) {
-        clearTimeout(claimWindowTimerRef.current);
-        claimWindowTimerRef.current = null;
-      }
+      deadlines.cancel("claim_window");
       scheduledClaimWindowRef.current = -1;
       return;
     }
     const token = state.claimWindowToken;
     if (scheduledClaimWindowRef.current === token) return;
     scheduledClaimWindowRef.current = token;
-    if (claimWindowTimerRef.current) clearTimeout(claimWindowTimerRef.current);
-    claimWindowTimerRef.current = setTimeout(() => {
-      claimWindowTimerRef.current = null;
-      dispatch({ type: "CLAIM_WINDOW_EXPIRE", token });
-    }, ROTATION_CLAIM_WINDOW_MS);
-  }, [state.claimWindowOpen, state.claimWindowToken]);
+    deadlines.after("claim_window", "claim_window_expire", ROTATION_CLAIM_WINDOW_MS, () =>
+      dispatch({ type: "CLAIM_WINDOW_EXPIRE", token }),
+    );
+  }, [state.claimWindowOpen, state.claimWindowToken, deadlines]);
 
   // Re-INIT when EITHER the grid size OR the seat count changes. Multiplayer
   // mounts this hook with seatCount=2 (empty frozenSeats) before "Lets do it!"
@@ -1150,7 +1147,7 @@ export function useGameState(
   }, [slotCount, seatCount, names, opts.seed]);
 
 
-  const runRollAnimation = useCallback((predetermined?: string[]): Promise<string[]> => {
+  const runRollAnimation = useCallback((predetermined?: string[], anchorAt?: number): Promise<string[]> => {
     return new Promise((resolve) => {
       dispatch({ type: "ROLL_START" });
       const count = getDieCount();
@@ -1163,26 +1160,28 @@ export function useGameState(
       rollIntervalRef.current = setInterval(() => {
         dispatch({ type: "TUMBLE", values: rollRandomAttributes(count) });
       }, 100);
-      if (rollTimeoutRef.current) clearTimeout(rollTimeoutRef.current);
-      rollTimeoutRef.current = setTimeout(() => {
-        rollTimeoutRef.current = null;
+      void rollTimeoutRef;
+      void rollSettleRef;
+      // anchorAt: the roll's committed start (local clock), so a host that
+      // resumes late lands the roll on its original timeline.
+      const landDue = (anchorAt ?? deadlines.now()) + 450;
+      deadlines.schedule("roll_land", "roll_land", landDue, () => {
         if (rollIntervalRef.current) {
           clearInterval(rollIntervalRef.current);
           rollIntervalRef.current = null;
         }
         dispatch({ type: "ROLL_LAND", values: finalValues, rule });
-        if (rollSettleRef.current) clearTimeout(rollSettleRef.current);
         // Total ROLLING-phase duration (tumble + hold + land) is
         // ROLL_HERO_MS. The reducer must match the overlay so the server
         // does not unlock flips/claims before the die has visually landed.
-        rollSettleRef.current = setTimeout(() => {
-          rollSettleRef.current = null;
+        // Anchored to the landing deadline, not to when it actually ran.
+        deadlines.schedule("roll_settle", "roll_settle", landDue + ROLL_HERO_MS - 450, () => {
           dispatch({ type: "ROLL_SETTLE" });
           resolve(rule);
-        }, ROLL_HERO_MS - 450);
-      }, 450);
+        });
+      });
     });
-  }, []);
+  }, [deadlines]);
 
   const rollDice = useCallback(async () => {
     const s = stateRef.current;
@@ -1214,12 +1213,11 @@ export function useGameState(
     if (s.grid[index] === null) return;
     const token = nextToken();
     dispatch({ type: "FLIP_START", by: humanSeat, idx: index, token });
-    if (peekTimerRef.current) clearTimeout(peekTimerRef.current);
-    peekTimerRef.current = setTimeout(() => {
-      peekTimerRef.current = null;
-      dispatch({ type: "FLIP_COMPLETE", token });
-    }, REVEAL_MS);
-  }, [humanSeat]);
+    void peekTimerRef;
+    deadlines.after(`flip:${token}`, "flip_complete", REVEAL_MS, () =>
+      dispatch({ type: "FLIP_COMPLETE", token }),
+    );
+  }, [humanSeat, deadlines]);
 
   useEffect(() => {
     if (state.phase !== "FLIPPING") return;
@@ -1453,5 +1451,6 @@ export function useGameState(
     drawEmpty: state.drawEmpty,
     roundsSinceClaim: state.roundsSinceClaim,
     claimLastCall,
+    deadlines,
   };
 }

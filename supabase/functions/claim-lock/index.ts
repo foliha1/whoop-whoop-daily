@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
     // from another game.
     const { data: existing, error: selErr } = await supabase
       .from("claim_locks")
-      .select("player_seat")
+      .select("player_seat, created_at")
       .eq("room_id", room_id)
       .eq("game_id", game_id)
       .eq("claim_window", claim_window)
@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
     // Rebroadcast the existing winner's grant so a grant lost in transit is
     // healed by any retry or later caller. The host dedupes repeats and
     // ignores grants for windows that are no longer open.
-    await broadcastGrant(supabase, room_id, game_id, claim_window, existing.player_seat);
+    await broadcastGrant(supabase, room_id, game_id, claim_window, existing.player_seat, Date.parse(existing.created_at));
     return json({ won: false, winner_seat: existing.player_seat, claim_window });
   }
 
@@ -151,6 +151,8 @@ async function broadcastGrant(
   game_id: string,
   claim_window: number,
   seat: number,
+  // Server time the window was won — the original win for a rebroadcast.
+  grantedAt: number = Date.now(),
 ): Promise<boolean> {
   const { data: seatRow } = await supabase
     .from("room_seats")
@@ -159,7 +161,7 @@ async function broadcastGrant(
     .eq("game_id", game_id)
     .eq("seat", seat)
     .maybeSingle();
-  const grantPayload: Record<string, unknown> = { claim_window, seat, game_id };
+  const grantPayload: Record<string, unknown> = { claim_window, seat, game_id, granted_at: Number.isFinite(grantedAt) ? grantedAt : Date.now() };
   if (seatRow?.player_key) grantPayload.player_key = seatRow.player_key;
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

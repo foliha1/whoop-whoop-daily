@@ -33,8 +33,11 @@ const prefersReducedMotion = () =>
  * treatment. Under reduced motion the great stage is skipped entirely.
  * `onDone` fires at the end of the pass.
  */
-export const useMatchGhostStage = (onDone?: () => void, startFaceUp = false) => {
-  const [stage, setStage] = React.useState<MatchGhostStage>("reveal");
+export const useMatchGhostStage = (onDone?: () => void, startFaceUp = false, elapsedMs = 0) => {
+  const afterHold0 = DAILY_MATCH_REVEAL_MS + DAILY_MATCH_HOLD_MS;
+  const [stage, setStage] = React.useState<MatchGhostStage>(
+    elapsedMs >= afterHold0 ? "great" : elapsedMs >= DAILY_MATCH_REVEAL_MS ? "hold" : "reveal",
+  );
   const [faceUp, setFaceUp] = React.useState(startFaceUp);
   const doneRef = React.useRef(onDone);
   doneRef.current = onDone;
@@ -48,14 +51,17 @@ export const useMatchGhostStage = (onDone?: () => void, startFaceUp = false) => 
     const raf = startFaceUp
       ? 0
       : requestAnimationFrame(() => setFaceUp(true));
-    timers.push(setTimeout(() => setStage("hold"), DAILY_MATCH_REVEAL_MS));
+    // elapsedMs > 0 only for a client that arrived mid-settle: every beat
+    // shifts earlier by the same amount, so it lands on the host's timeline.
+    const at = (ms: number) => Math.max(0, ms - elapsedMs);
+    if (elapsedMs < DAILY_MATCH_REVEAL_MS) timers.push(setTimeout(() => setStage("hold"), at(DAILY_MATCH_REVEAL_MS)));
     const afterHold = DAILY_MATCH_REVEAL_MS + DAILY_MATCH_HOLD_MS;
     if (reduced) {
-      timers.push(setTimeout(() => doneRef.current?.(), afterHold));
+      timers.push(setTimeout(() => doneRef.current?.(), at(afterHold)));
     } else {
-      timers.push(setTimeout(() => setStage("great"), afterHold));
+      if (elapsedMs < afterHold) timers.push(setTimeout(() => setStage("great"), at(afterHold)));
       timers.push(
-        setTimeout(() => doneRef.current?.(), afterHold + DAILY_MATCH_GREAT_MS)
+        setTimeout(() => doneRef.current?.(), at(afterHold + DAILY_MATCH_GREAT_MS))
       );
     }
     return () => {

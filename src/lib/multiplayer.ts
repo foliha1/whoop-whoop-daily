@@ -48,6 +48,22 @@ export interface IntentPayload {
   seat: number;
   player_key: string; // sender identity for host-side validation
   action: IntentAction;
+  /** Sender's server-clock time; orders queued intents on host resume. */
+  sentAt?: number;
+  /** Sampled timing probe (random id + tap time). No identity. */
+  probe?: TimingProbe;
+}
+
+export interface TimingProbe {
+  id: string;
+  tapAt: number; // server clock
+}
+
+export interface TimingProbeAck {
+  id: string;
+  tapAt: number;
+  recvAt: number; // host receipt, server clock
+  sentAt: number; // host state send, server clock
 }
 
 export interface StateEnvelope {
@@ -55,6 +71,7 @@ export interface StateEnvelope {
   type: "state";
   seq: number;
   payload: PublicState;
+  probe?: TimingProbeAck;
 }
 
 export interface IntentEnvelope {
@@ -72,7 +89,9 @@ export interface ClaimGrantEnvelope {
   type: "claim_grant";
   seq: number;
   // game_id scopes the grant: the host ignores grants for any other game.
-  payload: { claim_window: number; seat: number; player_key?: string; game_id?: string };
+  // granted_at: server time the arbiter row was won; orders grants that were
+  // queued while the host was suspended.
+  payload: { claim_window: number; seat: number; player_key?: string; game_id?: string; granted_at?: number };
 }
 
 // Joiner → host: "send me your latest snapshot". Carries no identity.

@@ -39,6 +39,7 @@ import {
   type Envelope,
   type HeartbeatEnvelope,
 } from "@/lib/multiplayer";
+import { hostWasAway } from "@/lib/classicResponsiveness";
 import type { BroadcastSubscribe } from "@/hooks/useMultiplayerGame";
 
 // EVERY client (host and joiner) calls this. Sends heartbeats on a fixed
@@ -187,8 +188,33 @@ export function useHeartbeatMonitor(opts: {
   // Recompute sets on a poll. Cheap — bounded by seat count (≤ 6).
   useEffect(() => {
     if (!enabled) return;
+    let lastTick = Date.now();
+    // The HOST was the one away (tab slept): every joiner's age is
+    // meaningless. Liveness becomes unknown and the normal grace window is
+    // measured from the moment the host returned — nobody who stayed at the
+    // table is skipped because the host could not hear them.
+    const resetLiveness = (now: number) => {
+      monitorStartRef.current = now;
+      lastSeenRef.current = new Map();
+      hiddenRef.current = new Map();
+      hiddenSinceRef.current = new Map();
+    };
+    let hiddenAt: number | null = null;
+    const onVis = () => {
+      if (document.visibilityState === "hidden") {
+        if (hiddenAt === null) hiddenAt = Date.now();
+        return;
+      }
+      if (hiddenAt !== null) {
+        hiddenAt = null;
+        resetLiveness(Date.now());
+        tick();
+      }
+    };
     const tick = () => {
       const now = Date.now();
+      if (hostWasAway(lastTick, now, 2000)) resetLiveness(now);
+      lastTick = now;
       const started = monitorStartRef.current;
       const graceExpired = now - started > HEARTBEAT_STALE_MS;
       const endGameGraceExpired = now - started > HEARTBEAT_END_GAME_STALE_MS;
@@ -248,7 +274,13 @@ export function useHeartbeatMonitor(opts: {
     };
     tick();
     const id = window.setInterval(tick, 2000);
-    return () => window.clearInterval(id);
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("pageshow", onVis);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("pageshow", onVis);
+    };
   }, [enabled]);
 
   return { staleVisitors, awayVisitors, awaySkipVisitors, endGameVisitors, lastSeenSpreadMs };

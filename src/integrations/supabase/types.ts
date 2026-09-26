@@ -193,6 +193,57 @@ export type Database = {
         }
         Relationships: []
       }
+      classic_timing_samples: {
+        Row: {
+          browser: string
+          created_at: string
+          dropped_frames: number | null
+          host_to_send_ms: number | null
+          id: string
+          in_app_instagram: boolean
+          kind: string
+          long_frames: number | null
+          role: string
+          send_to_paint_ms: number | null
+          surface: string | null
+          tap_to_host_ms: number | null
+          total_ms: number | null
+          window_ms: number | null
+        }
+        Insert: {
+          browser: string
+          created_at?: string
+          dropped_frames?: number | null
+          host_to_send_ms?: number | null
+          id?: string
+          in_app_instagram?: boolean
+          kind: string
+          long_frames?: number | null
+          role: string
+          send_to_paint_ms?: number | null
+          surface?: string | null
+          tap_to_host_ms?: number | null
+          total_ms?: number | null
+          window_ms?: number | null
+        }
+        Update: {
+          browser?: string
+          created_at?: string
+          dropped_frames?: number | null
+          host_to_send_ms?: number | null
+          id?: string
+          in_app_instagram?: boolean
+          kind?: string
+          long_frames?: number | null
+          role?: string
+          send_to_paint_ms?: number | null
+          surface?: string | null
+          tap_to_host_ms?: number | null
+          total_ms?: number | null
+          window_ms?: number | null
+        }
+        Relationships: []
+      }
       daily_events: {
         Row: {
           created_at: string
@@ -729,6 +780,21 @@ export type Database = {
           solo_games: number
         }[]
       }
+      admin_classic_timing: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          browser: string
+          in_app_instagram: boolean
+          kind: string
+          p50_dropped: number
+          p50_ms: number
+          p95_dropped: number
+          p95_ms: number
+          role: string
+          samples: number
+          surface: string
+        }[]
+      }
       admin_difficulty: {
         Args: { p_from: string; p_to: string }
         Returns: {
@@ -1080,6 +1146,7 @@ export type Database = {
           was_subscriber: boolean
         }[]
       }
+      log_classic_timing: { Args: { p_samples: Json }; Returns: number }
       log_daily_events: {
         Args: { p_events: Json; p_visitor_id: string }
         Returns: number
