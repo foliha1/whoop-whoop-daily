@@ -136,6 +136,7 @@ export function useHeartbeatMonitor(opts: {
   // local time at which the current hidden run BEGAN — used to gate the
   // turn-skip dwell so a momentary hide→show never steals a turn.
   const lastSeenRef = useRef<Map<string, number>>(new Map());
+  const lastAtRef = useRef<Map<string, number>>(new Map());
   const hiddenRef = useRef<Map<string, boolean>>(new Map());
   const hiddenSinceRef = useRef<Map<string, number>>(new Map());
   const monitorStartRef = useRef<number>(Date.now());
