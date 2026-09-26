@@ -344,17 +344,11 @@ export function createVerifier(opts: {
     }
     if (cls === "server") return false;
 
-    // Joiners only care about the host; ignore other joiners without refetching.
-    if (role === "joiner" && cls === "member" && p.type !== "heartbeat") return false;
-
     if (await check(p, cls, from)) return true;
-    // The sender may have just refreshed and re-registered: refetch once.
-    const hostRelevant = role === "joiner" ? cls === "host" || from !== directory.hostPid : true;
-    if (!hostRelevant) return false;
-    if (role === "joiner" && cls === "member" && from !== directory.hostPid && directory.hostPid !== null) {
-      // Another joiner's heartbeat: not ours to judge.
-      return false;
-    }
+    // A joiner hears other joiners' heartbeats; those are not its to judge,
+    // so they never trigger a refetch. Host-signed traffic does: a refreshed
+    // host arrives with a new id and key.
+    if (role === "joiner" && cls === "member") return false;
     await directory.refresh();
     return check(p, cls, from);
   };
