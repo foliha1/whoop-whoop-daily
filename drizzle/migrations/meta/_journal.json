@@ -134,6 +134,13 @@
       "when": 1790367359888,
       "tag": "0018_revoke_legacy_create_room",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790437128309,
+      "tag": "0019_classic_timing_samples",
+      "breakpoints": true
     }
   ]
 }

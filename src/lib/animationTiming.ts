@@ -111,6 +111,15 @@ export const ENTRY_ASSET_TIMEOUT_MS = 700;
  */
 export const PLAY_ART_WAIT_CEILING_MS = 1500;
 
+/** Longest a joiner's local "opening" tap treatment waits for the host's flip. */
+export const JOINER_TAP_ACK_TIMEOUT_MS = 1000;
+
+/**
+ * On host resume, grants/intents that queued during suspension are collected
+ * for this long, then applied in server-time order before overdue deadlines.
+ */
+export const RESUME_INBOX_FLUSH_MS = 150;
+
 
 
 export function applyAnimationTimingVars(root: HTMLElement = document.documentElement): void {

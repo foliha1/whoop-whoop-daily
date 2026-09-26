@@ -45,7 +45,13 @@ import {
   GREAT_MATCH_DELAY_MS, DEAL_MOVE_MS, WRONG_ANIM_MS, SETTLE_REVEAL_HOLD_MS,
   applyAnimationTimingVars,
   CLAIM_ABANDON_MS,
+  JOINER_TAP_ACK_TIMEOUT_MS,
 } from "@/lib/animationTiming";
+import {
+  claimWindowLive, presentationElapsed, shouldClearTapAck, type TapAck,
+} from "@/lib/classicResponsiveness";
+import { beginTimingGame, flushTiming, recordHostTap, setTimingClock, watchFrames } from "@/lib/classicTiming";
+import { SETTLE_MATCH_MS, SETTLE_WRONG_MS } from "@/hooks/useGameState";
 import DailyMatchGhost, { type GhostCard } from "@/components/DailyMatchGhost";
 import { serverNow } from "@/hooks/useServerClock";
 import { TARGET_SCORE, MAX_WRONG_CLAIMS_PER_ROUND } from "@/hooks/useGameState";
@@ -950,6 +956,22 @@ const MultiplayerGameView: React.FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rollCommit]);
   const heroActive = activeCommit !== null;
+  // Last-flip claim window: no timer is ever shown. The host's server-clock
+  // end only decides the exact moment the WHOOP! WHOOP! button stops being
+  // live, so a late or returning client never offers a dead claim.
+  const [windowLive, setWindowLive] = React.useState(true);
+  React.useEffect(() => {
+    if (s.phase !== "CLAIM_WINDOW" || s.claimWindowEndsAt == null) {
+      setWindowLive(true);
+      return;
+    }
+    const endsAt = s.claimWindowEndsAt;
+    const live = claimWindowLive(endsAt, serverNow());
+    setWindowLive(live);
+    if (!live) return;
+    const t = setTimeout(() => setWindowLive(false), Math.max(0, endsAt - serverNow()));
+    return () => clearTimeout(t);
+  }, [s.phase, s.claimWindowEndsAt]);
   const isMyTurnToRoll = mySeat !== null && s.roller === mySeat && s.phase === "AWAITING_ROLL" && !s.rolling;
   const isMyTurnToFlip = mySeat !== null && s.flipper === mySeat && s.phase === "FLIPPING" && s.peekingCard === null;
   // NOTE: the old ~500ms "flip rotation freeze" on WHOOP was removed — a
@@ -982,7 +1004,7 @@ const MultiplayerGameView: React.FC<Props> = ({
     !outOfCalls &&
     // The rotation claim window keeps claims live after the last flip of a
     // rotation. No countdown UI — the live WHOOP! button is the only signal.
-    (s.phase === "FLIPPING" || s.phase === "CLAIM_WINDOW") &&
+    (s.phase === "FLIPPING" || (s.phase === "CLAIM_WINDOW" && windowLive)) &&
     s.claimBy === null;
   const inClaimMode = s.phase === "CLAIM_SELECTING" && s.claimBy === mySeat;
   const [claimBusy, setClaimBusy] = React.useState(false);
@@ -1144,6 +1166,7 @@ const MultiplayerGameView: React.FC<Props> = ({
   const gridRef = React.useRef(s.grid);
   gridRef.current = s.grid;
   const [ghost, setGhost] = React.useState<GhostCard[]>([]);
+  const [ghostElapsed, setGhostElapsed] = React.useState(0);
 
   // While SETTLING on a MATCH the real cards leave the table entirely — the
   // ghost copies are the only visible cards for the whole SETTLE_MATCH_MS.
@@ -1167,14 +1190,18 @@ const MultiplayerGameView: React.FC<Props> = ({
         rect: { top: r.top, left: r.left, width: r.width, height: r.height },
       }];
     });
+    // A client arriving mid-settle starts at the host's point in the timeline.
+    const elapsed = presentationElapsed(s.settleEndsAt, SETTLE_MATCH_MS, serverNow());
+    setGhostElapsed(elapsed);
+    if (elapsed >= SETTLE_MATCH_MS) return;
     if (copies.length) setGhost(copies);
     // Land the chime with the ghost treatment, not with the reveal.
-    const chime = setTimeout(
-      () => { playCorrect(); hapticSuccess(); },
-      SETTLE_REVEAL_HOLD_MS + GREAT_MATCH_DELAY_MS,
-    );
+    const chimeIn = SETTLE_REVEAL_HOLD_MS + GREAT_MATCH_DELAY_MS - elapsed;
+    if (chimeIn < 0) return;
+    const chime = setTimeout(() => { playCorrect(); hapticSuccess(); }, chimeIn);
     soundTimersRef.current.push(chime);
     return () => clearTimeout(chime);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchSettling]);
 
   // ---- wrong-claim settle ----------------------------------------------
@@ -1194,17 +1221,21 @@ const MultiplayerGameView: React.FC<Props> = ({
     }
     const idxs = [...lastPairRef.current];
     const seat = s.claimBy ?? lastClaimSeatRef.current;
+    // Late client: skip what already happened, keep the rest on time.
+    const elapsed = presentationElapsed(s.settleEndsAt, SETTLE_WRONG_MS, serverNow());
+    const endIn = SETTLE_REVEAL_HOLD_MS + WRONG_ANIM_MS - elapsed;
+    if (endIn <= 0) return;
+    const startIn = SETTLE_REVEAL_HOLD_MS - elapsed;
     const start = setTimeout(() => {
-      playWrong();
-      hapticError();
+      if (startIn >= 0) { playWrong(); hapticError(); }
       // Every player sees the wrong pair animate — no seat filter.
       setWrongCards(idxs);
       if (seat !== null) setPenaltySeat(seat);
-    }, SETTLE_REVEAL_HOLD_MS);
+    }, Math.max(0, startIn));
     const end = setTimeout(() => {
       setWrongCards([]);
       setPenaltySeat(null);
-    }, SETTLE_REVEAL_HOLD_MS + WRONG_ANIM_MS);
+    }, endIn);
     return () => { clearTimeout(start); clearTimeout(end); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wrongSettling]);
@@ -1436,6 +1467,34 @@ const MultiplayerGameView: React.FC<Props> = ({
   }, [serverPairReady]);
 
 
+  // ---- joiner tap acknowledgment ----------------------------------------
+  // Pressed/opening treatment the instant a joiner touches a card, before the
+  // host's flip arrives. The face is never revealed locally.
+  const [tapAck, setTapAck] = React.useState<TapAck | null>(null);
+  const noteTapAck = (i: number) => {
+    if (isHost || soloMode || claimMode || !isMyTurnToFlip) return;
+    if (!s.grid[i]?.occupied) return;
+    setTapAck({ idx: i, at: Date.now() });
+  };
+  React.useEffect(() => {
+    if (!tapAck) return;
+    if (shouldClearTapAck(tapAck, s, mySeat, Date.now(), JOINER_TAP_ACK_TIMEOUT_MS)) {
+      setTapAck(null);
+      return;
+    }
+    const t = setTimeout(() => setTapAck(null), Math.max(0, tapAck.at + JOINER_TAP_ACK_TIMEOUT_MS - Date.now()));
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tapAck, s.phase, s.flipper, s.peekingCard, mySeat]);
+
+  // ---- timing samples (sampled games only; no personal data) ------------
+  React.useEffect(() => { setTimingClock(serverNow); }, []);
+  React.useEffect(() => {
+    if (soloMode || !s.gameId) return;
+    beginTimingGame(s.gameId, isHost ? "host" : "joiner");
+  }, [s.gameId, isHost, soloMode]);
+  React.useEffect(() => { if (s.phase === "GAME_OVER") flushTiming(); }, [s.phase]);
+
   const handleCardClick = (i: number) => {
     if (mySeat === null) return;
     if (modalOpen) return;
@@ -1466,6 +1525,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       const slot = s.grid[i];
       if (!slot.occupied) return;
       hapticTap();
+      if (isHost) recordHostTap(serverNow());
       onIntent({ type: "FLIP_START", by: mySeat, idx: i, token: Date.now() });
     }
   };
@@ -1616,6 +1676,10 @@ const MultiplayerGameView: React.FC<Props> = ({
     ((s.phase === "CLAIM_SELECTING" || s.phase === "CLAIM_RESOLVING") &&
       s.claimBy !== null) ||
     claimPending;
+
+  // Dropped-frame sampling during the board pulse and the die roll.
+  React.useEffect(() => (activeClaimPulse ? watchFrames("pulse") : undefined), [activeClaimPulse]);
+  React.useEffect(() => (heroActive ? watchFrames("roll") : undefined), [heroActive]);
 
   const myScore = mySeat !== null ? (s.scores[mySeat] ?? 0) : 0;
   const rule = s.rule[0] ?? "SHAPE";
@@ -1913,6 +1977,8 @@ const MultiplayerGameView: React.FC<Props> = ({
                   faceUp={faceUp}
                   interactive={cardsInteractive}
                   onClick={cardsInteractive ? () => handleCardClick(i) : undefined}
+                  onPressStart={cardsInteractive ? () => noteTapAck(i) : undefined}
+                  opening={tapAck?.idx === i}
                   highlighted={selected}
                   pulsing={pulsing}
                   wrong={wrongCards.includes(i)}
@@ -1999,6 +2065,7 @@ const MultiplayerGameView: React.FC<Props> = ({
         <DailyMatchGhost
           pair={ghost}
           startFaceUp
+          elapsedMs={ghostElapsed}
           onDone={() => setGhost([])}
         />
       )}

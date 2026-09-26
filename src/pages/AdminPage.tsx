@@ -155,6 +155,20 @@ interface ClassicRow {
   avg_wrong_claims: number;
 }
 
+/** Classic responsiveness samples: p50/p95 by role and browser. */
+interface ClassicTimingRow {
+  kind: string;
+  surface: string | null;
+  role: string;
+  browser: string;
+  in_app_instagram: boolean;
+  samples: number;
+  p50_ms: number | null;
+  p95_ms: number | null;
+  p50_dropped: number | null;
+  p95_dropped: number | null;
+}
+
 interface DashboardData {
   funnel: FunnelRow | null;
   difficulty: DifficultyRow[];
@@ -166,6 +180,7 @@ interface DashboardData {
   headline: HeadlineRow | null;
   nextDay: NextDayRow | null;
   classic: ClassicRow | null;
+  classicTiming: ClassicTimingRow[];
   retentionSplit: RetentionSplitRow[];
   signinFunnel: SigninFunnelRow[];
 }
@@ -549,7 +564,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       }
     };
 
-    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay, classic, retentionSplit, signinFunnel] =
+    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay, classic, retentionSplit, signinFunnel, classicTiming] =
       await Promise.all([
         call<FunnelRow>("admin_funnel", args),
         call<DifficultyRow>("admin_difficulty", args),
@@ -563,12 +578,13 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         call<ClassicRow>("admin_classic", args),
         call<RetentionSplitRow>("admin_retention_split"),
         call<SigninFunnelRow>("admin_signin_funnel", { p_days: 30 }),
+        call<ClassicTimingRow>("admin_classic_timing", args),
       ]);
 
     setFailures(failed);
 
     // Every report failing means the fetch itself is broken, not an empty range.
-    if (failed.length === 12) {
+    if (failed.length === 13) {
       setState("error");
       return;
     }
@@ -593,6 +609,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       headline: headline[0] ?? null,
       nextDay: nextDay[0] ?? null,
       classic: classic[0] ?? null,
+      classicTiming,
       retentionSplit,
       signinFunnel,
     });
@@ -1061,7 +1078,26 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
           })()}
         </Card>
 
-
+        {/* Sampled Classic responsiveness (about 10% of games, no personal
+            data). Tap = joiner tap → host → state → joiner paint; host taps
+            are local paint only. Frames = dropped frames in pulse / roll. */}
+        <Card title="Classic responsiveness">
+          {(data?.classicTiming ?? []).length === 0 ? (
+            <span style={labelStyle}>No timing samples in this range.</span>
+          ) : (
+            <Table
+              head={["Kind", "Role", "Browser", "Samples", "p50", "p95"]}
+              rows={(data?.classicTiming ?? []).map((r) => [
+                r.kind === "tap" ? "Tap → screen" : `Frames · ${r.surface ?? ""}`,
+                r.role,
+                `${r.browser}${r.in_app_instagram ? " (Instagram)" : ""}`,
+                r.samples,
+                r.kind === "tap" ? `${r.p50_ms ?? "–"} ms` : `${r.p50_dropped ?? "–"} dropped`,
+                r.kind === "tap" ? `${r.p95_ms ?? "–"} ms` : `${r.p95_dropped ?? "–"} dropped`,
+              ])}
+            />
+          )}
+        </Card>
 
         {/* Diagnostic: a refused save is silent to the player by design, so the
             reason surfaces here instead. Empty is the healthy state. */}

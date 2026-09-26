@@ -2,12 +2,16 @@
 // useMultiplayerGame — wraps useGameState for the host (who runs the reducer
 // and broadcasts) or receives PublicState for the joiner (who only renders).
 //
-// KNOWN LIMITATION: a backgrounded host tab throttles setInterval/setTimeout.
-// Dice roll animations and bot-style timers can stall until the tab is
-// refocused. Not solved here — reconnect handling is prompt 11.
+// Backgrounded host: browsers throttle (iOS suspends) timers, so every
+// load-bearing host timer is an absolute deadline. On visibilitychange,
+// pageshow and focus the host first applies claims/intents that queued up
+// while it was away (in server-time order), then drains overdue deadlines in
+// order, then broadcasts one state. Play still pauses while iOS has the host
+// suspended; it resumes correctly the moment the host returns.
 // ============================================================================
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import {
   useGameState,
@@ -39,7 +43,11 @@ import {
   type TransientEventKind,
   type StateRequestEnvelope,
 } from "@/lib/multiplayer";
-import { serverNow } from "@/hooks/useServerClock";
+import { serverNow, getServerOffset } from "@/hooks/useServerClock";
+import { isTumbleOnly, planResume, type QueuedMessage } from "@/lib/classicResponsiveness";
+import type { DeadlineQueue } from "@/lib/hostDeadlines";
+import { RESUME_INBOX_FLUSH_MS } from "@/lib/animationTiming";
+import { hostTimingProbe, joinerTimingProbe } from "@/lib/classicTiming";
 import { warmClaimLock } from "@/lib/claimLock";
 import { SnapshotOrder, decideGrant, grantKey, mayRoll } from "@/lib/classicReliability";
 
@@ -105,15 +113,18 @@ export function useMultiplayerHost(opts: {
   const settlePhase = g.state.phase;
   const settleKind = g.state.settleKind;
   const settleToken = g.state.settleToken;
+  const deadlines = g.deadlines;
   useEffect(() => {
-    if (settlePhase !== "SETTLING" || settleKind === null) return;
+    if (settlePhase !== "SETTLING" || settleKind === null) {
+      deadlines.cancel("settle");
+      return;
+    }
     const ms = settleKind === "MATCH" ? SETTLE_MATCH_MS : SETTLE_WRONG_MS;
-    const t = setTimeout(
-      () => gDispatch({ type: "SETTLE_COMPLETE", token: settleToken }),
-      ms,
+    deadlines.after("settle", "settle_complete", ms, () =>
+      gDispatch({ type: "SETTLE_COMPLETE", token: settleToken }),
     );
-    return () => clearTimeout(t);
-  }, [settlePhase, settleKind, settleToken, gDispatch]);
+    return () => deadlines.cancel("settle");
+  }, [settlePhase, settleKind, settleToken, gDispatch, deadlines]);
 
 
 
@@ -169,26 +180,42 @@ export function useMultiplayerHost(opts: {
   const awayRef = useRef<number[]>(awaySeats);
   awayRef.current = awaySeats;
 
+  // While a resume drain runs, intermediate states are not broadcast; the
+  // drain sends exactly one state at the end.
+  const suppressSendRef = useRef(false);
+  const lastSentStateRef = useRef<typeof g.state | null>(null);
   const doSend = useCallback(() => {
     const ch = channelRef.current;
     if (!ch) return;
+    if (suppressSendRef.current) return;
     seqRef.current += 1;
+    const st = latestStateRef.current;
+    const offset = getServerOffset();
+    const settleAt = st.phase === "SETTLING" ? deadlines.atOf("settle") : null;
+    const windowAt = st.claimWindowOpen ? deadlines.atOf("claim_window") : null;
     const env: StateEnvelope = {
       v: PROTOCOL_VERSION,
       type: "state",
       seq: seqRef.current,
-      payload: toPublicState(
-        latestStateRef.current,
-        seatMapRef.current,
-        claimWindowRef.current,
-        gameIdRef.current,
-        disconnectedRef.current,
-        awayRef.current,
-      ),
+      payload: {
+        ...toPublicState(
+          st,
+          seatMapRef.current,
+          claimWindowRef.current,
+          gameIdRef.current,
+          disconnectedRef.current,
+          awayRef.current,
+        ),
+        // Server-clock ends, so a late client lands at the right point.
+        settleEndsAt: settleAt === null ? null : settleAt + offset,
+        claimWindowEndsAt: windowAt === null ? null : windowAt + offset,
+      },
+      probe: hostTimingProbe.takeAck(serverNow()),
     };
+    lastSentStateRef.current = st;
     lastSentAtRef.current = Date.now();
     ch.send({ type: "broadcast", event: "msg", payload: env }).catch(() => {});
-  }, []);
+  }, [deadlines]);
 
   // Track disconnected seats via a ref (used in doSend). SET_DISCONNECTED
   // uses REPLACE semantics on the reducer — the payload is the complete
@@ -242,6 +269,9 @@ export function useMultiplayerHost(opts: {
 
   useEffect(() => {
     if (!enabled || !channel) return;
+    // Tumble ticks are cosmetic: roll_committed already lets every client
+    // animate the roll locally. Only roll start, landing and settle ship.
+    if (isTumbleOnly(lastSentStateRef.current, g.state)) return;
     const now = Date.now();
     const elapsed = now - lastSentAtRef.current;
     if (elapsed >= BROADCAST_THROTTLE_MS) {
@@ -283,6 +313,7 @@ export function useMultiplayerHost(opts: {
   // hero animation joiners get from the wire. Cleared per-game so a stale
   // commit from a previous game never re-triggers.
   const [rollCommit, setRollCommit] = useState<RollCommitPayload | null>(null);
+  const rollCommitRef = useRef<RollCommitPayload | null>(null);
 
   const rollAttrs: readonly RollAttribute[] = ["SHAPE", "NUMBER", "COLOR"] as const;
   const commitAndRoll = useCallback((bySeat: number) => {
@@ -318,14 +349,13 @@ export function useMultiplayerHost(opts: {
     // Host doesn't receive its own broadcast — set locally so the host UI's
     // overlay triggers on the same commit joiners animate from the wire.
     setRollCommit(payload);
-    // Drive the reducer animation off local wall clock; serverNow() offset
-    // is applied when scheduling so the ROLL_SETTLE lands at startAt + 1100.
-    const delay = Math.max(0, startAt - serverNow());
-    setTimeout(() => {
-      // Reducer transitions to FLIPPING on settle, matching startAt+1100ms.
-      void g.doRollDice([attribute]);
-    }, delay);
-  }, [g.doRollDice]);
+    rollCommitRef.current = payload;
+    // Absolute deadline at startAt (server clock → local clock).
+    const startLocal = startAt - getServerOffset();
+    deadlines.schedule("roll_start", "roll_start", startLocal, () => {
+      void g.doRollDice([attribute], startLocal);
+    });
+  }, [g.doRollDice, deadlines]);
 
   // Explicit rejection for actions arriving during the ROLLING window.
   const rejectDuringRoll = useCallback((seat: number, actionType: string) => {
@@ -347,6 +377,27 @@ export function useMultiplayerHost(opts: {
     channelRef.current?.send({ type: "broadcast", event: "msg", payload: env }).catch(() => {});
   }, []);
 
+  // ---- resume inbox ----
+  // While the host resumes, grants and intents are held briefly so those that
+  // queued during suspension can be applied in server-time order BEFORE any
+  // overdue deadline — a claim made before a window closed beats its expiry.
+  const resumingRef = useRef(false);
+  const inboxRef = useRef<QueuedMessage[]>([]);
+  const arrivalSeqRef = useRef(0);
+  const enqueueIfResuming = (kind: QueuedMessage["kind"], serverAt: number | undefined, run: () => void) => {
+    if (!resumingRef.current) return false;
+    const local = typeof serverAt === "number" && Number.isFinite(serverAt) ? serverAt - getServerOffset() : Date.now();
+    inboxRef.current.push({ kind, at: local, arrival: ++arrivalSeqRef.current, run });
+    return true;
+  };
+
+  const sendRollCommitCatchUp = useCallback(() => {
+    const c = rollCommitRef.current;
+    if (!c || !latestStateRef.current.rolling) return;
+    const env: RollCommittedEnvelope = { v: PROTOCOL_VERSION, type: "roll_committed", seq: seqRef.current, payload: c };
+    channelRef.current?.send({ type: "broadcast", event: "msg", payload: env }).catch(() => {});
+  }, []);
+
   // Receive intents and inject as reducer actions.
   useEffect(() => {
     if (!enabled || !channel) return;
@@ -354,12 +405,20 @@ export function useMultiplayerHost(opts: {
       const env = msg.payload as Envelope;
       if (!env || env.v !== PROTOCOL_VERSION) return;
       if (env.type === "state_request") {
-        // A joiner is catching up — reply with the latest full snapshot.
+        // A joiner is catching up — reply with the latest full snapshot, plus
+        // the active roll commit so a mid-roll joiner sees the die.
         doSend();
+        sendRollCommitCatchUp();
         return;
       }
       if (env.type === "intent") {
         const intent: IntentPayload = env.payload;
+        if (enqueueIfResuming("intent", intent.sentAt, () => processIntent(intent))) return;
+        processIntent(intent);
+      }
+    };
+    const processIntent = (intent: IntentPayload) => {
+      {
         const seatEntry = seatMapRef.current.find((e) => e.seat === intent.seat);
         if (!seatEntry) return;
         if (seatEntry.player_key !== intent.player_key) return;
@@ -376,11 +435,13 @@ export function useMultiplayerHost(opts: {
           rejectDuringRoll(intent.seat, intent.action.type);
           return;
         }
-        handleHostIntent(g.dispatch, commitAndRoll, intent.seat, intent.action);
+        if (intent.probe) hostTimingProbe.received(intent.probe, serverNow());
+        handleHostIntent(g.dispatch, commitAndRoll, intent.seat, intent.action, deadlines);
       }
     };
     return onBroadcast(handler);
-  }, [enabled, channel, onBroadcast, g.dispatch, commitAndRoll, rejectDuringRoll, hostVisitorId, doSend]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, channel, onBroadcast, g.dispatch, commitAndRoll, rejectDuringRoll, hostVisitorId, doSend, deadlines, sendRollCommitCatchUp]);
 
   // Listen for authoritative claim grants from the arbiter edge function.
   // The host is the ONLY dispatcher of PLAYER_ENTER_CLAIM — even the host's
@@ -538,6 +599,10 @@ export function useMultiplayerHost(opts: {
       const env = msg.payload as Envelope;
       if (!env || env.v !== PROTOCOL_VERSION || env.type !== "claim_grant") return;
       const grant = (env as ClaimGrantEnvelope).payload;
+      if (enqueueIfResuming("grant", grant.granted_at, () => processGrant(grant))) return;
+      processGrant(grant);
+    };
+    const processGrant = (grant: ClaimGrantEnvelope["payload"]) => {
       const hostWindow = claimWindowRef.current;
       const dedupeKey = grantKey(gameIdRef.current, grant.claim_window, grant.seat);
       const decision = decideGrant({
@@ -603,7 +668,59 @@ export function useMultiplayerHost(opts: {
       };
     };
     return onBroadcast(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, channel, onBroadcast, g.dispatch, commitAndRoll, refuseGrant, clearDeferred, pumpDeferred]);
+
+  // ---- resume catch-up ----
+  const hiddenAtRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!enabled || !channel) return;
+    let flushTimer: ReturnType<typeof setTimeout> | null = null;
+    const drain = () => {
+      flushTimer = null;
+      suppressSendRef.current = true;
+      try {
+        const messages = inboxRef.current;
+        inboxRef.current = [];
+        resumingRef.current = false;
+        runResumeDrain(messages, deadlines, (fn) => flushSync(fn));
+      } finally {
+        suppressSendRef.current = false;
+        deadlines.resume();
+      }
+      doSend();
+    };
+    const onResume = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      const wasHidden = hiddenAtRef.current !== null;
+      hiddenAtRef.current = null;
+      if (resumingRef.current) return;
+      if (!wasHidden && deadlines.due().length === 0) return;
+      resumingRef.current = true;
+      deadlines.pause();
+      flushTimer = setTimeout(drain, RESUME_INBOX_FLUSH_MS);
+    };
+    const onVis = () => {
+      if (document.visibilityState === "hidden") {
+        if (hiddenAtRef.current === null) hiddenAtRef.current = Date.now();
+        return;
+      }
+      onResume();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("pageshow", onResume);
+    window.addEventListener("focus", onResume);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("pageshow", onResume);
+      window.removeEventListener("focus", onResume);
+      if (flushTimer) clearTimeout(flushTimer);
+      if (resumingRef.current) {
+        resumingRef.current = false;
+        deadlines.resume();
+      }
+    };
+  }, [enabled, channel, deadlines, doSend]);
 
   // ---- transient event emission ----
   // The host observes reducer transitions and emits transient events on the
@@ -650,6 +767,7 @@ function handleHostIntent(
   commitAndRoll: (bySeat: number) => void,
   seat: number,
   action: IntentAction,
+  deadlines: DeadlineQueue,
 ) {
   switch (action.type) {
     case "REQUEST_ROLL":
@@ -670,7 +788,10 @@ function handleHostIntent(
       return;
     case "FLIP_START":
       dispatch({ type: "FLIP_START", by: seat, idx: action.idx, token: action.token });
-      setTimeout(() => dispatch({ type: "FLIP_COMPLETE", token: action.token }), 2000);
+      // The 2-second flip hold, as an absolute deadline.
+      deadlines.after(`flip:${seat}:${action.token}`, "flip_complete", 2000, () =>
+        dispatch({ type: "FLIP_COMPLETE", token: action.token }),
+      );
       return;
     case "NEW_GAME":
       // Rematch is host-only; joiner requests are ignored.
@@ -741,6 +862,7 @@ export function useMultiplayerJoiner(opts: {
       if (env.type === "state") {
         if (!orderRef.current.accept(env.payload.gameId ?? "", env.seq)) return;
         setPublicState(env.payload);
+        if (env.probe) joinerTimingProbe.ackReceived(env.probe);
       } else if (env.type === "roll_committed") {
         // Latest commit wins — game only ever has one pending roll.
         setRollCommit(env.payload);
@@ -795,7 +917,13 @@ export function useMultiplayerJoiner(opts: {
         v: PROTOCOL_VERSION,
         type: "intent",
         seq: seqRef.current,
-        payload: { seat: mySeat, player_key: visitorId, action },
+        payload: {
+          seat: mySeat,
+          player_key: visitorId,
+          action,
+          sentAt: serverNow(),
+          probe: action.type === "FLIP_START" ? joinerTimingProbe.tap(serverNow()) : undefined,
+        },
       };
       channel.send({ type: "broadcast", event: "msg", payload: env }).catch(() => {});
     },
@@ -816,3 +944,29 @@ export function useMultiplayerJoiner(opts: {
 
 
 export { useTransientEvents };
+
+/**
+ * The resume drain, extracted so it is testable without React: queued
+ * messages and overdue deadlines run in time order (messages win ties), then
+ * chained deadlines anchored in the past. `step` wraps each so the caller can
+ * flush React state between steps. Deadlines created by these steps with a
+ * fresh `after()` start from now, since no one saw them begin.
+ */
+export function runResumeDrain(
+  messages: QueuedMessage[],
+  deadlines: DeadlineQueue,
+  step: (fn: () => void) => void,
+): void {
+  const cutoff = deadlines.now();
+  for (const st of planResume(messages, deadlines.due(cutoff))) {
+    step(() => {
+      if (st.type === "message") st.item.run();
+      else deadlines.runNow(st.item.key);
+    });
+  }
+  for (let guard = 0; guard < 20; guard++) {
+    const more = deadlines.due(cutoff);
+    if (!more.length) break;
+    step(() => { deadlines.runNow(more[0].key); });
+  }
+}

@@ -77,3 +77,12 @@
 - [x] Reserve Your Stats late-data section sizes
 - [x] Build and serve unchanged production output for the cold mobile 4G baseline, then repeat after changes with the same profile; analyze bundles and report production cache headers
 - [x] Add regressions, run the full suite, verify the preview, and keep unpublished
+
+## Classic responsiveness batch (approved with corrections, unpublished)
+- [x] Joiner tap ack (press + ring, no face, clears on reject / 1s)
+- [x] settleEndsAt / claimWindowEndsAt in PublicState; NO countdown UI on final window; catch-up includes roll commit
+- [x] No full snapshots during roll tumble
+- [x] Host deadline catch-up on resume: queued grants/intents first by server time (grant before window end counts); away/disconnect skips NOT drained — fresh grace from return
+- [x] Tap-to-screen + LoAF sampling via rate-capped RPC; admin p50/p95
+- [x] Tests incl. 30s host background no-skip and grant-before-deadline ordering; full suite
+- [ ] Two-browser live check of taps, match, wrong claim, final window, roll, host background/resume (not yet run)

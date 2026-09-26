@@ -37,6 +37,11 @@ interface GameCardProps {
    *  width-proportional radius (see `cardRadius`) because its cards are drawn
    *  at several fixed sizes rather than one fluid board size. */
   radius?: number;
+  /** Local "opening" acknowledgment while the host's flip is in flight. Never
+   *  reveals the face: a press plus a subtle ring, cleared smoothly. */
+  opening?: boolean;
+  /** Fires on pointerdown, before click, so the acknowledgment is immediate. */
+  onPressStart?: () => void;
 }
 
 
@@ -61,6 +66,8 @@ const GameCard = ({
   dealIndex,
   washRef,
   radius = RADIUS.md,
+  opening = false,
+  onPressStart,
 }: GameCardProps) => {
 
 
@@ -132,7 +139,7 @@ const GameCard = ({
   // sprung the whole tile right after a claim selection and read as a stray
   // bounce just before the reveal flip. Cards have their own selection
   // feedback (wash + ring), so the generic press is redundant here.
-  const wrapperClass = `${wrong ? "ww-wrong " : ""}${shrinking ? "ww-card-shrink " : ""}ww-no-press`;
+  const wrapperClass = `${wrong ? "ww-wrong " : ""}${shrinking ? "ww-card-shrink " : ""}${onPressStart ? "ww-tap-target " : ""}${opening ? "ww-card-pressed " : ""}ww-no-press`;
 
 
   // "Not for you": the viewing player already burned this card on a wrong
@@ -175,6 +182,7 @@ const GameCard = ({
         WebkitTapHighlightColor: tappable ? undefined : "transparent",
       }}
       onClick={tappable ? onClick : undefined}
+      onPointerDown={tappable ? onPressStart : undefined}
       onKeyDown={tappable ? (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -284,6 +292,14 @@ const GameCard = ({
       )}
       </div>
       </div>
+
+      {onPressStart && (
+        <div
+          aria-hidden
+          className={`ww-card-opening${opening ? " is-on" : ""}`}
+          style={{ zIndex: 3, borderRadius: radius }}
+        />
+      )}
 
       {highlighted && !wrong && !matched && (
         <>
