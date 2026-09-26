@@ -1,96 +1,89 @@
-# Security pass 1 of 3: signed Classic game channel
+# Security pass 2 of 3: Classic results
 
-Goal: only the real host can change a table's game, and no player can act as another player's seat. Gameplay, timings, UI, sounds and Solo stay exactly as they are. Nothing is published.
+Goal: a Classic result is saved only for a real, server-registered game, by its real host, with the real seats, and with identity taken from the server. Gameplay, UI, sounds and timings do not change.
 
-## Corrections to the brief (checked in the code)
+## Corrections to the brief (checked against code and the live database)
 
-1. **player_key leaks in three more places besides presence.** It is also sent in every `state` snapshot (`PublicState.seatMap[].player_key`, `publicState.ts:60`), in every `heartbeat` (`useHeartbeat.ts:65`, where `player_key: visitorId` is actually the session key), and in every `intent`. Joiners find their own seat by matching `seatMap.player_key` (`useMultiplayerGame.ts:909`, `MultiplayerWindow.tsx:523`). All of these switch to the public id.
-2. **The host does not send every message that matters.** `claim_grant` is sent by the `claim-lock` server function, and a second `claim_reject` source is the `release-lock` server function, both through the server broadcast endpoint. The host cannot sign these. Worse, **the host accepts `claim_grant` from the channel today**, so any player can broadcast a fake grant and enter a claim for any seat. The brief doesn't name this, and it is the most serious gap. Fix: the server functions sign their own messages (see C2).
-3. **A host refresh doesn't resume the game today.** Host game state lives only in the host's memory, so a host reload ends the game. That was reported in the reliability batch. Requirement E ("joiners recover after a host refresh") can mean either of two things in this pass:
-   - (a) Joiners accept the refreshed host's new key within a few seconds and follow whatever that host sends: the lobby, or a new game. This is in scope.
-   - (b) The game resumes where it left off after the host reloads. That needs host state saved on the server, which is a separate, larger change and out of scope here.
-   Test 4 will check (a), plus a **joiner** refresh mid-game where play continues. Tell me if you meant (b).
-4. `claim-lock` identifies the caller by `visitor_id` (the browser id). That id never goes on the channel, so a player can't copy another's. No change there in this pass; it is noted for pass 2.
+1. **Rematch reuses the game id.** "Play again" (the `NEW_GAME` action in MultiplayerWindow) re-inits the board with the same `gameId`, and the recorder keys the result on that id. So today every rematch result hits `ON CONFLICT (game_id) DO NOTHING` and is silently lost. "One result per game" only works if a rematch gets its own server-registered id. Fix: the rematch path registers a new game id with the same seats (the same `register_room_seats_by_pid` call used by "Let's Play!", run silently in the background) before it re-inits. Nothing on screen changes. Claim windows are then scoped per game too.
+2. **"48 cards, first to 12" means scores of 12 or 13, not exactly 12.** A match is worth +2 (the two cards) and a wrong claim is −1, so a seat on 11 who matches ends on 13. Score equals cards held, so the sum of all seats is at most 48. The current check allows any seat 0–60 and never checks the sum.
+3. **Not every game ends at 12.** A game can reach `GAME_OVER` three ways: someone reaches 12 (normal), `END_GAME_TABLE_EMPTY` (fewer than 2 players left), or the stall safety (deck runs out). Today all three save as the same kind of row, with nothing to tell them apart. That keeps working, but each row gets an `end_reason`.
+4. **claim-lock and release-lock still trust the browser id alone.** Confirmed: `verifySeatOwner` compares only `visitor_id`, and release-lock compares only `rooms.host_visitor_id`.
+5. **Edge functions go live when they deploy, not when the app publishes.** If claim-lock started requiring a key before publish, every open tab on the live app would lose its claims. So the key is checked **when it's sent** from now on, and becomes **required** on publish day (listed in the post-publish doc).
+6. **Solo already mints a random id on the device.** The recorder makes up a UUID per solo game, because solo's wire id is the constant `"solo-game"`. That id gets replaced by the server-issued one.
+7. **Live data:** 12 multiplayer and 17 solo rows since Sep 8, and 1 logged rejection.
 
-## Every message type on the channel (`room:{roomId}`, event `msg`)
+## What gets built
 
-| Type | Sender | Today | After |
-|---|---|---|---|
-| presence meta | everyone | contains player_key | public id only |
-| `state` | host | unchecked | host-signed |
-| `roll_committed` | host | unchecked | host-signed |
-| `roll_reject` | host | unchecked | host-signed |
-| `event` (NICE / GREAT_MATCH / NOPE) | host | unchecked | host-signed |
-| `claim_reject` | host **and** release-lock | unchecked | host-signed or server-signed |
-| `claim_grant` | claim-lock | **host trusts it** | server-signed, and the host verifies it |
-| `intent` | joiners | seat + player_key | sender-signed, with a nonce |
-| `state_request` | joiners | unchecked | unsigned, harmless (it only asks for a reply) |
-| `heartbeat` | everyone | contains player_key | public id, sender-signed |
-| `{kind:"seat_rekey"}` | host (no envelope) | unchecked | host-signed |
-| `{kind:"game_starting"}` | host (no envelope) | unchecked | host-signed |
+### A. Multiplayer save: `save_classic_game(...)` (new; the old function is kept)
+Inputs: room id, game id, host visitor id, host player_key, end_reason, seats (seat, name, score), rounds, correct/wrong claims, app version. There are no client times and no identity fields.
+Rules, in order (any failure logs a rejection and returns `true`):
+1. Rate limits, before anything else: `rl_hit('classic_save_ip', request_ip(), 200)`, plus `rl_hit('classic_save_user', auth.uid(), 200)` when signed in.
+2. The room exists, `host_visitor_id = p_visitor_id` and `host_key = p_player_key`. Otherwise `not_host`.
+3. `room_seats` has rows for (room, game). Otherwise `unknown_game`.
+4. The seat numbers sent equal the registered seat numbers exactly, same set and same count. Otherwise `seat_mismatch`.
+5. There is no existing result for this game. Otherwise the save is ignored: return `true` with no rejection log, as today.
+6. Duration = `now() − min(room_seats.created_at)` for that game. It must be at least 30 s for `target` and at least 10 s for other endings, and at most 6 h. Otherwise `too_short` / `too_long`.
+7. Score rules (below). Otherwise the matching reason.
+8. Insert with server-filled identity (section B), `started_at` = seat registration time, `ended_at = now()`, plus `distinct_browsers` and `distinct_users`.
 
-Heartbeats are signed because a forged heartbeat could keep a departed seat "present" or make a present seat look hidden.
+### B. Identity from the server
+- `room_members.user_id uuid` (nullable), set only from `auth.uid()` inside the 4-argument `join_room_session`. It is refreshed on each join, so signing in and rejoining updates it.
+- `room_seats.user_id uuid` (nullable), copied from the member row inside `register_room_seats_by_pid`.
+- New columns on `classic_results`: `seat_identities jsonb` (seat, visitor_id, user_id per seat, from room_seats), `host_user_id`, `end_reason`, `distinct_browsers`, `distinct_users`, `verified boolean default false`. New rows are `verified = true`. Old rows stay false. Names are still shown from the client but are never used as identity.
 
-## Approach
+### C. Solo
+- New table `solo_games(id, started_at, visitor_id, user_id, ip, finished_at)`. It is service-only: grants to service_role only and RLS on with no policies.
+- `start_solo_game(p_visitor_id)` returns `{ id, started_at }`. Limits: 150 per IP per day (families share wifi), 100 per signed-in user per day, and 1 open game per browser per 5 s. The visitor id is recorded, but the limits never key on it. The call is made quietly in the background when a solo game begins. If it fails, the game plays exactly the same and simply isn't saved.
+- `save_solo_game(p_game_id, end_reason, seats, rounds, claims, app_version)`: the id must exist, `finished_at` must be null (one result per id), `now() − started_at` must be at least 30 s for `target` and at least 10 s otherwise, and at most 6 h. Exactly 2 seats. Identity comes from the `solo_games` row plus the session. `finished_at` is set in the same statement, so a second save does nothing. Rate limits match the multiplayer save.
 
-**A. Keys for each join.** On every room join, each browser (host included) makes an ECDSA P-256 key pair with WebCrypto, with `extractable:false`, and keeps it in memory only. The public key (raw, base64) is sent with the join request and stored with that browser's room_members row, along with a new random **public id** (`pub_id`). The server returns the `pub_id`. A reload creates a new key pair and a new `pub_id`, and the seat carries over through the existing server check that matches the same browser.
+### D. Score rules (both paths)
+- Each score is between 0 and 13. The sum of scores is at most 48.
+- `target`: exactly one seat scores 12 or 13, and every other seat is at most 11.
+- `table_empty` / `stalled`: no seat is at 12 or above. These are stored with their `end_reason` so the future points system can ignore them.
+- Rounds between 1 and 400. Claims between 0 and 400. Correct claims are at least (sum of scores + penalties) / 2 is not enforced; that's too fragile.
 
-**B. Host messages are signed.** The signature covers a canonical encoding of the whole envelope: `{v, type, seq, gameId, payload, probe}`, plus `roomId` and a `signer` field. Joiners get the host's public key only from the server, never from the channel. If a signature fails, joiners refetch the host key once (by then the host may have re-keyed) and drop the message if it still fails. Refetches are rate-limited to one per 2 seconds.
+### E. Rate limits
+All new limits key on `request_ip()` and `auth.uid()` only. The existing per-visitor join limit stays as it is.
 
-**C1. Intents and heartbeats are signed.** The signed data includes `seat`, `sentAt`, a 128-bit random `nonce`, `gameId` and the action. The host verifies against **that seat's** key from the server. The host keeps seen nonces for each game (cleared when the game changes, like other per-game state) and drops any it has already seen, and any intent whose `sentAt` is more than 30 seconds outside server time.
+### F. claim-lock / release-lock
+- claim-lock takes `player_key`. When it's present, it must equal `room_seats.player_key` for that room, game and seat (`bad_seat_key`, 403). The client sends its own key, which it already holds.
+- release-lock takes `player_key`. When it's present, it must equal `rooms.host_key`.
+- From publish day on, a missing key is refused (post-publish doc).
 
-**C2. Server-sent messages are signed.** `claim-lock` and `release-lock` sign `claim_grant` and `claim_reject` with a server ECDSA key. The private key is stored as a backend secret. The public key is a constant shipped in the app, so no lookup is needed. The host drops any grant that doesn't verify. The existing checks on game and claim window stay.
+### G. Record, don't block
+The result stores the number of distinct browsers and distinct signed-in users among the seats. IP is never compared, and a game is never rejected for a shared IP.
 
-**D. No secrets on the channel.** Presence, `seatMap`, heartbeats and intents carry `pub_id`. `player_key` becomes a server-only session secret used for seat registration. `register_room_seats` takes `pub_id`s (new overload) and resolves each one to its room_members row on the server, so seats still map to real members.
+### H. Rejections
+Every rejection returns `true` and inserts `classic_result_rejected` into `analytics_events` with `reason`, `game_id` and `path` ('multi' | 'solo'). The admin Classic view keeps reading `classic_results` unchanged.
 
-**E. Rejoin.** A refreshed joiner re-registers and gets a new key and `pub_id`. The host re-reads seat keys when presence shows an unknown `pub_id` (this reuses the current `seat_rekey` path). When a message fails with the cached host key, joiners refetch it (B), so a refreshed host is trusted again within about a second.
-
-## Database (one migration; nothing removed or renamed)
-
-- `room_members`: add `pub_id text` (unique within a room) and `sign_pubkey text`, both nullable.
-- `room_seats`: add `pub_id text`, nullable.
-- New `join_room_session(p_room_id, p_visitor_id, p_player_key, p_sign_pubkey)` overload. It stores the key and `pub_id` and returns `{game_id, seat, pub_id}`.
-- New `room_sign_keys(p_room_id, p_visitor_id, p_player_key)`. For any **member** of the room, it returns the host's current key plus `pub_id` → key for every seat in the room's latest game. The caller must match an existing room_members row (browser id + session key). Everyone else gets nothing.
-- New `register_room_seats` overload that takes `pub_id`s.
-- Every new function is SECURITY DEFINER with `search_path = public` and has EXECUTE revoked from PUBLIC, anon and authenticated. It is then granted back to anon and authenticated only where the client must call it, since these functions do their own membership check. The old signatures stay until after publish.
-
-## Files
-
-- `src/lib/channelSigning.ts` (new): key generation, canonical encoding, sign and verify, nonce store, host-key cache with a single refetch.
-- `src/lib/multiplayer.ts`: add `sig` and `signer` to envelopes, `nonce` to intents, `PROTOCOL_VERSION` 2, and wrap the two `{kind}` messages in envelopes.
-- `src/lib/publicState.ts`: seatMap uses `pub_id`.
-- `src/lib/rooms.ts`: new RPC wrappers.
-- `src/hooks/useRoomPresence.ts`: presence meta uses `pub_id`.
-- `src/hooks/useHeartbeat.ts`: sign heartbeats and verify them on the host.
-- `src/hooks/useMultiplayerGame.ts`: sign on host send, verify on joiner receive, verify intents with nonces, verify grants.
-- `src/components/MultiplayerWindow.tsx`: key setup on join, seat registration by `pub_id`, own-seat lookup.
-- `src/lib/claimLock.ts`: no change expected.
-- `supabase/functions/claim-lock/index.ts`, `supabase/functions/release-lock/index.ts`: sign broadcasts, then redeploy.
-- A new backend secret for the server signing key. I generate it; you won't need to paste anything.
-- Tests: `src/test/channelSigning.test.ts` (new); update `classicReliability`, `classicResponsiveness` and `securityBoundary` fixtures that use player_key.
-- `AGENTS.md`: one rule: "Classic channel messages are signed by the sender's per-join key; keys come only from the server."
-
-## Performance
-
-- Signing and verifying run inside the existing send and receive paths. Nothing waits on the network, because keys are cached. On a joiner, a card tap starts its local ring before the intent is signed, so tap feedback stays instant.
-- I'll measure with `performance.now()` around each sign and verify, add `signMs` and `verifyMs` to the existing timing samples, and show p50 and p95 in the admin Classic responsiveness table. A benchmark run under Playwright with 4x CPU slowdown (roughly a mid-range phone) should come in well under 2 ms per state message. If not, I'll report that before going further.
-- The existing timing probes keep working: `probe` becomes part of the signed data.
+## Files and functions touched
+- Migration `drizzle/migrations/0023_classic_results_integrity.sql`: the new columns, the `solo_games` table, new `save_classic_game`, `start_solo_game` and `save_solo_game`, a new helper `classic_score_reject_reason`, and in-place replacement of `join_room_session(uuid,text,text,text)` and `register_room_seats_by_pid` (same signatures; they only also write user_id). All new functions are SECURITY DEFINER with `search_path = public`. Each one runs REVOKE from PUBLIC, anon and authenticated, then GRANT only what it needs: save/start to anon + authenticated, and the helper to nobody. Afterwards, re-check the PUBLIC grants on the two replaced functions, because CREATE OR REPLACE keeps old grants.
+- `src/lib/classicResults.ts`: new `saveClassicGame` and `startSoloGame` / `saveSoloGame` wrappers, and `end_reason` derived from the final state.
+- `src/hooks/useClassicResultRecorder.ts`: takes room id, host key and solo id, and stops sending times and the visitor id as identity.
+- `src/components/MultiplayerWindow.tsx`: passes the host key and room id, registers a new game id on rematch, and starts the solo id when a solo game begins.
+- `src/lib/claimLock.ts` and `src/hooks/useMultiplayerGame.ts` (release-lock call): send the player key.
+- `supabase/functions/_shared/seatOwnership.ts`, `claim-lock/index.ts`, `release-lock/index.ts`: optional key check, then redeploy.
+- `src/integrations/supabase/types.ts`: regenerated.
+- New `docs/post-publish-classic-results.md`: on publish day, (1) make `player_key` required in claim-lock and release-lock and redeploy, (2) revoke EXECUTE on the old `save_classic_result(...12 args)` from PUBLIC, anon and authenticated, (3) verify with one live multiplayer game and one live solo game.
+- Tests: new `src/test/classicResultsIntegrity.test.ts`.
 
 ## Tests
+Automated, run against the database through its functions and against the edge-function handler with a stubbed client:
+1. A made-up game id is rejected (`unknown_game`).
+2. A non-host member, and a stranger who knows the code, are both rejected (`not_host`).
+3. Wrong seat numbers or the wrong seat count are rejected (`seat_mismatch`).
+4. A second save for the same game is ignored, and the row count stays at 1.
+5. A solo save with no server id, and one within 30 s of its start, are both rejected.
+6. 201 saves with 201 different visitor ids from one IP: the 201st is dropped.
+7. claim-lock with the right visitor id and the wrong key gets 403 `bad_seat_key`.
+8. Score rules: 14 points, a sum over 48, two winners, and a `target` ending with no winner are each rejected.
+9. A rematch registers a new game id, and both results save.
 
-1. A `state` message signed by a non-host key is dropped.
-2. An intent signed with seat A's key but claiming seat B is dropped.
-3. A replayed nonce is dropped. A stale `sentAt` is dropped.
-4. After a host re-key, joiners fail once, refetch the key, then accept. After a joiner refresh mid-game, play continues.
-5. A normal 3-player game in the simulated host/joiner harness plays as before: the reducer output is identical with signing on.
-6. `player_key` appears in no captured presence or broadcast payload. This runs as a unit check plus a live two-browser capture.
-7. A fake `claim_grant` without the server signature is ignored by the host.
+Live, in the preview on the live database: one full 2-browser game plus a rematch, and one full solo game. Each row is read back to confirm server times, seat_identities, user_id for a signed-in seat, the distinct counts and `verified = true`. Then a wrong-key claim-lock call is made directly.
 
-The full suite runs together in one pass, then a live two-browser game.
+Nothing is published. The post-publish doc lists the same-day steps.
 
 ## Risks
-
-- **Mixed versions during rollout.** Open v1 tabs can't read v2 messages. The protocol version bump makes them ignore v2 traffic, so a table with mixed versions stalls until everyone reloads. Classic traffic is low, so this is acceptable.
-- **Timing of server signing.** Signing in claim-lock adds under 1 ms to each claim.
-- **Host reload** still ends the game (see correction 3).
-- **Anyone can call release-lock and claim-lock directly with a seat and browser id.** Only the seat's own browser can pass the seat check, so this is left for pass 2.
+- Old tabs keep using the old save and claim paths until publish day. That's accepted, and it's why the key is only required on publish day.
+- A 30 s minimum could reject a real very-fast debug game. Normal play can't finish that fast: at least 6 matches, each with a roll, a 2 s flip hold and a 1.9 s settle.
+- A host whose tab reloaded gets a new `host_key`, which the save uses. That's fine, because a host reload ends the game anyway.
