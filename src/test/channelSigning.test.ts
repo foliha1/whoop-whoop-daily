@@ -120,38 +120,34 @@ describe("3. replayed intents are dropped", () => {
   });
 
   it("the host applies a replayed intent only once, and ignores other games", async () => {
-    const sent: unknown[] = [];
+    const sent: Array<{ type?: string }> = [];
     const listeners = new Set<(m: { payload: unknown }) => void>();
-    const channel = { send: (m: { payload: unknown }) => { sent.push(m.payload); return Promise.resolve("ok"); } };
+    const channel = { send: (m: { payload: { type?: string } }) => { sent.push(m.payload); return Promise.resolve("ok"); } };
     const deliver = (payload: unknown) => listeners.forEach((l) => l({ payload }));
+    // Seat 0 (the first roller) is a joiner, so its REQUEST_ROLL is honoured.
     const seatMap = [
-      { seat: 0, pid: "p0", display_name: "H" },
-      { seat: 1, pid: "p1", display_name: "A" },
+      { seat: 0, pid: "p1", display_name: "A" },
+      { seat: 1, pid: "p0", display_name: "H" },
     ];
-    const { result } = renderHook(() => useMultiplayerHost({
+    renderHook(() => useMultiplayerHost({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       channel: channel as any,
       onBroadcast: (l) => { listeners.add(l); return () => listeners.delete(l); },
       seatMap, hostVisitorId: "p0", enabled: true, gameId: "g1", roomId: ROOM,
       disconnectedSeats: [], presenceStatus: "connected",
     }));
-    // Seat 1 passes on its turn... use CANCEL_CLAIM-free path: toggle via
-    // PLAYER_ENTER_CLAIM is host-only, so count reducer acceptance by seq.
+    const rolls = () => sent.filter((p) => p.type === "roll_committed").length;
     const env = {
       v: 2, type: "intent", seq: 1,
-      payload: { seat: 1, pid: "p1", gameId: "g1", nonce: "nonce-replay-000001", sentAt: Date.now(), action: { type: "FLIP_START", by: 1, idx: 0, token: 1 } },
+      payload: { seat: 0, pid: "p1", gameId: "g1", nonce: "nonce-replay-000001", sentAt: Date.now(), action: { type: "REQUEST_ROLL" } },
     };
-    const before = result.current.state;
+    // Wrong game first: ignored outright.
+    await act(async () => { deliver({ ...env, payload: { ...env.payload, gameId: "g0", nonce: "nonce-other-game-01" } }); });
+    expect(rolls()).toBe(0);
     await act(async () => { deliver(env); });
-    const afterFirst = result.current.state;
+    expect(rolls()).toBe(1);
     await act(async () => { deliver(env); deliver(env); });
-    expect(result.current.state).toBe(afterFirst);
-    // A different game's intent is ignored outright.
-    await act(async () => {
-      deliver({ ...env, payload: { ...env.payload, gameId: "g0", nonce: "nonce-other-game-01" } });
-    });
-    expect(result.current.state).toBe(afterFirst);
-    expect(before).toBeDefined();
+    expect(rolls()).toBe(1);
   });
 });
 
