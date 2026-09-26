@@ -11,12 +11,13 @@ import CardFlipLoader from "@/components/CardFlipLoader";
 import YouBadgeShelf from "@/components/YouBadgeShelf";
 import YouScoreTiles from "@/components/YouScoreTiles";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { usePointsPopulation, useWhoopPointsState } from "@/hooks/useWhoopPoints";
+import { usePointsPopulationState, useWhoopPointsState } from "@/hooks/useWhoopPoints";
 import { fetchDailyStats, type DailyStats } from "@/lib/dailyResults";
 import { DECAY_PER_DAY, DECAY_PROTECTED_POINTS, GRACE_DAYS, MAX_POINTS_PER_GAME, POINT_FIRST_TRY_MAX } from "@/lib/whoopPoints";
 import { SCORE_LABEL, TIER_LADDER, badgeArt, tierName, tierRange } from "@/lib/whoopTiers";
 import { enterThemeZone, leaveThemeZone, prewarmTheme } from "@/lib/sounds";
 import { BORDER, COLORS, FONT_SIZE, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
+import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
 
 const EARN_ROWS = [
   { label: "Played", value: "+1" },
@@ -34,7 +35,7 @@ const YouPage: React.FC = () => {
   const location = useLocation();
   const backToResults = (location.state as { wwReturn?: string } | null)?.wwReturn === "results";
   const { points, loading } = useWhoopPointsState();
-  const population = usePointsPopulation();
+  const { population, loading: populationLoading } = usePointsPopulationState();
   const [stats, setStats] = React.useState<DailyStats | null>(null);
   React.useEffect(() => {
     let live = true;
@@ -42,9 +43,9 @@ const YouPage: React.FC = () => {
     return () => { live = false; };
   }, []);
   React.useEffect(() => {
-    prewarmTheme();
+    const cancel = afterPaintIdleOrInteraction(() => prewarmTheme());
     enterThemeZone();
-    return () => leaveThemeZone();
+    return () => { cancel(); leaveThemeZone(); };
   }, []);
 
   const tile: React.CSSProperties = {
@@ -127,13 +128,15 @@ const YouPage: React.FC = () => {
                   );
                 })}
               </div>
-              {(currentShare || (nextTier && points.pointsToNextTier !== null)) && (
-                <div style={{ display: "grid", gridTemplateColumns: currentShare && nextTier && points.pointsToNextTier !== null ? "repeat(2, minmax(0, 1fr))" : "minmax(0, 1fr)", gap: SPACE[4] }}>
-                  {currentShare && (
+              {(populationLoading || currentShare || (nextTier && points.pointsToNextTier !== null)) && (
+                <div style={{ display: "grid", gridTemplateColumns: nextTier && points.pointsToNextTier !== null ? "repeat(2, minmax(0, 1fr))" : "minmax(0, 1fr)", gap: SPACE[4] }}>
+                  {populationLoading ? (
+                    <div data-testid="you-tier-share-placeholder" aria-hidden="true" style={{ ...creamTile, minHeight: 72, padding: SPACE[8] }} />
+                  ) : currentShare ? (
                     <div data-testid="you-tier-share" style={{ ...creamTile, padding: SPACE[8], ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
                       {Math.round(currentShare.share * 100)}% of players are in the {tierName(points.tier)} Tier
                     </div>
-                  )}
+                  ) : nextTier && points.pointsToNextTier !== null ? <span aria-hidden="true" /> : null}
                   {nextTier && points.pointsToNextTier !== null && (
                     <div data-testid="you-next-tier" style={{ ...creamTile, padding: SPACE[8], ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
                       {points.pointsToNextTier} {points.pointsToNextTier === 1 ? "point" : "points"} to {nextTier.name} Tier

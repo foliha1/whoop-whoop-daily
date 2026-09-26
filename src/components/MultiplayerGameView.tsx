@@ -54,7 +54,6 @@ import RollHeroOverlay, { TUMBLE_MS } from "@/components/RollHeroOverlay";
 import { CLASSIC_ACTION_ROW_HEIGHT } from "@/lib/layout";
 import { MATCH_ART_SRC } from "@/components/MatchDie";
 import type { Card } from "@/cardData";
-import { preloadGameArt } from "@/lib/preloadArt";
 import { callClaimLock } from "@/lib/claimLock";
 import {
   playFlip, playDiceRoll, playWhoopCall, playCorrect, playWrong, playDeal,
@@ -915,12 +914,6 @@ const MultiplayerGameView: React.FC<Props> = ({
   const homeRef = React.useRef<HTMLDivElement | null>(null);
   // `activeCommit` is the commit we're CURRENTLY animating. It becomes null
   // when the 1100ms window expires (or is skipped if we arrived too late).
-  // Preload every card face once on mount. Uncached SVGs otherwise decode
-  // after the flip starts, briefly showing an empty/backed front face.
-  React.useEffect(() => {
-    preloadGameArt();
-  }, []);
-
   // Pending sound timers, cleared on unmount so no chime outlives the board.
   const soundTimersRef = React.useRef<ReturnType<typeof setTimeout>[]>([]);
   React.useEffect(() => {

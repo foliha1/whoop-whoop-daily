@@ -51,20 +51,26 @@ export function useWhoopPoints(ready = true, refreshKey = 0): WhoopPoints | null
 }
 
 export function usePointsPopulation(ready = true): PointsPopulation | null {
+  return usePointsPopulationState(ready).population;
+}
+
+export function usePointsPopulationState(ready = true): { population: PointsPopulation | null; loading: boolean } {
   const [pop, setPop] = useState<PointsPopulation | null>(null);
+  const [loading, setLoading] = useState(ready);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready) { setLoading(false); return; }
     let live = true;
+    setLoading(true);
     void fetchPointsPopulation().then((p) => {
-      if (live) setPop(p);
+      if (live) { setPop(p); setLoading(false); }
     });
     return () => {
       live = false;
     };
   }, [ready]);
 
-  return pop;
+  return { population: pop, loading };
 }
 
 export default useWhoopPoints;

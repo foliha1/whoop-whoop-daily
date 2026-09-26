@@ -42,7 +42,8 @@ import {
 import { renderDailyShareImage } from "@/lib/dailyShareImage";
 import { useDailyShareImage, type DailyShareImage } from "@/hooks/useDailyShareImage";
 import DailySharePreview from "@/components/DailySharePreview";
-import { preloadGameArt } from "@/lib/preloadArt";
+import { preloadDailyBoardArt, preloadEssentialGameArt, preloadGameArt } from "@/lib/preloadArt";
+import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
 import { getInviteCode } from "@/lib/inviteCode";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -1287,14 +1288,22 @@ const DailyPage: React.FC = () => {
   useBodyScrollLock();
   const mobile = useIsMobile();
 
-  // Preload all card / die artwork on first mount so the first flip and the
-  // round-intro die never flicker while SVGs decode.
-  useEffect(() => {
-    preloadGameArt();
-  }, []);
-
   const daily = useDailyGame();
   const { state, phase } = daily;
+  const todayArtReady = React.useRef<Promise<void>>(Promise.resolve());
+  useEffect(() => {
+    void preloadEssentialGameArt();
+    todayArtReady.current = new Promise<void>((resolve) => {
+      const cancel = afterPaintIdleOrInteraction(() => {
+        void preloadDailyBoardArt(state.grid.flatMap((card) => card ? [card.svgPath] : [])).then(resolve);
+      });
+      return cancel;
+    });
+  }, [state.grid]);
+  useEffect(() => {
+    if (phase === "READY") return;
+    preloadGameArt();
+  }, [phase]);
   // Which How to Play mode is open: the first-run gate, or the reference chip.
   const [howTo, setHowTo] = useState<"gate" | "reference" | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -1306,10 +1315,12 @@ const DailyPage: React.FC = () => {
   // Single entry point for beginning a run: the play CTA and the stepper's
   // Start / Skip / Play controls all route through here.
   const startRun = React.useCallback(() => {
+    void todayArtReady.current.then(() => {
     // 600ms cue; the deal lands at 700ms, so it clears cleanly.
     playStart();
     trackDaily("run_started", { puzzleNumber: daily.puzzleNumber });
     daily.start();
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [daily.start, daily.puzzleNumber]);
 
@@ -1329,17 +1340,22 @@ const DailyPage: React.FC = () => {
       const found = getSubscribedEmail();
       if (found) void daily.recheckEmail(found);
     });
-  // Read after the run is persisted so today counts toward the streak.
-  const dataReady = daily.resultSaved || daily.result === null;
-  const { streak, loading: streakLoading } = useDailyStreakState(daily.puzzleNumber, dataReady, profileKey);
+  // Streak appears on the ready screen; result-only reads wait until today's
+  // result has saved, then re-read so today's play is included.
+  const { streak, loading: streakLoading } = useDailyStreakState(
+    daily.puzzleNumber,
+    true,
+    profileKey * 2 + Number(daily.resultSaved),
+  );
+  const resultsDataReady = daily.result !== null && daily.resultSaved;
   const { percentile } = useDailyProfile(
     daily.puzzleNumber,
-    dataReady,
+    resultsDataReady,
     profileKey
   );
   // Same gate as the streak: the total is read only after the run is written,
   // so "+4 today" is the effect of today's game, not yesterday's standing.
-  const { points: whoop, loading: pointsLoading } = useWhoopPointsState(dataReady, profileKey);
+  const { points: whoop, loading: pointsLoading } = useWhoopPointsState(resultsDataReady, profileKey);
 
   // -------------------------------------------------------------------------
   // Instrumentation. Read-only observers of the engine: nothing here changes
@@ -1654,11 +1670,9 @@ const DailyPage: React.FC = () => {
     else stopTheme();
   }, [audioReady, ready, finished]);
 
-  // Begin fetching the Daily theme on mount so the first note isn't waiting
-  // on the download when the ready/results screens start it.
   useEffect(() => {
-    prewarmTheme();
-    return () => leaveThemeZone();
+    const cancel = afterPaintIdleOrInteraction(() => prewarmTheme());
+    return () => { cancel(); leaveThemeZone(); };
   }, []);
 
   const readout = (() => {
