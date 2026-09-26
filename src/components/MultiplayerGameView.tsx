@@ -150,15 +150,18 @@ interface ChipStyle {
 }
 
 const CHIP: Record<ChipKind, ChipStyle> = {
+  // Fixed brand fills always get a fixed foreground (Rule 1): red and blue
+  // carry RAW.cream, orange and green carry RAW.warmBlack — never the themed
+  // surface/ink, which flips dark in night mode and drops below 4.5:1.
   IDLE:         { bg: PANEL,  border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: INK,     labelText: null,           italic: false },
-  ROLLING:      { bg: ORANGE, border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: INK,     labelText: "ROLLING",      italic: false },
-  WHOOP:        { bg: RED,    border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: SURFACE, labelText: "WHOOP!", italic: true  },
-  FLIPPING:     { bg: BLUE,   border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: SURFACE, labelText: "FLIPPING",     italic: false },
-  GREAT_MATCH:  { bg: GREEN,  border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: INK,     labelText: "GREAT MATCH!", italic: true  },
+  ROLLING:      { bg: ORANGE, border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: RAW.warmBlack, labelText: "ROLLING",      italic: false },
+  WHOOP:        { bg: RED,    border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: RAW.cream,     labelText: "WHOOP!", italic: true  },
+  FLIPPING:     { bg: BLUE,   border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: RAW.cream,     labelText: "FLIPPING",     italic: false },
+  GREAT_MATCH:  { bg: GREEN,  border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: RAW.warmBlack, labelText: "GREAT MATCH!", italic: true  },
   // Round-scoped wrong-claim lockout (v6.4).
-  PENALTY:      { bg: RED,    border: RED,   nameBg: PANEL,   nameBorder: RED,   name: RED,   badgeBg: RED,   badgeText: PANEL,   label: PANEL,   labelText: "PENALTY",      italic: false },
+  PENALTY:      { bg: RED,    border: RED,   nameBg: PANEL,   nameBorder: RED,   name: RED,   badgeBg: RED,   badgeText: RAW.cream, label: RAW.cream,  labelText: "PENALTY",      italic: false },
   // GONE — heartbeat stale, seat presumed lost. Harsher than DISCONNECTED.
-  GONE:         { bg: PANEL,  border: RED,   nameBg: SURFACE, nameBorder: RED,   name: RED,   badgeBg: RED,   badgeText: SURFACE, label: RED,     labelText: "GONE",         italic: false },
+  GONE:         { bg: PANEL,  border: RED,   nameBg: SURFACE, nameBorder: RED,   name: RED,   badgeBg: RED,   badgeText: RAW.cream, label: RED,     labelText: "GONE",         italic: false },
   // DISCONNECTED — self-reported backgrounded tab; gentler, takes precedence
   // over GONE so a reversible absence never reads as the harsher state.
   DISCONNECTED: { bg: MUTED,  border: MUTED, nameBg: PANEL,   nameBorder: MUTED, name: MUTED, badgeBg: MUTED, badgeText: PANEL,   label: PANEL,   labelText: "DISCONNECTED", italic: false },
@@ -525,11 +528,11 @@ type BannerKind = "YOUR_FLIP" | "TOO_SLOW" | "CLAIM_ERROR" | "CLAIM_LATE" | "CLA
 
 
 const BannerStyles: Record<Exclude<BannerKind, null>, { bg: string; text: string; label: string; icon?: boolean }> = {
-  YOUR_FLIP:   { bg: BLUE,    text: SURFACE, label: "YOUR FLIP!" },
+  YOUR_FLIP:   { bg: BLUE,    text: RAW.cream, label: "YOUR FLIP!" },
   TOO_SLOW:    { bg: INK,     text: SURFACE, label: "SOMEONE BEAT YOU TO IT" },
   // GENUINE transport failure only: the arbiter never answered and the host
   // never spoke either. A claim the host explicitly refused is CLAIM_LATE.
-  CLAIM_ERROR: { bg: RED,     text: SURFACE, label: "CONNECTION ISSUE — TRY AGAIN" },
+  CLAIM_ERROR: { bg: RED,     text: RAW.cream, label: "CONNECTION ISSUE — TRY AGAIN" },
   // The host refused the claim (its window had already moved on). The network
   // was fine, so this must never be dressed up as a connection problem.
   CLAIM_LATE:  { bg: INK,     text: SURFACE, label: "JUST MISSED IT — TRY AGAIN" },
