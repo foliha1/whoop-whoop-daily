@@ -169,6 +169,13 @@
       "when": 1790462198741,
       "tag": "0023_classic_results_integrity_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790462224942,
+      "tag": "0024_save_classic_game",
+      "breakpoints": true
     }
   ]
 }

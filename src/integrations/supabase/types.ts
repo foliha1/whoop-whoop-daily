@@ -1281,6 +1281,21 @@ export type Database = {
           sign_pubkey: string
         }[]
       }
+      save_classic_game: {
+        Args: {
+          p_app_version: string
+          p_correct_claims: number
+          p_end_reason: string
+          p_game_id: string
+          p_player_key: string
+          p_room_id: string
+          p_rounds_played: number
+          p_seats: Json
+          p_visitor_id: string
+          p_wrong_claims: number
+        }
+        Returns: boolean
+      }
       save_classic_result: {
         Args: {
           p_app_version: string
