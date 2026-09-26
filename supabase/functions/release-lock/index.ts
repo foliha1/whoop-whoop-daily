@@ -13,6 +13,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { signServerEnvelope } from "../_shared/classicSign.ts";
 import { verifySeatOwner } from "../_shared/seatOwnership.ts";
 
 interface Body {
@@ -97,6 +98,16 @@ Deno.serve(async (req) => {
   // Notify the pressing player so they exit LOCKING…. Reuse claim_reject
   // envelope shape; use STALE_WINDOW as the reason bucket for "grant refused
   // by host reducer" since the effect is identical from the client's POV.
+  const rejectPayload = {
+    grant_claim_window: claim_window,
+    host_claim_window: claim_window,
+    seat,
+    // No browser id or session key on the shared channel; clients match by seat.
+    reason: reason ?? "STALE_WINDOW",
+  };
+  // v1 keeps already-open tabs of the previous build working; v2 is signed.
+  const legacyReject = { v: 1, type: "claim_reject", seq: 0, payload: rejectPayload };
+  const signedReject = signServerEnvelope(room_id, { v: 2, type: "claim_reject", seq: 0, payload: rejectPayload });
   try {
     await fetch(`${SUPABASE_URL}/realtime/v1/api/broadcast`, {
       method: "POST",
@@ -106,22 +117,11 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${SERVICE_ROLE}`,
       },
       body: JSON.stringify({
-        messages: [{
+        messages: [legacyReject, ...(signedReject ? [signedReject] : [])].map((payload) => ({
           topic: `room:${room_id}`,
           event: "msg",
-          payload: {
-            v: 1,
-            type: "claim_reject",
-            seq: 0,
-            payload: {
-              grant_claim_window: claim_window,
-              host_claim_window: claim_window,
-              seat,
-              // No browser id on the shared channel; clients match by seat.
-              reason: reason ?? "STALE_WINDOW",
-            },
-          },
-        }],
+          payload,
+        })),
       }),
     });
   } catch (e) {

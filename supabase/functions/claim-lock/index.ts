@@ -13,6 +13,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { serverPublicKeyB64, signServerEnvelope } from "../_shared/classicSign.ts";
 import { verifySeatOwner } from "../_shared/seatOwnership.ts";
 
 interface Body {
@@ -48,6 +49,13 @@ Deno.serve(async (req) => {
   // a real claim never sets it — and it returns HERE, before the seat check,
   // before any client is created, and therefore before any insert or
   // broadcast can possibly happen. It cannot win a claim window.
+  // Public half of the server signing key (never the private half).
+  if ((body as { pubkey?: unknown } | null)?.pubkey === true) {
+    return new Response(JSON.stringify({ pubkey: serverPublicKeyB64() }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   if ((body as { warmup?: unknown } | null)?.warmup === true) {
     return new Response(JSON.stringify({ warmed: true }), {
       status: 200,
@@ -156,13 +164,18 @@ async function broadcastGrant(
 ): Promise<boolean> {
   const { data: seatRow } = await supabase
     .from("room_seats")
-    .select("player_key")
+    .select("pub_id")
     .eq("room_id", room_id)
     .eq("game_id", game_id)
     .eq("seat", seat)
     .maybeSingle();
   const grantPayload: Record<string, unknown> = { claim_window, seat, game_id, granted_at: Number.isFinite(grantedAt) ? grantedAt : Date.now() };
-  if (seatRow?.player_key) grantPayload.player_key = seatRow.player_key;
+  // Public id only; the seat's secret session key never goes on the channel.
+  if (seatRow?.pub_id) grantPayload.pid = seatRow.pub_id;
+  // v2 (signed) for current clients; v1 (unsigned, no ids) keeps already-open
+  // tabs of the previous build working until they reload. Remove v1 in pass 3.
+  const signed = signServerEnvelope(room_id, { v: 2, type: "claim_grant", seq: 0, payload: grantPayload });
+  const legacy = { v: 1, type: "claim_grant", seq: 0, payload: { claim_window, seat, game_id, granted_at: grantPayload.granted_at } };
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   try {
@@ -175,11 +188,8 @@ async function broadcastGrant(
       },
       body: JSON.stringify({
         messages: [
-          {
-            topic: `room:${room_id}`,
-            event: "msg",
-            payload: { v: 1, type: "claim_grant", seq: 0, payload: grantPayload },
-          },
+          { topic: `room:${room_id}`, event: "msg", payload: legacy },
+          ...(signed ? [{ topic: `room:${room_id}`, event: "msg", payload: signed }] : []),
         ],
       }),
     });
