@@ -1,3 +1,4 @@
+import { BADGE_URLS } from "@/lib/assetUrls";
 // ============================================================================
 // Whoop Score presentation — the only place a tier's display name lives,
 // the only place badge art is mapped, and the only place the results-screen
@@ -32,15 +33,15 @@ export function tierName(tier: PointsTier | null | undefined): string {
 
 /**
  * Badge key → its art. A badge renders only if it has an entry here: adding a
- * future badge is one file in `public/badges` and one line below. Badge art is
+ * future badge is one file in `src/assets/badges`, one import in assetUrls, and one line below. Badge art is
  * fixed brand artwork and does not follow the theme.
  */
 export const BADGE_ART: Readonly<Record<string, string>> = {
-  rookie: "/badges/rookie.svg",
-  great_eye: "/badges/great_eye.svg",
-  match_maker: "/badges/match_maker.svg",
-  xray_vision: "/badges/xray_vision.svg",
-  legend: "/badges/legend.svg",
+  rookie: BADGE_URLS.rookie,
+  great_eye: BADGE_URLS.great_eye,
+  match_maker: BADGE_URLS.match_maker,
+  xray_vision: BADGE_URLS.xray_vision,
+  legend: BADGE_URLS.legend,
 };
 
 export function badgeArt(key: string): string | null {

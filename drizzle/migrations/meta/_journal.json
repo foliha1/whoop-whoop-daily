@@ -141,6 +141,13 @@
       "when": 1790437128309,
       "tag": "0019_classic_timing_samples",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1790440249848,
+      "tag": "0020_classic_timing_samples_lockdown",
+      "breakpoints": true
     }
   ]
 }

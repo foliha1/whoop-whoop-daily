@@ -1,3 +1,4 @@
+import { cardArt } from "@/lib/assetUrls";
 import { describe, it, expect } from "vitest";
 import {
   createBrain,
@@ -18,7 +19,7 @@ function card(shape: Card["shape"], number: Card["number"], color: Card["color"]
   return {
     id: `${shape}-${number}-${color}`,
     shape, number, color,
-    svgPath: `/cards/${number}-${shape}-${color}.svg`,
+    svgPath: cardArt(`${number}-${shape}-${color}`),
   };
 }
 
@@ -61,7 +62,7 @@ describe("whoopBrain", () => {
       Number(corrupted.color !== original.color);
     expect(diffs).toBe(1);
     // svgPath consistent with attrs.
-    expect(corrupted.svgPath).toBe(`/cards/${corrupted.number}-${corrupted.shape}-${corrupted.color}.svg`);
+    expect(corrupted.svgPath).toBe(cardArt(`${corrupted.number}-${corrupted.shape}-${corrupted.color}`));
   });
 
   it("findClaim returns null when both remembered cards are below the confidence threshold", () => {

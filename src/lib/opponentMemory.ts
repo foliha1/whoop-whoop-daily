@@ -1,3 +1,4 @@
+import { cardArt } from "@/lib/assetUrls";
 import { Card, Shape, Number as CardNumber, ColorName, SHAPES, NUMBERS, COLOR_NAMES } from "@/cardData";
 
 interface MemoryEntry {
@@ -34,7 +35,7 @@ function corruptCard(card: Card): Card {
   else if (attr === "number") number = pickDifferent(NUMBERS, card.number);
   else color = pickDifferent(COLOR_NAMES, card.color);
   const id = `${shape}-${number}-${color}`;
-  const svgPath = `/cards/${number}-${shape}-${color}.svg`;
+  const svgPath = cardArt(`${number}-${shape}-${color}`);
   return { id, shape, number, color, svgPath };
 }
 

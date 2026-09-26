@@ -1,3 +1,4 @@
+import { CARD_BACK_URL, cardArt } from "@/lib/assetUrls";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import DailyShapeRule from "@/components/DailyShapeRule";
@@ -47,7 +48,7 @@ export function markHowToSeen(): void {
   }
 }
 
-const CARD_BACK = "/cards/card-back.svg";
+const CARD_BACK = CARD_BACK_URL;
 
 /* ------------------------------------------------------------------ *
  * Animation timings. Every loop duration lives here so the sequences
@@ -329,15 +330,15 @@ const img = (src: string, alt: string, w: number, h: number, style?: React.CSSPr
  * flipping back down. Loop: down → flip up → up → flip down → hold.
  * ------------------------------------------------------------------ */
 const DECK_FACES = [
-  ["/cards/2-circle-red.svg", "Two red circles"],
-  ["/cards/4-star-yellow.svg", "Four orange stars"],
-  ["/cards/1-square-blue.svg", "One blue square"],
-  ["/cards/3-tri-yellow.svg", "Three orange triangles"],
-  ["/cards/2-star-blue.svg", "Two blue stars"],
-  ["/cards/4-square-red.svg", "Four red squares"],
-  ["/cards/1-circle-yellow.svg", "One orange circle"],
-  ["/cards/3-square-blue.svg", "Three blue squares"],
-  ["/cards/2-tri-red.svg", "Two red triangles"],
+  [cardArt("2-circle-red"), "Two red circles"],
+  [cardArt("4-star-yellow"), "Four orange stars"],
+  [cardArt("1-square-blue"), "One blue square"],
+  [cardArt("3-tri-yellow"), "Three orange triangles"],
+  [cardArt("2-star-blue"), "Two blue stars"],
+  [cardArt("4-square-red"), "Four red squares"],
+  [cardArt("1-circle-yellow"), "One orange circle"],
+  [cardArt("3-square-blue"), "Three blue squares"],
+  [cardArt("2-tri-red"), "Two red triangles"],
 ] as const;
 
 const DECK_STEPS = [
@@ -458,7 +459,7 @@ const StudyVisual: React.FC<{ sz: Step; active: boolean }> = ({ sz, active }) =>
 
   return (
     <div style={{ position: "relative", width: STUDY_BOX.w * v, height: STUDY_BOX.h * v }}>
-      {img("/cards/3-star-blue.svg", "A card showing three blue stars", STUDY_CARD.w * v, STUDY_CARD.h * v, {
+      {img(cardArt("3-star-blue"), "A card showing three blue stars", STUDY_CARD.w * v, STUDY_CARD.h * v, {
         position: "absolute",
         left: STUDY_CARD.x * v,
         top: STUDY_CARD.y * v,
@@ -545,18 +546,18 @@ type DieExample = { label: string; a: [string, string]; b: [string, string] };
 const DIE_EXAMPLES: DieExample[] = [
   {
     label: "Match the COLOR",
-    a: ["/cards/2-circle-yellow.svg", "Two orange circles"],
-    b: ["/cards/4-star-yellow.svg", "Four orange stars"],
+    a: [cardArt("2-circle-yellow"), "Two orange circles"],
+    b: [cardArt("4-star-yellow"), "Four orange stars"],
   },
   {
     label: "Match the SHAPE",
-    a: ["/cards/3-circle-red.svg", "Three red circles"],
-    b: ["/cards/1-circle-blue.svg", "One blue circle"],
+    a: [cardArt("3-circle-red"), "Three red circles"],
+    b: [cardArt("1-circle-blue"), "One blue circle"],
   },
   {
     label: "Match the NUMBER",
-    a: ["/cards/3-square-yellow.svg", "Three orange squares"],
-    b: ["/cards/3-tri-red.svg", "Three red triangles"],
+    a: [cardArt("3-square-yellow"), "Three orange squares"],
+    b: [cardArt("3-tri-red"), "Three red triangles"],
   },
 ];
 

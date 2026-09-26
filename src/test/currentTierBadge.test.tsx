@@ -1,3 +1,4 @@
+import { BADGE_URLS } from "@/lib/assetUrls";
 import React from "react";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -33,7 +34,7 @@ describe("CurrentTierBadge", () => {
     act(() => MockImage.instances[0].onload?.());
 
     const badge = await screen.findByTestId("badge");
-    expect(badge).toHaveAttribute("src", "/badges/great_eye.svg");
+    expect(badge).toHaveAttribute("src", BADGE_URLS.great_eye);
     expect(badge).toHaveAttribute("alt", "Great Eye badge");
     expect(badge).toHaveAttribute("data-tier", "great_eye");
   });

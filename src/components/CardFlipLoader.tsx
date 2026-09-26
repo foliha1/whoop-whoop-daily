@@ -1,8 +1,9 @@
+import { cardArt } from "@/lib/assetUrls";
 import React from "react";
 import { CARD_BACK_PATH } from "@/cardData";
 import { COLORS, RADIUS, SHADOW, SPACE } from "@/lib/tokens";
 
-const FACE_SRC = "/cards/1-star-red.svg";
+const FACE_SRC = cardArt("1-star-red");
 
 const faceLayer: React.CSSProperties = {
   position: "absolute",
