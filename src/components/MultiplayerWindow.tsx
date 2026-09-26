@@ -21,7 +21,9 @@ import {
 
 import { AppButton } from "@/components/ui/AppButton";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { joinRoomSession, fetchSeatKeys } from "@/lib/rooms";
+import { joinRoomSessionSigned, fetchSignKeys } from "@/lib/rooms";
+import { KeyDirectory, createVerifier, generateSigningKey } from "@/lib/channelSigning";
+import type { ChannelSecurity } from "@/hooks/useRoomPresence";
 import { getVisitorId, getDisplayName, setDisplayName, DISPLAY_NAME_MAX } from "@/lib/visitor";
 import { trackEvent } from "@/lib/analytics";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
@@ -283,9 +285,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // This browser's id goes only to the server, over this browser's own
   // requests. It never appears on the shared room channel.
   const browserId = useMemo(() => getVisitorId(), []);
-  // Per-session player key: the only player identity on the shared channel.
-  // (Named visitorId below for continuity with the channel code.)
-  const visitorId = useMemo(
+  // Per-session player key: a SECRET that goes only to the server, over this
+  // tab's own requests. It never appears on the shared channel.
+  const sessionKey = useMemo(
     () => (typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
       : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`),
@@ -294,32 +296,59 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const activeRoom = view.kind === "host" || view.kind === "joiner" ? view.room : null;
   const isHostView = view.kind === "host";
   const displayName = getDisplayName();
-  // Register this tab's key with the server before appearing in presence, so
-  // the host's seat map always resolves on the server.
-  const [sessionRoomId, setSessionRoomId] = useState<string | null>(null);
   const activeRoomId = activeRoom?.id ?? null;
+  // Per-join signing: a fresh non-extractable key pair, its public half
+  // registered with the server, and a server-issued public id. Presence waits
+  // for this so every message this tab sends is signed.
+  const [security, setSecurity] = useState<(ChannelSecurity & { directory: KeyDirectory }) | null>(null);
+  const [dirHostPid, setDirHostPid] = useState<string | null>(null);
   useEffect(() => {
-    if (!activeRoomId) { setSessionRoomId(null); return; }
+    setSecurity(null);
+    setDirHostPid(null);
+    if (!activeRoomId) return;
     let cancelled = false;
-    void joinRoomSession(activeRoomId, browserId, visitorId).then(() => {
-      if (!cancelled) setSessionRoomId(activeRoomId);
-    });
-    return () => { cancelled = true; };
-  }, [activeRoomId, browserId, visitorId]);
+    let unsub: (() => void) | null = null;
+    void (async () => {
+      for (let attempt = 0; attempt < 5 && !cancelled; attempt++) {
+        const key = await generateSigningKey();
+        const joined = await joinRoomSessionSigned(activeRoomId, browserId, sessionKey, key.publicKeyB64);
+        if (cancelled) return;
+        if (!joined) { await new Promise((r) => setTimeout(r, 1500)); continue; }
+        const directory = new KeyDirectory(() => fetchSignKeys(activeRoomId, browserId, sessionKey));
+        await directory.refresh(true);
+        if (cancelled) return;
+        unsub = directory.onChange(() => setDirHostPid(directory.hostPid));
+        setDirHostPid(directory.hostPid);
+        setSecurity({
+          roomId: activeRoomId,
+          pid: joined.pub_id,
+          privateKey: key.privateKey,
+          directory,
+          verify: createVerifier({ roomId: activeRoomId, role: isHostView ? "host" : "joiner", directory }),
+        });
+        return;
+      }
+    })();
+    return () => { cancelled = true; unsub?.(); };
+  }, [activeRoomId, browserId, sessionKey, isHostView]);
+  // This tab's PUBLIC id — the only identity on the shared channel. (Named
+  // visitorId below for continuity with the channel code.)
+  const visitorId = security?.pid ?? "";
   const { participants, status: presenceStatus, channel, onBroadcast, connectEpoch } = useRoomPresence(
-    activeRoom && sessionRoomId === activeRoom.id ? activeRoom.id : null,
+    activeRoom && security?.roomId === activeRoom.id ? activeRoom.id : null,
     visitorId,
     displayName,
     isHostView,
+    security,
   );
 
 
   const hostVisitorId = useMemo(() => {
-    if (isHostView) return visitorId;
-    if (activeRoom?.host_key) return activeRoom.host_key;
-    const hostP = participants.find((p) => p.is_host);
-    return hostP?.pid ?? null;
-  }, [isHostView, visitorId, participants, activeRoom?.host_key]);
+    if (isHostView) return visitorId || null;
+    // The host's id comes from the server's key directory, never from
+    // presence (anyone can claim is_host in presence).
+    return dirHostPid;
+  }, [isHostView, visitorId, dirHostPid]);
 
   // Heartbeat: EVERY client (host + joiner) sends. The host also monitors
   // inbound heartbeats to detect crashed/slept peers that presence never
@@ -349,8 +378,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // and the host adopts it only from the server's answer. Display names never
   // authorize a seat.
   const refreshSeatKeys = useCallback(async () => {
-    if (!isHostView || !frozenSeats || !gameId || !activeRoom?.id) return;
-    const rows = await fetchSeatKeys(activeRoom.id, gameId, browserId);
+    if (!isHostView || !frozenSeats || !gameId || !security) return;
+    await security.directory.refresh(true);
+    const rows = security.directory.seatPids();
     if (rows.length === 0) return;
     setFrozenSeats((prev) => {
       if (!prev) return prev;
@@ -365,7 +395,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       });
       return changed ? next : prev;
     });
-  }, [isHostView, frozenSeats, gameId, activeRoom?.id, browserId]);
+  }, [isHostView, frozenSeats, gameId, security]);
   const unknownPresentKeys = useMemo(() => {
     if (!frozenSeats) return "";
     const known = new Set(frozenSeats.map((e) => e.pid));
@@ -783,13 +813,15 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     if (!activeRoom?.id) { setStarting(false); return; }
     const roomId = activeRoom.id;
     const ok = await registerSeatsWithRetry(() =>
-      supabase.rpc("register_room_seats", {
+      supabase.rpc("register_room_seats_by_pid", {
         p_room_id: roomId,
         p_game_id: newGameId,
         p_host_visitor_id: browserId,
         p_seats: seatMap.map((e) => ({ seat: e.seat, pid: e.pid })),
       }),
     );
+    // Load the new game's seat keys before any intent can arrive.
+    if (ok) await security?.directory.refresh(true);
     if (!ok) {
       setStartFailed(true);
       return;
@@ -818,7 +850,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       roomCode: activeRoom?.room_code,
       metadata: { player_count: seatMap.length, grid_size: FIXED_GRID },
     });
-  }, [isHostView, participants, activeRoom, starting, startFailed, channel, browserId, host.dispatch, host.state.slotCount]);
+  }, [isHostView, participants, activeRoom, starting, startFailed, channel, browserId, host.dispatch, host.state.slotCount, security]);
 
 
   // Joiner: listen for the host's game_starting notice.
