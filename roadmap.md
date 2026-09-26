@@ -86,3 +86,8 @@
 - [x] Tap-to-screen + LoAF sampling via rate-capped RPC; admin p50/p95
 - [x] Tests incl. 30s host background no-skip and grant-before-deadline ordering; full suite
 - [ ] Two-browser live check of taps, match, wrong claim, final window, roll, host background/resume (not yet run)
+
+## Security pass 1 of 3: signed Classic channel
+- [x] Per-join ECDSA keys registered via join_room_session; public id replaces player_key on the channel
+- [x] Host-signed broadcasts, sender-signed intents/heartbeats with nonce, server-signed grants/rejects
+- [ ] Sign/verify timing under CPU slowdown and full live multi-browser game (lobby verified; game play not yet run)

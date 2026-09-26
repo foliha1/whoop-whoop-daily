@@ -50,10 +50,11 @@ import { RESUME_INBOX_FLUSH_MS } from "@/lib/animationTiming";
 import { hostTimingProbe, joinerTimingProbe } from "@/lib/classicTiming";
 import { warmClaimLock } from "@/lib/claimLock";
 import { SnapshotOrder, decideGrant, grantKey, mayRoll } from "@/lib/classicReliability";
+import { NonceStore, randomNonce } from "@/lib/channelSigning";
 
 export interface SeatMapEntry {
   seat: number;
-  player_key: string;
+  pid: string;
   display_name: string;
 }
 
@@ -382,6 +383,7 @@ export function useMultiplayerHost(opts: {
   // queued during suspension can be applied in server-time order BEFORE any
   // overdue deadline — a claim made before a window closed beats its expiry.
   const resumingRef = useRef(false);
+  const noncesRef = useRef(new NonceStore(gameId));
   const inboxRef = useRef<QueuedMessage[]>([]);
   const arrivalSeqRef = useRef(0);
   const enqueueIfResuming = (kind: QueuedMessage["kind"], serverAt: number | undefined, run: () => void) => {
@@ -419,10 +421,15 @@ export function useMultiplayerHost(opts: {
     };
     const processIntent = (intent: IntentPayload) => {
       {
+        // Signature and seat binding were checked before delivery (channel
+        // verifier). Here: this game only, and never the same nonce twice.
+        if (intent.gameId !== gameIdRef.current) return;
+        if (noncesRef.current.gameId !== gameIdRef.current) noncesRef.current = new NonceStore(gameIdRef.current);
+        if (!noncesRef.current.accept(intent.nonce, intent.sentAt, serverNow())) return;
         const seatEntry = seatMapRef.current.find((e) => e.seat === intent.seat);
         if (!seatEntry) return;
-        if (seatEntry.player_key !== intent.player_key) return;
-        if (seatEntry.player_key === hostVisitorId) return;
+        if (seatEntry.pid !== intent.pid) return;
+        if (seatEntry.pid === hostVisitorId) return;
         // ROLLING gate: reject board-affecting intents while a roll is
         // resolving. Reducer would drop these anyway; we surface the reason
         // so callers see an explicit rejection.
@@ -513,7 +520,7 @@ export function useMultiplayerHost(opts: {
   // window has not moved on.
   const DEFER_MS = 2600;
   const deferredRef = useRef<
-    | { claim_window: number; seat: number; player_key?: string; key: string; timer: ReturnType<typeof setTimeout> }
+    | { claim_window: number; seat: number; pid?: string; key: string; timer: ReturnType<typeof setTimeout> }
     | null
   >(null);
   const clearDeferred = useCallback(() => {
@@ -525,6 +532,7 @@ export function useMultiplayerHost(opts: {
   // the gameId changes. (claimWindowRef resets inline above, during render.)
   useEffect(() => {
     clearDeferred();
+    noncesRef.current = new NonceStore(gameId);
     grantedRef.current = new Set();
     resolvedWindowsRef.current = new Set();
     endedForEmptyRef.current = false;
@@ -535,7 +543,7 @@ export function useMultiplayerHost(opts: {
   // Refuse a grant for good: mark it consumed, release its row, tell the seat.
   const refuseGrant = useCallback(
     (
-      grant: { claim_window: number; seat: number; player_key?: string },
+      grant: { claim_window: number; seat: number; pid?: string },
       key: string,
       hostWindow: number,
       reason: ClaimRejectPayload["reason"],
@@ -545,10 +553,10 @@ export function useMultiplayerHost(opts: {
         grant_claim_window: grant.claim_window,
         host_claim_window: hostWindow,
         seat: grant.seat,
-        player_key: grant.player_key,
+        pid: grant.pid,
         reason,
       });
-      releaseClaimLock(grant.claim_window, grant.seat, grant.player_key, reason);
+      releaseClaimLock(grant.claim_window, grant.seat, grant.pid, reason);
     },
     [emitClaimReject, releaseClaimLock],
   );
@@ -623,7 +631,7 @@ export function useMultiplayerHost(opts: {
           grant_claim_window: grant.claim_window,
           host_claim_window: hostWindow,
           seat: grant.seat,
-          player_key: grant.player_key,
+          pid: grant.pid,
           phase: latestStateRef.current.phase,
           claimBy: latestStateRef.current.claimBy,
         });
@@ -662,7 +670,7 @@ export function useMultiplayerHost(opts: {
       deferredRef.current = {
         claim_window: grant.claim_window,
         seat: grant.seat,
-        player_key: grant.player_key,
+        pid: grant.pid,
         key: dedupeKey,
         timer: setTimeout(() => pumpDeferred(true), DEFER_MS),
       };
@@ -903,10 +911,10 @@ export function useMultiplayerJoiner(opts: {
 
   // Resolve seat from prop first, then fall back to publicState's seatMap.
   // Guests initially mount with mySeatProp=null; the seat is discovered from
-  // the first state broadcast that includes their player_key.
+  // the first state broadcast that includes their pid.
   const mySeat =
     mySeatProp ??
-    publicState?.seatMap.find((e) => e.player_key === visitorId)?.seat ??
+    publicState?.seatMap.find((e) => e.pid === visitorId)?.seat ??
     null;
 
   const sendIntent = useCallback(
@@ -919,15 +927,17 @@ export function useMultiplayerJoiner(opts: {
         seq: seqRef.current,
         payload: {
           seat: mySeat,
-          player_key: visitorId,
+          pid: visitorId,
           action,
+          gameId: publicState?.gameId,
+          nonce: randomNonce(),
           sentAt: serverNow(),
           probe: action.type === "FLIP_START" ? joinerTimingProbe.tap(serverNow()) : undefined,
         },
       };
       channel.send({ type: "broadcast", event: "msg", payload: env }).catch(() => {});
     },
-    [channel, mySeat, visitorId],
+    [channel, mySeat, visitorId, publicState?.gameId],
   );
 
   // Called when the host announces a new game: clears the finished game's

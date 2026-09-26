@@ -20,8 +20,8 @@ const noopSubscribe = () => () => {};
 describe("useMultiplayerHost end-game guard — 2-seat table", () => {
   it("fires END_GAME_TABLE_EMPTY on a 2-seat table with one dead seat, presence connected, spread=null", async () => {
     const seatMap = [
-      { seat: 0, player_key: "host", display_name: "Host" },
-      { seat: 1, player_key: "v1", display_name: "V1" },
+      { seat: 0, pid: "host", display_name: "Host" },
+      { seat: 1, pid: "v1", display_name: "V1" },
     ];
     const { result } = renderHook(() =>
       useMultiplayerHost({
@@ -46,8 +46,8 @@ describe("useMultiplayerHost end-game guard — 2-seat table", () => {
 
   it("does NOT fire when the host socket is not connected", async () => {
     const seatMap = [
-      { seat: 0, player_key: "host", display_name: "Host" },
-      { seat: 1, player_key: "v1", display_name: "V1" },
+      { seat: 0, pid: "host", display_name: "Host" },
+      { seat: 1, pid: "v1", display_name: "V1" },
     ];
     const { result } = renderHook(() =>
       useMultiplayerHost({

@@ -16,7 +16,7 @@
 import type { PublicState } from "@/lib/publicState";
 import type { Action } from "@/hooks/useGameState";
 
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
 
 // Total duration of the hero roll animation, in milliseconds. Shared across
 // the wire AND the reducer: the host schedules `ROLL_SETTLE` at
@@ -46,8 +46,12 @@ export type IntentAction =
 
 export interface IntentPayload {
   seat: number;
-  player_key: string; // sender identity for host-side validation
+  pid: string; // sender's public id (never a secret)
   action: IntentAction;
+  /** Game this intent belongs to; the host drops intents for other games. */
+  gameId?: string;
+  /** Random per-intent value; the host drops any it has already seen this game. */
+  nonce?: string;
   /** Sender's server-clock time; orders queued intents on host resume. */
   sentAt?: number;
   /** Sampled timing probe (random id + tap time). No identity. */
@@ -91,7 +95,7 @@ export interface ClaimGrantEnvelope {
   // game_id scopes the grant: the host ignores grants for any other game.
   // granted_at: server time the arbiter row was won; orders grants that were
   // queued while the host was suspended.
-  payload: { claim_window: number; seat: number; player_key?: string; game_id?: string; granted_at?: number };
+  payload: { claim_window: number; seat: number; pid?: string; game_id?: string; granted_at?: number };
 }
 
 // Joiner → host: "send me your latest snapshot". Carries no identity.
@@ -172,7 +176,7 @@ export interface ClaimRejectPayload {
   grant_claim_window: number;
   host_claim_window: number;
   seat: number;
-  player_key?: string;
+  pid?: string;
   reason: "STALE_WINDOW" | "FUTURE_WINDOW" | "NO_CALLS_LEFT";
 }
 export interface ClaimRejectEnvelope {
@@ -215,7 +219,7 @@ export const AWAY_SKIP_MS = 15000;
 // the sender interval plus a small buffer for jitter.
 export const ISOLATION_SPREAD_MS = HEARTBEAT_INTERVAL_MS + 2000;
 export interface HeartbeatPayload {
-  player_key: string;
+  pid: string;
   at: number; // sender wall clock — informational; host uses local receive time
   // Set on visibilitychange transitions AND every regular tick so the host
   // does not need to correlate events with intervals. Absent (undefined) is
@@ -229,7 +233,16 @@ export interface HeartbeatEnvelope {
   payload: HeartbeatPayload;
 }
 
-export type Envelope =
+// Every envelope on the channel carries its signer's public id and an ECDSA
+// P-256 signature over its full contents (see src/lib/channelSigning.ts).
+// `from` is "server" for messages sent by the claim-lock/release-lock
+// functions. Receivers verify against keys fetched from the server only.
+export interface SignedFields {
+  from?: string;
+  sig?: string;
+}
+
+export type Envelope = (
   | StateEnvelope
   | IntentEnvelope
   | ClaimGrantEnvelope
@@ -238,7 +251,8 @@ export type Envelope =
   | RollRejectEnvelope
   | ClaimRejectEnvelope
   | HeartbeatEnvelope
-  | StateRequestEnvelope;
+  | StateRequestEnvelope
+) & SignedFields;
 
 export function jsonSerialize(payload: unknown): string {
   return JSON.stringify(payload);

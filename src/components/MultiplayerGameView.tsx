@@ -779,7 +779,7 @@ const PresenceDebugOverlay: React.FC<{
   const present = new Set(presenceVisitorIds ?? []);
   const total = seatMap.length;
   const presenceOnlyMissing = seatMap
-    .filter((e) => !present.has(e.player_key))
+    .filter((e) => !present.has(e.pid))
     .map((e) => e.seat);
   const connected = total - presenceOnlyMissing.length;
   return (
@@ -804,7 +804,7 @@ const PresenceDebugOverlay: React.FC<{
       data-testid="presence-debug-overlay"
     >
       {`mySeat: ${mySeat ?? "-"}
-player_key: ${visitorId}
+pid: ${visitorId}
 connected: ${connected}/${total}
 presenceOnlyMissing: [${presenceOnlyMissing.join(",")}]
 heartbeatStale: [${heartbeatStale.join(",")}]
