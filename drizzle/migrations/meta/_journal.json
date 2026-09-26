@@ -162,6 +162,13 @@
       "when": 1790458497474,
       "tag": "0022_revoke_public_room_rpcs",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1790462198741,
+      "tag": "0023_classic_results_integrity_schema",
+      "breakpoints": true
     }
   ]
 }

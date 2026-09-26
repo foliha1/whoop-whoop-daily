@@ -141,54 +141,72 @@ export type Database = {
           app_version: string
           correct_claims: number
           created_at: string
+          distinct_browsers: number | null
+          distinct_users: number | null
           duration_ms: number
+          end_reason: string | null
           ended_at: string
           game_id: string
+          host_user_id: string | null
           host_visitor_id: string | null
           id: string
           is_solo: boolean
           player_count: number
           room_code: string | null
           rounds_played: number
+          seat_identities: Json | null
           seats: Json
           started_at: string
           updated_at: string
+          verified: boolean
           wrong_claims: number
         }
         Insert: {
           app_version?: string
           correct_claims?: number
           created_at?: string
+          distinct_browsers?: number | null
+          distinct_users?: number | null
           duration_ms?: number
+          end_reason?: string | null
           ended_at: string
           game_id: string
+          host_user_id?: string | null
           host_visitor_id?: string | null
           id?: string
           is_solo?: boolean
           player_count?: number
           room_code?: string | null
           rounds_played?: number
+          seat_identities?: Json | null
           seats?: Json
           started_at: string
           updated_at?: string
+          verified?: boolean
           wrong_claims?: number
         }
         Update: {
           app_version?: string
           correct_claims?: number
           created_at?: string
+          distinct_browsers?: number | null
+          distinct_users?: number | null
           duration_ms?: number
+          end_reason?: string | null
           ended_at?: string
           game_id?: string
+          host_user_id?: string | null
           host_visitor_id?: string | null
           id?: string
           is_solo?: boolean
           player_count?: number
           room_code?: string | null
           rounds_played?: number
+          seat_identities?: Json | null
           seats?: Json
           started_at?: string
           updated_at?: string
+          verified?: boolean
           wrong_claims?: number
         }
         Relationships: []
@@ -613,6 +631,7 @@ export type Database = {
           pub_id: string | null
           room_id: string
           sign_pubkey: string | null
+          user_id: string | null
           visitor_id: string
         }
         Insert: {
@@ -621,6 +640,7 @@ export type Database = {
           pub_id?: string | null
           room_id: string
           sign_pubkey?: string | null
+          user_id?: string | null
           visitor_id: string
         }
         Update: {
@@ -629,6 +649,7 @@ export type Database = {
           pub_id?: string | null
           room_id?: string
           sign_pubkey?: string | null
+          user_id?: string | null
           visitor_id?: string
         }
         Relationships: [
@@ -650,6 +671,7 @@ export type Database = {
           pub_id: string | null
           room_id: string
           seat: number
+          user_id: string | null
           visitor_id: string
         }
         Insert: {
@@ -660,6 +682,7 @@ export type Database = {
           pub_id?: string | null
           room_id: string
           seat: number
+          user_id?: string | null
           visitor_id: string
         }
         Update: {
@@ -670,6 +693,7 @@ export type Database = {
           pub_id?: string | null
           room_id?: string
           seat?: number
+          user_id?: string | null
           visitor_id?: string
         }
         Relationships: [
@@ -709,6 +733,30 @@ export type Database = {
           last_active_at?: string
           room_code?: string
           status?: string
+        }
+        Relationships: []
+      }
+      solo_games: {
+        Row: {
+          finished_at: string | null
+          id: string
+          started_at: string
+          user_id: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          finished_at?: string | null
+          id?: string
+          started_at?: string
+          user_id?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          finished_at?: string | null
+          id?: string
+          started_at?: string
+          user_id?: string | null
+          visitor_id?: string | null
         }
         Relationships: []
       }
@@ -920,6 +968,7 @@ export type Database = {
         }[]
       }
       caller_visitor: { Args: { p_visitor_id: string }; Returns: string }
+      classic_ranked_seats: { Args: { p_seats: Json }; Returns: Json }
       classic_result_reject_reason: {
         Args: {
           p_correct_claims: number
@@ -929,6 +978,17 @@ export type Database = {
           p_rounds_played: number
           p_seats: Json
           p_started_at: string
+          p_wrong_claims: number
+        }
+        Returns: string
+      }
+      classic_score_reject_reason: {
+        Args: {
+          p_correct_claims: number
+          p_end_reason: string
+          p_expected_count: number
+          p_rounds_played: number
+          p_seats: Json
           p_wrong_claims: number
         }
         Returns: string
