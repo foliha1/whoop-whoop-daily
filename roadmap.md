@@ -68,3 +68,12 @@
 - [x] REQUEST_ROLL only from current roller
 - [x] Presence blip grace for host and joiners
 - [x] Tests incl. late grant after next roll, late game-one snapshot in game two; full suite
+
+## Loading-speed audit batch (planned, unpublished)
+- [ ] Stage Daily and Classic game-art preload/decode by screen and interaction
+- [ ] Defer active logo animation and music warm-up until after first paint/interaction
+- [ ] Remove Classic's nested main-window lazy boundary
+- [ ] Gate Daily results-only reads and omit unused lifetime stats
+- [ ] Reserve Your Stats late-data section sizes
+- [ ] Measure cold mobile 4G before/after; analyze bundles and report production cache headers
+- [ ] Add regressions, run the full suite, verify the preview, and keep unpublished
