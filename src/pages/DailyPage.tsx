@@ -1048,6 +1048,7 @@ const DailyReadyScreen: React.FC<{
   mobile = false,
   onPlay,
   onHowToPlay,
+  playLoading = false,
 }) => {
   // Vertical compression for short viewports (Instagram in-app browser lands
   // around 480–560px). t === 1 at 700px and above, so tall phones are
@@ -1147,8 +1148,9 @@ const DailyReadyScreen: React.FC<{
           data-testid="daily-cta"
           className={gated && subscribed ? "daily-btn-play" : "ww-press daily-btn-play"}
           onClick={gated ? (subscribed ? undefined : onNotify) : onPlay}
-          disabled={gated && subscribed}
-          aria-disabled={(gated && subscribed) || undefined}
+          disabled={(gated && subscribed) || playLoading}
+          aria-disabled={(gated && subscribed) || playLoading || undefined}
+          aria-busy={playLoading || undefined}
           style={{
             ...textStyle("action", mobile),
             width: "100%",
@@ -1161,13 +1163,15 @@ const DailyReadyScreen: React.FC<{
           }}
 
         >
-          {gated
-            ? subscribed
-              ? `Coming ${DAILY_LAUNCH_LABEL}`
-              : "Get the First Daily"
-            : played
-              ? "See Today's Result"
-              : "Play Today's Daily"}
+          {playLoading
+            ? "Dealing…"
+            : gated
+              ? subscribed
+                ? `Coming ${DAILY_LAUNCH_LABEL}`
+                : "Get the First Daily"
+              : played
+                ? "See Today's Result"
+                : "Play Today's Daily"}
         </button>
       </div>
 
