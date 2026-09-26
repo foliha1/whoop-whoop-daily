@@ -256,7 +256,7 @@ describe("6. only the current roller can roll", () => {
     }));
     expect(result.current.state.roller).toBe(0);
     await act(async () => {
-      bus.deliver({ v: 2, type: "intent", seq: 1, payload: { seat: 1, pid: "k1", action: { type: "REQUEST_ROLL" } } });
+      bus.deliver({ v: 2, type: "intent", seq: 1, payload: { seat: 1, pid: "k1", gameId: "g1", nonce: "n-stale-roll-000001", sentAt: Date.now(), action: { type: "REQUEST_ROLL" } } });
     });
     expect(bus.sent.some((p) => (p as { type?: string }).type === "roll_committed")).toBe(false);
     await act(async () => { result.current.commitAndRoll(0); });
