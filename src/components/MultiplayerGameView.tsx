@@ -1813,7 +1813,7 @@ const MultiplayerGameView: React.FC<Props> = ({
         {opponentRow}
         {callerName && <CallerSignal name={callerName} />}
         {activeBanner && (
-          <div style={{
+          <div className="ww-score-banner-motion" style={{
             position: "absolute", inset: 0, zIndex: 10,
             pointerEvents: "none",
             display: "flex", alignItems: "center", justifyContent: "center",
