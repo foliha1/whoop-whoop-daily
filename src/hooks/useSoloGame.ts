@@ -45,8 +45,8 @@ const WHOOP_FLIP_DELAY_MS = 1400;
 const ROLL_ATTRS: readonly RollAttribute[] = ["SHAPE", "NUMBER", "COLOR"] as const;
 
 const SEAT_MAP = [
-  { seat: 0, player_key: "solo-you", display_name: "You" },
-  { seat: 1, player_key: "solo-whoop", display_name: OPPONENT_NAME },
+  { seat: 0, pid: "solo-you", display_name: "You" },
+  { seat: 1, pid: "solo-whoop", display_name: OPPONENT_NAME },
 ];
 
 export interface UseSoloGameResult {

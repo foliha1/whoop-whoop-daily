@@ -318,7 +318,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     if (isHostView) return visitorId;
     if (activeRoom?.host_key) return activeRoom.host_key;
     const hostP = participants.find((p) => p.is_host);
-    return hostP?.player_key ?? null;
+    return hostP?.pid ?? null;
   }, [isHostView, visitorId, participants, activeRoom?.host_key]);
 
   // Heartbeat: EVERY client (host + joiner) sends. The host also monitors
@@ -327,7 +327,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // presence-derived set — either signal is sufficient.
   useHeartbeatSender(channel, visitorId, !!activeRoom);
   const watchedVisitorIds = useMemo(
-    () => (frozenSeats ? frozenSeats.map((e) => e.player_key) : []),
+    () => (frozenSeats ? frozenSeats.map((e) => e.pid) : []),
     [frozenSeats],
   );
   const {
@@ -357,9 +357,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       let changed = false;
       const next = prev.map((e) => {
         const row = rows.find((r) => r.seat === e.seat);
-        if (row?.player_key && row.player_key !== e.player_key) {
+        if (row?.pid && row.pid !== e.pid) {
           changed = true;
-          return { ...e, player_key: row.player_key };
+          return { ...e, pid: row.pid };
         }
         return e;
       });
@@ -368,8 +368,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   }, [isHostView, frozenSeats, gameId, activeRoom?.id, browserId]);
   const unknownPresentKeys = useMemo(() => {
     if (!frozenSeats) return "";
-    const known = new Set(frozenSeats.map((e) => e.player_key));
-    return participants.filter((p) => !p.is_host && !known.has(p.player_key)).map((p) => p.player_key).sort().join(",");
+    const known = new Set(frozenSeats.map((e) => e.pid));
+    return participants.filter((p) => !p.is_host && !known.has(p.pid)).map((p) => p.pid).sort().join(",");
   }, [participants, frozenSeats]);
   useEffect(() => {
     if (!unknownPresentKeys) return;
@@ -390,7 +390,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   }, [isHostView, channel]);
 
   // Compute disconnected seats: union of
-  //   (a) seats whose player_key is no longer in the presence roster, and
+  //   (a) seats whose pid is no longer in the presence roster, and
   //   (b) seats whose heartbeat has gone stale past its applicable threshold,
   //       and
   //   (c) seats that have been reporting hidden for longer than the AWAY
@@ -414,7 +414,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     if (!frozenSeats) return [] as number[];
     const away = new Set(heartbeatAwayVisitors);
     return frozenSeats
-      .filter((e) => away.has(e.player_key))
+      .filter((e) => away.has(e.pid))
       .map((e) => e.seat);
   }, [frozenSeats, heartbeatAwayVisitors]);
 
@@ -425,13 +425,13 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const heartbeatStaleSeats = useMemo(() => {
     if (!frozenSeats) return [] as number[];
     const stale = new Set(heartbeatStaleVisitors);
-    return frozenSeats.filter((e) => stale.has(e.player_key)).map((e) => e.seat);
+    return frozenSeats.filter((e) => stale.has(e.pid)).map((e) => e.seat);
   }, [frozenSeats, heartbeatStaleVisitors]);
 
   const awaySkipSeats = useMemo(() => {
     if (!frozenSeats) return [] as number[];
     const away = new Set(heartbeatAwaySkipVisitors);
-    return frozenSeats.filter((e) => away.has(e.player_key)).map((e) => e.seat);
+    return frozenSeats.filter((e) => away.has(e.pid)).map((e) => e.seat);
   }, [frozenSeats, heartbeatAwaySkipVisitors]);
 
 
@@ -443,7 +443,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const endGameDisconnectedSeats = useMemo(() => {
     if (!frozenSeats) return [] as number[];
     const dead = new Set(heartbeatEndGameVisitors);
-    return frozenSeats.filter((e) => dead.has(e.player_key)).map((e) => e.seat);
+    return frozenSeats.filter((e) => dead.has(e.pid)).map((e) => e.seat);
   }, [frozenSeats, heartbeatEndGameVisitors]);
 
   // Host: game controller.
@@ -520,7 +520,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
   const joinerSeat = useMemo(() => {
     if (!joinerPublicState) return null;
-    const me = joinerPublicState.seatMap.find((e) => e.player_key === visitorId);
+    const me = joinerPublicState.seatMap.find((e) => e.pid === visitorId);
     return me?.seat ?? null;
   }, [joinerPublicState, visitorId]);
 
@@ -538,7 +538,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   });
   const hostState = hostLiveness({
     hostKey: hostVisitorId,
-    presentKeys: participants.map((p) => p.player_key),
+    presentKeys: participants.map((p) => p.pid),
     staleKeys: hostStaleKeys,
   });
   const waitingForHost = view.kind === "joiner" && !!joinerPublicState && hostState !== "here";
@@ -771,7 +771,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     unlockAudio();
     const seatMap: SeatMapEntry[] = participants.slice(0, ROOM_CAPACITY).map((p, i) => ({
       seat: i,
-      player_key: p.player_key,
+      pid: p.pid,
       display_name: p.display_name,
     }));
     setStarting(true);
@@ -787,7 +787,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         p_room_id: roomId,
         p_game_id: newGameId,
         p_host_visitor_id: browserId,
-        p_seats: seatMap.map((e) => ({ seat: e.seat, player_key: e.player_key })),
+        p_seats: seatMap.map((e) => ({ seat: e.seat, pid: e.pid })),
       }),
     );
     if (!ok) {
@@ -1190,7 +1190,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         browserId={browserId}
         isHost={true}
         onInvite={() => handleShare(activeRoom.room_code)}
-        presenceVisitorIds={participants.map((p) => p.player_key)}
+        presenceVisitorIds={participants.map((p) => p.pid)}
         heartbeatStale={heartbeatStaleSeats}
         awaySkip={awaySkipSeats}
         hostDisconnectedSeats={disconnectedSeats}
@@ -1218,7 +1218,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         browserId={browserId}
         isHost={false}
         onInvite={() => handleShare(activeRoom.room_code)}
-        presenceVisitorIds={participants.map((p) => p.player_key)}
+        presenceVisitorIds={participants.map((p) => p.pid)}
         presenceStatus={presenceStatus}
       />
       {waitingForHost ? (
@@ -1618,8 +1618,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         gap: innerGap,
       }}>
         {seatSlots.map((p, i) => {
-          const isYou = !!p && p.player_key === visitorId;
-          const name = p ? (p.display_name || p.player_key.slice(0, 6)) : "---";
+          const isYou = !!p && p.pid === visitorId;
+          const name = p ? (p.display_name || p.pid.slice(0, 6)) : "---";
           const label = p ? (isYou ? `${name} (you)` : name) : "---";
           return (
             <div key={i} style={{

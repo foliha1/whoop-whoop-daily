@@ -23,9 +23,9 @@ function containsCard(haystack: unknown, needle: Card): boolean {
   return json.includes(`"id":"${needle.id}"`);
 }
 
-const EMPTY_MAP: Array<{ seat: number; player_key: string; display_name: string }> = [
-  { seat: 0, player_key: "vh", display_name: "Host" },
-  { seat: 1, player_key: "vj", display_name: "Joiner" },
+const EMPTY_MAP: Array<{ seat: number; pid: string; display_name: string }> = [
+  { seat: 0, pid: "vh", display_name: "Host" },
+  { seat: 1, pid: "vj", display_name: "Joiner" },
 ];
 
 describe("toPublicState — redaction", () => {

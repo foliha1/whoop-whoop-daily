@@ -131,8 +131,8 @@ describe("5 / correction 1. grants apply only to the current game's open window"
   it("host hook: a late rebroadcast for a closed window never reopens a claim", async () => {
     const bus = fakeBus();
     const seatMap = [
-      { seat: 0, player_key: "host", display_name: "H" },
-      { seat: 1, player_key: "k1", display_name: "J" },
+      { seat: 0, pid: "host", display_name: "H" },
+      { seat: 1, pid: "k1", display_name: "J" },
     ];
     const { result } = renderHook(() =>
       useMultiplayerHost({
@@ -186,7 +186,7 @@ describe("3. state request catch-up", () => {
     rerender({ epoch: 2 });
     expect(requests()).toBe(2);
     await act(async () => {
-      bus.deliver({ v: 1, type: "state", seq: 7, payload: { gameId: "g", seatMap: [{ seat: 1, player_key: "k1", display_name: "J" }] } });
+      bus.deliver({ v: 1, type: "state", seq: 7, payload: { gameId: "g", seatMap: [{ seat: 1, pid: "k1", display_name: "J" }] } });
     });
     expect(result.current.mySeat).toBe(1);
   });
@@ -206,8 +206,8 @@ describe("3. state request catch-up", () => {
   it("host replies to a state_request with a full snapshot", async () => {
     const bus = fakeBus();
     const seatMap = [
-      { seat: 0, player_key: "host", display_name: "H" },
-      { seat: 1, player_key: "k1", display_name: "J" },
+      { seat: 0, pid: "host", display_name: "H" },
+      { seat: 1, pid: "k1", display_name: "J" },
     ];
     renderHook(() => useMultiplayerHost({
       channel: bus.channel, onBroadcast: bus.onBroadcast, seatMap, hostVisitorId: "host",
@@ -247,8 +247,8 @@ describe("6. only the current roller can roll", () => {
   it("a stale REQUEST_ROLL from a non-roller seat is ignored", async () => {
     const bus = fakeBus();
     const seatMap = [
-      { seat: 0, player_key: "host", display_name: "H" },
-      { seat: 1, player_key: "k1", display_name: "J" },
+      { seat: 0, pid: "host", display_name: "H" },
+      { seat: 1, pid: "k1", display_name: "J" },
     ];
     const { result } = renderHook(() => useMultiplayerHost({
       channel: bus.channel, onBroadcast: bus.onBroadcast, seatMap, hostVisitorId: "host",
@@ -256,7 +256,7 @@ describe("6. only the current roller can roll", () => {
     }));
     expect(result.current.state.roller).toBe(0);
     await act(async () => {
-      bus.deliver({ v: 1, type: "intent", seq: 1, payload: { seat: 1, player_key: "k1", action: { type: "REQUEST_ROLL" } } });
+      bus.deliver({ v: 1, type: "intent", seq: 1, payload: { seat: 1, pid: "k1", action: { type: "REQUEST_ROLL" } } });
     });
     expect(bus.sent.some((p) => (p as { type?: string }).type === "roll_committed")).toBe(false);
     await act(async () => { result.current.commitAndRoll(0); });
@@ -265,7 +265,7 @@ describe("6. only the current roller can roll", () => {
 });
 
 describe("7. a phone blinking is not a player leaving", () => {
-  const seats = [{ seat: 0, player_key: "host" }, { seat: 1, player_key: "k1" }];
+  const seats = [{ seat: 0, pid: "host" }, { seat: 1, pid: "k1" }];
   it("joiner: missing from presence but heartbeat fresh → not skippable", () => {
     expect(skippableSeats(seats, [], [])).toEqual([]);
   });

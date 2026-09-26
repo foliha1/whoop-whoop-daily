@@ -100,13 +100,13 @@ export const mayRoll = (requestingSeat: number, roller: number) => requestingSea
  * skippable only once its heartbeat has gone stale or it has dwelt hidden.
  */
 export function skippableSeats(
-  seats: Array<{ seat: number; player_key: string }>,
+  seats: Array<{ seat: number; pid: string }>,
   staleKeys: Iterable<string>,
   awaySkipKeys: Iterable<string>,
 ): number[] {
   const stale = new Set(staleKeys);
   const awaySkip = new Set(awaySkipKeys);
-  return seats.filter((e) => stale.has(e.player_key) || awaySkip.has(e.player_key)).map((e) => e.seat);
+  return seats.filter((e) => stale.has(e.pid) || awaySkip.has(e.pid)).map((e) => e.seat);
 }
 
 export type HostLiveness = "here" | "waiting" | "gone";

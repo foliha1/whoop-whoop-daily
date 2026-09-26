@@ -39,8 +39,8 @@ function fakeBus() {
   return { channel, onBroadcast, deliver, sent };
 }
 const seatMap = [
-  { seat: 0, player_key: "host", display_name: "Hana" },
-  { seat: 1, player_key: "k1", display_name: "Jo" },
+  { seat: 0, pid: "host", display_name: "Hana" },
+  { seat: 1, pid: "k1", display_name: "Jo" },
 ];
 const hostOpts = (bus: ReturnType<typeof fakeBus>) => ({
   channel: bus.channel, onBroadcast: bus.onBroadcast, seatMap, hostVisitorId: "host",
@@ -201,7 +201,7 @@ describe("4. host deadline catch-up on resume", () => {
         channel: bus.channel, onBroadcast: bus.onBroadcast, enabled: true,
         watchedVisitorIds: ["host", "k1", "k2"], hostVisitorId: "host",
       }));
-      const beat = (k: string) => bus.deliver({ v: 1, type: "heartbeat", seq: 1, payload: { player_key: k, at: Date.now(), hidden: false } });
+      const beat = (k: string) => bus.deliver({ v: 1, type: "heartbeat", seq: 1, payload: { pid: k, at: Date.now(), hidden: false } });
       await act(async () => { beat("k1"); beat("k2"); vi.advanceTimersByTime(2000); });
       await act(async () => { setVisibility("hidden"); });
       // Host suspended: no timers, no heartbeats received.

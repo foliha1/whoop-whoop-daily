@@ -46,7 +46,7 @@ export type IntentAction =
 
 export interface IntentPayload {
   seat: number;
-  player_key: string; // sender identity for host-side validation
+  pid: string; // sender identity for host-side validation
   action: IntentAction;
   /** Sender's server-clock time; orders queued intents on host resume. */
   sentAt?: number;
@@ -91,7 +91,7 @@ export interface ClaimGrantEnvelope {
   // game_id scopes the grant: the host ignores grants for any other game.
   // granted_at: server time the arbiter row was won; orders grants that were
   // queued while the host was suspended.
-  payload: { claim_window: number; seat: number; player_key?: string; game_id?: string; granted_at?: number };
+  payload: { claim_window: number; seat: number; pid?: string; game_id?: string; granted_at?: number };
 }
 
 // Joiner → host: "send me your latest snapshot". Carries no identity.
@@ -172,7 +172,7 @@ export interface ClaimRejectPayload {
   grant_claim_window: number;
   host_claim_window: number;
   seat: number;
-  player_key?: string;
+  pid?: string;
   reason: "STALE_WINDOW" | "FUTURE_WINDOW" | "NO_CALLS_LEFT";
 }
 export interface ClaimRejectEnvelope {
@@ -215,7 +215,7 @@ export const AWAY_SKIP_MS = 15000;
 // the sender interval plus a small buffer for jitter.
 export const ISOLATION_SPREAD_MS = HEARTBEAT_INTERVAL_MS + 2000;
 export interface HeartbeatPayload {
-  player_key: string;
+  pid: string;
   at: number; // sender wall clock — informational; host uses local receive time
   // Set on visibilitychange transitions AND every regular tick so the host
   // does not need to correlate events with intervals. Absent (undefined) is
