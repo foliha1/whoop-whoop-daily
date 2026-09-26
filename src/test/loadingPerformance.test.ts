@@ -51,7 +51,7 @@ describe("startup loading boundaries", () => {
     expect(source).toContain("Promise.race([");
     expect(source).toContain("setTimeout(resolve, PLAY_ART_WAIT_CEILING_MS)");
     expect(source).toContain("setPlayWaiting(true)");
-    expect(source).toContain('playLoading\n');
+    expect(source).toContain("playLoading={playWaiting}");
     const timing = await import("@/lib/animationTiming");
     expect(timing.PLAY_ART_WAIT_CEILING_MS).toBe(1500);
   });
