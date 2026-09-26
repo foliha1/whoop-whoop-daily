@@ -150,6 +150,7 @@ export function useHeartbeatMonitor(opts: {
     if (!enabled) return;
     monitorStartRef.current = Date.now();
     lastSeenRef.current = new Map();
+    lastAtRef.current = new Map();
     hiddenRef.current = new Map();
     hiddenSinceRef.current = new Map();
     setStaleVisitors([]);
@@ -167,6 +168,10 @@ export function useHeartbeatMonitor(opts: {
       if (!env || env.v !== PROTOCOL_VERSION || env.type !== "heartbeat") return;
       const hb = (env as HeartbeatEnvelope).payload;
       if (!hb?.pid) return;
+      // Replay guard: a sender's heartbeat time only ever moves forward.
+      const at = typeof hb.at === "number" ? hb.at : 0;
+      if (at <= (lastAtRef.current.get(hb.pid) ?? -Infinity)) return;
+      lastAtRef.current.set(hb.pid, at);
       const now = Date.now();
       lastSeenRef.current.set(hb.pid, now);
       const isHidden = !!hb.hidden;

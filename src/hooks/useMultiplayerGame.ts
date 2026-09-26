@@ -50,6 +50,7 @@ import { RESUME_INBOX_FLUSH_MS } from "@/lib/animationTiming";
 import { hostTimingProbe, joinerTimingProbe } from "@/lib/classicTiming";
 import { warmClaimLock } from "@/lib/claimLock";
 import { SnapshotOrder, decideGrant, grantKey, mayRoll } from "@/lib/classicReliability";
+import { NonceStore, randomNonce } from "@/lib/channelSigning";
 
 export interface SeatMapEntry {
   seat: number;
@@ -382,6 +383,7 @@ export function useMultiplayerHost(opts: {
   // queued during suspension can be applied in server-time order BEFORE any
   // overdue deadline — a claim made before a window closed beats its expiry.
   const resumingRef = useRef(false);
+  const noncesRef = useRef(new NonceStore(gameId));
   const inboxRef = useRef<QueuedMessage[]>([]);
   const arrivalSeqRef = useRef(0);
   const enqueueIfResuming = (kind: QueuedMessage["kind"], serverAt: number | undefined, run: () => void) => {
@@ -419,6 +421,11 @@ export function useMultiplayerHost(opts: {
     };
     const processIntent = (intent: IntentPayload) => {
       {
+        // Signature and seat binding were checked before delivery (channel
+        // verifier). Here: this game only, and never the same nonce twice.
+        if (intent.gameId !== gameIdRef.current) return;
+        if (noncesRef.current.gameId !== gameIdRef.current) noncesRef.current = new NonceStore(gameIdRef.current);
+        if (!noncesRef.current.accept(intent.nonce, intent.sentAt, serverNow())) return;
         const seatEntry = seatMapRef.current.find((e) => e.seat === intent.seat);
         if (!seatEntry) return;
         if (seatEntry.pid !== intent.pid) return;
@@ -525,6 +532,7 @@ export function useMultiplayerHost(opts: {
   // the gameId changes. (claimWindowRef resets inline above, during render.)
   useEffect(() => {
     clearDeferred();
+    noncesRef.current = new NonceStore(gameId);
     grantedRef.current = new Set();
     resolvedWindowsRef.current = new Set();
     endedForEmptyRef.current = false;
@@ -921,13 +929,15 @@ export function useMultiplayerJoiner(opts: {
           seat: mySeat,
           pid: visitorId,
           action,
+          gameId: publicState?.gameId,
+          nonce: randomNonce(),
           sentAt: serverNow(),
           probe: action.type === "FLIP_START" ? joinerTimingProbe.tap(serverNow()) : undefined,
         },
       };
       channel.send({ type: "broadcast", event: "msg", payload: env }).catch(() => {});
     },
-    [channel, mySeat, visitorId],
+    [channel, mySeat, visitorId, publicState?.gameId],
   );
 
   // Called when the host announces a new game: clears the finished game's

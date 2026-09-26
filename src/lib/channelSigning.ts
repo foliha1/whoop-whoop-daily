@@ -18,8 +18,13 @@
 /** Public half of the server key used by claim-lock and release-lock. */
 export const SERVER_PUBLIC_KEY_B64 = "BAIv38x0BEZthCDSnuabbkJVnqEWbTVbOhMQdtVfQGiFw4RCynSlGLhHZ6PLFwOIxT+SJ25jedV7QznohxkOkSY=";
 export const SERVER_SIGNER = "server";
-/** Intents older/newer than this (server clock) are dropped. */
-export const INTENT_MAX_SKEW_MS = 30000;
+/**
+ * Intents whose sentAt is further than this from server time are dropped.
+ * Generous on purpose: a host resuming from a long suspension still applies
+ * intents queued while it slept. Replays are stopped by the nonce, and
+ * cross-game replays by the signed gameId.
+ */
+export const INTENT_MAX_SKEW_MS = 10 * 60 * 1000;
 /** Minimum gap between key-directory refetches triggered by a bad message. */
 export const KEY_REFETCH_MIN_MS = 2000;
 
@@ -185,7 +190,7 @@ export class NonceStore {
     if (Math.abs(serverNowMs - sentAt) > INTENT_MAX_SKEW_MS) return false;
     if (this.seen.has(nonce)) return false;
     this.seen.add(nonce);
-    if (this.seen.size > 5000) this.seen = new Set(Array.from(this.seen).slice(-2500));
+    if (this.seen.size > 20000) this.seen = new Set(Array.from(this.seen).slice(-10000));
     return true;
   }
 }
