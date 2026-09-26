@@ -4,6 +4,7 @@ import lockupAsset from "@/assets/WhoopWhoop_Daily_Lockup.svg.asset.json";
 import lockupCreamAsset from "@/assets/WhoopWhoop_Daily_Lockup_Cream.svg.asset.json";
 import animationAsset from "@/assets/whoop-daily-logo.json.asset.json";
 import { useThemeMode } from "@/lib/nightMode";
+import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
 
 // A failed chunk fetch (stale build, flaky network) must never blank the page:
 // resolve to a no-op so the static lockup stays on screen.
@@ -13,13 +14,10 @@ const Lottie = React.lazy(() =>
     .catch(() => ({ default: (() => null) as unknown as typeof import("lottie-react").default })),
 );
 
-// Preload both the player chunk and the animation JSON as soon as this module is
-// imported, so the swap from static to animated happens as early as possible.
 const dataPromises = new Map<string, Promise<unknown>>();
 const loadData = (url: string) => {
   let p = dataPromises.get(url);
   if (!p) {
-    void import("lottie-react");
     p = fetch(url).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))));
     dataPromises.set(url, p);
   }
@@ -49,11 +47,6 @@ export const lockupStills = (variant: LockupVariant): readonly string[] => [
   VARIANTS[variant].still,
   VARIANTS[variant].stillCream,
 ];
-
-loadData(VARIANTS.daily.animation).catch(() => {
-  /* static fallback covers it */
-});
-
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
@@ -119,15 +112,14 @@ const DailyLogoLockup: React.FC<{ style?: React.CSSProperties; variant?: LockupV
     let live = true;
     setJson(null);
     setReady(false);
-    loadData(art.animation)
-      .then((data) => {
-        if (live) setJson(data);
-      })
-      .catch(() => {
-        /* keep the static fallback */
-      });
+    const cancel = afterPaintIdleOrInteraction(() => {
+      void Promise.all([import("lottie-react"), loadData(art.animation)])
+        .then(([, data]) => { if (live) setJson(data); })
+        .catch(() => { /* keep the static fallback */ });
+    });
     return () => {
       live = false;
+      cancel();
     };
   }, [art.animation]);
 

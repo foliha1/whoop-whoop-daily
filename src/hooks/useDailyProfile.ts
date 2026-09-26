@@ -8,12 +8,7 @@
 // ============================================================================
 
 import { useEffect, useState } from "react";
-import {
-  fetchDailyPercentile,
-  fetchDailyStats,
-  type DailyStats,
-} from "@/lib/dailyResults";
-import { getSubscribedEmail } from "@/lib/dailySubscribe";
+import { fetchDailyPercentile } from "@/lib/dailyResults";
 
 /**
  * @param puzzleNumber today's puzzle number
@@ -24,22 +19,12 @@ export function useDailyProfile(
   puzzleNumber: number,
   ready = true,
   refreshKey = 0
-): { stats: DailyStats | null; percentile: number | null } {
-  const [stats, setStats] = useState<DailyStats | null>(null);
+): { percentile: number | null } {
   const [percentile, setPercentile] = useState<number | null>(null);
 
   useEffect(() => {
     if (!ready) return;
     let live = true;
-    // Lifetime stats are a subscriber perk: only read them when an address is
-    // on file for this browser. The percentile stays open to everyone.
-    if (getSubscribedEmail() !== null) {
-      void fetchDailyStats().then((s) => {
-        if (live) setStats(s);
-      });
-    } else {
-      setStats(null);
-    }
     void fetchDailyPercentile(puzzleNumber).then((p) => {
       if (live) setPercentile(p);
     });
@@ -48,5 +33,5 @@ export function useDailyProfile(
     };
   }, [puzzleNumber, ready, refreshKey]);
 
-  return { stats, percentile };
+  return { percentile };
 }
