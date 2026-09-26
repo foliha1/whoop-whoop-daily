@@ -1,3 +1,4 @@
+import { cardArt } from "@/lib/assetUrls";
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import SiteHeader, { SITE_HEADER_OFFSET } from "@/components/SiteHeader";
@@ -177,7 +178,7 @@ const SupportPage: React.FC = () => {
               </p>
               <div style={{ display: "flex", gap: SPACE[5], alignItems: "center" }}>
                 <img
-                  src="/cards/2-circle-blue.svg"
+                  src={cardArt("2-circle-blue")}
                   alt="Blue circle card, number 2"
                   loading="lazy"
                   style={{
@@ -188,7 +189,7 @@ const SupportPage: React.FC = () => {
                   }}
                 />
                 <img
-                  src="/cards/4-circle-red.svg"
+                  src={cardArt("4-circle-red")}
                   alt="Red circle card, number 4"
                   loading="lazy"
                   style={{

@@ -1,3 +1,4 @@
+import { CARD_BACK_URL, cardArt } from "@/lib/assetUrls";
 export type Shape = "circle" | "square" | "tri" | "star";
 export type Number = 1 | 2 | 3 | 4;
 export type ColorName = "red" | "blue" | "yellow";
@@ -21,7 +22,7 @@ export const COLORS: Record<ColorName, string> = {
   yellow: "#e79024",
 };
 
-export const CARD_BACK_PATH = "/cards/card-back.svg";
+export const CARD_BACK_PATH = CARD_BACK_URL;
 
 function generateAllCards(): Card[] {
   const cards: Card[] = [];
@@ -29,7 +30,7 @@ function generateAllCards(): Card[] {
     for (const number of NUMBERS) {
       for (const color of COLOR_NAMES) {
         const id = `${shape}-${number}-${color}`;
-        const svgPath = `/cards/${number}-${shape}-${color}.svg`;
+        const svgPath = cardArt(`${number}-${shape}-${color}`);
         cards.push({ id, shape, number, color, svgPath });
       }
     }

@@ -1,5 +1,5 @@
 // ============================================================================
-// Classic tap-to-screen + frame timing. Sampled per game (TIMING_SAMPLE_RATE),
+// Classic tap-to-screen + frame timing. Sampled per game (TIMING_SAMPLE_RATE, currently every game),
 // no personal data: only role, browser family, an Instagram in-app flag and
 // durations. Sent in small batches through the rate-capped
 // `log_classic_timing` RPC — never a direct table insert.

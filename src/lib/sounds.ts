@@ -1,3 +1,4 @@
+import { THEME_MP3, THEME_OGG } from "@/lib/assetUrls";
 // Synthesized audio effects + persisted settings.
 //
 // Every effect is built at play time from Web Audio nodes — there are no
@@ -11,7 +12,7 @@
 //
 // Two independent flags: sfxEnabled controls the effect functions; musicEnabled
 // controls the background theme (real recordings; each screen passes its own
-// track to startTheme, defaulting to the Daily's /sounds/theme.mp3).
+// track to startTheme, defaulting to the Daily's theme).
 // Both persist to localStorage so a refresh preserves the user's choice.
 //
 // unlockAudio() must be called from a user gesture — it resumes the context and
@@ -286,17 +287,17 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
 // ---------------------------------------------------------------------------
 
 /** The Daily's theme. `startTheme()` with no argument always means this one. */
-const DEFAULT_THEME_FILE = "/sounds/theme.mp3";
-/** Classic's own tracks, served straight out of `public/`. */
-export const CLASSIC_THEME_FILE = "/sounds/classic-theme.mp3";
-export const HOW_TO_PLAY_THEME_FILE = "/sounds/how-to-play.mp3";
+const DEFAULT_THEME_FILE = THEME_MP3.daily;
+/** Classic's own tracks, build-hashed from src/assets. */
+export const CLASSIC_THEME_FILE = THEME_MP3.classic;
+export const HOW_TO_PLAY_THEME_FILE = THEME_MP3.howTo;
 const THEME_GAIN = 0.15;
 
 /** OGG masters, keyed by the MP3 path each screen asks for. */
 const OGG_FOR_MP3: Record<string, string> = {
-  [DEFAULT_THEME_FILE]: "/sounds/Whoop_Whoop_Daily_Theme.ogg",
-  [CLASSIC_THEME_FILE]: "/sounds/Whoop_Whoop_Classic_Theme.ogg",
-  [HOW_TO_PLAY_THEME_FILE]: "/sounds/Whoop_Whoop_How_to_Play.ogg",
+  [DEFAULT_THEME_FILE]: THEME_OGG.daily,
+  [CLASSIC_THEME_FILE]: THEME_OGG.classic,
+  [HOW_TO_PLAY_THEME_FILE]: THEME_OGG.howTo,
 };
 
 let oggSupport: boolean | null = null;

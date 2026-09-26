@@ -1,3 +1,4 @@
+import { BADGE_URLS } from "@/lib/assetUrls";
 import React from "react";
 import { act, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
@@ -50,7 +51,7 @@ describe("Daily results score panel", () => {
 
     expect(screen.getByTestId("result-tier-tile")).toHaveTextContent("Rookie");
     expect(screen.queryByTestId("result-tier-badge")).toBeNull();
-    expect(MockImage.instances[0]?.src).toBe("/badges/rookie.svg");
+    expect(MockImage.instances[0]?.src).toBe(BADGE_URLS.rookie);
 
     act(() => MockImage.instances[0]?.onload?.());
     expect(await screen.findByTestId("result-tier-badge")).toHaveAttribute("alt", "Rookie badge");

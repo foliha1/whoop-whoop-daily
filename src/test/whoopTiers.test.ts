@@ -1,3 +1,4 @@
+import { BADGE_URLS } from "@/lib/assetUrls";
 // Presentation rules for the Whoop Score: the names players read, the
 // badge art gate, and the results-screen change line.
 
@@ -32,15 +33,15 @@ describe("Whoop Score presentation", () => {
   });
 
   it("shows a badge only when its art exists", () => {
-    expect(badgeArt("rookie")).toBe("/badges/rookie.svg");
-    expect(badgeArt("great_eye")).toBe("/badges/great_eye.svg");
-    expect(badgeArt("match_maker")).toBe("/badges/match_maker.svg");
-    expect(badgeArt("xray_vision")).toBe("/badges/xray_vision.svg");
-    expect(badgeArt("legend")).toBe("/badges/legend.svg");
+    expect(badgeArt("rookie")).toBe(BADGE_URLS.rookie);
+    expect(badgeArt("great_eye")).toBe(BADGE_URLS.great_eye);
+    expect(badgeArt("match_maker")).toBe(BADGE_URLS.match_maker);
+    expect(badgeArt("xray_vision")).toBe(BADGE_URLS.xray_vision);
+    expect(badgeArt("legend")).toBe(BADGE_URLS.legend);
     expect(badgeArt("unknown_badge")).toBeNull();
     // Every mapped badge points at a file under /badges.
     for (const path of Object.values(BADGE_ART)) {
-      expect(path.startsWith("/badges/")).toBe(true);
+      expect(path.includes("assets/badges/")).toBe(true);
     }
   });
 

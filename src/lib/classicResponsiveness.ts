@@ -123,7 +123,7 @@ export function isInstagramInApp(ua: string): boolean {
 }
 
 /** Share of games that report timing. */
-export const TIMING_SAMPLE_RATE = 0.1;
+export const TIMING_SAMPLE_RATE = 1;
 
 export function sampledGame(rand: number, rate = TIMING_SAMPLE_RATE): boolean {
   return rand < rate;

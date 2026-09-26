@@ -13,6 +13,7 @@ import {
   browserFamily,
   isInstagramInApp,
   sampledGame,
+  TIMING_SAMPLE_RATE,
 } from "@/lib/classicResponsiveness";
 import { DeadlineQueue } from "@/lib/hostDeadlines";
 import { useMultiplayerHost, runResumeDrain } from "@/hooks/useMultiplayerGame";
@@ -219,9 +220,11 @@ describe("4. host deadline catch-up on resume", () => {
 });
 
 describe("5. tap-to-screen measurement", () => {
-  it("samples a fraction of games and sends no personal data through the RPC", () => {
+  it("samples every game and sends no personal data through the RPC", () => {
+    expect(TIMING_SAMPLE_RATE).toBe(1);
     expect(sampledGame(0.05)).toBe(true);
-    expect(sampledGame(0.5)).toBe(false);
+    expect(sampledGame(0.999)).toBe(true);
+    expect(sampledGame(0.5, 0.1)).toBe(false);
     const sent: unknown[][] = [];
     __setTimingSender((s) => sent.push(s));
     beginTimingGame("gA", "joiner", 0.01);
@@ -232,7 +235,8 @@ describe("5. tap-to-screen measurement", () => {
     expect(keys).toEqual(["browser", "ig", "kind", "role", "surface", "total_ms"].sort());
     beginTimingGame("gB", "joiner", 0.99);
     recordTiming({ kind: "tap", surface: "flip", total_ms: 120 });
-    expect(__timingBuffer()).toHaveLength(0);
+    expect(__timingBuffer()).toHaveLength(1);
+    flushTiming();
     expect(src("lib/classicTiming.ts")).toMatch(/rpc\("log_classic_timing"/);
     expect(src("lib/classicTiming.ts")).not.toMatch(/from\("classic_timing_samples"\)/);
   });

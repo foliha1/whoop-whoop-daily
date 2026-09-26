@@ -1,3 +1,4 @@
+import { cardArt } from "@/lib/assetUrls";
 // ============================================================================
 // whoopBrain — pure, fallible memory model for the solo opponent WHOOP.
 //
@@ -84,7 +85,7 @@ export function corruptCard(card: Card, rng: () => number = Math.random): Card {
     shape,
     number,
     color,
-    svgPath: `/cards/${number}-${shape}-${color}.svg`,
+    svgPath: cardArt(`${number}-${shape}-${color}`),
   };
 }
 

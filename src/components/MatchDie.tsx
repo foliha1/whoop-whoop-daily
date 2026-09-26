@@ -1,3 +1,4 @@
+import { DIE_ART } from "@/lib/assetUrls";
 // ============================================================================
 // MatchDie — a CSS 3D cube representing the match die. Six faces on a
 // preserve-3d wrapper with perspective. No Three.js, no physics.
@@ -69,9 +70,9 @@ const FACE_ATTR: Record<FaceKey, RollAttribute> = {
 };
 
 export const MATCH_ART_SRC: Record<RollAttribute, string> = {
-  SHAPE:  "/dice/match-shape.svg",
-  NUMBER: "/dice/match-number.svg",
-  COLOR:  "/dice/match-color.svg",
+  SHAPE:  DIE_ART.SHAPE,
+  NUMBER: DIE_ART.NUMBER,
+  COLOR:  DIE_ART.COLOR,
 };
 
 const FACES: FaceKey[] = ["front", "back", "right", "left", "top", "bottom"];

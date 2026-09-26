@@ -1,3 +1,4 @@
+import { CARD_BACK_URL, DIE_ART, cardArt } from "@/lib/assetUrls";
 import React, { useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
@@ -111,9 +112,9 @@ const HowItWorksItem: React.FC<{ title: string; line: string; index: number }> =
 );
 
 const DIE_RULES: { src: string; label: string }[] = [
-  { src: "/dice/match-shape.svg", label: "SHAPE" },
-  { src: "/dice/match-number.svg", label: "NUMBER" },
-  { src: "/dice/match-color.svg", label: "COLOR" },
+  { src: DIE_ART.SHAPE, label: "SHAPE" },
+  { src: DIE_ART.NUMBER, label: "NUMBER" },
+  { src: DIE_ART.COLOR, label: "COLOR" },
 ];
 
 const DieRuleTile: React.FC<{ src: string; label: string; index: number }> = ({
@@ -163,15 +164,15 @@ const SecondaryWay: React.FC<{
 
 
 const BOARD_CARDS: string[] = [
-  "/cards/card-back.svg",
-  "/cards/2-star-red.svg",
-  "/cards/card-back.svg",
-  "/cards/card-back.svg",
-  "/cards/card-back.svg",
-  "/cards/3-circle-blue.svg",
-  "/cards/1-square-yellow.svg",
-  "/cards/card-back.svg",
-  "/cards/card-back.svg",
+  CARD_BACK_URL,
+  cardArt("2-star-red"),
+  CARD_BACK_URL,
+  CARD_BACK_URL,
+  CARD_BACK_URL,
+  cardArt("3-circle-blue"),
+  cardArt("1-square-yellow"),
+  CARD_BACK_URL,
+  CARD_BACK_URL,
 ];
 
 /** Decorative 3x3 board, desktop only, hidden from assistive tech. */
