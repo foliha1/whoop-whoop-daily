@@ -16,7 +16,7 @@
 // ============================================================================
 
 /** Public half of the server key used by claim-lock and release-lock. */
-export const SERVER_PUBLIC_KEY_B64 = "__SERVER_PUBLIC_KEY__";
+export const SERVER_PUBLIC_KEY_B64 = "BAIv38x0BEZthCDSnuabbkJVnqEWbTVbOhMQdtVfQGiFw4RCynSlGLhHZ6PLFwOIxT+SJ25jedV7QznohxkOkSY=";
 export const SERVER_SIGNER = "server";
 /** Intents older/newer than this (server clock) are dropped. */
 export const INTENT_MAX_SKEW_MS = 30000;
