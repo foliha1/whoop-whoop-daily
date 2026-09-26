@@ -155,6 +155,13 @@
       "when": 1790457351666,
       "tag": "0021_classic_signed_channel",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1790458497474,
+      "tag": "0022_revoke_public_room_rpcs",
+      "breakpoints": true
     }
   ]
 }
