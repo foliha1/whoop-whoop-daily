@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.get_room_by_code(text, text), public.room_seat_keys(uuid, uuid, text), public.register_room_seats(uuid, uuid, text, jsonb), public.join_room_session(uuid, text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_room_by_code(text, text), public.room_seat_keys(uuid, uuid, text), public.register_room_seats(uuid, uuid, text, jsonb), public.join_room_session(uuid, text, text) TO anon, authenticated, service_role;
