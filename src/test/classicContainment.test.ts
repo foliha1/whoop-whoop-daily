@@ -7,7 +7,7 @@ import { join } from "node:path";
 
 const root = process.cwd();
 const read = (p: string) => readFileSync(join(root, p), "utf8");
-const lockdown = read("drizzle/migrations/0016_classic_pids_and_room_lockdown.sql");
+const lockdown = read("drizzle/migrations/0016_classic_player_keys_and_room_lockdown.sql");
 const codeFormat = read("drizzle/migrations/0017_room_code_matches_client_format.sql");
 
 describe("rooms are server-only", () => {

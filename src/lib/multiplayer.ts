@@ -16,7 +16,7 @@
 import type { PublicState } from "@/lib/publicState";
 import type { Action } from "@/hooks/useGameState";
 
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
 
 // Total duration of the hero roll animation, in milliseconds. Shared across
 // the wire AND the reducer: the host schedules `ROLL_SETTLE` at
