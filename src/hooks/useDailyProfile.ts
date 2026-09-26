@@ -1,10 +1,9 @@
 // ============================================================================
-// useDailyProfile — the two "worth giving your email" reads for the results
-// screen: lifetime personal stats and today's percentile.
+// useDailyProfile — results-only Daily reads. Lifetime stats belong to the
+// dedicated Your Stats page and are deliberately not fetched here.
 //
-// Both are computed in SQL, both run only after the result has been persisted,
-// and both resolve to null on any failure so the caller hides the element
-// instead of showing zeroes.
+// The percentile is computed in SQL after the result has been persisted and
+// resolves to null on failure so the caller hides the element.
 // ============================================================================
 
 import { useEffect, useState } from "react";

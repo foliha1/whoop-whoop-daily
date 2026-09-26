@@ -250,7 +250,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     return { kind: "idle" };
   });
   useEffect(() => {
-    if (view.kind !== "idle") preloadGameArt();
+    if (view.kind === "host" || view.kind === "joiner" || view.kind === "solo") preloadGameArt();
   }, [view.kind]);
   const [busy, setBusy] = useState(false);
   const [codeInput, setCodeInput] = useState("");

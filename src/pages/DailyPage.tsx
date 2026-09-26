@@ -1291,15 +1291,21 @@ const DailyPage: React.FC = () => {
   const daily = useDailyGame();
   const { state, phase } = daily;
   const todayArtReady = React.useRef<Promise<void>>(Promise.resolve());
+  const todayArtSources = React.useMemo(
+    () => state.grid.flatMap((card) => card ? [card.svgPath] : []),
+    // The seeded opening grid is immutable until play starts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [daily.seed],
+  );
   useEffect(() => {
     void preloadEssentialGameArt();
-    todayArtReady.current = new Promise<void>((resolve) => {
-      const cancel = afterPaintIdleOrInteraction(() => {
-        void preloadDailyBoardArt(state.grid.flatMap((card) => card ? [card.svgPath] : [])).then(resolve);
-      });
-      return cancel;
+    let resolveReady = () => undefined;
+    todayArtReady.current = new Promise<void>((resolve) => { resolveReady = resolve; });
+    const cancel = afterPaintIdleOrInteraction(() => {
+      void preloadDailyBoardArt(todayArtSources).then(resolveReady);
     });
-  }, [state.grid]);
+    return () => { cancel(); resolveReady(); };
+  }, [todayArtSources]);
   useEffect(() => {
     if (phase === "READY") return;
     preloadGameArt();
