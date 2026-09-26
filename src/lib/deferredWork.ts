@@ -23,7 +23,7 @@ export function afterPaintIdleOrInteraction(work: () => void): () => void {
     requestAnimationFrame(() => {
       if (done) return;
       if ("requestIdleCallback" in window) idleId = window.requestIdleCallback(run, { timeout: 1500 });
-      else timerId = window.setTimeout(run, 250);
+      else timerId = globalThis.setTimeout(run, 250);
     });
   });
   return cleanup;
