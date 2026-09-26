@@ -1674,7 +1674,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         type="button"
         onClick={() => setShowLeaveConfirm(true)}
         disabled={starting}
-        className="ww-press" style={{ ...railButtonStyle(starting), opacity: starting ? 0.6 : 1 }}
+        className="ww-press" style={railButtonStyle(starting)}
       >
         <AutoFitText minScale={0.6}>Back</AutoFitText>
       </button>
@@ -1716,7 +1716,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const startingBanner = starting && startFailed ? (
     <div role="status" aria-live="polite" style={statusBarStyle}>
       Starting…
-      <AppButton variant="secondary" size="sm" onClick={() => void handleStartGame()}>
+        <AppButton roleStyle="primary" size="sm" onClick={() => void handleStartGame()}>
         Try again
       </AppButton>
     </div>

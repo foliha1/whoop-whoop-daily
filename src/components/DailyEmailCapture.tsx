@@ -252,7 +252,6 @@ const ReminderSignup: React.FC<{
           ...buttonStyle("secondary", "lg", { fullWidth: true }),
           width: "100%",
           cursor: status === "sending" ? "default" : "pointer",
-          opacity: status === "sending" ? 0.7 : 1,
         }}
       >
         {submitLabel}

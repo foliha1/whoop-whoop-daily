@@ -349,7 +349,7 @@ const SignInGate: React.FC = () => {
               type="button"
               onClick={() => void send()}
               disabled={busy}
-              style={buttonStyle("primary", "sm", { fullWidth: true, disabled: busy })}
+              style={buttonStyle("primary", "sm", { fullWidth: true })}
             >
               Send Link
             </button>
@@ -795,7 +795,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
               type="button"
               onClick={() => void exportSubscribers()}
               disabled={listBusy}
-              style={buttonStyle("primary", "sm", { disabled: listBusy })}
+              style={buttonStyle("primary", "sm")}
             >
               {listBusy ? "Preparing…" : "Download the List"}
             </button>
