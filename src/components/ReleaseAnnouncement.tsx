@@ -142,8 +142,8 @@ const ReleaseAnnouncement: React.FC<{
           </div>
         </div>
         <div style={{ flex: "0 0 auto", padding: SPACE[10], display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[3], background: COLORS.surface }}>
-          <AppButton ref={buttonRef} fullWidth tone="blue" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={() => close("primary")}>{primaryLabel}</AppButton>
-          <AppButton fullWidth variant="secondary" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={dismiss}>{secondaryLabel}</AppButton>
+          <AppButton ref={buttonRef} fullWidth roleStyle="primary" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={() => close("primary")}>{primaryLabel}</AppButton>
+          <AppButton fullWidth roleStyle="quiet" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={dismiss}>{secondaryLabel}</AppButton>
         </div>
       </div>
     </div>, host

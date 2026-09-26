@@ -488,7 +488,7 @@ const MusicWindow: React.FC = () => {
               onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
             >
               {currentPlaylist.label}
-              <ChevronDown size={12} style={{
+              <ChevronDown className="ww-disclosure-icon" size={12} style={{
                 transform: playlistOpen ? "rotate(180deg)" : "rotate(0deg)",
                 transition: `transform ${MOTION.fast}`,
               }} />

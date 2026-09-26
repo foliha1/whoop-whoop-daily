@@ -1,5 +1,5 @@
 import React from "react";
-import { COLORS, BORDER, RADIUS, FONT_FAMILY, MOTION, TEXT } from "@/lib/tokens";
+import { COLORS, RADIUS, TEXT, buttonHoverBg, buttonStyle, type ButtonVariant as CanonicalButtonVariant } from "@/lib/tokens";
 
 export type ButtonVariant = "primary" | "secondary" | "pill";
 export type ButtonTone = "ink" | "red" | "blue" | "orange" | "neutral" | "muted" | "success";
@@ -13,18 +13,9 @@ interface AppButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonEleme
   fullWidth?: boolean;
   /** Optional hover surface for controls placed on a custom panel. */
   hoverBackground?: string;
+  roleStyle?: "primary" | "secondary" | "accent" | "utility" | "quiet" | "destructive" | "destructive-confirm";
   style?: React.CSSProperties;
 }
-
-const TONE_MAP: Record<ButtonTone, { bg: string; hoverBg: string; fg: string }> = {
-  ink:     { bg: COLORS.ink,        hoverBg: COLORS.inkMuted,         fg: COLORS.surface },
-  red:     { bg: COLORS.red,        hoverBg: COLORS.redHover,         fg: COLORS.surface },
-  blue:    { bg: COLORS.blue,       hoverBg: COLORS.blueHover,        fg: COLORS.surface },
-  orange:  { bg: COLORS.orange,     hoverBg: COLORS.orangeHover,      fg: COLORS.ink },
-  neutral: { bg: COLORS.surface,    hoverBg: COLORS.panelMutedHover,  fg: COLORS.ink },
-  muted:   { bg: COLORS.panelMuted, hoverBg: COLORS.panelMutedHover,  fg: COLORS.ink },
-  success: { bg: COLORS.success,    hoverBg: COLORS.successHover,     fg: COLORS.ink },
-};
 
 const SIZE_MAP: Record<ButtonSize, { fontSize: number; padding: string }> = {
   sm: { fontSize: TEXT.caption.size, padding: "6px 12px" },
@@ -33,29 +24,31 @@ const SIZE_MAP: Record<ButtonSize, { fontSize: number; padding: string }> = {
 };
 
 export const AppButton = React.forwardRef<HTMLButtonElement, AppButtonProps>(
-  ({ variant = "primary", tone = "ink", size = "md", active = false, fullWidth = false, disabled, hoverBackground, style, onMouseEnter, onMouseLeave, ...rest }, ref) => {
+  ({ variant = "primary", tone = "ink", size = "md", active = false, fullWidth = false, disabled, hoverBackground, roleStyle, style, onMouseEnter, onMouseLeave, ...rest }, ref) => {
     const [focusVisible, setFocusVisible] = React.useState(false);
-    const toneColors = TONE_MAP[tone];
     const sizing = SIZE_MAP[size];
     const isPill = variant === "pill";
-    const isSecondary = variant === "secondary";
-
-    const baseBg = isSecondary ? COLORS.surface : toneColors.bg;
-    const baseFg = isSecondary ? COLORS.ink : toneColors.fg;
-    const hoverBg = isSecondary ? COLORS.panelMutedHover : toneColors.hoverBg;
+    const canonical: CanonicalButtonVariant = roleStyle === "primary" ? "primary"
+      : roleStyle === "secondary" ? "secondary"
+      : roleStyle === "accent" ? "accent"
+      : roleStyle === "utility" ? "ink"
+      : roleStyle === "destructive" ? "danger"
+      : roleStyle === "destructive-confirm" ? "dangerConfirm"
+      : roleStyle === "quiet" ? "quiet"
+      : variant === "secondary" ? "quiet"
+      : tone === "red" ? "primary"
+      : tone === "blue" ? "secondary"
+      : tone === "orange" || tone === "success" ? "accent"
+      : tone === "ink" ? "ink" : "quiet";
+    const canonicalStyle = buttonStyle(canonical, size, { fullWidth, disabled, selected: active });
+    const baseBg = canonicalStyle.background as string;
+    const hoverBg = hoverBackground ?? buttonHoverBg(canonical);
 
     const mergedStyle: React.CSSProperties = {
-      fontFamily: FONT_FAMILY,
-      fontStyle: "italic",
+      ...canonicalStyle,
       fontSize: sizing.fontSize,
       padding: sizing.padding,
       borderRadius: isPill ? 999 : RADIUS.md,
-      border: BORDER.standard,
-      background: active ? hoverBg : baseBg,
-      color: baseFg,
-      cursor: disabled ? "default" : "pointer",
-      opacity: disabled ? 0.4 : 1,
-      transition: `background ${MOTION.fast}`,
       whiteSpace: "nowrap",
       textAlign: "center",
       width: fullWidth ? "100%" : undefined,
@@ -74,7 +67,7 @@ export const AppButton = React.forwardRef<HTMLButtonElement, AppButtonProps>(
         }}
         onBlur={() => setFocusVisible(false)}
         onMouseEnter={(e) => {
-          if (!disabled) e.currentTarget.style.background = hoverBackground ?? hoverBg;
+          if (!disabled) e.currentTarget.style.background = hoverBg;
           onMouseEnter?.(e);
         }}
         onMouseLeave={(e) => {

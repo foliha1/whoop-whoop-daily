@@ -337,7 +337,7 @@ export const LeaveGroupModal: React.FC<{
       className="ww-press"
       onClick={onConfirm}
       data-testid="group-leave-confirm"
-      style={{ ...buttonStyle("danger", "lg", { mobile }), alignSelf: "stretch" }}
+      style={{ ...buttonStyle("dangerConfirm", "lg", { mobile }), alignSelf: "stretch" }}
     >
       Leave Group
     </button>

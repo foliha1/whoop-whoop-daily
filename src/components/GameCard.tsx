@@ -215,6 +215,7 @@ const GameCard = ({
           transition: `transform ${CARD_FLIP_MS}ms cubic-bezier(0.4,0,0.2,1)`,
           transform: faceUp ? "rotateY(0deg)" : "rotateY(180deg)",
         }}
+          className="ww-card-flip"
       >
 
         {/* Front */}

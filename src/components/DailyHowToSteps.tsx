@@ -1411,9 +1411,8 @@ const DailyHowToSteps: React.FC<{
               className="ww-press"
               onClick={finish}
               style={{
-                ...buttonBase,
+                ...buttonStyle("primary", "lg"),
                 flex: "1 1 0",
-                background: COLORS.red,
                 border: `2px solid ${INK}`,
                 fontStyle: "italic",
               }}
@@ -1428,7 +1427,7 @@ const DailyHowToSteps: React.FC<{
                   type="button"
                   className="ww-press"
                   onClick={() => go(index - 1)}
-                  style={{ ...buttonBase, flex: "1 1 0" }}
+                  style={{ ...buttonStyle("ink", "lg"), flex: "1 1 0" }}
                 >
                   <ChevronLeft size={18} strokeWidth={2} aria-hidden="true" />
                   Back
@@ -1438,7 +1437,7 @@ const DailyHowToSteps: React.FC<{
                 type="button"
                 className="ww-press"
                 onClick={() => go(index + 1)}
-                style={{ ...buttonBase, flex: "1 1 0" }}
+                style={{ ...buttonStyle("secondary", "lg"), flex: "1 1 0" }}
               >
                 Next
                 <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />

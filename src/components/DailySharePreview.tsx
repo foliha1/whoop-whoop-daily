@@ -369,10 +369,9 @@ const DailySharePreview: React.FC<{
               disabled={!imageUrl || working}
               data-testid="share-preview-send"
               style={{
-                ...buttonStyle("primary", "lg", { mobile }),
+                ...buttonStyle("primary", "lg", { mobile, disabled: !imageUrl }),
                 flex: "2 1 0",
                 minWidth: 0,
-                opacity: !imageUrl || working ? 0.6 : 1,
               }}
             >
               {working ? "Sending…" : "Send"}

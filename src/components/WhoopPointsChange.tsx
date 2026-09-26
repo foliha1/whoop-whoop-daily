@@ -18,7 +18,8 @@ const WhoopPointsChange: React.FC<{
   mobile: boolean;
   /** True when today crossed into a higher tier: the block says so. */
   tierUp?: boolean;
-}> = ({ points, mobile, tierUp = false }) => {
+  animate?: boolean;
+}> = ({ points, mobile, tierUp = false, animate = true }) => {
   if (points === null) return null;
 
   const ink = tierUp ? RAW.warmBlack : COLORS.ink;
@@ -34,7 +35,7 @@ const WhoopPointsChange: React.FC<{
     <div
       data-testid="result-points"
       data-tier-up={tierUp ? "1" : undefined}
-      className="daily-intro"
+      className={animate ? "daily-intro" : undefined}
       style={{
         alignSelf: "stretch",
         boxSizing: "border-box",

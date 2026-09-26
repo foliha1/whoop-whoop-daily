@@ -125,6 +125,7 @@ const DailyRecallTrend: React.FC<{ trend: RecallTrend; mobile: boolean }> = ({
           }}
         >
           <ChevronDown
+            className="ww-disclosure-icon"
             size={16}
             strokeWidth={2}
             aria-hidden="true"

@@ -875,7 +875,7 @@ const DailyResultCard: React.FC<{
           ...resultMotion("score"),
         }}
       >
-        <WhoopPointsChange points={whoop} mobile={mobile} tierUp={tierUp} />
+        <WhoopPointsChange points={whoop} mobile={mobile} tierUp={tierUp} animate={false} />
       </div>
 
 

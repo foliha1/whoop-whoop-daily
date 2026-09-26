@@ -271,9 +271,8 @@ const DailySignIn: React.FC<{
         className="ww-press"
         disabled={busy}
         style={{
-          ...buttonStyle("secondary", "lg", { fullWidth: true, disabled: busy }),
+          ...buttonStyle("secondary", "lg", { fullWidth: true }),
           width: "100%",
-          opacity: busy ? 0.7 : 1,
         }}
       >
         {isCode ? "Sign In" : "Send Code"}
@@ -284,7 +283,7 @@ const DailySignIn: React.FC<{
             type="button"
             disabled={busy || resendSeconds > 0}
             onClick={() => void resendCode()}
-            style={{ ...bodyStyle, fontSize: 13, background: "none", border: "none", color: COLORS.inkMuted, textDecoration: "underline", cursor: busy || resendSeconds > 0 ? "default" : "pointer", minHeight: 44, opacity: busy || resendSeconds > 0 ? 0.65 : 1 }}
+            style={{ ...buttonStyle("quiet", "sm", { disabled: resendSeconds > 0 }), fontSize: 13, minHeight: 44 }}
           >
             {resendSeconds > 0 ? `Resend code in ${resendSeconds}s` : "Resend code"}
           </button>
@@ -296,7 +295,7 @@ const DailySignIn: React.FC<{
               setError(null);
               setResendStatus(null);
             }}
-            style={{ ...bodyStyle, fontSize: 13, background: "none", border: "none", color: COLORS.inkMuted, textDecoration: "underline", cursor: "pointer", minHeight: 44 }}
+            style={{ ...buttonStyle("quiet", "sm"), fontSize: 13, minHeight: 44 }}
           >
             Use a different email
           </button>
