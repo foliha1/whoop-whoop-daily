@@ -42,9 +42,9 @@ export function canonical(value: unknown): string {
   return `{${keys.map((k) => `${JSON.stringify(k)}:${canonical(obj[k])}`).join(",")}}`;
 }
 
-export function signingInput(roomId: string, payload: Record<string, unknown>): Uint8Array {
+export function signingInput(roomId: string, payload: Record<string, unknown>): Uint8Array<ArrayBuffer> {
   const { sig: _sig, ...rest } = payload;
-  return new TextEncoder().encode(`ww-classic:v2:${roomId}:${canonical(rest)}`);
+  return new TextEncoder().encode(`ww-classic:v2:${roomId}:${canonical(rest)}`) as Uint8Array<ArrayBuffer>;
 }
 
 // ---------- base64 ----------
@@ -56,7 +56,7 @@ export function toB64(bytes: ArrayBuffer | Uint8Array): string {
   return btoa(s);
 }
 
-export function fromB64(b64: string): Uint8Array {
+export function fromB64(b64: string): Uint8Array<ArrayBuffer> {
   const s = atob(b64);
   const out = new Uint8Array(s.length);
   for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
