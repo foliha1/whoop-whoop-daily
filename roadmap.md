@@ -75,5 +75,5 @@
 - [ ] Remove Classic's nested main-window lazy boundary
 - [ ] Gate Daily results-only reads and omit unused lifetime stats
 - [ ] Reserve Your Stats late-data section sizes
-- [ ] Measure cold mobile 4G before/after; analyze bundles and report production cache headers
+- [ ] Build and serve unchanged production output for the cold mobile 4G baseline, then repeat after changes with the same profile; analyze bundles and report production cache headers
 - [ ] Add regressions, run the full suite, verify the preview, and keep unpublished

@@ -34,7 +34,7 @@ Improve startup loading only. Preserve gameplay, timings, animation behavior, co
 
 - Add focused regression tests for preload stages, decode-before-reveal, active-only/reduced-motion logo loading, single-step Classic loading, deferred music, data gates, and stable Stats placeholders.
 - Run the full suite once with no skipped tests and confirm a clean preview build.
-- Repeat cold mobile throttled-4G measurements for `/` and `/classic.html`, reporting requests, transferred bytes, and Play visible/usable time before versus after. The same script/profile will be used for both runs.
+- Before application edits, build and serve the current production output and capture the cold mobile throttled-4G baseline for `/` and `/classic.html`. After implementation, rebuild and repeat with the same script/profile, reporting requests, transferred bytes, and Play visible/usable time before versus after. Development-server numbers are excluded.
 - Run bundle analysis and report, without removing: TanStack Query, both toast systems, and the shell tooltip provider. Current source audit indicates Query has a provider but no query hooks; both toast systems have consumers; tooltip primitives are used by the sidebar path.
 - Report production cache headers without changing hosting: HTML is currently no-cache; hashed JS/CSS are one-year immutable; fonts, card/badge SVGs, and OGG files currently have ETags but no `Cache-Control` header.
 - Do not publish until approved.
