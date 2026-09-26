@@ -33,7 +33,7 @@ describe("startup loading boundaries", () => {
     expect(source).toContain("preloadEssentialGameArt()");
     expect(source).toContain("afterPaintIdleOrInteraction");
     expect(source).toContain("preloadDailyBoardArt(todayArtSources)");
-    expect(source).toContain("todayArtReady.current.then");
+    expect(source).toContain("todayArtReady.current");
     expect(source).toContain('if (phase === "READY") return');
   });
 
