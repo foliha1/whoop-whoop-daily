@@ -1032,6 +1032,8 @@ const DailyReadyScreen: React.FC<{
   mobile?: boolean;
   onPlay: () => void;
   onHowToPlay: () => void;
+  /** True while a Play tap is waiting on board art (bounded by the ceiling). */
+  playLoading?: boolean;
 }> = ({
   today,
   streak,
