@@ -1149,6 +1149,48 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     );
   };
 
+  // Rematch: register a fresh server game id for the same frozen seats, so
+  // every rematch is its own verified game (results, claim locks, signed
+  // channel ordering all follow the new id — the same path "Let's Play!"
+  // takes). If registration fails, the rematch still starts on the old id,
+  // exactly as before; only its result won't be saved.
+  async function startRematch() {
+    if (rematchBusyRef.current) return;
+    rematchBusyRef.current = true;
+    try {
+      const seats = frozenSeats;
+      const roomId = activeRoom?.id;
+      let nextId: string | null = null;
+      if (seats && roomId) {
+        const candidate = crypto.randomUUID();
+        const ok = await registerSeatsWithRetry(() =>
+          supabase.rpc("register_room_seats_by_pid", {
+            p_room_id: roomId,
+            p_game_id: candidate,
+            p_host_visitor_id: browserId,
+            p_seats: seats.map((e) => ({ seat: e.seat, pid: e.pid })),
+          }),
+        );
+        if (ok) {
+          await security?.directory.refresh(true);
+          nextId = candidate;
+        }
+      }
+      if (nextId) setGameId(nextId);
+      completedFiredRef.current = false;
+      host.dispatch({
+        type: "INIT",
+        slotCount: host.state.slotCount,
+        seatCount: host.state.seatCount,
+        names: host.state.names,
+      });
+    } finally {
+      rematchBusyRef.current = false;
+    }
+  }
+
+
+
 
   // ---------- SOLO ----------
   if (view.kind === "solo") {
@@ -1194,12 +1236,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           }
           if (action.type === "NEW_GAME") {
             // Rematch: same seats, same grid size, scores reset to zero.
-            host.dispatch({
-              type: "INIT",
-              slotCount: host.state.slotCount,
-              seatCount: host.state.seatCount,
-              names: host.state.names,
-            });
+            void startRematch();
             return;
           }
           if (action.type === "CANCEL_CLAIM") {
