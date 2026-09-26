@@ -1,6 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { signEnvelope, type IncomingVerifier } from "@/lib/channelSigning";
+
+/**
+ * Per-join signing context. `pid` is this tab's public id (safe to share);
+ * `privateKey` is non-extractable and in memory only; `verify` decides
+ * whether an incoming message is authentic (keys come from the server).
+ */
+export interface ChannelSecurity {
+  roomId: string;
+  pid: string;
+  privateKey: CryptoKey;
+  verify: IncomingVerifier;
+}
 
 export type PresenceStatus = "connecting" | "connected" | "error";
 
@@ -38,6 +51,7 @@ export function useRoomPresence(
   visitorId: string,
   displayName: string,
   isHost: boolean,
+  security: ChannelSecurity | null,
 ): {
   participants: PresenceParticipant[];
   status: PresenceStatus;
@@ -61,6 +75,8 @@ export function useRoomPresence(
   displayNameRef.current = displayName;
   const isHostRef = useRef(isHost);
   isHostRef.current = isHost;
+  const securityRef = useRef(security);
+  securityRef.current = security;
 
   useEffect(() => {
     if (!roomId) {
@@ -80,7 +96,40 @@ export function useRoomPresence(
         broadcast: { self: false, ack: false },
       },
     });
-    channelRef.current = ch;
+    // Consumers get a view of the channel whose broadcast `send` signs every
+    // message with this tab's key, in send order. Everything else passes
+    // straight through to the real channel.
+    let sendChain: Promise<unknown> = Promise.resolve();
+    const signedSend = (args: Parameters<RealtimeChannel["send"]>[0], opts?: Parameters<RealtimeChannel["send"]>[1]) => {
+      const sec = securityRef.current;
+      const payload = (args as { payload?: unknown }).payload;
+      if (!sec || args.type !== "broadcast" || !payload || typeof payload !== "object") {
+        return ch.send(args, opts);
+      }
+      const job = sendChain.then(async () => {
+        const signed = await signEnvelope(payload as object, sec.pid, sec.privateKey, sec.roomId);
+        return ch.send({ ...args, payload: signed }, opts);
+      });
+      sendChain = job.catch(() => undefined);
+      return job;
+    };
+    const exposed = new Proxy(ch, {
+      get(target, prop) {
+        if (prop === "send") return signedSend;
+        const v = Reflect.get(target, prop, target);
+        return typeof v === "function" ? v.bind(target) : v;
+      },
+    }) as RealtimeChannel;
+    channelRef.current = exposed;
+
+    // Incoming broadcasts are verified in arrival order before fan-out;
+    // anything that fails verification never reaches game code.
+    let recvChain: Promise<unknown> = Promise.resolve();
+    const deliver = (payload: unknown) => {
+      listenersRef.current.forEach((cb) => {
+        try { cb({ payload }); } catch { /* isolate */ }
+      });
+    };
 
 
     const syncParticipants = () => {
@@ -116,9 +165,14 @@ export function useRoomPresence(
       .on("presence", { event: "join" }, syncParticipants)
       .on("presence", { event: "leave" }, syncParticipants)
       .on("broadcast", { event: "msg" }, (msg: { payload?: unknown }) => {
-        listenersRef.current.forEach((cb) => {
-          try { cb({ payload: msg.payload }); } catch { /* isolate */ }
-        });
+        const payload = msg.payload;
+        recvChain = recvChain
+          .then(async () => {
+            const sec = securityRef.current;
+            if (!sec) return;
+            if (await sec.verify(payload)) deliver(payload);
+          })
+          .catch(() => undefined);
       })
       .subscribe(async (subStatus) => {
         if (subStatus === "SUBSCRIBED") {
@@ -129,7 +183,7 @@ export function useRoomPresence(
               joined_at: joinedAtRef.current,
               is_host: isHostRef.current,
             } satisfies PresenceMeta);
-            setChannel(ch);
+            setChannel(exposed);
             setStatus("connected");
             setConnectEpoch((n) => n + 1);
           } catch (e) {
@@ -160,7 +214,7 @@ export function useRoomPresence(
     let rejoining = false;
     const rejoin = () => {
       if (rejoining) return;
-      if (channelRef.current !== ch) return; // superseded by a newer channel
+      if (channelRef.current !== exposed) return; // superseded by a newer channel
       rejoining = true;
       void (async () => {
         try {
@@ -173,7 +227,7 @@ export function useRoomPresence(
                 else if (subStatus === "CHANNEL_ERROR" || subStatus === "TIMED_OUT" || subStatus === "CLOSED") resolve();
               });
             });
-            if (channelRef.current !== ch) return;
+            if (channelRef.current !== exposed) return;
           }
           await ch.track({
             pid: visitorId,
@@ -181,8 +235,8 @@ export function useRoomPresence(
             joined_at: joinedAtRef.current,
             is_host: isHostRef.current,
           } satisfies PresenceMeta);
-          if (channelRef.current !== ch) return;
-          setChannel(ch);
+          if (channelRef.current !== exposed) return;
+          setChannel(exposed);
           setStatus("connected");
           setConnectEpoch((n) => n + 1);
         } catch (e) {
