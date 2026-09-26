@@ -46,8 +46,12 @@ export type IntentAction =
 
 export interface IntentPayload {
   seat: number;
-  pid: string; // sender identity for host-side validation
+  pid: string; // sender's public id (never a secret)
   action: IntentAction;
+  /** Game this intent belongs to; the host drops intents for other games. */
+  gameId?: string;
+  /** Random per-intent value; the host drops any it has already seen this game. */
+  nonce?: string;
   /** Sender's server-clock time; orders queued intents on host resume. */
   sentAt?: number;
   /** Sampled timing probe (random id + tap time). No identity. */
@@ -229,7 +233,16 @@ export interface HeartbeatEnvelope {
   payload: HeartbeatPayload;
 }
 
-export type Envelope =
+// Every envelope on the channel carries its signer's public id and an ECDSA
+// P-256 signature over its full contents (see src/lib/channelSigning.ts).
+// `from` is "server" for messages sent by the claim-lock/release-lock
+// functions. Receivers verify against keys fetched from the server only.
+export interface SignedFields {
+  from?: string;
+  sig?: string;
+}
+
+export type Envelope = (
   | StateEnvelope
   | IntentEnvelope
   | ClaimGrantEnvelope
@@ -238,7 +251,8 @@ export type Envelope =
   | RollRejectEnvelope
   | ClaimRejectEnvelope
   | HeartbeatEnvelope
-  | StateRequestEnvelope;
+  | StateRequestEnvelope
+) & SignedFields;
 
 export function jsonSerialize(payload: unknown): string {
   return JSON.stringify(payload);
