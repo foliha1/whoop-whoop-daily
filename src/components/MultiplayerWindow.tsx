@@ -992,7 +992,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     height: "100%",
     padding: 0,
     opacity: 1,
-    ...(disabled ? { background: COLORS.inkMuted, color: COLORS.panel } : null),
   });
 
   /** Inline error/alert strip. */
@@ -1404,7 +1403,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               onClick={handleConfirmName}
               disabled={!canContinue}
               className={canContinue ? "ww-press" : undefined}
-              style={{ ...playButtonStyle(!canContinue), opacity: canContinue ? 1 : 0.7 }}
+              style={playButtonStyle(!canContinue)}
             >
               <AutoFitText minScale={0.55}>
                 {busy ? "Connecting…" : showCodeField ? "Join Table" : "Let's Play!"}
@@ -1457,8 +1456,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       padding: SPACE[8],
       gap: SPACE[4],
       cursor: busy ? "default" : "pointer",
-      opacity: busy ? 0.7 : 1,
-      transition: `opacity ${MOTION.fast}`,
+      color: RAW.cream,
+      transition: `background ${MOTION.fast}`,
     });
     const playModeLabelStyle = (color: string): React.CSSProperties => ({
       ...textStyle("title", mobile),
@@ -1493,7 +1492,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 <circle cx="16" cy="11" r="5" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" />
                 <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" strokeLinecap="round" />
               </svg>
-              <div style={playModeLabelStyle(COLORS.soloTint)}>Play Solo</div>
+              <div style={playModeLabelStyle(RAW.cream)}>Play Solo</div>
             </button>
 
             <button
@@ -1509,7 +1508,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 <circle cx="48" cy="12" r="5" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" />
                 <path d="M38 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
               </svg>
-              <div style={playModeLabelStyle(COLORS.peepsTint)}>Play with Peeps</div>
+              <div style={playModeLabelStyle(RAW.cream)}>Play with Peeps</div>
             </button>
           </div>
 
@@ -1734,6 +1733,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           animation: "spin 0.8s linear infinite",
           display: "inline-block",
         }}
+        className="ww-progress-spinner"
       />
       Starting game…
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -1795,7 +1795,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             type="button"
             onClick={leaveToIdle}
             style={{
-              ...buttonStyle("danger", "lg", { mobile }),
+              ...buttonStyle("dangerConfirm", "lg", { mobile }),
               fontStyle: "italic",
               flexGrow: 1,
               height: CONTROL_H.lg + SPACE[2],

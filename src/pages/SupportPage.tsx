@@ -133,7 +133,7 @@ const SupportPage: React.FC = () => {
               A memory game where the rules keep changing.
             </h1>
             <Link to="/" style={{ textDecoration: "none", width: "100%" }}>
-              <AppButton variant="primary" tone="red" size="md" fullWidth>
+              <AppButton roleStyle="primary" size="md" fullWidth>
                 Play Now
               </AppButton>
             </Link>
@@ -269,7 +269,7 @@ const SupportPage: React.FC = () => {
             <p style={{ ...bodyStyle, maxWidth: 280 }}>
               48 cards, 2 match dice, and enough competition to ruin your family dinner.
             </p>
-            <AppButton variant="primary" tone="red" size="md">
+            <AppButton roleStyle="secondary" size="md">
               Pre-Order Now
             </AppButton>
             <div style={{ ...textStyle("caption", true), color: COLORS.inkMuted }}>

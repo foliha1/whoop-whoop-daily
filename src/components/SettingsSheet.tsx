@@ -14,7 +14,7 @@
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePortalHost } from "@/hooks/usePortalHost";
-import { BORDER, COLORS, FONT_FAMILY, MOTION, RADIUS } from "@/lib/tokens";
+import { BORDER, COLORS, FONT_FAMILY, MOTION, RADIUS, buttonStyle } from "@/lib/tokens";
 import { useThemeMode, type ThemeMode } from "@/lib/nightMode";
 import {
   getSfxEnabled,
@@ -254,10 +254,8 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
                     fontFamily: FONT_FAMILY,
                     fontSize: 15,
                     letterSpacing: "0.03em",
+                    ...buttonStyle("quiet", "md", { selected: active }),
                     color: active ? COLORS.surface : COLORS.ink,
-                    background: active ? COLORS.ink : "transparent",
-                    border: BORDER.heavy,
-                    borderRadius: RADIUS.sm,
                     boxSizing: "border-box",
                   }}
                 >
@@ -336,7 +334,7 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
                   setConfirmDelete(false);
                   if (ok) window.location.reload();
                 }}
-                style={{ ...howToStyle, cursor: "pointer", background: COLORS.red, color: COLORS.surface }}
+                style={{ ...buttonStyle("dangerConfirm", "md", { fullWidth: true }), width: "100%" }}
               >
                 Tap Again to Delete Everything
               </button>
@@ -344,7 +342,7 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
               <button
                 type="button"
                 onClick={() => setConfirmDelete(true)}
-                style={{ ...howToStyle, cursor: "pointer", background: "transparent", color: COLORS.red }}
+                style={{ ...buttonStyle("danger", "md", { fullWidth: true }), width: "100%" }}
               >
                 Delete Account
               </button>

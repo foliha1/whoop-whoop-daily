@@ -249,7 +249,7 @@ const ReminderSignup: React.FC<{
         className="ww-press"
         disabled={status === "sending"}
         style={{
-          ...buttonStyle("secondary", "lg", { fullWidth: true, disabled: status === "sending" }),
+          ...buttonStyle("secondary", "lg", { fullWidth: true }),
           width: "100%",
           cursor: status === "sending" ? "default" : "pointer",
           opacity: status === "sending" ? 0.7 : 1,

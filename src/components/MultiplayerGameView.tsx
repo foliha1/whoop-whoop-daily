@@ -616,9 +616,9 @@ const ScoreRow: React.FC<{
 /** Exported so the scripted How to Play demo can show the real call button. */
 export type ButtonKind = "WHOOP" | "YOUR_ROLL" | "SELECT_MATCH" | "DISABLED";
 const ButtonStyles: Record<ButtonKind, { bg: string; text: string; label: string }> = {
-  WHOOP:        { bg: RED,    text: SURFACE, label: "WHOOP! WHOOP!" },
-  YOUR_ROLL:    { bg: ORANGE, text: INK,     label: "Your Roll!" },
-  SELECT_MATCH: { bg: BLUE,   text: SURFACE, label: "Select Match" },
+  WHOOP:        { bg: RED,    text: RAW.cream,     label: "WHOOP! WHOOP!" },
+  YOUR_ROLL:    { bg: ORANGE, text: RAW.warmBlack, label: "Your Roll!" },
+  SELECT_MATCH: { bg: BLUE,   text: RAW.cream,     label: "Select Match" },
   DISABLED:     { bg: PANEL,  text: MUTED,   label: "Wait" },
 };
 
@@ -1813,7 +1813,7 @@ const MultiplayerGameView: React.FC<Props> = ({
         {opponentRow}
         {callerName && <CallerSignal name={callerName} />}
         {activeBanner && (
-          <div style={{
+          <div className="ww-score-banner-motion" style={{
             position: "absolute", inset: 0, zIndex: 10,
             pointerEvents: "none",
             display: "flex", alignItems: "center", justifyContent: "center",
@@ -1993,10 +1993,11 @@ const MultiplayerGameView: React.FC<Props> = ({
           the play root, above the grid but below modals. It owns the whole
           reveal → hold → ghost timeline. */}
       {ghost.length > 0 && (
-        // No startFaceUp: the claimed pair is face down at claim time, so the
-        // ghosts start face down too and play the real flip-up reveal.
+        // Multiplayer cards are already face up. Keep the 500ms reveal beat as
+        // a hold instead of flipping the visible pair down and back up.
         <DailyMatchGhost
           pair={ghost}
+          startFaceUp
           onDone={() => setGhost([])}
         />
       )}
@@ -2045,9 +2046,8 @@ const MultiplayerGameView: React.FC<Props> = ({
               onClick={() => setShowLeave(false)}
               style={{
                 all: "unset", cursor: "pointer",
-                padding: "8px 16px", background: SURFACE, color: INK,
-                border: BORDER_HEAVY, borderRadius: R_BOX,
-                fontFamily: FONT_FAMILY, fontSize: 16,
+                ...buttonStyle("quiet", "md"),
+                padding: "8px 16px", borderRadius: R_BOX,
               }}
             >
               Cancel
@@ -2057,8 +2057,8 @@ const MultiplayerGameView: React.FC<Props> = ({
               onClick={() => { setShowLeave(false); onLeave(); }}
               style={{
                 all: "unset", cursor: "pointer",
-                padding: "8px 16px", background: RED, color: SURFACE,
-                border: BORDER_HEAVY, borderRadius: R_BOX,
+                ...buttonStyle("dangerConfirm", "md"),
+                padding: "8px 16px", borderRadius: R_BOX,
                 ...textStyle("control"),
               }}
             >

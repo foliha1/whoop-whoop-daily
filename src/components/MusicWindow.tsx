@@ -232,7 +232,7 @@ const MusicWindow: React.FC = () => {
         {ready ? (
           <>
             <div style={{ overflow: "hidden", whiteSpace: "nowrap", width: "100%", textAlign: "center" }}>
-              <span style={{
+              <span className={trackTitle.length > 25 ? "ww-music-marquee" : undefined} style={{
                 fontFamily: FONT_FAMILY,
                 fontSize: "clamp(18px, 3vw, 28px)",
                 lineHeight: "35px",
@@ -244,7 +244,7 @@ const MusicWindow: React.FC = () => {
               </span>
             </div>
             <div style={{ overflow: "hidden", whiteSpace: "nowrap", width: "100%", textAlign: "center" }}>
-              <span style={{
+              <span className={artist.length > 25 ? "ww-music-marquee" : undefined} style={{
                 fontFamily: FONT_FAMILY,
                 fontSize: "clamp(13px, 2.2vw, 20px)",
                 lineHeight: "24px",
@@ -488,7 +488,7 @@ const MusicWindow: React.FC = () => {
               onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
             >
               {currentPlaylist.label}
-              <ChevronDown size={12} style={{
+              <ChevronDown className="ww-disclosure-icon" size={12} style={{
                 transform: playlistOpen ? "rotate(180deg)" : "rotate(0deg)",
                 transition: `transform ${MOTION.fast}`,
               }} />

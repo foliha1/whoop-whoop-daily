@@ -89,6 +89,7 @@ export const MatchGhostCard: React.FC<{
     }}
   >
     <div
+      className="ww-match-ghost-flip"
       style={{
         position: "absolute",
         inset: 0,

@@ -601,16 +601,8 @@ All colors MUST be HSL.
 
 
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
+/* Reduced motion is authored per effect below. A universal duration override
+   used to erase intentional fades while gameplay timers kept running. */
 
 /* DieDisplay animations — uses COLORS.orange (#E79024) and COLORS.surface (#F8F2E9) */
 @keyframes die-roll {
@@ -655,6 +647,14 @@ All colors MUST be HSL.
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ww-card-flip,
+  .ww-match-ghost-flip,
+  .ww-disclosure-icon,
+  .ww-theme-swatch { transition: none !important; }
+  .ww-theme-swatch:hover { transform: none !important; }
+  .ww-music-marquee,
+  .ww-progress-spinner { animation: none !important; }
+  .ww-score-banner-motion { transform: none !important; transition: opacity 200ms ease !important; }
   .ww-shine-thin, .ww-shine-wide { animation: none; opacity: 0; }
 }
 

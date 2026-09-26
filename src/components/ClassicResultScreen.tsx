@@ -303,7 +303,7 @@ const ClassicResultScreen: React.FC<{
                 role="status"
                 aria-live="polite"
                 style={{
-                  ...buttonStyle("neutral", "lg", { mobile, fullWidth: true, disabled: true }),
+                  ...buttonStyle("quiet", "lg", { mobile, fullWidth: true, disabled: true }),
                   ...textStyle("resultButton", mobile),
                   background: COLORS.panel,
                   color: COLORS.inkMuted,

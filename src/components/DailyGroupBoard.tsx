@@ -122,7 +122,7 @@ const TabButton: React.FC<{
     onClick={onClick}
     className="ww-press"
     style={{
-      ...buttonStyle(active ? "secondary" : "quiet", "md", { mobile }),
+      ...buttonStyle("quiet", "md", { mobile, selected: active }),
       flex: "1 1 0",
       minWidth: 0,
     }}
@@ -322,7 +322,7 @@ const DailyGroupBoard: React.FC<{
           onClick={copyCode}
           aria-label={`Copy join code ${group.code}`}
           data-testid="group-copy-code"
-          style={{ ...buttonStyle("neutral", "lg", { mobile }), alignSelf: "stretch", letterSpacing: "0.12em" }}
+          style={{ ...buttonStyle("accent", "lg", { mobile }), alignSelf: "stretch", letterSpacing: "0.12em" }}
         >
           {group.code.toUpperCase()}
         </button>

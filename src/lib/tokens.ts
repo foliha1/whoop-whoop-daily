@@ -316,20 +316,22 @@ export type ButtonVariant =
   | "play"        // the big italic "Let's Play!" CTA
   | "quiet"       // cream on cream (Stay)
   | "ghost"       // text-only
-  | "danger";     // destructive (leave / quit)
+  | "danger"      // destructive first step: outlined warning
+  | "dangerConfirm"; // destructive confirmation: solid red
 
-const BUTTON_PALETTE: Record<ButtonVariant, { bg: string; bgHover: string; fg: string; border: string }> = {
+export const BUTTON_PALETTE: Record<ButtonVariant, { bg: string; bgHover: string; fg: string; border: string }> = {
   // Foreground on a fixed brand background stays literal: `surface` flips dark
   // in night mode, which would leave cream-on-blue reading as black-on-blue.
   primary:   { bg: COLORS.red,        bgHover: COLORS.redHover,        fg: RAW.cream,        border: BORDER.heavy },
   secondary: { bg: COLORS.blue,       bgHover: COLORS.blueHover,       fg: RAW.cream,        border: BORDER.heavy },
   accent:    { bg: COLORS.orange,     bgHover: COLORS.orangeHover,     fg: RAW.warmBlack,    border: BORDER.heavy },
-  neutral:   { bg: COLORS.panel,      bgHover: COLORS.panelMutedHover, fg: COLORS.ink,       border: BORDER.heavy },
+  neutral:   { bg: COLORS.surface,    bgHover: COLORS.surfaceHover,    fg: COLORS.ink,       border: BORDER.heavy },
   ink:       { bg: COLORS.ink,        bgHover: COLORS.inkMuted,        fg: COLORS.surface,   border: BORDER.heavy },
-  play:      { bg: COLORS.red,        bgHover: COLORS.redHover,        fg: COLORS.peepsTint, border: BORDER.heavy },
+  play:      { bg: COLORS.red,        bgHover: COLORS.redHover,        fg: RAW.cream,        border: BORDER.heavy },
   quiet:     { bg: COLORS.surface,    bgHover: COLORS.surfaceHover,    fg: COLORS.ink,       border: BORDER.heavy },
-  ghost:     { bg: "transparent",     bgHover: COLORS.surfaceHover,    fg: COLORS.ink,       border: "none" },
-  danger:    { bg: COLORS.red,        bgHover: COLORS.redHover,        fg: RAW.cream,        border: BORDER.heavy },
+  ghost:     { bg: COLORS.surface,    bgHover: COLORS.surfaceHover,    fg: COLORS.ink,       border: BORDER.heavy },
+  danger:    { bg: COLORS.surface,    bgHover: COLORS.surfaceHover,    fg: COLORS.ink,       border: `2px solid ${COLORS.red}` },
+  dangerConfirm: { bg: COLORS.red,    bgHover: COLORS.redHover,        fg: RAW.cream,        border: BORDER.heavy },
 
 };
 
@@ -346,13 +348,14 @@ export function buttonHoverBg(variant: ButtonVariant): string {
 export function buttonStyle(
   variant: ButtonVariant = "primary",
   size: keyof typeof CONTROL_H = "md",
-  opts: { mobile?: boolean; fullWidth?: boolean; disabled?: boolean } = {},
+  opts: { mobile?: boolean; fullWidth?: boolean; disabled?: boolean; selected?: boolean } = {},
 ): CSSProperties {
   const p = BUTTON_PALETTE[variant];
   // Spent/disabled controls get a real inactive surface (not a faded live one)
   // so they read as "unavailable" rather than "broken".
-  const bg = opts.disabled ? COLORS.panelMuted : p.bg;
-  const fg = opts.disabled ? COLORS.inkMuted : p.fg;
+  const selected = opts.selected && (variant === "quiet" || variant === "neutral" || variant === "ghost");
+  const bg = opts.disabled ? COLORS.panel : selected ? COLORS.ink : p.bg;
+  const fg = opts.disabled ? COLORS.inkMuted : selected ? COLORS.surface : p.fg;
   const border = opts.disabled ? BORDER.heavy : p.border;
   return {
     ...textStyle(variant === "play" ? "action" : "control", opts.mobile),
@@ -373,7 +376,8 @@ export function buttonStyle(
     opacity: 1,
     textDecoration: "none",
     whiteSpace: "nowrap",
-    transition: `background ${MOTION.fast}, opacity ${MOTION.fast}, transform ${MOTION.fast}`,
+    transition: `background ${MOTION.fast}`,
+    ["--ww-button-hover" as string]: opts.disabled ? bg : selected ? COLORS.inkMuted : p.bgHover,
   };
 }
 

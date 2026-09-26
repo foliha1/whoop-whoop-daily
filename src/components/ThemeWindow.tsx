@@ -22,6 +22,7 @@ const ThemeWindow: React.FC = () => {
               key={color}
               aria-label={label}
               onClick={() => setTheme(color)}
+              className="ww-theme-swatch"
               style={{
                 width: 48,
                 height: 48,
