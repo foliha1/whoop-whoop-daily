@@ -13,6 +13,21 @@ export function cleanDisplayName(value: string): string {
   return value.normalize("NFKC").trim().replace(/\s+/g, " ");
 }
 
+/** Length in Unicode code points — the same unit the server's char_length uses. */
+export function displayNameLength(value: string): number {
+  return [...value].length;
+}
+
+/** Cut typed input to the name limit by code points (never splits a character). */
+export function sliceDisplayName(value: string, max = DISPLAY_NAME_MAX): string {
+  return [...value].slice(0, max).join("");
+}
+
+// Mirrors public.display_name_allowed on the server.
+const CONTROL = /\p{Cc}/u;
+const INVISIBLE = /[\u00AD\u061C\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF]/u;
+const LETTER_OR_NUMBER = /[\p{L}\p{Nd}]/u;
+
 export function normalizedDisplayName(value: string): string {
   return cleanDisplayName(value)
     .toLocaleLowerCase("en")
@@ -22,18 +37,18 @@ export function normalizedDisplayName(value: string): string {
     })[character] ?? character);
 }
 
+export function isDisplayNameAllowed(raw: string): boolean {
+  if (CONTROL.test(raw) || INVISIBLE.test(raw)) return false;
+  const value = cleanDisplayName(raw);
+  const length = displayNameLength(value);
+  if (length < 1 || length > DISPLAY_NAME_MAX) return false;
+  if (!LETTER_OR_NUMBER.test(value)) return false;
+  return !blocked.has(normalizedDisplayName(value));
+}
+
 export const displayNameSchema = z.string()
-  .transform(cleanDisplayName)
-  .pipe(z.string().min(1).max(DISPLAY_NAME_MAX).refine(
-    (value) =>
-      !/[-]/.test(value) &&
-      // The server requires at least one a-z/0-9 after stripping; match it
-      // here so symbol-only names fail at the name screen instead of
-      // silently failing the room join later.
-      /[a-z0-9]/.test(normalizedDisplayName(value)) &&
-      !blocked.has(normalizedDisplayName(value)),
-    DISPLAY_NAME_ERROR,
-  ));
+  .refine(isDisplayNameAllowed, DISPLAY_NAME_ERROR)
+  .transform(cleanDisplayName);
 
 export function validateDisplayName(value: string): { ok: true; name: string } | { ok: false; error: string } {
   const parsed = displayNameSchema.safeParse(value);

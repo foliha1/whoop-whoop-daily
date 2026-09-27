@@ -19,7 +19,7 @@ import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
 import { useMotionExit } from "@/hooks/useMotionExit";
 import { getDisplayName, getVisitorId, setDisplayName, DISPLAY_NAME_MAX } from "@/lib/visitor";
-import { DISPLAY_NAME_ERROR, validateDisplayName } from "@/lib/displayName";
+import { DISPLAY_NAME_ERROR, sliceDisplayName, validateDisplayName } from "@/lib/displayName";
 import {
   GROUP_CODE_LENGTH,
   GROUP_NAME_MAX,
@@ -137,8 +137,7 @@ const NameField: React.FC<{
     <span style={fieldLabelStyle(mobile)}>Your name</span>
     <input
       value={value}
-      onChange={(e) => onChange(e.target.value.slice(0, DISPLAY_NAME_MAX))}
-      maxLength={DISPLAY_NAME_MAX}
+      onChange={(e) => onChange(sliceDisplayName(e.target.value))}
       placeholder={`${DISPLAY_NAME_MAX} letters`}
       data-testid="group-name-field"
       style={inputStyle(mobile)}
