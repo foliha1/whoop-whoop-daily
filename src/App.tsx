@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/lib/theme-context";
 import { COLORS } from "@/lib/tokens";
 import { UI_EASE, UI_ENTER_MS, UI_EXIT_MS } from "@/lib/animationTiming";
 import CardFlipLoader from "@/components/CardFlipLoader";
+import { useUmbrella } from "@/lib/launch";
 
 const INSTALL_ASSET_VERSION = "20260925";
 
@@ -15,6 +16,7 @@ import DebugOnlyRoute from "./components/DebugOnlyRoute.tsx";
 
 const MultiplayerPage = lazy(() => import("./pages/MultiplayerPage.tsx"));
 const DailyPage = lazy(() => import("./pages/DailyPage.tsx"));
+const HomePage = lazy(() => import("./pages/HomePage.tsx"));
 const SupportPage = lazy(() => import("./pages/SupportPage.tsx"));
 const AdminPage = lazy(() => import("./pages/AdminPage.tsx"));
 const GroupsPage = lazy(() => import("./pages/GroupsPage.tsx"));
@@ -38,17 +40,19 @@ const ClassicRedirect: React.FC = () => {
 
 const ProductInstallHead: React.FC = () => {
   const { pathname } = useLocation();
+  const umbrella = useUmbrella();
   const classic = pathname === "/classic.html" || pathname === "/classic" || pathname.startsWith("/classic/");
-  const product = classic ? "classic" : "daily";
-  const title = classic ? "WHOOP! WHOOP! Classic" : "WHOOP! WHOOP! Daily";
+  const home = umbrella && pathname === "/";
+  const product = classic ? "classic" : home ? "home" : "daily";
+  const title = classic ? "WHOOP! WHOOP! Classic" : home ? "WHOOP! WHOOP!" : "WHOOP! WHOOP! Daily";
   const themeColor = classic ? "#231F20" : "#F8F2E9";
 
   return (
     <Helmet>
-      <link rel="icon" href={`/icons/${product}/favicon-32.png?v=${INSTALL_ASSET_VERSION}`} sizes="32x32" type="image/png" />
-      <link rel="icon" href={`/icons/${product}/favicon-16.png?v=${INSTALL_ASSET_VERSION}`} sizes="16x16" type="image/png" />
-      <link rel="apple-touch-icon" href={`/icons/${product}/apple-touch-icon.png?v=${INSTALL_ASSET_VERSION}`} sizes="180x180" />
-      <link rel="manifest" href={`/${product}.webmanifest?v=${INSTALL_ASSET_VERSION}`} />
+      <link rel="icon" href={home ? "/icons/home/icon-home-PLACEHOLDER-32.png?v=20260927" : `/icons/${product}/favicon-32.png?v=${INSTALL_ASSET_VERSION}`} sizes="32x32" type="image/png" />
+      <link rel="icon" href={home ? "/icons/home/icon-home-PLACEHOLDER-16.png?v=20260927" : `/icons/${product}/favicon-16.png?v=${INSTALL_ASSET_VERSION}`} sizes="16x16" type="image/png" />
+      <link rel="apple-touch-icon" href={home ? "/icons/home/icon-home-PLACEHOLDER-180.png?v=20260927" : `/icons/${product}/apple-touch-icon.png?v=${INSTALL_ASSET_VERSION}`} sizes="180x180" />
+      <link rel="manifest" href={`/${product}.webmanifest?v=${home ? "20260927" : INSTALL_ASSET_VERSION}`} />
       <meta name="apple-mobile-web-app-title" content={title} />
       <meta name="theme-color" content={themeColor} />
     </Helmet>
@@ -57,6 +61,7 @@ const ProductInstallHead: React.FC = () => {
 
 const AnimatedRoutes: React.FC = () => {
   const location = useLocation();
+  const umbrella = useUmbrella();
   const [displayLocation, setDisplayLocation] = useState(location);
   const [stage, setStage] = useState<"fadeIn" | "fadeOut">("fadeIn");
 
@@ -88,8 +93,9 @@ const AnimatedRoutes: React.FC = () => {
         )}
       >
         <Routes location={displayLocation}>
-          <Route path="/" element={<DailyPage />} />
-          <Route path="/today" element={<DailyPage />} />
+          <Route path="/" element={umbrella ? <HomePage /> : <DailyPage />} />
+          <Route path="/daily" element={umbrella ? <DailyPage /> : <Navigate to={`/${location.search}`} replace />} />
+          <Route path="/today" element={umbrella ? <Navigate to={`/daily${location.search}`} replace /> : <DailyPage />} />
           {/* Groups remains available for testing under ?debug=1 only. */}
           <Route path="/groups" element={<DebugOnlyRoute><Suspense fallback={<CardFlipLoader label="Loading Groups" layout="page" />}><GroupsPage /></Suspense></DebugOnlyRoute>} />
           {/* The player's long-term self. Not indexed, same as groups. */}

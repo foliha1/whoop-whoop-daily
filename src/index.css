@@ -224,6 +224,32 @@ All colors MUST be HSL.
   .ww-loading-flip { animation: none; }
 }
 
+/* Umbrella home: three equal destinations, compact enough for a 360×640 phone. */
+.ww-home {
+  min-height: var(--ww-vh);
+  height: var(--ww-vh);
+  overflow: hidden;
+  box-sizing: border-box;
+  background: var(--ww-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+}
+.ww-home-logo { width: 104px; height: 82px; object-fit: contain; flex: 0 0 auto; }
+.ww-home-cards { width: min(100%, 1040px); min-height: 0; display: grid; grid-template-columns: 1fr; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 10px; flex: 1 1 auto; max-height: 430px; }
+.ww-home-card { min-width: 0; min-height: 0; padding: 14px 16px; box-sizing: border-box; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 5px; text-decoration: none; }
+.ww-home-card > span { letter-spacing: 0; }
+.ww-home-card:focus-visible { outline: 3px solid var(--ww-ink); outline-offset: 3px; }
+@media (min-width: 769px) {
+  .ww-home { gap: 24px; padding: 32px; }
+  .ww-home-logo { width: 132px; height: 105px; }
+  .ww-home-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: 1fr; max-height: 330px; }
+  .ww-home-card { padding: 24px; }
+}
+
 /* ── Wrong-claim card animation (squeeze + shake/rotate, wash, ring) ──
    Designed values: 1000ms, linear, plays once. Scale eases to 0.96 by 20%,
    holds to 62%, back to 1 by 78%. Shake/rotate live between 10% and 30%. */

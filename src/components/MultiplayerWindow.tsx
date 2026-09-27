@@ -224,8 +224,9 @@ type PendingAction =
 type View =
   | { kind: "idle"; error?: string }
   | { kind: "solo" }
+  | { kind: "peeps-chooser" }
   /** Display name screen. The table-code field appears on the peeps path only. */
-  | { kind: "name-prompt"; intent: "solo" | "peeps"; via?: "link"; error?: string }
+  | { kind: "name-prompt"; intent: "solo" | "peeps"; action?: "create" | "join"; via?: "link"; error?: string }
   | { kind: "host"; room: RoomRow }
   | { kind: "joiner"; room: RoomRow }
   | { kind: "full"; code: string }
@@ -251,7 +252,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     // Join-by-link wins over ?mode=; the room-code effect below handles it.
     if (initialRoomCode) return { kind: "idle" };
     if (initialMode === "solo") return { kind: "solo" };
-    if (initialMode === "multiplayer") return { kind: "name-prompt", intent: "peeps" };
+    if (initialMode === "multiplayer") return umbrellaOn() ? { kind: "peeps-chooser" } : { kind: "name-prompt", intent: "peeps" };
     return { kind: "idle" };
   });
   useEffect(() => {
@@ -761,6 +762,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
   const startSoloFlow = useCallback(() => {
     unlockAudio();
+    if (umbrellaOn()) {
+      setView({ kind: "solo" });
+      return;
+    }
     setNameInput(getDisplayName());
     setNameTouched(false);
     setView({ kind: "name-prompt", intent: "solo" });
@@ -777,7 +782,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
   const handleStartRoom = useCallback(() => {
     if (busy) return;
-    gateOr(startRoomFlow);
+    gateOr(() => umbrellaOn() ? setView({ kind: "peeps-chooser" }) : startRoomFlow());
   }, [busy, gateOr, startRoomFlow]);
 
   const handlePlaySolo = useCallback(() => {
@@ -829,7 +834,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     }
     // Peeps path: a code joins that table, an empty field starts a new one.
     const code = codeInput.toUpperCase();
-    if (code.length === 0) {
+    if (view.action === "create" || code.length === 0) {
       void enterRoom({ kind: "create" });
       return;
     }
@@ -1392,7 +1397,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   if (view.kind === "name-prompt") {
     const NAME_CAP = DISPLAY_NAME_MAX;
     const canContinue = !busy && nameInput.trim().length > 0;
-    const showCodeField = view.intent === "peeps";
+    const showCodeField = view.intent === "peeps" && (!umbrellaOn() || view.action !== "create");
 
     // Small copy on Classic follows the Daily's rule: Geist for metadata and
     // helper lines, Friend for headlines and controls.
@@ -1556,6 +1561,25 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           <AppButton roleStyle="utility" size="md" onClick={leaveToIdle} fullWidth>
             Back
           </AppButton>
+        </div>
+      ),
+    });
+  }
+
+  if (view.kind === "peeps-chooser") {
+    return entryFrame({
+      headline: "Play with Peeps",
+      children: (
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[6] }}>
+          <AppButton roleStyle="primary" size="lg" fullWidth onClick={() => {
+            setCodeInput("");
+            setView({ kind: "name-prompt", intent: "peeps", action: "create" });
+          }}>Start a table</AppButton>
+          <AppButton roleStyle="secondary" size="lg" fullWidth onClick={() => {
+            setCodeInput("");
+            setView({ kind: "name-prompt", intent: "peeps", action: "join" });
+          }}>Join a table</AppButton>
+          <AppButton roleStyle="utility" size="md" fullWidth onClick={leaveToIdle}>Back</AppButton>
         </div>
       ),
     });

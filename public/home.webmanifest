@@ -1,0 +1,13 @@
+{
+  "name": "WHOOP! WHOOP!",
+  "short_name": "WHOOP!",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#F8F2E9",
+  "background_color": "#F8F2E9",
+  "icons": [
+    { "src": "/icons/home/icon-home-PLACEHOLDER-192.png?v=20260927", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/home/icon-home-PLACEHOLDER-512.png?v=20260927", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/home/icon-home-PLACEHOLDER-maskable-512.png?v=20260927", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
