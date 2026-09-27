@@ -76,8 +76,10 @@ export function umbrellaHead() {
     generateBundle(_options, bundle) {
       if (!UMBRELLA_LAUNCHED) return;
       const shell = bundle["index.html"];
-      if (!shell || shell.type !== "asset") return;
-      const source = typeof shell.source === "string" ? shell.source : new TextDecoder().decode(shell.source);
+      const source = shell?.type === "asset"
+        ? (typeof shell.source === "string" ? shell.source : new TextDecoder().decode(shell.source))
+        : dailyShell;
+      if (!source) return;
       const daily = toDailyHtml(source);
       this.emitFile({ type: "asset", fileName: "daily.html", source: daily });
       this.emitFile({ type: "asset", fileName: "daily/index.html", source: daily });
@@ -86,7 +88,17 @@ export function umbrellaHead() {
         const manifestSource = typeof manifest.source === "string"
           ? manifest.source
           : new TextDecoder().decode(manifest.source);
-        manifest.source = manifestSource.replace('"start_url": "/"', '"start_url": "/daily"');
+        manifest.source = manifestSource.replace('__DAILY_START_URL__', '/daily');
+      }
+    },
+    closeBundle() {
+      if (UMBRELLA_LAUNCHED) return;
+      const manifestPath = resolve(process.cwd(), "dist/daily.webmanifest");
+      try {
+        const manifest = readFileSync(manifestPath, "utf8").replace('__DAILY_START_URL__', '/');
+        return import("node:fs").then(({ writeFileSync }) => writeFileSync(manifestPath, manifest));
+      } catch {
+        return undefined;
       }
     },
   };
