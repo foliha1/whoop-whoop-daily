@@ -218,6 +218,13 @@
       "when": 1790514049073,
       "tag": "0030_fix_global_name_join_public_id",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1790514120916,
+      "tag": "0031_preserve_global_name_join_semantics",
+      "breakpoints": true
     }
   ]
 }
