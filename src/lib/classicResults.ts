@@ -18,20 +18,6 @@ export interface ClassicSeatResult {
   position: number;
 }
 
-export interface ClassicResultPayload {
-  gameId: string;
-  roomCode: string | null;
-  isSolo: boolean;
-  startedAt: string;
-  endedAt: string;
-  playerCount: number;
-  seats: ClassicSeatResult[];
-  roundsPlayed: number;
-  correctClaims: number;
-  wrongClaims: number;
-  hostVisitorId: string | null;
-}
-
 /** Standard competition ranking over final scores. */
 export function seatResults(
   scores: number[],
@@ -44,7 +30,6 @@ export function seatResults(
     position: 1 + scores.filter((v) => v > score).length,
   }));
 }
-
 
 // ---------------------------------------------------------------------------
 // Verified save paths (security pass 2). The server decides identity, times
