@@ -85,9 +85,12 @@ const YouPage: React.FC = () => {
           </p>
         ) : (
           <>
-            <MotionReveal index={2} style={section}>
-              <DisplayNameEditor mobile={mobile} />
-            </MotionReveal>
+            {/* Umbrella Part 1: name editor only after launch / admin preview. */}
+            {umbrella && (
+              <MotionReveal index={2} style={section}>
+                <DisplayNameEditor mobile={mobile} />
+              </MotionReveal>
+            )}
             <MotionReveal index={2} style={section}>
               <YouScoreTiles points={points} mobile={mobile} />
               <div data-testid="you-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>

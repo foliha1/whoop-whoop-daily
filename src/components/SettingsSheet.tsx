@@ -277,7 +277,9 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
           }}
         />
 
-        <DisplayNameEditor mobile={false} />
+        {/* Umbrella Part 1: the global name editor appears only after launch
+            (or for a signed-in admin previewing). */}
+        {umbrella && <DisplayNameEditor mobile={false} />}
 
         <Toggle
           label="Music"
