@@ -144,6 +144,7 @@ const howToStyle: React.CSSProperties = {
 };
 
 const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo }) => {
+  const umbrella = useUmbrella();
   const { mode, setMode } = useThemeMode();
   const portalHost = usePortalHost("settings-sheet");
   const [sfx, setSfx] = useState(() => getSfxEnabled());

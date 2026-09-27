@@ -11,6 +11,7 @@ import { getVisitorId } from "@/lib/visitor";
 import { trackDaily } from "@/lib/dailyEvents";
 import { isAccountOwnedRecord, type DailyResultOwner } from "@/lib/daily";
 import { resolveDisplayName } from "@/lib/profile";
+import { umbrellaOn } from "@/lib/launch";
 
 let sessionEmail: string | null = null;
 let sessionUserId: string | null = null;

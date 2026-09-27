@@ -33,6 +33,7 @@ const sectionLabel = (label: string, mobile: boolean) => (
 );
 
 const YouPage: React.FC = () => {
+  const umbrella = useUmbrella();
   const mobile = useIsMobile();
   const location = useLocation();
   const backToResults = (location.state as { wwReturn?: string } | null)?.wwReturn === "results";
