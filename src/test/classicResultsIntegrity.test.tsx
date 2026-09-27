@@ -125,8 +125,8 @@ describe("claim arbiter seat key", () => {
   it("the right key is accepted", async () => {
     expect(await verifySeatOwner(client(seat), { ...base, player_key: "secret-1" })).toEqual({ ok: true });
   });
-  it("until publish day, a tab that sends no key still works", async () => {
-    expect(await verifySeatOwner(client(seat), base)).toEqual({ ok: true });
+  it("after publish, a tab that sends no key is refused", async () => {
+    expect(await verifySeatOwner(client(seat), base)).toEqual({ ok: false, reason: "missing_seat_key" });
   });
   it("the app sends its key to the arbiter and to release-lock", () => {
     expect(read("src/components/MultiplayerGameView.tsx")).toMatch(/player_key: playerKey/);
