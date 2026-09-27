@@ -78,7 +78,7 @@ From a live query of every insert and all-commands policy in `public`:
 - **Live database checks through the function**, with a counter read before and after each:
   1. An unknown type returns 0 and writes no row.
   2. Metadata over 512 bytes, or with more than 8 keys, is dropped (returns 0). A 30-character room code is trimmed to 16.
-  3. The limit is temporarily lowered only for a test IP bucket? No. Instead I pre-fill the IP counter for the test's IP near 2,000, then send with 5 different made-up visitor ids. All are refused once the counter hits the limit. Afterwards I reset that counter row.
+  3. Pre-fill today's IP counter for the test machine's IP to just under 2,000, then send events under 5 different made-up visitor ids. Once the counter reaches the limit, every one is refused. Afterwards, reset that counter row.
   4. Live preview: a 2-browser Classic game and a solo game. `room_created`, `room_joined`, `game_started`, `game_completed` and the demo events arrive with server times, and the admin Classic card counts both games.
   5. Written into the doc for publish day: a direct insert as anon gets refused.
 - Full suite in one pass. Afterwards, I delete the test rows and tables and list them, as last time.
