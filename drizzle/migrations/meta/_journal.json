@@ -239,6 +239,13 @@
       "when": 1790542016741,
       "tag": "0033_revoke_client_grants_name_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1790542527279,
+      "tag": "0034_display_name_any_script",
+      "breakpoints": true
     }
   ]
 }
