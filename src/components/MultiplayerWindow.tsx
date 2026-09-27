@@ -747,6 +747,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   }, []);
 
   useEffect(() => {
+    // Umbrella Part 1: prefilling from the signed-in account's name is part
+    // of the launch; until then the name box uses the device name only.
+    if (!umbrellaOn()) return;
     let live = true;
     void resolveDisplayName().then((name) => {
       if (!live || !name) return;
