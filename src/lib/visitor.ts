@@ -1,5 +1,6 @@
 const STORAGE_KEY = "ww_visitor_id";
 const NAME_KEY = "ww_display_name";
+import { cleanDisplayName, DISPLAY_NAME_MAX } from "@/lib/displayName";
 let inMemoryId: string | null = null;
 let inMemoryName: string | null = null;
 
@@ -44,10 +45,10 @@ export function getDisplayName(): string {
   return inMemoryName ?? "";
 }
 
-export const DISPLAY_NAME_MAX = 6;
+export { DISPLAY_NAME_MAX } from "@/lib/displayName";
 
 export function setDisplayName(name: string): string {
-  const trimmed = name.trim().slice(0, DISPLAY_NAME_MAX);
+  const trimmed = cleanDisplayName(name).slice(0, DISPLAY_NAME_MAX);
   try {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem(NAME_KEY, trimmed);

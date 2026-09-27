@@ -26,9 +26,7 @@ export interface PresenceParticipant {
 
 interface PresenceMeta {
   pid: string;
-  display_name: string;
   joined_at: number;
-  is_host: boolean;
 }
 
 export type BroadcastListener = (msg: { payload: unknown }) => void;
@@ -145,9 +143,9 @@ export function useRoomPresence(
         if (best) {
           seen.set(best.pid, {
             pid: best.pid,
-            display_name: best.display_name,
+            display_name: "",
             joined_at: best.joined_at,
-            is_host: !!best.is_host,
+            is_host: false,
           });
         }
       }
@@ -179,9 +177,7 @@ export function useRoomPresence(
           try {
             await ch.track({
               pid: visitorId,
-              display_name: displayNameRef.current,
               joined_at: joinedAtRef.current,
-              is_host: isHostRef.current,
             } satisfies PresenceMeta);
             setChannel(exposed);
             setStatus("connected");
@@ -231,9 +227,7 @@ export function useRoomPresence(
           }
           await ch.track({
             pid: visitorId,
-            display_name: displayNameRef.current,
             joined_at: joinedAtRef.current,
-            is_host: isHostRef.current,
           } satisfies PresenceMeta);
           if (channelRef.current !== exposed) return;
           setChannel(exposed);
@@ -276,9 +270,7 @@ export function useRoomPresence(
     ch
       .track({
         pid: visitorId,
-        display_name: displayName,
         joined_at: joinedAtRef.current,
-        is_host: isHost,
       } satisfies PresenceMeta)
       .catch(() => {
         /* non-fatal */

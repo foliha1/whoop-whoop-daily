@@ -33,6 +33,7 @@ import {
   signOut,
 } from "@/lib/account";
 import { SIGN_IN_ENABLED } from "@/lib/featureFlags";
+import DisplayNameEditor from "@/components/DisplayNameEditor";
 
 const TOUCH = 44;
 
@@ -274,6 +275,8 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
             setSfx(next);
           }}
         />
+
+        <DisplayNameEditor mobile={false} />
 
         <Toggle
           label="Music"
