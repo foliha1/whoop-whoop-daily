@@ -25,7 +25,13 @@ export function normalizedDisplayName(value: string): string {
 export const displayNameSchema = z.string()
   .transform(cleanDisplayName)
   .pipe(z.string().min(1).max(DISPLAY_NAME_MAX).refine(
-    (value) => !/[\u0000-\u001f\u007f]/.test(value) && !blocked.has(normalizedDisplayName(value)),
+    (value) =>
+      !/[-]/.test(value) &&
+      // The server requires at least one a-z/0-9 after stripping; match it
+      // here so symbol-only names fail at the name screen instead of
+      // silently failing the room join later.
+      /[a-z0-9]/.test(normalizedDisplayName(value)) &&
+      !blocked.has(normalizedDisplayName(value)),
     DISPLAY_NAME_ERROR,
   ));
 
