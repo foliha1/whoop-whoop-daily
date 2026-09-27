@@ -19,6 +19,7 @@ import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
 import { useMotionExit } from "@/hooks/useMotionExit";
 import { getDisplayName, getVisitorId, setDisplayName, DISPLAY_NAME_MAX } from "@/lib/visitor";
+import { DISPLAY_NAME_ERROR, validateDisplayName } from "@/lib/displayName";
 import {
   GROUP_CODE_LENGTH,
   GROUP_NAME_MAX,
@@ -173,6 +174,10 @@ export const CreateGroupModal: React.FC<{
       setError("Add a name so your group knows who you are.");
       return;
     }
+    if (!validateDisplayName(display).ok) {
+      setError(DISPLAY_NAME_ERROR);
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -251,6 +256,10 @@ export const JoinGroupModal: React.FC<{
     const display = (needName ? who : getDisplayName()).trim();
     if (display.length === 0) {
       setError("Add a name so your group knows who you are.");
+      return;
+    }
+    if (!validateDisplayName(display).ok) {
+      setError(DISPLAY_NAME_ERROR);
       return;
     }
     setBusy(true);

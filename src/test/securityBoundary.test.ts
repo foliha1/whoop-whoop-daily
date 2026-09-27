@@ -70,6 +70,28 @@ describe("1 + 5 + 6: server-only functions", () => {
   });
 });
 
+describe("global name trust boundary", () => {
+  const nameMigration = readFileSync(join(root, "drizzle/migrations/0029_global_display_name_enforcement.sql"), "utf8");
+
+  it("uses account identity only from auth.uid and fixes function search paths", () => {
+    expect(nameMigration).toContain("v_uid uuid := auth.uid()");
+    expect(nameMigration).not.toContain("p_user_id uuid, p_display_name");
+    expect(nameMigration.match(/SET search_path = public/g)?.length).toBeGreaterThanOrEqual(10);
+  });
+
+  it("keeps raw presence metadata free of names and host claims", () => {
+    const presence = readFileSync(join(root, "src/hooks/useRoomPresence.ts"), "utf8");
+    const meta = presence.split("interface PresenceMeta")[1]?.split("}")[0] ?? "";
+    expect(meta).not.toContain("display_name");
+    expect(meta).not.toContain("is_host");
+  });
+
+  it("copies only server-held member names into seats", () => {
+    expect(nameMigration).toContain("m.display_name");
+    expect(nameMigration).not.toContain("v_seat ->> 'display_name'");
+  });
+});
+
 describe("2: device takeover", () => {
   it("never overwrites another account's link", () => {
     expect(migration).toContain("WHERE public.player_devices.user_id = EXCLUDED.user_id");

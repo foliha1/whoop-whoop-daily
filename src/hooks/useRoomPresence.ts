@@ -47,8 +47,8 @@ export type BroadcastListener = (msg: { payload: unknown }) => void;
 export function useRoomPresence(
   roomId: string | null,
   visitorId: string,
-  displayName: string,
-  isHost: boolean,
+  _displayName: string,
+  _isHost: boolean,
   security: ChannelSecurity | null,
 ): {
   participants: PresenceParticipant[];
@@ -69,10 +69,6 @@ export function useRoomPresence(
   const channelRef = useRef<RealtimeChannel | null>(null);
   const listenersRef = useRef<Set<BroadcastListener>>(new Set());
 
-  const displayNameRef = useRef(displayName);
-  displayNameRef.current = displayName;
-  const isHostRef = useRef(isHost);
-  isHostRef.current = isHost;
   const securityRef = useRef(security);
   securityRef.current = security;
 
@@ -261,21 +257,6 @@ export function useRoomPresence(
       setChannel(null);
     };
   }, [roomId, visitorId]);
-
-  // Re-track on display-name or host-flag change while connected.
-  useEffect(() => {
-    if (!roomId || status !== "connected") return;
-    const ch = channelRef.current;
-    if (!ch) return;
-    ch
-      .track({
-        pid: visitorId,
-        joined_at: joinedAtRef.current,
-      } satisfies PresenceMeta)
-      .catch(() => {
-        /* non-fatal */
-      });
-  }, [displayName, isHost, roomId, status, visitorId]);
 
   const onBroadcast = useCallback((listener: BroadcastListener) => {
     listenersRef.current.add(listener);

@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getVisitorId } from "@/lib/visitor";
 import { trackDaily } from "@/lib/dailyEvents";
 import { isAccountOwnedRecord, type DailyResultOwner } from "@/lib/daily";
+import { resolveDisplayName } from "@/lib/profile";
 
 let sessionEmail: string | null = null;
 let sessionUserId: string | null = null;
@@ -56,12 +57,14 @@ try {
     handleAuthIdentity(event, session?.user?.id ?? null);
     if (session?.user?.id) setDeviceLinkedHint(true);
     publish(session?.user?.email ?? null);
+    if (session?.user?.id) void resolveDisplayName();
   });
   void supabase.auth
     .getUser()
     .then(({ data }) => {
       if (sessionUserId === null && data.user?.id) sessionUserId = data.user.id;
       publish(data.user?.email ?? null);
+      if (data.user?.id) void resolveDisplayName();
     })
     .catch(() => publish(null));
 } catch {
