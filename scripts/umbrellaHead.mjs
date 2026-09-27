@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const ORIGIN = "https://whoop-whoop.com";
@@ -96,7 +96,7 @@ export function umbrellaHead() {
       const manifestPath = resolve(process.cwd(), "dist/daily.webmanifest");
       try {
         const manifest = readFileSync(manifestPath, "utf8").replace('__DAILY_START_URL__', '/');
-        return import("node:fs").then(({ writeFileSync }) => writeFileSync(manifestPath, manifest));
+        writeFileSync(manifestPath, manifest);
       } catch {
         return undefined;
       }
