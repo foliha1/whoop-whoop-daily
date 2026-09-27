@@ -183,6 +183,13 @@
       "when": 1790462263755,
       "tag": "0025_solo_games_and_session_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1790493603642,
+      "tag": "0026_revoke_legacy_classic_functions",
+      "breakpoints": true
     }
   ]
 }

@@ -18,20 +18,6 @@ export interface ClassicSeatResult {
   position: number;
 }
 
-export interface ClassicResultPayload {
-  gameId: string;
-  roomCode: string | null;
-  isSolo: boolean;
-  startedAt: string;
-  endedAt: string;
-  playerCount: number;
-  seats: ClassicSeatResult[];
-  roundsPlayed: number;
-  correctClaims: number;
-  wrongClaims: number;
-  hostVisitorId: string | null;
-}
-
 /** Standard competition ranking over final scores. */
 export function seatResults(
   scores: number[],
@@ -43,36 +29,6 @@ export function seatResults(
     score,
     position: 1 + scores.filter((v) => v > score).length,
   }));
-}
-
-/** Fire-and-forget. Resolves false when nothing was stored. */
-export async function saveClassicResultRemote(
-  p: ClassicResultPayload,
-): Promise<boolean> {
-  try {
-    const { data, error } = await supabase.rpc("save_classic_result", {
-      p_game_id: p.gameId,
-      p_room_code: p.roomCode,
-      p_is_solo: p.isSolo,
-      p_started_at: p.startedAt,
-      p_ended_at: p.endedAt,
-      p_player_count: p.playerCount,
-      p_seats: p.seats as unknown as never,
-      p_rounds_played: p.roundsPlayed,
-      p_correct_claims: p.correctClaims,
-      p_wrong_claims: p.wrongClaims,
-      p_app_version: APP_VERSION,
-      p_host_visitor_id: p.hostVisitorId,
-    });
-    if (error) {
-      console.warn("[classic-results] save failed", error.message);
-      return false;
-    }
-    return data === true;
-  } catch (e) {
-    console.warn("[classic-results] threw", e);
-    return false;
-  }
 }
 
 // ---------------------------------------------------------------------------
