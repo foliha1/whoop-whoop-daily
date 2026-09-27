@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
+import { execSync } from "node:child_process";
 
 const rpc = vi.fn((_fn: string, _args: Record<string, unknown>) =>
   Promise.resolve({ data: 1, error: null }),
@@ -48,7 +49,6 @@ describe("trackEvent", () => {
   });
 
   it("no app file inserts into analytics_events directly", () => {
-    const { execSync } = require("node:child_process");
     const out = execSync(
       "grep -rlE \"from\\([\\\"']analytics_events\" src --include=*.ts --include=*.tsx || true",
     ).toString().trim();
