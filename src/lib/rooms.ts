@@ -43,51 +43,6 @@ export async function createRoom(hostVisitorId: string): Promise<RoomRow> {
   throw new Error(msg);
 }
 
-/**
- * Registers this tab's session player key with the server over this
- * browser's own request. Returns the seat this browser already holds in the
- * room's latest game (server-verified rejoin), or null.
- */
-export async function joinRoomSession(
-  roomId: string,
-  visitorId: string,
-  playerKey: string,
-): Promise<{ game_id: string; seat: number } | null> {
-  try {
-    const { data, error } = await supabase.rpc("join_room_session", {
-      p_room_id: roomId,
-      p_visitor_id: visitorId,
-      p_player_key: playerKey,
-    });
-    if (error) {
-      console.warn("[rooms] join session failed", error.message);
-      return null;
-    }
-    return Array.isArray(data) && data.length > 0 ? (data[0] as { game_id: string; seat: number }) : null;
-  } catch (e) {
-    console.warn("[rooms] join session threw", e);
-    return null;
-  }
-}
-
-/** Host-only: the server's current player key for each seat of a game. */
-export async function fetchSeatKeys(
-  roomId: string,
-  gameId: string,
-  hostVisitorId: string,
-): Promise<Array<{ seat: number; player_key: string | null }>> {
-  try {
-    const { data, error } = await supabase.rpc("room_seat_keys", {
-      p_room_id: roomId,
-      p_game_id: gameId,
-      p_host_visitor_id: hostVisitorId,
-    });
-    if (error || !Array.isArray(data)) return [];
-    return data as Array<{ seat: number; player_key: string | null }>;
-  } catch {
-    return [];
-  }
-}
 
 export async function findRoomByCode(
   code: string,
