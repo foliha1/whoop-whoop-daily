@@ -6,7 +6,7 @@ describe("global display names", () => {
     expect(validateDisplayName(name)).toEqual({ ok: true, name });
   });
 
-  it.each(["", "SEVEN77", "f.u.c.k", "sh1t", "N1GGER"])("rejects %s", (name) => {
+  it.each(["", "SEVEN77", "f.u.c.k", "sh1t", "N1GGER", "!!", "🎉", "🎉🎉", "—", "***"])("rejects %s", (name) => {
     expect(validateDisplayName(name)).toEqual({ ok: false, error: "Try another name." });
   });
 
