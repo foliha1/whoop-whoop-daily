@@ -101,6 +101,21 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_display_names: {
+        Row: {
+          created_at: string
+          normalized_name: string
+        }
+        Insert: {
+          created_at?: string
+          normalized_name: string
+        }
+        Update: {
+          created_at?: string
+          normalized_name?: string
+        }
+        Relationships: []
+      }
       claim_locks: {
         Row: {
           claim_window: number
@@ -597,6 +612,27 @@ export type Database = {
         }
         Relationships: []
       }
+      player_profiles: {
+        Row: {
+          created_at: string
+          display_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       reminder_consents: {
         Row: {
           consented: boolean
@@ -627,6 +663,7 @@ export type Database = {
       room_members: {
         Row: {
           created_at: string
+          display_name: string | null
           player_key: string
           pub_id: string | null
           room_id: string
@@ -636,6 +673,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          display_name?: string | null
           player_key: string
           pub_id?: string | null
           room_id: string
@@ -645,6 +683,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          display_name?: string | null
           player_key?: string
           pub_id?: string | null
           room_id?: string
@@ -665,6 +704,7 @@ export type Database = {
       room_seats: {
         Row: {
           created_at: string
+          display_name: string | null
           game_id: string
           id: string
           player_key: string | null
@@ -676,6 +716,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          display_name?: string | null
           game_id: string
           id?: string
           player_key?: string | null
@@ -687,6 +728,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          display_name?: string | null
           game_id?: string
           id?: string
           player_key?: string | null
@@ -1048,6 +1090,7 @@ export type Database = {
         Args: { p_email: string; p_user_id: string }
         Returns: number
       }
+      display_name_allowed: { Args: { p_name: string }; Returns: boolean }
       gen_daily_group_code: { Args: never; Returns: string }
       get_daily_event_counts: {
         Args: { p_days?: number }
@@ -1131,6 +1174,7 @@ export type Database = {
           visitor_id: string
         }[]
       }
+      get_my_display_name: { Args: { p_seed?: string }; Returns: string }
       get_my_groups: {
         Args: { p_puzzle_number?: number; p_visitor_id: string }
         Returns: {
@@ -1219,6 +1263,21 @@ export type Database = {
               seat: number
             }[]
           }
+        | {
+            Args: {
+              p_display_name: string
+              p_player_key: string
+              p_room_id: string
+              p_sign_pubkey: string
+              p_visitor_id: string
+            }
+            Returns: {
+              display_name: string
+              game_id: string
+              pub_id: string
+              seat: number
+            }[]
+          }
       leave_daily_group: {
         Args: { p_group_id: string; p_visitor_id: string }
         Returns: boolean
@@ -1242,6 +1301,7 @@ export type Database = {
         Args: { p_events: Json; p_visitor_id: string }
         Returns: number
       }
+      normalized_display_name: { Args: { p_name: string }; Returns: string }
       register_room_seats: {
         Args: {
           p_game_id: string
@@ -1261,9 +1321,18 @@ export type Database = {
         Returns: boolean
       }
       request_ip: { Args: never; Returns: string }
+      resolve_display_name: { Args: { p_candidate: string }; Returns: string }
       rl_hit: {
         Args: { p_bucket: string; p_key: string; p_max: number }
         Returns: boolean
+      }
+      room_member_names: {
+        Args: { p_player_key: string; p_room_id: string; p_visitor_id: string }
+        Returns: {
+          display_name: string
+          is_host: boolean
+          pub_id: string
+        }[]
       }
       room_seat_keys: {
         Args: {
@@ -1343,6 +1412,7 @@ export type Database = {
         Returns: boolean
       }
       session_email: { Args: never; Returns: string }
+      set_my_display_name: { Args: { p_display_name: string }; Returns: string }
       set_reminder_consent: {
         Args: { p_consented: boolean; p_source?: string }
         Returns: boolean
