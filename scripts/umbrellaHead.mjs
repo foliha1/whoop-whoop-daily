@@ -79,6 +79,10 @@ export function umbrellaHead() {
       const daily = toDailyHtml(shell.source);
       this.emitFile({ type: "asset", fileName: "daily.html", source: daily });
       this.emitFile({ type: "asset", fileName: "daily/index.html", source: daily });
+      const manifest = bundle["daily.webmanifest"];
+      if (manifest && typeof manifest.source === "string") {
+        manifest.source = manifest.source.replace('"start_url": "/"', '"start_url": "/daily"');
+      }
     },
   };
 }

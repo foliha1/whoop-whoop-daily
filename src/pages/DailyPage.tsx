@@ -1036,6 +1036,7 @@ const DailyReadyScreen: React.FC<{
   onHowToPlay: () => void;
   umbrella?: boolean;
   onboardingComplete?: boolean;
+  showLogo?: boolean;
   /** True while a Play tap is waiting on board art (bounded by the ceiling). */
   playLoading?: boolean;
 }> = ({
@@ -1055,6 +1056,7 @@ const DailyReadyScreen: React.FC<{
   playLoading = false,
   umbrella = false,
   onboardingComplete = true,
+  showLogo = true,
 }) => {
   // Vertical compression for short viewports (Instagram in-app browser lands
   // around 480–560px). t === 1 at 700px and above, so tall phones are
@@ -1070,7 +1072,7 @@ const DailyReadyScreen: React.FC<{
 
   return (
   <DailyFrame gap={colGap} pad={pad} railGap={railGap}>
-      <DailyLogoLockup style={{ maxWidth: lockupMax }} />
+      {showLogo ? <DailyLogoLockup style={{ maxWidth: lockupMax }} /> : null}
 
 
       <div
@@ -1799,7 +1801,8 @@ const DailyPage: React.FC = () => {
           content="Play the free WHOOP! WHOOP! daily memory game. Nine cards, ten seconds, three rounds, two misses a round. A new memory challenge every day—no signup needed."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://whoop-whoop.com/" />
+        <meta property="og:url" content={umbrella ? "https://whoop-whoop.com/daily" : "https://whoop-whoop.com/"} />
+        <link rel="canonical" href={umbrella ? "https://whoop-whoop.com/daily" : "https://whoop-whoop.com/"} />
         <meta property="og:image" content="https://whoop-whoop.com/og-daily.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -1852,6 +1855,7 @@ const DailyPage: React.FC = () => {
               played={playedToday}
               umbrella={umbrella}
               onboardingComplete={onboardingComplete}
+              showLogo={!umbrella}
               playLoading={playWaiting}
               gated={daily.preLaunch}
               subscribed={subscribed}

@@ -27,7 +27,7 @@ import type { ChannelSecurity } from "@/hooks/useRoomPresence";
 import { getVisitorId, getDisplayName, setDisplayName, DISPLAY_NAME_MAX } from "@/lib/visitor";
 import { DISPLAY_NAME_ERROR, sliceDisplayName, validateDisplayName } from "@/lib/displayName";
 import { resolveDisplayName } from "@/lib/profile";
-import { umbrellaOn } from "@/lib/launch";
+import { umbrellaOn, useUmbrella } from "@/lib/launch";
 import { trackEvent } from "@/lib/analytics";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
 import {
@@ -248,6 +248,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   introStatus = "none",
 }) => {
   const mobile = useIsMobile();
+  const umbrella = useUmbrella();
   const [view, setView] = useState<View>(() => {
     // Join-by-link wins over ?mode=; the room-code effect below handles it.
     if (initialRoomCode) return { kind: "idle" };
@@ -1621,7 +1622,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
     return entryFrame({
       headline: "How do you want to play today?",
-      logo: true,
+      logo: !umbrella,
       chips: true,
       reveal: true,
       fade,

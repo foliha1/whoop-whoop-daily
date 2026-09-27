@@ -1,7 +1,7 @@
 {
   "name": "WHOOP! WHOOP! Daily",
   "short_name": "Daily",
-  "start_url": "/daily",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#F8F2E9",
   "background_color": "#F8F2E9",
