@@ -96,3 +96,10 @@
 - [x] log_analytics_events function (allow-list, size limits, IP/user limits)
 - [x] App switch, tests, live checks, post-publish doc (incl. "Later" items)
 - [ ] Publish day: drop old insert policy (waits on Felix's publish)
+
+## One WHOOP! WHOOP! home
+- [ ] Part 1: global six-character name, account sync, server filtering, Classic anti-spoof, Groups enforcement, Settings/Your Stats editing
+- [ ] Part 1 post-publish: retire the old four-argument Classic join after checking the published bundle
+- [ ] Parts 2 and 3: build separately if useful, but publish together (Home/Daily routes, all Daily links, navigation, exits, analytics)
+- [ ] Home email signup: only after one completed Daily and only while unsubscribed; source `home`; preserve `landing`
+- [ ] Daily exit: before start Home is free; after study starts confirm, save unfinished rounds unsolved, keep streak, then Home

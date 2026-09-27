@@ -26,9 +26,9 @@ Add this independently first so Felix can test name carryover, account syncing, 
 7. Add the same name editor to Your Stats and the shared Settings sheet. Signed-out saves locally; signed-in saves to the account. Rejected names show exactly `Try another name.`
 8. After this part is published, follow a small post-publish checklist: confirm the published bundle uses the 5-argument join, revoke the old 4-argument overload from PUBLIC/anon/authenticated, and test that raw presence names are ignored.
 
-### Part 2 — Atomic route, home, Daily-entry, metadata, and install cutover
+### Part 2 — Route, home, Daily-entry, metadata, and install cutover
 
-This is one publish unit: root metadata cannot become Home before `/daily` is serving Daily metadata and the Daily route is usable.
+Build this separately if useful, but do not publish it alone. Parts 2 and 3 are one publish unit: root metadata, `/daily`, all Daily share destinations, and Home navigation must go live together.
 
 1. Route `/` to a rewritten compact `HomePage`; route `/daily` to `DailyPage`; make `/today` redirect to `/daily` while preserving every query parameter. Keep `/you`, Classic routes, and `/classic.html?r=CODE` unchanged.
 2. Home has the generic WHOOP! WHOOP! logo and three equal cards. Proposed short copy:
@@ -57,7 +57,7 @@ This is one publish unit: root metadata cannot become Home before `/daily` is se
    - `/today` alias, sitemap entry, and Daily manifest start URL;
    - the external ActiveCampaign reminder link, verified separately because it is not in this repo.
    Privacy/Terms links, `/groups?join=`, auth-email asset URLs, Classic invites, and generic Home links do not change.
-2. Add a shared 44×44 Home icon at top-left on every non-home, non-playing screen with visible icon and screen-reader label `Home`. During Daily, Solo, or multiplayer play, use the X in that exact slot and preserve the current leave confirmation. Settings/How-to remain available without competing for that slot.
+2. Add a shared 44×44 Home icon at top-left on every non-home, non-playing screen with visible icon and screen-reader label `Home`. During Solo or multiplayer play, use the X in that exact slot and preserve the current leave confirmation. Before the Daily's `Tap to Start`, show Home and leave without cost. Once study starts, replace it with X; confirm with title `Leave today's Daily?`, body `You only get one try a day. If you leave now, this run ends and the rounds you haven't finished count as unsolved.`, primary/default-focus `Keep Playing`, and destructive `Leave`. Leaving saves the first attempt with unfinished rounds unsolved, keeps the streak, and returns Home so the Daily card offers `See Today's Daily`. Match this rule when the tab/app closes mid-run as far as browser lifecycle delivery permits.
 3. Keep stats placement and the How-to chooser out of this step. The only `/you` addition is the specifically requested name editor. Existing scoring, points, tiers, Groups visibility, and sign-in flag remain unchanged.
 4. Extend `log_analytics_events`’s allowlist from the existing eight events to these twelve:
    `classic_demo_opened`, `classic_demo_finished`, `classic_demo_skipped`, `room_created`, `room_joined`, `invite_link_clicked`, `game_started`, `game_completed`, `home_viewed`, `home_daily_tapped`, `home_solo_tapped`, `home_peeps_tapped`.
@@ -73,7 +73,7 @@ This is one publish unit: root metadata cannot become Home before `/daily` is se
 - Recognition/restore/sign-in: remains in Settings and the existing result save flow; it is not placed on Home.
 - Prelaunch `Get the First Daily` signup: the Daily Home card opens the existing `DailyPreLaunchSignup`; direct `/daily` is guarded to that signup while prelaunch is active.
 - Result email capture and post-sign-in reminder consent: unchanged on the result screen.
-- Landing email capture: preserve `DailyEmailCapture source="landing"` in an accessible Home secondary panel/modal, so the list-building path is not lost without making the three cards scroll.
+- Home email capture: show a small block below the cards only after at least one completed Daily and only while not subscribed. It uses the existing list with a new `home` source; brand-new players and subscribers never see it. Keep the cards visually primary and enforce no Home scroll at 360×640; report before shrinking any other element if the block does not fit. Preserve the existing `landing` source for any remaining callers.
 - Legal/contact: compact Home footer plus existing legal pages.
 
 ## Name filtering and SQL security
@@ -101,7 +101,7 @@ This is one publish unit: root metadata cannot become Home before `/daily` is se
 - Home component/browser tests cover card order/copy/colors, pre/post-play Daily behavior, countdown rollover, Solo direct entry, Peeps chooser, invite bypass, attribution forwarding, keyboard order, visible focus, 44px controls, and light/night contrast.
 - Name unit/database tests cover existing-name carryover; signed-out persistence; signed-in cross-device profile; account switching; server use of `auth.uid()`; six-character limit; representative accepted normal names; exact/obfuscated blocked names; friendly error; wrong caller isolation; presence spoof ignored; Classic and Groups server enforcement; Solo fallback `You`.
 - Security catalog tests assert SECURITY DEFINER, fixed search paths, RLS, and exact PUBLIC/anon/authenticated grants for every touched function.
-- Daily regression tests prove first-time onboarding precedes `Tap to Start`, study begins only on tap and runs once for 10 seconds, already-played opens share-ready result, result/email/reminder flows remain, and prelaunch signup still writes to the list.
+- Daily regression tests prove first-time onboarding precedes `Tap to Start`, study begins only on tap and runs once for 10 seconds, already-played opens share-ready result, result/email/reminder flows remain, prelaunch signup still writes to the list, Home signup eligibility/source are exact, and confirmed mid-run exit saves unfinished rounds as unsolved while preserving the streak.
 - Navigation tests verify Home on every non-game screen and confirmed X exits during every game.
 - Automated analytics tests verify all four new Home events pass and unknown types still drop.
 - Browser matrix: 390×844, 360×640, and 390×600 for every Daily phase with no document scroll; 360×640 Home with no scroll; 768px and 769px around the stack/row breakpoint; 1024×768 desktop; light, night, reduced motion, keyboard, and screen-reader labels.
