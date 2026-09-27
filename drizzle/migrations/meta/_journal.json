@@ -225,6 +225,13 @@
       "when": 1790514120916,
       "tag": "0031_preserve_global_name_join_semantics",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1790514535216,
+      "tag": "0032_restore_daily_group_name_rpc_grants",
+      "breakpoints": true
     }
   ]
 }
