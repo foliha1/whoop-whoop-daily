@@ -1,89 +1,93 @@
-# Security pass 2 of 3: Classic results
+# Security pass 3 of 3: Classic usage events
 
-Goal: a Classic result is saved only for a real, server-registered game, by its real host, with the real seats, and with identity taken from the server. Gameplay, UI, sounds and timings do not change.
+## What I checked before writing this (live database + published site)
 
-## Corrections to the brief (checked against code and the live database)
+- `analytics_events` has one insert policy, "Anyone can insert analytics events", for anon and authenticated, with check `true`. This matches the brief.
+- The only app code that writes to it is `trackEvent` in `src/lib/analytics.ts`. It sends one event per call, with `event_type`, `room_code`, `visitor_id` and `metadata`.
+- The published site (whoop-whoop.com/classic.html bundle) sends exactly 8 event names: `classic_demo_opened`, `classic_demo_finished`, `classic_demo_skipped`, `room_created`, `room_joined`, `invite_link_clicked`, `game_started`, `game_completed`. The preview sends the same 8.
+- Real rows so far (about 1,340): the largest metadata is 85 characters, with at most 2 keys. Room codes are 6 characters, except `invite_link_clicked`, which reaches 46 because it logs whatever code was in the invite link. Visitor ids are 36 characters.
 
-1. **Rematch reuses the game id.** "Play again" (the `NEW_GAME` action in MultiplayerWindow) re-inits the board with the same `gameId`, and the recorder keys the result on that id. So today every rematch result hits `ON CONFLICT (game_id) DO NOTHING` and is silently lost. "One result per game" only works if a rematch gets its own server-registered id. Fix: the rematch path registers a new game id with the same seats (the same `register_room_seats_by_pid` call used by "Let's Play!", run silently in the background) before it re-inits. Nothing on screen changes. Claim windows are then scoped per game too.
-2. **"48 cards, first to 12" means scores of 12 or 13, not exactly 12.** A match is worth +2 (the two cards) and a wrong claim is −1, so a seat on 11 who matches ends on 13. Score equals cards held, so the sum of all seats is at most 48. The current check allows any seat 0–60 and never checks the sum.
-3. **Not every game ends at 12.** A game can reach `GAME_OVER` three ways: someone reaches 12 (normal), `END_GAME_TABLE_EMPTY` (fewer than 2 players left), or the stall safety (deck runs out). Today all three save as the same kind of row, with nothing to tell them apart. That keeps working, but each row gets an `end_reason`.
-4. **claim-lock and release-lock still trust the browser id alone.** Confirmed: `verifySeatOwner` compares only `visitor_id`, and release-lock compares only `rooms.host_visitor_id`.
-5. **Edge functions go live when they deploy, not when the app publishes.** If claim-lock started requiring a key before publish, every open tab on the live app would lose its claims. So the key is checked **when it's sent** from now on, and becomes **required** on publish day (listed in the post-publish doc).
-6. **Solo already mints a random id on the device.** The recorder makes up a UUID per solo game, because solo's wire id is the constant `"solo-game"`. That id gets replaced by the server-issued one.
-7. **Live data:** 12 multiplayer and 17 solo rows since Sep 8, and 1 logged rejection.
+## Things in the brief that don't match the current code
+
+1. **No admin chart reads `analytics_events`.** The admin Classic card (`admin_classic`) reads `classic_results`. The How to Play card (`admin_howto`) and the Rejections card (`admin_rejections`) read `daily_events`. None of them change in this pass. So test 4 will check two things separately: the events still land in `analytics_events`, and the admin Classic card still counts the games (from `classic_results`).
+2. **Solo games log no usage events today.** `game_started` and `game_completed` fire only in multiplayer, and the demo events fire for anyone. For solo, test 4 will check that the demo events are logged and that the result shows up on the admin page.
+3. **Some names are declared but never sent.** `room_replayed` and `email_captured` are in the app's type list but nothing sends them. The `mp_howto_*` names (156 old rows) come from an earlier version and aren't sent anymore. `classic_result_rejected` is written only by the server's save functions, never by the app. None of these go in the allowed list. Old rows stay.
+4. **The visitor id can't come from the server.** It's a random id stored in the browser, and the server has nothing to derive it from. It will stay a label: trimmed and format-checked, but never used for rate limits. Everything the server can know it sets itself: `created_at`, the IP-based limit and the signed-in user limit. The table has no user id column, and I won't add one in this pass.
 
 ## What gets built
 
-### A. Multiplayer save: `save_classic_game(...)` (new; the old function is kept)
-Inputs: room id, game id, host visitor id, host player_key, end_reason, seats (seat, name, score), rounds, correct/wrong claims, app version. There are no client times and no identity fields.
-Rules, in order (any failure logs a rejection and returns `true`):
-1. Rate limits, before anything else: `rl_hit('classic_save_ip', request_ip(), 200)`, plus `rl_hit('classic_save_user', auth.uid(), 200)` when signed in.
-2. The room exists, `host_visitor_id = p_visitor_id` and `host_key = p_player_key`. Otherwise `not_host`.
-3. `room_seats` has rows for (room, game). Otherwise `unknown_game`.
-4. The seat numbers sent equal the registered seat numbers exactly, same set and same count. Otherwise `seat_mismatch`.
-5. There is no existing result for this game. Otherwise the save is ignored: return `true` with no rejection log, as today.
-6. Duration = `now() − min(room_seats.created_at)` for that game. It must be at least 30 s for `target` and at least 10 s for other endings, and at most 6 h. Otherwise `too_short` / `too_long`.
-7. Score rules (below). Otherwise the matching reason.
-8. Insert with server-filled identity (section B), `started_at` = seat registration time, `ended_at = now()`, plus `distinct_browsers` and `distinct_users`.
+### A. New server function `log_analytics_events(p_visitor_id text, p_events jsonb) returns integer`
+- SECURITY DEFINER, `search_path = public`. REVOKE EXECUTE from PUBLIC, anon and authenticated, then GRANT EXECUTE to anon and authenticated.
+- Always returns the number written, 0 or more. It never raises an error for bad input, so a rejected call looks the same as a normal one.
+- Uses the same pattern as the existing `log_daily_events`.
 
-### B. Identity from the server
-- `room_members.user_id uuid` (nullable), set only from `auth.uid()` inside the 4-argument `join_room_session`. It is refreshed on each join, so signing in and rejoining updates it.
-- `room_seats.user_id uuid` (nullable), copied from the member row inside `register_room_seats_by_pid`.
-- New columns on `classic_results`: `seat_identities jsonb` (seat, visitor_id, user_id per seat, from room_seats), `host_user_id`, `end_reason`, `distinct_browsers`, `distinct_users`, `verified boolean default false`. New rows are `verified = true`. Old rows stay false. Names are still shown from the client but are never used as identity.
+### B. Allowed event types
+`classic_demo_opened`, `classic_demo_finished`, `classic_demo_skipped`, `room_created`, `room_joined`, `invite_link_clicked`, `game_started`, `game_completed`. Any other type is dropped quietly.
 
-### C. Solo
-- New table `solo_games(id, started_at, visitor_id, user_id, ip, finished_at)`. It is service-only: grants to service_role only and RLS on with no policies.
-- `start_solo_game(p_visitor_id)` returns `{ id, started_at }`. Limits: 150 per IP per day (families share wifi), 100 per signed-in user per day, and 1 open game per browser per 5 s. The visitor id is recorded, but the limits never key on it. The call is made quietly in the background when a solo game begins. If it fails, the game plays exactly the same and simply isn't saved.
-- `save_solo_game(p_game_id, end_reason, seats, rounds, claims, app_version)`: the id must exist, `finished_at` must be null (one result per id), `now() − started_at` must be at least 30 s for `target` and at least 10 s otherwise, and at most 6 h. Exactly 2 seats. Identity comes from the `solo_games` row plus the session. `finished_at` is set in the same statement, so a second save does nothing. Rate limits match the multiplayer save.
+### C. Size limits
+| Field | Limit | Over the limit |
+|---|---|---|
+| Events per call | 10 | extras ignored |
+| event_type | must exactly match the list | dropped |
+| room_code | 16 characters, trimmed | trimmed (keeps bad-invite codes useful) |
+| visitor_id | 64 characters, trimmed; empty means the whole call is dropped | trimmed |
+| metadata | must be a JSON object, at most 8 keys and 512 bytes as text | dropped entirely (not trimmed) |
 
-### D. Score rules (both paths)
-- Each score is between 0 and 13. The sum of scores is at most 48.
-- `target`: exactly one seat scores 12 or 13, and every other seat is at most 11.
-- `table_empty` / `stalled`: no seat is at 12 or above. These are stored with their `end_reason` so the future points system can ignore them.
-- Rounds between 1 and 400. Claims between 0 and 400. Correct claims are at least (sum of scores + penalties) / 2 is not enforced; that's too fragile.
+The metadata limit of 512 bytes is about 6 times the largest real row.
 
-### E. Rate limits
-All new limits key on `request_ip()` and `auth.uid()` only. The existing per-visitor join limit stays as it is.
+### D. Rate limits (per UTC day, using the existing `rl_hit` counters)
+- Per IP address (`request_ip()`): 2,000 events.
+- Per signed-in user (`auth.uid()`, only when signed in): 500 events.
+- Nothing is keyed on the visitor id, so rotating it doesn't help.
 
-### F. claim-lock / release-lock
-- claim-lock takes `player_key`. When it's present, it must equal `room_seats.player_key` for that room, game and seat (`bad_seat_key`, 403). The client sends its own key, which it already holds.
-- release-lock takes `player_key`. When it's present, it must equal `rooms.host_key`.
-- From publish day on, a missing key is refused (post-publish doc).
+How much headroom: a six-person family table on one wifi, playing 20 games with rematches, sends roughly 6 × (1 join + 20 starts + 20 completions) plus a few demo events, about 300 events. That's well under 2,000.
 
-### G. Record, don't block
-The result stores the number of distinct browsers and distinct signed-in users among the seats. IP is never compared, and a game is never rejected for a shared IP.
+### E. Server-set fields
+`created_at` uses the column default, and the function ignores any client value. The client can't supply `id` either.
 
-### H. Rejections
-Every rejection returns `true` and inserts `classic_result_rejected` into `analytics_events` with `reason`, `game_id` and `path` ('multi' | 'solo'). The admin Classic view keeps reading `classic_results` unchanged.
+### F. Rejections are counted, not logged row by row
+Each dropped event increments one daily counter per reason in the existing `write_limits` table (bucket `analytics_dropped`, keyed by reason: `unknown_type`, `bad_metadata`, `over_batch`, `rate_ip`, `rate_user`, `no_visitor`). An attacker can make that counter bigger, but can't add rows. The counters themselves aren't rate-limited, because they update in place.
 
-## Files and functions touched
-- Migration `drizzle/migrations/0023_classic_results_integrity.sql`: the new columns, the `solo_games` table, new `save_classic_game`, `start_solo_game` and `save_solo_game`, a new helper `classic_score_reject_reason`, and in-place replacement of `join_room_session(uuid,text,text,text)` and `register_room_seats_by_pid` (same signatures; they only also write user_id). All new functions are SECURITY DEFINER with `search_path = public`. Each one runs REVOKE from PUBLIC, anon and authenticated, then GRANT only what it needs: save/start to anon + authenticated, and the helper to nobody. Afterwards, re-check the PUBLIC grants on the two replaced functions, because CREATE OR REPLACE keeps old grants.
-- `src/lib/classicResults.ts`: new `saveClassicGame` and `startSoloGame` / `saveSoloGame` wrappers, and `end_reason` derived from the final state.
-- `src/hooks/useClassicResultRecorder.ts`: takes room id, host key and solo id, and stops sending times and the visitor id as identity.
-- `src/components/MultiplayerWindow.tsx`: passes the host key and room id, registers a new game id on rematch, and starts the solo id when a solo game begins.
-- `src/lib/claimLock.ts` and `src/hooks/useMultiplayerGame.ts` (release-lock call): send the player key.
-- `supabase/functions/_shared/seatOwnership.ts`, `claim-lock/index.ts`, `release-lock/index.ts`: optional key check, then redeploy.
-- `src/integrations/supabase/types.ts`: regenerated.
-- New `docs/post-publish-classic-results.md`: on publish day, (1) make `player_key` required in claim-lock and release-lock and redeploy, (2) revoke EXECUTE on the old `save_classic_result(...12 args)` from PUBLIC, anon and authenticated, (3) verify with one live multiplayer game and one live solo game.
-- Tests: new `src/test/classicResultsIntegrity.test.ts`.
+### G. App switch and publish-day step
+- `trackEvent` calls `log_analytics_events` with a one-event batch. It stays fire-and-forget, so players see nothing different.
+- The old insert policy stays for now, so tabs still running the old app keep logging until you publish.
+- A new doc, `docs/post-publish-analytics-events.md`, covers publish day:
+  1. Check that the published bundle no longer contains `from("analytics_events")`.
+  2. Drop the policy "Anyone can insert analytics events".
+  3. Also revoke INSERT on `analytics_events` from anon and authenticated.
+  4. Run test 5.
+
+### H. Other tables anon or authenticated can insert into directly
+From a live query of every insert and all-commands policy in `public`:
+
+| Table | Policy | Who can actually insert |
+|---|---|---|
+| analytics_events | Anyone can insert, check `true` | **anyone (this pass)** |
+| email_send_log | check `auth.role() = 'service_role'` | server only |
+| email_send_state | same check (all commands) | server only |
+| email_unsubscribe_tokens | same check | server only |
+| suppressed_emails | same check | server only |
+
+- `daily_events` has no insert policy. It's written only through `log_daily_events`, which already has an allowed list and per-IP limits. That function also has a per-visitor limit keyed on a client id. This is harmless because the IP limit still applies, but I'd consider it for a later tidy-up rather than change it now.
+- Every other table has no insert policy.
+- The four email tables also keep leftover INSERT grants to anon and authenticated, which their policies block. I'd revoke those grants later, but I won't touch them in this pass: they're safe as they are, and the emails run through them.
+- So the only fix in this pass is `analytics_events`.
 
 ## Tests
-Automated, run against the database through its functions and against the edge-function handler with a stubbed client:
-1. A made-up game id is rejected (`unknown_game`).
-2. A non-host member, and a stranger who knows the code, are both rejected (`not_host`).
-3. Wrong seat numbers or the wrong seat count are rejected (`seat_mismatch`).
-4. A second save for the same game is ignored, and the row count stays at 1.
-5. A solo save with no server id, and one within 30 s of its start, are both rejected.
-6. 201 saves with 201 different visitor ids from one IP: the 201st is dropped.
-7. claim-lock with the right visitor id and the wrong key gets 403 `bad_seat_key`.
-8. Score rules: 14 points, a sum over 48, two winners, and a `target` ending with no winner are each rejected.
-9. A rematch registers a new game id, and both results save.
+- **Fast automated test** (`src/test/analyticsEvents.test.ts`): `trackEvent` calls `log_analytics_events` with the right shape, never inserts into the table directly, and never throws.
+- **Live database checks through the function**, with a counter read before and after each:
+  1. An unknown type returns 0 and writes no row.
+  2. Metadata over 512 bytes, or with more than 8 keys, is dropped (returns 0). A 30-character room code is trimmed to 16.
+  3. Pre-fill today's IP counter for the test machine's IP to just under 2,000, then send events under 5 different made-up visitor ids. Once the counter reaches the limit, every one is refused. Afterwards, reset that counter row.
+  4. Live preview: a 2-browser Classic game and a solo game. `room_created`, `room_joined`, `game_started`, `game_completed` and the demo events arrive with server times, and the admin Classic card counts both games.
+  5. Written into the doc for publish day: a direct insert as anon gets refused.
+- Full suite in one pass. Afterwards, I delete the test rows and tables and list them, as last time.
 
-Live, in the preview on the live database: one full 2-browser game plus a rematch, and one full solo game. Each row is read back to confirm server times, seat_identities, user_id for a signed-in seat, the distinct counts and `verified = true`. Then a wrong-key claim-lock call is made directly.
-
-Nothing is published. The post-publish doc lists the same-day steps.
-
-## Risks
-- Old tabs keep using the old save and claim paths until publish day. That's accepted, and it's why the key is only required on publish day.
-- A 30 s minimum could reject a real very-fast debug game. Normal play can't finish that fast: at least 6 matches, each with a roll, a 2 s flip hold and a 1.9 s settle.
-- A host whose tab reloaded gets a new `host_key`, which the save uses. That's fine, because a host reload ends the game anyway.
+## Technical details: files and functions touched
+- New migration `drizzle/migrations/0026_log_analytics_events.sql`: creates `log_analytics_events`, with its grants. No table or policy changes.
+- `src/lib/analytics.ts`: switched to the new function, and the unused type names removed.
+- `src/integrations/supabase/types.ts`: regenerated.
+- New `src/test/analyticsEvents.test.ts`.
+- New `docs/post-publish-analytics-events.md`.
+- `AGENTS.md`: one rule — usage events are written only through allow-listed, rate-limited server functions.
+- Not touched: `log_daily_events`, the admin functions, the email tables, gameplay or UI.
