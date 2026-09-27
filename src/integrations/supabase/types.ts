@@ -1233,6 +1233,10 @@ export type Database = {
           was_subscriber: boolean
         }[]
       }
+      log_analytics_events: {
+        Args: { p_events: Json; p_visitor_id: string }
+        Returns: number
+      }
       log_classic_timing: { Args: { p_samples: Json }; Returns: number }
       log_daily_events: {
         Args: { p_events: Json; p_visitor_id: string }

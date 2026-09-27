@@ -91,3 +91,8 @@
 - [x] Per-join ECDSA keys registered via join_room_session; public id replaces player_key on the channel
 - [x] Host-signed broadcasts, sender-signed intents/heartbeats with nonce, server-signed grants/rejects
 - [ ] Sign/verify timing under CPU slowdown and full live multi-browser game (lobby verified; game play not yet run)
+
+## Security pass 3: Classic usage events
+- [x] log_analytics_events function (allow-list, size limits, IP/user limits)
+- [x] App switch, tests, live checks, post-publish doc (incl. "Later" items)
+- [ ] Publish day: drop old insert policy (waits on Felix's publish)
