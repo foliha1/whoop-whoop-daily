@@ -1,5 +1,5 @@
 import React from "react";
-import { DISPLAY_NAME_ERROR, DISPLAY_NAME_MAX } from "@/lib/displayName";
+import { DISPLAY_NAME_ERROR, DISPLAY_NAME_MAX, sliceDisplayName } from "@/lib/displayName";
 import { resolveDisplayName, saveDisplayName } from "@/lib/profile";
 import { getDisplayName } from "@/lib/visitor";
 import { BORDER, COLORS, RADIUS, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
@@ -33,8 +33,8 @@ const DisplayNameEditor: React.FC<{ mobile: boolean }> = ({ mobile }) => {
         <input
           id="global-display-name"
           value={value}
-          maxLength={DISPLAY_NAME_MAX}
-          onChange={(event) => setValue(event.target.value.slice(0, DISPLAY_NAME_MAX))}
+          maxLength={DISPLAY_NAME_MAX * 4}
+          onChange={(event) => setValue(sliceDisplayName(event.target.value))}
           autoComplete="nickname"
           style={{
             ...textStyle("control", mobile), minWidth: 0, flex: 1, minHeight: 44,

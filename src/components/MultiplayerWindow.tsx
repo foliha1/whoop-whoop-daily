@@ -1433,12 +1433,12 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               if (!nameTouched) {
                 e.preventDefault();
                 setNameTouched(true);
-                setNameInput(e.clipboardData.getData("text").slice(0, NAME_CAP));
+                setNameInput(sliceDisplayName(e.clipboardData.getData("text"), NAME_CAP));
               }
             }}
             onFocus={() => setNameFocused(true)}
             onBlur={() => setNameFocused(false)}
-            maxLength={NAME_CAP}
+            maxLength={NAME_CAP * 4}
             autoFocus
             autoCapitalize="characters"
             autoCorrect="off"
