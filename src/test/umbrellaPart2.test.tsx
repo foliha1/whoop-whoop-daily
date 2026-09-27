@@ -2,9 +2,14 @@ import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { setUmbrellaPreviewForTests } from "@/lib/launch";
 import { dailyStorageKey, getDailySeed } from "@/lib/daily";
 import HomePage, { formatNextPuzzle } from "@/pages/HomePage";
+
+const renderHome = (entry = "/") => render(
+  <HelmetProvider><MemoryRouter initialEntries={[entry]}><HomePage /></MemoryRouter></HelmetProvider>
+);
 
 afterEach(() => {
   cleanup();
@@ -16,7 +21,7 @@ afterEach(() => {
 describe("Part 2 umbrella home", () => {
   it("renders Daily, Solo, and Peeps in order with their fixed colors", () => {
     setUmbrellaPreviewForTests(true);
-    render(<MemoryRouter><HomePage /></MemoryRouter>);
+    renderHome();
     const cards = screen.getByRole("navigation", { name: "Choose a game" }).querySelectorAll("a");
     expect(Array.from(cards).map((card) => card.getAttribute("data-testid"))).toEqual(["home-daily", "home-solo", "home-peeps"]);
     expect(cards[0]).toHaveStyle({ background: "#E79024", color: "#231f20" });
@@ -25,7 +30,7 @@ describe("Part 2 umbrella home", () => {
   });
 
   it("forwards attribution to every destination", () => {
-    render(<MemoryRouter initialEntries={["/?utm_source=launch&ref=felix&i=DAILY"]}><HomePage /></MemoryRouter>);
+    renderHome("/?utm_source=launch&ref=felix&i=DAILY");
     expect(screen.getByTestId("home-daily")).toHaveAttribute("href", "/daily?utm_source=launch&ref=felix&i=DAILY");
     expect(screen.getByTestId("home-solo")).toHaveAttribute("href", "/classic?mode=solo&utm_source=launch&ref=felix&i=DAILY");
     expect(screen.getByTestId("home-peeps")).toHaveAttribute("href", "/classic?mode=multiplayer&utm_source=launch&ref=felix&i=DAILY");
@@ -34,7 +39,7 @@ describe("Part 2 umbrella home", () => {
   it("changes the Daily card after a stored attempt and shows the countdown", () => {
     const seed = getDailySeed();
     localStorage.setItem(dailyStorageKey(seed), JSON.stringify({ elapsedMs: 1, seed, puzzleNumber: 1 }));
-    render(<MemoryRouter><HomePage /></MemoryRouter>);
+    renderHome();
     expect(screen.getByText("See Today's Daily")).toBeInTheDocument();
     expect(screen.getByText(/^Next puzzle in \d+h$/)).toBeInTheDocument();
   });
