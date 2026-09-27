@@ -261,7 +261,7 @@ describe("6. player_key never goes on the channel", () => {
 
   it("the session key only travels to the server", () => {
     const win = read("src/components/MultiplayerWindow.tsx");
-    // sessionKey is only ever passed to the two RPC wrappers.
+    // sessionKey is only ever passed to the two RPC wrappers matched here.
     const uses = win.match(/sessionKey/g) ?? [];
     const rpcUses = win.match(/(joinRoomSessionSigned|fetchSignKeys)\([^)]*sessionKey/g) ?? [];
     expect(rpcUses.length).toBe(2);
@@ -269,8 +269,8 @@ describe("6. player_key never goes on the channel", () => {
     // hook), the claim arbiter (two game views) and the result save.
     const serverOnly = win.match(/hostSessionKey: sessionKey|playerKey: sessionKey|playerKey=\{sessionKey\}/g) ?? [];
     expect(serverOnly.length).toBe(4);
-    // declaration + 2 RPC uses + effect deps + the server-only paths
-    expect(uses.length).toBe(4 + serverOnly.length);
+    // declaration + 2 matched RPC uses + member-name RPC + effect deps + the server-only paths
+    expect(uses.length).toBe(6 + serverOnly.length);
   });
 });
 

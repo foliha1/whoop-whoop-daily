@@ -1,0 +1,2 @@
+REVOKE ALL ON FUNCTION public.create_daily_group(text,text,text), public.join_daily_group(text,text,text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.create_daily_group(text,text,text), public.join_daily_group(text,text,text) TO anon, authenticated, service_role;

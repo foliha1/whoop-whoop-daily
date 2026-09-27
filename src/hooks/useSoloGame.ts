@@ -24,6 +24,7 @@ import type {
   RollCommitPayload,
   RollAttribute,
 } from "@/lib/multiplayer";
+import { getDisplayName } from "@/lib/visitor";
 import {
   createBrain,
   observe,
@@ -44,11 +45,6 @@ const WHOOP_ROLL_DELAY_MS = 1200;
 const WHOOP_FLIP_DELAY_MS = 1400;
 const ROLL_ATTRS: readonly RollAttribute[] = ["SHAPE", "NUMBER", "COLOR"] as const;
 
-const SEAT_MAP = [
-  { seat: 0, pid: "solo-you", display_name: "You" },
-  { seat: 1, pid: "solo-whoop", display_name: OPPONENT_NAME },
-];
-
 export interface UseSoloGameResult {
   publicState: PublicState;
   onIntent: (a: IntentAction) => void;
@@ -61,10 +57,15 @@ export interface UseSoloGameResult {
 }
 
 export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult {
+  const playerName = getDisplayName() || "You";
+  const seatMap = useMemo(() => [
+    { seat: 0, pid: "solo-you", display_name: playerName },
+    { seat: 1, pid: "solo-whoop", display_name: OPPONENT_NAME },
+  ], [playerName]);
   const g = useGameState(gridSize, {
     seatCount: 2,
     botSeats: [],
-    names: ["You", OPPONENT_NAME],
+    names: [playerName, OPPONENT_NAME],
   });
   const { state, dispatch, doRollDice } = g;
 
@@ -349,8 +350,8 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
   );
 
   const publicState = useMemo<PublicState>(
-    () => toPublicState(state, SEAT_MAP, 0, "solo-game", [], []),
-    [state],
+    () => toPublicState(state, seatMap, 0, "solo-game", [], []),
+    [state, seatMap],
   );
 
   return {

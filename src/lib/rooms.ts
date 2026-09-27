@@ -75,24 +75,36 @@ export async function joinRoomSessionSigned(
   visitorId: string,
   playerKey: string,
   signPubkey: string,
-): Promise<{ pub_id: string; game_id: string | null; seat: number | null } | null> {
+  displayName: string,
+): Promise<{ pub_id: string; game_id: string | null; seat: number | null; display_name: string } | null> {
   try {
     const { data, error } = await supabase.rpc("join_room_session", {
       p_room_id: roomId,
       p_visitor_id: visitorId,
       p_player_key: playerKey,
       p_sign_pubkey: signPubkey,
+      p_display_name: displayName,
     });
     if (error) {
       console.warn("[rooms] signed join failed", error.message);
       return null;
     }
-    const row = Array.isArray(data) && data.length > 0 ? (data[0] as { pub_id: string | null; game_id: string | null; seat: number | null }) : null;
-    return row?.pub_id ? { pub_id: row.pub_id, game_id: row.game_id, seat: row.seat } : null;
+    const row = Array.isArray(data) && data.length > 0 ? (data[0] as { pub_id: string | null; game_id: string | null; seat: number | null; display_name: string }) : null;
+    return row?.pub_id ? { pub_id: row.pub_id, game_id: row.game_id, seat: row.seat, display_name: row.display_name } : null;
   } catch (e) {
     console.warn("[rooms] signed join threw", e);
     return null;
   }
+}
+
+export async function fetchRoomMemberNames(roomId: string, visitorId: string, playerKey: string) {
+  const { data, error } = await supabase.rpc("room_member_names", {
+    p_room_id: roomId,
+    p_visitor_id: visitorId,
+    p_player_key: playerKey,
+  });
+  if (error || !Array.isArray(data)) return [];
+  return data as Array<{ pub_id: string; display_name: string; is_host: boolean }>;
 }
 
 /** Public signing keys for this room; the server only answers members. */

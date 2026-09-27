@@ -203,6 +203,7 @@ export function groupErrorMessage(err: unknown): string {
     return `You are already in ${GROUP_MAX_PER_PERSON} groups. Leave one to join another.`;
   }
   if (raw.includes("rate_limited")) return "Too many tries today. Try again tomorrow.";
+  if (raw.includes("display_name_rejected")) return "Try another name.";
   return "That did not work. Try again in a moment.";
 }
 

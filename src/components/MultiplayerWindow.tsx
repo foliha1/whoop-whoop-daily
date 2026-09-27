@@ -21,10 +21,12 @@ import {
 
 import { AppButton } from "@/components/ui/AppButton";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { joinRoomSessionSigned, fetchSignKeys } from "@/lib/rooms";
+import { joinRoomSessionSigned, fetchRoomMemberNames, fetchSignKeys } from "@/lib/rooms";
 import { KeyDirectory, createVerifier, generateSigningKey } from "@/lib/channelSigning";
 import type { ChannelSecurity } from "@/hooks/useRoomPresence";
 import { getVisitorId, getDisplayName, setDisplayName, DISPLAY_NAME_MAX } from "@/lib/visitor";
+import { DISPLAY_NAME_ERROR, validateDisplayName } from "@/lib/displayName";
+import { resolveDisplayName } from "@/lib/profile";
 import { trackEvent } from "@/lib/analytics";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
 import {
@@ -257,6 +259,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const [busy, setBusy] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [nameInput, setNameInput] = useState<string>(() => getDisplayName());
+  const [memberNames, setMemberNames] = useState<Array<{ pub_id: string; display_name: string; is_host: boolean }>>([]);
   // True once the player has typed this session. While false the value is an
   // untouched prefill — the first keystroke replaces it instead of appending.
   const [nameTouched, setNameTouched] = useState(false);
@@ -312,9 +315,11 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     void (async () => {
       for (let attempt = 0; attempt < 5 && !cancelled; attempt++) {
         const key = await generateSigningKey();
-        const joined = await joinRoomSessionSigned(activeRoomId, browserId, sessionKey, key.publicKeyB64);
+        const joined = await joinRoomSessionSigned(activeRoomId, browserId, sessionKey, key.publicKeyB64, getDisplayName());
         if (cancelled) return;
         if (!joined) { await new Promise((r) => setTimeout(r, 1500)); continue; }
+        setDisplayName(joined.display_name);
+        setNameInput(joined.display_name);
         const directory = new KeyDirectory(() => fetchSignKeys(activeRoomId, browserId, sessionKey));
         await directory.refresh(true);
         if (cancelled) return;
@@ -342,6 +347,25 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     isHostView,
     security,
   );
+  useEffect(() => {
+    setMemberNames([]);
+    if (!activeRoomId || !security) return;
+    let live = true;
+    const refresh = async () => {
+      const rows = await fetchRoomMemberNames(activeRoomId, browserId, sessionKey);
+      if (live) setMemberNames(rows);
+    };
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 1000);
+    return () => { live = false; window.clearInterval(timer); };
+  }, [activeRoomId, browserId, sessionKey, security, connectEpoch]);
+  const canonicalParticipants = useMemo(() => {
+    const names = new Map(memberNames.map((member) => [member.pub_id, member]));
+    return participants.flatMap((participant) => {
+      const canonical = names.get(participant.pid);
+      return canonical ? [{ ...participant, display_name: canonical.display_name, is_host: canonical.is_host }] : [];
+    }).sort((a, b) => a.is_host === b.is_host ? a.joined_at - b.joined_at : a.is_host ? -1 : 1);
+  }, [participants, memberNames]);
 
 
   const hostVisitorId = useMemo(() => {
@@ -714,6 +738,15 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     setView({ kind: "name-prompt", intent: "peeps" });
   }, []);
 
+  useEffect(() => {
+    let live = true;
+    void resolveDisplayName().then((name) => {
+      if (!live || !name) return;
+      setNameInput(name);
+    });
+    return () => { live = false; };
+  }, []);
+
   const startSoloFlow = useCallback(() => {
     unlockAudio();
     setNameInput(getDisplayName());
@@ -771,7 +804,12 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       setView({ ...view, error: "Enter a name so others can see who you are." });
       return;
     }
-    const stored = setDisplayName(trimmed);
+    const checked = validateDisplayName(trimmed);
+    if (!checked.ok) {
+      setView({ ...view, error: DISPLAY_NAME_ERROR });
+      return;
+    }
+    const stored = setDisplayName(checked.name);
     setNameInput(stored);
     if (view.intent === "solo") {
       setView({ kind: "solo" });
@@ -795,16 +833,16 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   useEffect(() => {
     if (!activeRoom) return;
     if (view.kind !== "joiner") return;
-    if (participants.length >= ROOM_CAPACITY + 1) {
+    if (canonicalParticipants.length >= ROOM_CAPACITY + 1) {
       setView({ kind: "full", code: activeRoom.room_code });
     }
-  }, [participants.length, activeRoom, view]);
+  }, [canonicalParticipants.length, activeRoom, view]);
 
   const handleStartGame = useCallback(async () => {
-    if (!isHostView || participants.length < 2) return;
+    if (!isHostView || canonicalParticipants.length < 2) return;
     if (starting && !startFailed) return;
     unlockAudio();
-    const seatMap: SeatMapEntry[] = participants.slice(0, ROOM_CAPACITY).map((p, i) => ({
+    const seatMap: SeatMapEntry[] = canonicalParticipants.slice(0, ROOM_CAPACITY).map((p, i) => ({
       seat: i,
       pid: p.pid,
       display_name: p.display_name,
@@ -855,7 +893,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       roomCode: activeRoom?.room_code,
       metadata: { player_count: seatMap.length, grid_size: FIXED_GRID },
     });
-  }, [isHostView, participants, activeRoom, starting, startFailed, channel, browserId, host.dispatch, host.state.slotCount, security]);
+  }, [isHostView, canonicalParticipants, activeRoom, starting, startFailed, channel, browserId, host.dispatch, host.state.slotCount, security]);
 
 
   // Joiner: listen for the host's game_starting notice.
@@ -1622,7 +1660,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // Host/Joiner LOBBY view (game not yet started).
   const room = (view as { room: RoomRow }).room;
   const isHost = view.kind === "host";
-  const visibleParticipants = participants;
+  const visibleParticipants = canonicalParticipants;
   const canStart = visibleParticipants.length >= 2;
   const link = shareUrl(room.room_code);
 
