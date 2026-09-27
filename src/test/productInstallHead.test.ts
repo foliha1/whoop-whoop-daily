@@ -38,6 +38,12 @@ describe("product install metadata", () => {
       theme_color: "#F8F2E9",
       background_color: "#F8F2E9",
     });
+    expect(readJson("public/home.webmanifest")).toMatchObject({
+      name: "WHOOP! WHOOP!",
+      short_name: "WHOOP!",
+      start_url: "/",
+      display: "standalone",
+    });
     expect(readJson("public/classic.webmanifest")).toMatchObject({
       name: "WHOOP! WHOOP! Classic",
       short_name: "Classic",
@@ -49,6 +55,12 @@ describe("product install metadata", () => {
     for (const manifest of [readJson("public/daily.webmanifest"), readJson("public/classic.webmanifest")]) {
       for (const icon of manifest.icons) expect(icon.src).toContain("?v=20260925");
     }
+  });
+
+  it("keeps placeholder home assets explicit and replaceable", () => {
+    const home = readJson("public/home.webmanifest");
+    for (const icon of home.icons) expect(icon.src).toContain("PLACEHOLDER");
+    expect(pngDimensions("public/og-home-PLACEHOLDER.png")).toEqual([1200, 630]);
   });
 
   it.each(["daily", "classic"])("has the complete %s PNG icon set", (product) => {

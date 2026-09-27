@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const ORIGIN = "https://whoop-whoop.com";
-const CONFIG = readFileSync(new URL("../src/launch.config.ts", import.meta.url), "utf8");
+const CONFIG = readFileSync(resolve(process.cwd(), "src/launch.config.ts"), "utf8");
 export const UMBRELLA_LAUNCHED = /launched:\s*true/.test(CONFIG);
 
 export const HOME_META = {
