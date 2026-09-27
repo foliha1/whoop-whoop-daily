@@ -25,7 +25,7 @@ import { joinRoomSessionSigned, fetchRoomMemberNames, fetchSignKeys } from "@/li
 import { KeyDirectory, createVerifier, generateSigningKey } from "@/lib/channelSigning";
 import type { ChannelSecurity } from "@/hooks/useRoomPresence";
 import { getVisitorId, getDisplayName, setDisplayName, DISPLAY_NAME_MAX } from "@/lib/visitor";
-import { DISPLAY_NAME_ERROR, validateDisplayName } from "@/lib/displayName";
+import { DISPLAY_NAME_ERROR, sliceDisplayName, validateDisplayName } from "@/lib/displayName";
 import { resolveDisplayName } from "@/lib/profile";
 import { trackEvent } from "@/lib/analytics";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
@@ -1415,7 +1415,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           <input
             ref={hiddenNameInputRef}
             value={nameInput}
-            onChange={(e) => setNameInput(e.target.value.slice(0, NAME_CAP))}
+            onChange={(e) => setNameInput(sliceDisplayName(e.target.value, NAME_CAP))}
             onKeyDown={(e) => {
               // First keystroke on an untouched prefill replaces the whole
               // value: clear before the character lands so typing "ALPHA"
@@ -1433,12 +1433,12 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               if (!nameTouched) {
                 e.preventDefault();
                 setNameTouched(true);
-                setNameInput(e.clipboardData.getData("text").slice(0, NAME_CAP));
+                setNameInput(sliceDisplayName(e.clipboardData.getData("text"), NAME_CAP));
               }
             }}
             onFocus={() => setNameFocused(true)}
             onBlur={() => setNameFocused(false)}
-            maxLength={NAME_CAP}
+            maxLength={NAME_CAP * 4}
             autoFocus
             autoCapitalize="characters"
             autoCorrect="off"
