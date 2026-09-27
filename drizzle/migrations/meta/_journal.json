@@ -232,6 +232,13 @@
       "when": 1790514535216,
       "tag": "0032_restore_daily_group_name_rpc_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1790542016741,
+      "tag": "0033_revoke_client_grants_name_tables",
+      "breakpoints": true
     }
   ]
 }
