@@ -76,13 +76,17 @@ export function umbrellaHead() {
     generateBundle(_options, bundle) {
       if (!UMBRELLA_LAUNCHED) return;
       const shell = bundle["index.html"];
-      if (!shell || typeof shell.source !== "string") return;
-      const daily = toDailyHtml(shell.source);
+      if (!shell || shell.type !== "asset") return;
+      const source = typeof shell.source === "string" ? shell.source : new TextDecoder().decode(shell.source);
+      const daily = toDailyHtml(source);
       this.emitFile({ type: "asset", fileName: "daily.html", source: daily });
       this.emitFile({ type: "asset", fileName: "daily/index.html", source: daily });
       const manifest = bundle["daily.webmanifest"];
-      if (manifest && typeof manifest.source === "string") {
-        manifest.source = manifest.source.replace('"start_url": "/"', '"start_url": "/daily"');
+      if (manifest?.type === "asset") {
+        const manifestSource = typeof manifest.source === "string"
+          ? manifest.source
+          : new TextDecoder().decode(manifest.source);
+        manifest.source = manifestSource.replace('"start_url": "/"', '"start_url": "/daily"');
       }
     },
   };
