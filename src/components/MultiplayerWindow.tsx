@@ -27,6 +27,7 @@ import type { ChannelSecurity } from "@/hooks/useRoomPresence";
 import { getVisitorId, getDisplayName, setDisplayName, DISPLAY_NAME_MAX } from "@/lib/visitor";
 import { DISPLAY_NAME_ERROR, sliceDisplayName, validateDisplayName } from "@/lib/displayName";
 import { resolveDisplayName } from "@/lib/profile";
+import { umbrellaOn } from "@/lib/launch";
 import { trackEvent } from "@/lib/analytics";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
 import {
