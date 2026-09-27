@@ -19,6 +19,7 @@ import { enterThemeZone, leaveThemeZone, prewarmTheme } from "@/lib/sounds";
 import { BORDER, COLORS, FONT_SIZE, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
 import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
 import DisplayNameEditor from "@/components/DisplayNameEditor";
+import { useUmbrella } from "@/lib/launch";
 
 const EARN_ROWS = [
   { label: "Played", value: "+1" },

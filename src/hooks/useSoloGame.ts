@@ -25,6 +25,7 @@ import type {
   RollAttribute,
 } from "@/lib/multiplayer";
 import { getDisplayName } from "@/lib/visitor";
+import { umbrellaOn } from "@/lib/launch";
 import {
   createBrain,
   observe,
