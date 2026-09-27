@@ -94,5 +94,5 @@
 
 ## Security pass 3: Classic usage events
 - [x] log_analytics_events function (allow-list, size limits, IP/user limits)
-- [ ] App switch, tests, live checks, post-publish doc (incl. "Later" items: email-table grants, log_daily_events per-visitor limit)
+- [x] App switch, tests, live checks, post-publish doc (incl. "Later" items)
 - [ ] Publish day: drop old insert policy (waits on Felix's publish)
