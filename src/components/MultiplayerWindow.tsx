@@ -27,6 +27,7 @@ import type { ChannelSecurity } from "@/hooks/useRoomPresence";
 import { getVisitorId, getDisplayName, setDisplayName, DISPLAY_NAME_MAX } from "@/lib/visitor";
 import { DISPLAY_NAME_ERROR, sliceDisplayName, validateDisplayName } from "@/lib/displayName";
 import { resolveDisplayName } from "@/lib/profile";
+import { umbrellaOn } from "@/lib/launch";
 import { trackEvent } from "@/lib/analytics";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
 import {
@@ -747,6 +748,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   }, []);
 
   useEffect(() => {
+    // Umbrella Part 1: prefilling from the signed-in account's name is part
+    // of the launch; until then the name box uses the device name only.
+    if (!umbrellaOn()) return;
     let live = true;
     void resolveDisplayName().then((name) => {
       if (!live || !name) return;

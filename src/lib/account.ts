@@ -11,6 +11,7 @@ import { getVisitorId } from "@/lib/visitor";
 import { trackDaily } from "@/lib/dailyEvents";
 import { isAccountOwnedRecord, type DailyResultOwner } from "@/lib/daily";
 import { resolveDisplayName } from "@/lib/profile";
+import { umbrellaOn } from "@/lib/launch";
 
 let sessionEmail: string | null = null;
 let sessionUserId: string | null = null;
@@ -57,14 +58,15 @@ try {
     handleAuthIdentity(event, session?.user?.id ?? null);
     if (session?.user?.id) setDeviceLinkedHint(true);
     publish(session?.user?.email ?? null);
-    if (session?.user?.id) void resolveDisplayName();
+    // Umbrella Part 1: account name sync only after launch / admin preview.
+    if (session?.user?.id && umbrellaOn()) void resolveDisplayName();
   });
   void supabase.auth
     .getUser()
     .then(({ data }) => {
       if (sessionUserId === null && data.user?.id) sessionUserId = data.user.id;
       publish(data.user?.email ?? null);
-      if (data.user?.id) void resolveDisplayName();
+      if (data.user?.id && umbrellaOn()) void resolveDisplayName();
     })
     .catch(() => publish(null));
 } catch {

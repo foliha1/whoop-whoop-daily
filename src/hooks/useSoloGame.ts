@@ -25,6 +25,7 @@ import type {
   RollAttribute,
 } from "@/lib/multiplayer";
 import { getDisplayName } from "@/lib/visitor";
+import { umbrellaOn } from "@/lib/launch";
 import {
   createBrain,
   observe,
@@ -57,7 +58,9 @@ export interface UseSoloGameResult {
 }
 
 export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult {
-  const playerName = getDisplayName() || "You";
+  // Umbrella Part 1: the global name labels the solo seat only after launch;
+  // until then solo shows "You", exactly as the published site does today.
+  const playerName = umbrellaOn() ? getDisplayName() || "You" : "You";
   const seatMap = useMemo(() => [
     { seat: 0, pid: "solo-you", display_name: playerName },
     { seat: 1, pid: "solo-whoop", display_name: OPPONENT_NAME },

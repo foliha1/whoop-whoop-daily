@@ -1010,6 +1010,7 @@ export type Database = {
         }[]
       }
       caller_visitor: { Args: { p_visitor_id: string }; Returns: string }
+      can_preview_umbrella: { Args: never; Returns: boolean }
       classic_ranked_seats: { Args: { p_seats: Json }; Returns: Json }
       classic_result_reject_reason: {
         Args: {

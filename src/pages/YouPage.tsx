@@ -19,6 +19,7 @@ import { enterThemeZone, leaveThemeZone, prewarmTheme } from "@/lib/sounds";
 import { BORDER, COLORS, FONT_SIZE, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
 import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
 import DisplayNameEditor from "@/components/DisplayNameEditor";
+import { useUmbrella } from "@/lib/launch";
 
 const EARN_ROWS = [
   { label: "Played", value: "+1" },
@@ -32,6 +33,7 @@ const sectionLabel = (label: string, mobile: boolean) => (
 );
 
 const YouPage: React.FC = () => {
+  const umbrella = useUmbrella();
   const mobile = useIsMobile();
   const location = useLocation();
   const backToResults = (location.state as { wwReturn?: string } | null)?.wwReturn === "results";
@@ -84,9 +86,12 @@ const YouPage: React.FC = () => {
           </p>
         ) : (
           <>
-            <MotionReveal index={2} style={section}>
-              <DisplayNameEditor mobile={mobile} />
-            </MotionReveal>
+            {/* Umbrella Part 1: name editor only after launch / admin preview. */}
+            {umbrella && (
+              <MotionReveal index={2} style={section}>
+                <DisplayNameEditor mobile={mobile} />
+              </MotionReveal>
+            )}
             <MotionReveal index={2} style={section}>
               <YouScoreTiles points={points} mobile={mobile} />
               <div data-testid="you-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>

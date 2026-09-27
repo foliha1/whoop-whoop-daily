@@ -34,6 +34,7 @@ import {
 } from "@/lib/account";
 import { SIGN_IN_ENABLED } from "@/lib/featureFlags";
 import DisplayNameEditor from "@/components/DisplayNameEditor";
+import { useUmbrella } from "@/lib/launch";
 
 const TOUCH = 44;
 
@@ -143,6 +144,7 @@ const howToStyle: React.CSSProperties = {
 };
 
 const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo }) => {
+  const umbrella = useUmbrella();
   const { mode, setMode } = useThemeMode();
   const portalHost = usePortalHost("settings-sheet");
   const [sfx, setSfx] = useState(() => getSfxEnabled());
@@ -276,7 +278,9 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
           }}
         />
 
-        <DisplayNameEditor mobile={false} />
+        {/* Umbrella Part 1: the global name editor appears only after launch
+            (or for a signed-in admin previewing). */}
+        {umbrella && <DisplayNameEditor mobile={false} />}
 
         <Toggle
           label="Music"
