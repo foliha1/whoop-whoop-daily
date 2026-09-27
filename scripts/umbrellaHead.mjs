@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const ORIGIN = "https://whoop-whoop.com";
@@ -73,30 +73,21 @@ export function umbrellaHead() {
       const path = context.originalUrl?.split("?", 1)[0];
       return path === "/daily" || path === "/daily.html" ? toDailyHtml(toHomeHtml(html)) : toHomeHtml(html);
     },
-    generateBundle(_options, bundle) {
-      if (!UMBRELLA_LAUNCHED) return;
-      const shell = bundle["index.html"];
-      const source = shell?.type === "asset"
-        ? (typeof shell.source === "string" ? shell.source : new TextDecoder().decode(shell.source))
-        : dailyShell;
-      if (!source) return;
-      const daily = toDailyHtml(source);
-      this.emitFile({ type: "asset", fileName: "daily.html", source: daily });
-      this.emitFile({ type: "asset", fileName: "daily/index.html", source: daily });
-      const manifest = bundle["daily.webmanifest"];
-      if (manifest?.type === "asset") {
-        const manifestSource = typeof manifest.source === "string"
-          ? manifest.source
-          : new TextDecoder().decode(manifest.source);
-        manifest.source = manifestSource.replace('__DAILY_START_URL__', '/daily');
-      }
-    },
     closeBundle() {
-      if (UMBRELLA_LAUNCHED) return;
       const manifestPath = resolve(process.cwd(), "dist/daily.webmanifest");
       try {
-        const manifest = readFileSync(manifestPath, "utf8").replace('__DAILY_START_URL__', '/');
+        const manifest = readFileSync(manifestPath, "utf8").replace(
+          '__DAILY_START_URL__',
+          UMBRELLA_LAUNCHED ? '/daily' : '/',
+        );
         writeFileSync(manifestPath, manifest);
+        if (UMBRELLA_LAUNCHED) {
+          const builtHome = readFileSync(resolve(process.cwd(), "dist/index.html"), "utf8");
+          const daily = toDailyHtml(builtHome);
+          writeFileSync(resolve(process.cwd(), "dist/daily.html"), daily);
+          mkdirSync(resolve(process.cwd(), "dist/daily"), { recursive: true });
+          writeFileSync(resolve(process.cwd(), "dist/daily/index.html"), daily);
+        }
       } catch {
         return undefined;
       }
