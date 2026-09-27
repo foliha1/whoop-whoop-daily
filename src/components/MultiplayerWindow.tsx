@@ -310,6 +310,14 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     setSecurity(null);
     setDirHostPid(null);
     if (!activeRoomId) return;
+    // A stored name that fails validation (e.g. symbol-only, saved before the
+    // rule existed) would be rejected by the server and retry silently.
+    // Send the player back to the name screen with the error instead.
+    if (!validateDisplayName(getDisplayName()).ok) {
+      setNameInput(getDisplayName());
+      setView({ kind: "name-prompt", intent: "peeps", error: DISPLAY_NAME_ERROR });
+      return;
+    }
     let cancelled = false;
     let unsub: (() => void) | null = null;
     void (async () => {
