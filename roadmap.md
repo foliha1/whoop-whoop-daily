@@ -105,9 +105,9 @@
 - [ ] Daily exit: before start Home is free; after study starts confirm, save unfinished rounds unsolved, keep streak, then Home
 
 ## One launch switch (Parts 1–3 umbrella)
-- [ ] Build `launch.config.json` + `src/lib/launch.ts` (`LAUNCHED`, `useUmbrella()` with admin preview), OFF by default
-- [ ] Gate Part 1 app-side name work behind the switch (name check stays ON per Felix)
-- [ ] New RPC `can_preview_umbrella()` (SECURITY DEFINER, authenticated only)
-- [ ] OFF tests: byte-for-byte static HTML vs published, routes, name screen, no editor, Solo "You", no home icon, share links, no home events
-- [ ] Preview tests: admin ON / non-admin OFF / signed-out OFF / failed check OFF
-- [ ] Full suite + grants readback + report; do NOT publish; do NOT start Parts 2/3
+- [x] Build `launch.config.json` + `src/lib/launch.ts` (`LAUNCHED`, `useUmbrella()` with admin preview), OFF by default
+- [x] Gate Part 1 app-side name work behind the switch (name check stays ON per Felix)
+- [x] New RPC `can_preview_umbrella()` (SECURITY DEFINER, authenticated only)
+- [x] OFF tests: byte-for-byte static HTML vs published, routes, name screen, no editor, Solo "You", no home icon, share links, no home events
+- [x] Preview tests: admin ON / non-admin OFF / signed-out OFF / failed check OFF
+- [x] Full suite + grants readback + report; do NOT publish; do NOT start Parts 2/3
