@@ -1407,12 +1407,16 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     };
 
     return entryFrame({
-      headline: "Pick a display name",
+      headline: umbrella && view.action === "join" && validateDisplayName(nameInput).ok
+        ? "Join a table"
+        : "Pick a display name",
       children: (
         <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8] }}>
-          <div style={{ ...smallCopy, color: COLORS.inkMuted, textAlign: "center", whiteSpace: "pre-line" }}>
-            {`Your display name is shown during game play.\nUp to ${NAME_CAP} characters.`}
-          </div>
+          {!(umbrella && view.action === "join" && validateDisplayName(nameInput).ok) ? (
+            <div style={{ ...smallCopy, color: COLORS.inkMuted, textAlign: "center", whiteSpace: "pre-line" }}>
+              {`Your display name is shown during game play.\nUp to ${NAME_CAP} characters.`}
+            </div>
+          ) : null}
 
           {view.error && (
             <div role="alert" style={alertStyle}>
@@ -1422,7 +1426,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
           {/* One plain text input. The six-box row read as decoration and hid
               the caret; a single field with a clear focus ring is honest. */}
-          <input
+          {!(umbrella && view.action === "join" && validateDisplayName(nameInput).ok) ? <input
             ref={hiddenNameInputRef}
             value={nameInput}
             onChange={(e) => setNameInput(sliceDisplayName(e.target.value, NAME_CAP))}
@@ -1470,7 +1474,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               boxShadow: nameFocused ? `0 0 0 3px rgba(0,114,178,0.18)` : "none",
               transition: `box-shadow ${MOTION.fast}, border-color ${MOTION.fast}`,
             }}
-          />
+          /> : null}
 
           {/* Table code — peeps path only. Empty starts a new table; a code
               joins an existing one. Arriving via /play/:roomCode prefills it.
@@ -1542,7 +1546,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               style={playButtonStyle(!canContinue)}
             >
               <AutoFitText minScale={0.55}>
-                {busy ? "Connecting…" : showCodeField ? "Join Table" : "Let's Play!"}
+                 {busy ? "Connecting…" : showCodeField ? "Join Table" : "Let's Play!"}
               </AutoFitText>
             </button>
           </div>
@@ -1574,7 +1578,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[6] }}>
           <AppButton roleStyle="primary" size="lg" fullWidth onClick={() => {
             setCodeInput("");
-            setView({ kind: "name-prompt", intent: "peeps", action: "create" });
+            if (validateDisplayName(getDisplayName()).ok) void enterRoom({ kind: "create" });
+            else setView({ kind: "name-prompt", intent: "peeps", action: "create" });
           }}>Start a table</AppButton>
           <AppButton roleStyle="secondary" size="lg" fullWidth onClick={() => {
             setCodeInput("");

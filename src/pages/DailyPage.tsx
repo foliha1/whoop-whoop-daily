@@ -1802,7 +1802,7 @@ const DailyPage: React.FC = () => {
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={umbrella ? "https://whoop-whoop.com/daily" : "https://whoop-whoop.com/"} />
-        <link rel="canonical" href={umbrella ? "https://whoop-whoop.com/daily" : "https://whoop-whoop.com/"} />
+        {umbrella ? <link rel="canonical" href="https://whoop-whoop.com/daily" /> : null}
         <meta property="og:image" content="https://whoop-whoop.com/og-daily.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
