@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 const ORIGIN = "https://whoop-whoop.com";
 const CONFIG = readFileSync(resolve(process.cwd(), "src/launch.config.ts"), "utf8");
-export const UMBRELLA_LAUNCHED = /launched:\s*true/.test(CONFIG);
+export const UMBRELLA_LAUNCHED = /LAUNCH_CONFIG\s*=\s*\{\s*launched:\s*true\s*\}/.test(CONFIG);
 
 export const HOME_META = {
   title: "WHOOP! WHOOP!",

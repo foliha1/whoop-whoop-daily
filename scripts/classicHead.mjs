@@ -84,7 +84,7 @@ export function toClassicHtml(dailyHtml) {
     CLASSIC_PRODUCT_HEAD.appleTitle,
   );
   html = html
-    .replace(DAILY_PRODUCT_HEAD.manifest, CLASSIC_PRODUCT_HEAD.manifest)
+    .replace(/\/daily\.webmanifest\?v=\d+/, CLASSIC_PRODUCT_HEAD.manifest)
     .replace(DAILY_PRODUCT_HEAD.appleTouchIcon, CLASSIC_PRODUCT_HEAD.appleTouchIcon)
     .replace(DAILY_PRODUCT_HEAD.favicon32, CLASSIC_PRODUCT_HEAD.favicon32)
     .replace(DAILY_PRODUCT_HEAD.favicon16, CLASSIC_PRODUCT_HEAD.favicon16);
