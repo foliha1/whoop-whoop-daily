@@ -7,7 +7,9 @@
 // a seat that is not theirs.
 // ============================================================================
 
-import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
+// Structural type (no import) so the app's typecheck and Deno both accept it.
+// deno-lint-ignore no-explicit-any
+type SupabaseClient = { from: (table: string) => any };
 
 // Security pass 2: the seat's secret session key is required. A missing, empty
 // or wrong key is refused with 403 (enabled after pass 2 was published).

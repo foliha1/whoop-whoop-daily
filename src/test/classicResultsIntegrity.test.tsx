@@ -52,7 +52,7 @@ describe("multiplayer recorder", () => {
       { initialProps: snap({}) });
     rerender(snap({ phase: "GAME_OVER", scores: [12, 4] }));
     expect(calls.saveMulti).toHaveBeenCalledTimes(1);
-    const arg = calls.saveMulti.mock.calls[0][0] as Record<string, unknown>;
+    const arg = (calls.saveMulti.mock.calls[0] as unknown[])[0] as Record<string, unknown>;
     expect(arg).toMatchObject({ roomId: "r1", gameId: G1, visitorId: "v-host", playerKey: "k-host", endReason: "target" });
     expect(arg).not.toHaveProperty("startedAt");
     expect(arg).not.toHaveProperty("endedAt");
@@ -74,7 +74,7 @@ describe("multiplayer recorder", () => {
     rerender(snap({ phase: "GAME_OVER", scores: [12, 4] }));
     rerender(snap({ gameId: G2 }));
     rerender(snap({ gameId: G2, phase: "GAME_OVER", scores: [3, 13] }));
-    expect(calls.saveMulti.mock.calls.map((c) => (c[0] as { gameId: string }).gameId)).toEqual([G1, G2]);
+    expect(calls.saveMulti.mock.calls.map((c) => ((c as unknown[])[0] as { gameId: string }).gameId)).toEqual([G1, G2]);
   });
 
   it("the rematch button registers a fresh game id before re-dealing", () => {
@@ -95,7 +95,7 @@ describe("solo recorder", () => {
     expect(calls.start).toHaveBeenCalledWith("v-solo");
     rerender(snap({ gameId: "solo-game", phase: "GAME_OVER", scores: [12, 5] }));
     await waitFor(() => expect(calls.saveSolo).toHaveBeenCalledTimes(1));
-    expect(calls.saveSolo.mock.calls[0][0]).toMatchObject({ gameId: "11111111-1111-4111-8111-111111111111", endReason: "target" });
+    expect((calls.saveSolo.mock.calls[0] as unknown[])[0]).toMatchObject({ gameId: "11111111-1111-4111-8111-111111111111", endReason: "target" });
   });
 
   it("without a server-issued id nothing is saved", async () => {

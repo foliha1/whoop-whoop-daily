@@ -43,30 +43,6 @@ export async function createRoom(hostVisitorId: string): Promise<RoomRow> {
   throw new Error(msg);
 }
 
-
-export async function findRoomByCode(
-  code: string,
-  visitorId: string,
-): Promise<RoomRow | null> {
-  const normalized = code.toUpperCase();
-  if (!isValidRoomCode(normalized)) return null;
-  try {
-    const { data, error } = await supabase.rpc("get_room_by_code", {
-      p_code: normalized,
-      p_visitor_id: visitorId,
-    });
-    if (error) {
-      console.warn("[rooms] lookup failed", error.message);
-      return null;
-    }
-    if (Array.isArray(data) && data.length > 0) return data[0] as RoomRow;
-    return null;
-  } catch (e) {
-    console.warn("[rooms] lookup threw", e);
-    return null;
-  }
-}
-
 export async function findRoomByCode(
   code: string,
   visitorId: string,
