@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { toClassicHtml } from "../../scripts/classicHead.mjs";
+import { UMBRELLA_LAUNCHED } from "../../scripts/umbrellaHead.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const dailyHtml = readFileSync(resolve(root, "index.html"), "utf8");
@@ -33,7 +34,7 @@ describe("product install metadata", () => {
     expect(readJson("public/daily.webmanifest")).toMatchObject({
       name: "WHOOP! WHOOP! Daily",
       short_name: "Daily",
-      start_url: "/",
+      start_url: UMBRELLA_LAUNCHED ? "/daily" : "__DAILY_START_URL__",
       display: "standalone",
       theme_color: "#F8F2E9",
       background_color: "#F8F2E9",
