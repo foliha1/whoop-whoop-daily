@@ -55,7 +55,7 @@ export function useUmbrella(): boolean {
     void initUmbrellaPreview().then(() => {
       if (live) setOn(umbrellaOn());
     });
-    const authSubscription = supabase.auth.onAuthStateChange?.((event) => {
+    const authSubscription = supabase.auth?.onAuthStateChange?.((event) => {
       // Only a real identity change re-resolves the preview; the initial
       // session restore and token refreshes must not wipe it.
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") return;
