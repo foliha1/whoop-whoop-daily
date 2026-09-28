@@ -114,6 +114,7 @@ import {
 
 } from "@/lib/tokens";
 import { useThemeMode } from "@/lib/nightMode";
+import { useUmbrella } from "@/lib/launch";
 import DailyMilestoneConfetti, { BURST_LIFETIME_MS } from "@/components/DailyMilestoneConfetti";
 import WhoopScoreAnnouncement, { isReturningScorePlayer, hasEarlierDailyResult, hasSeenScoreAnnouncement, SCORE_ANNOUNCEMENT } from "@/components/WhoopScoreAnnouncement";
 import { fetchDailyResults } from "@/lib/dailyResults";
@@ -1033,6 +1034,9 @@ const DailyReadyScreen: React.FC<{
   mobile?: boolean;
   onPlay: () => void;
   onHowToPlay: () => void;
+  umbrella?: boolean;
+  onboardingComplete?: boolean;
+  showLogo?: boolean;
   /** True while a Play tap is waiting on board art (bounded by the ceiling). */
   playLoading?: boolean;
 }> = ({
@@ -1050,6 +1054,9 @@ const DailyReadyScreen: React.FC<{
   onPlay,
   onHowToPlay,
   playLoading = false,
+  umbrella = false,
+  onboardingComplete = true,
+  showLogo = true,
 }) => {
   // Vertical compression for short viewports (Instagram in-app browser lands
   // around 480–560px). t === 1 at 700px and above, so tall phones are
@@ -1065,7 +1072,7 @@ const DailyReadyScreen: React.FC<{
 
   return (
   <DailyFrame gap={colGap} pad={pad} railGap={railGap}>
-      <DailyLogoLockup style={{ maxWidth: lockupMax }} />
+      {showLogo ? <DailyLogoLockup style={{ maxWidth: lockupMax }} /> : null}
 
 
       <div
@@ -1172,6 +1179,8 @@ const DailyReadyScreen: React.FC<{
                 : "Get the First Daily"
               : played
                 ? "See Today's Result"
+                : umbrella && onboardingComplete
+                  ? "Tap to Start"
                 : "Play Today's Daily"}
         </button>
       </div>
@@ -1294,6 +1303,7 @@ const DailyBoard: React.FC<{
 const DailyPage: React.FC = () => {
   useBodyScrollLock();
   const mobile = useIsMobile();
+  const umbrella = useUmbrella();
 
   const daily = useDailyGame();
   const { state, phase } = daily;
@@ -1319,6 +1329,7 @@ const DailyPage: React.FC = () => {
   }, [phase]);
   // Which How to Play mode is open: the first-run gate, or the reference chip.
   const [howTo, setHowTo] = useState<"gate" | "reference" | null>(null);
+  const [onboardingComplete, setOnboardingComplete] = useState(() => hasSeenHowTo());
   const [showResult, setShowResult] = useState(false);
   // Pre-launch only: the signup overlay, opened from the ready-screen CTA.
   const [preLaunchSignup, setPreLaunchSignup] = useState(false);
@@ -1790,7 +1801,8 @@ const DailyPage: React.FC = () => {
           content="Play the free WHOOP! WHOOP! daily memory game. Nine cards, ten seconds, three rounds, two misses a round. A new memory challenge every day—no signup needed."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://whoop-whoop.com/" />
+        <meta property="og:url" content={umbrella ? "https://whoop-whoop.com/daily" : "https://whoop-whoop.com/"} />
+        {umbrella ? <link rel="canonical" href="https://whoop-whoop.com/daily" /> : null}
         <meta property="og:image" content="https://whoop-whoop.com/og-daily.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -1841,6 +1853,9 @@ const DailyPage: React.FC = () => {
               today={today}
               streak={streak?.current ?? null}
               played={playedToday}
+              umbrella={umbrella}
+              onboardingComplete={onboardingComplete}
+              showLogo={!umbrella}
               playLoading={playWaiting}
               gated={daily.preLaunch}
               subscribed={subscribed}
@@ -1871,6 +1886,8 @@ const DailyPage: React.FC = () => {
                 if (playedToday) setShowResult(true);
                 // First ever run: the stepper gates the start. Skip / Start
                 // both begin the run, so nobody is trapped.
+                else if (umbrella && !onboardingComplete) setHowTo("gate");
+                else if (umbrella) startRun();
                 else if (!hasSeenHowTo()) setHowTo("gate");
                 else startRun();
               }}
@@ -1892,7 +1909,8 @@ const DailyPage: React.FC = () => {
                 mobile={mobile}
                 onStart={() => {
                   setHowTo(null);
-                  startRun();
+                  if (umbrella) setOnboardingComplete(true);
+                  else startRun();
                 }}
                 onClose={() => setHowTo(null)}
               />

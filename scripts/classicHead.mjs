@@ -18,6 +18,7 @@
 
 const ORIGIN = "https://whoop-whoop.com";
 const INSTALL_ASSET_VERSION = "20260925";
+import { UMBRELLA_LAUNCHED, toDailyHtml } from "./umbrellaHead.mjs";
 const versioned = (path) => `${path}?v=${INSTALL_ASSET_VERSION}`;
 
 /** The URL that actually serves the Classic document (real file, not fallback). */
@@ -83,7 +84,7 @@ export function toClassicHtml(dailyHtml) {
     CLASSIC_PRODUCT_HEAD.appleTitle,
   );
   html = html
-    .replace(DAILY_PRODUCT_HEAD.manifest, CLASSIC_PRODUCT_HEAD.manifest)
+    .replace(/\/daily\.webmanifest\?v=\d+/, CLASSIC_PRODUCT_HEAD.manifest)
     .replace(DAILY_PRODUCT_HEAD.appleTouchIcon, CLASSIC_PRODUCT_HEAD.appleTouchIcon)
     .replace(DAILY_PRODUCT_HEAD.favicon32, CLASSIC_PRODUCT_HEAD.favicon32)
     .replace(DAILY_PRODUCT_HEAD.favicon16, CLASSIC_PRODUCT_HEAD.favicon16);
@@ -115,7 +116,7 @@ export function classicPrerender() {
     generateBundle(_options, bundle) {
       const shell = bundle["index.html"];
       if (!shell || typeof shell.source !== "string") return;
-      const source = toClassicHtml(shell.source);
+      const source = toClassicHtml(UMBRELLA_LAUNCHED ? toDailyHtml(shell.source) : shell.source);
       // Primary: a real .html file the host serves without directory-index
       // resolution and without the SPA fallback intercepting it.
       this.emitFile({ type: "asset", fileName: "classic.html", source });
