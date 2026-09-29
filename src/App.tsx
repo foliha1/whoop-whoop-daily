@@ -16,7 +16,6 @@ import DebugOnlyRoute from "./components/DebugOnlyRoute.tsx";
 
 const MultiplayerPage = lazy(() => import("./pages/MultiplayerPage.tsx"));
 const DailyPage = lazy(() => import("./pages/DailyPage.tsx"));
-const HomePage = lazy(() => import("./pages/HomePage.tsx"));
 const SupportPage = lazy(() => import("./pages/SupportPage.tsx"));
 const AdminPage = lazy(() => import("./pages/AdminPage.tsx"));
 const GroupsPage = lazy(() => import("./pages/GroupsPage.tsx"));
@@ -93,7 +92,7 @@ const AnimatedRoutes: React.FC = () => {
         )}
       >
         <Routes location={displayLocation}>
-          <Route path="/" element={umbrella ? <HomePage /> : <DailyPage />} />
+          <Route path="/" element={umbrella ? <MultiplayerPage home /> : <DailyPage />} />
           <Route path="/daily" element={umbrella ? <DailyPage /> : <Navigate to={`/${location.search}`} replace />} />
           <Route path="/today" element={umbrella ? <Navigate to={`/daily${location.search}`} replace /> : <DailyPage />} />
           {/* Groups remains available for testing under ?debug=1 only. */}

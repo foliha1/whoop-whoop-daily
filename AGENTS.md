@@ -6,3 +6,4 @@
 - Usage events are written only through allow-listed, rate-limited SECURITY DEFINER functions (log_analytics_events, log_daily_events), never direct table inserts — because anon keys are public.
 - Player names shown to peers come from server-resolved profiles or validated social RPCs, never Realtime presence metadata, because presence is client-controlled.
 - Umbrella route and static-head cutovers derive only from `src/launch.config.ts`; admin preview changes runtime UI but never crawler-visible build output.
+- The launched umbrella Home reuses the Classic idle entry frame; Home-only destinations extend that frame rather than creating a separate layout.

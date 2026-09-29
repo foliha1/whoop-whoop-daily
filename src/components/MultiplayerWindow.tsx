@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { usePortalHost } from "@/hooks/usePortalHost";
 import { toast } from "sonner";
 import AutoFitText from "@/components/AutoFitText";
@@ -28,6 +29,9 @@ import { getVisitorId, getDisplayName, setDisplayName, DISPLAY_NAME_MAX } from "
 import { DISPLAY_NAME_ERROR, sliceDisplayName, validateDisplayName } from "@/lib/displayName";
 import { resolveDisplayName } from "@/lib/profile";
 import { umbrellaOn, useUmbrella } from "@/lib/launch";
+import { getDailyNumber, getDailySeed, loadDailyResult } from "@/lib/daily";
+import { fetchFirstAttempt } from "@/lib/dailyResults";
+import { getSessionEmail, onAccountChange, whenAccountReady } from "@/lib/account";
 import { trackEvent } from "@/lib/analytics";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
 import {
@@ -201,6 +205,16 @@ interface MultiplayerWindowProps {
   /** Optional deep-link mode from `?mode=` — skips the idle play-style chooser. */
   initialMode?: "solo" | "multiplayer";
   introStatus?: "running" | "skipped" | "complete" | "timeout" | "none";
+  /** Umbrella root: reuse the Classic idle lobby and add the Daily destination. */
+  home?: boolean;
+}
+
+const nextMidnight = (now: Date): number =>
+  new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime();
+
+export function formatNextPuzzle(now: Date = new Date()): string {
+  const hours = Math.max(1, Math.ceil((nextMidnight(now) - now.getTime()) / 3_600_000));
+  return `Next puzzle in ${hours}h`;
 }
 
 
@@ -246,9 +260,16 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   initialRoomCode,
   initialMode,
   introStatus = "none",
+  home = false,
 }) => {
   const mobile = useIsMobile();
   const umbrella = useUmbrella();
+  const navigate = useNavigate();
+  const [account, setAccount] = useState<string | null>(() => getSessionEmail());
+  const [now, setNow] = useState(() => new Date());
+  const puzzleNumber = getDailyNumber(now);
+  const locallyPlayed = useMemo(() => loadDailyResult(getDailySeed(now)) !== null, [now]);
+  const [dailyPlayed, setDailyPlayed] = useState(locallyPlayed);
   const [view, setView] = useState<View>(() => {
     // Join-by-link wins over ?mode=; the room-code effect below handles it.
     if (initialRoomCode) return { kind: "idle" };
@@ -286,6 +307,25 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const [showSettings, setShowSettings] = useState(false);
   const shareFlashTimerRef = useRef<number | null>(null);
   const codeFlashTimerRef = useRef<number | null>(null);
+
+  useEffect(() => onAccountChange(setAccount), []);
+
+  useEffect(() => {
+    if (!home || !umbrella) return;
+    const timer = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(timer);
+  }, [home, umbrella]);
+
+  useEffect(() => {
+    if (!home || !umbrella) return;
+    setDailyPlayed(locallyPlayed);
+    if (locallyPlayed) return;
+    let live = true;
+    void whenAccountReady()
+      .then(() => fetchFirstAttempt(puzzleNumber, null))
+      .then((result) => { if (live && result) setDailyPlayed(true); });
+    return () => { live = false; };
+  }, [home, umbrella, locallyPlayed, puzzleNumber]);
 
 
 
@@ -1127,6 +1167,16 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         <HelpCircle size={16} aria-hidden="true" />
         How to Play
       </button>
+      {account ? (
+        <button
+          type="button"
+          className="ww-press daily-btn-howto"
+          onClick={() => navigate("/you")}
+          style={chipButtonBase}
+        >
+          Your Stats
+        </button>
+      ) : null}
       <button
         type="button"
         className="ww-press daily-btn-howto"
@@ -1627,7 +1677,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
     return entryFrame({
       headline: "How do you want to play today?",
-      logo: !umbrella,
+      logo: !umbrella || home,
       chips: true,
       reveal: true,
       fade,
@@ -1640,13 +1690,47 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             </div>
           )}
 
-          <div style={{ alignSelf: "stretch", display: "flex", gap: SPACE[8] }}>
+          <div
+            className={umbrella && home ? "ww-home-mode-grid" : undefined}
+            style={{ alignSelf: "stretch", display: umbrella && home ? undefined : "flex", gap: SPACE[8] }}
+            role={umbrella && home ? "navigation" : undefined}
+            aria-label={umbrella && home ? "Choose a game" : undefined}
+          >
+            {umbrella && home ? (
+              <button
+                type="button"
+                onClick={() => navigate(`/daily${window.location.search}`, {
+                  state: dailyPlayed ? { wwOpenResult: true } : undefined,
+                })}
+                disabled={busy}
+                className="ww-home-daily-tile"
+                style={{ ...playModeTileStyle(RAW.orange), color: RAW.warmBlack }}
+                aria-label={dailyPlayed
+                  ? `See Today's Daily, ${formatNextPuzzle(now)}`
+                  : `Play Daily #${puzzleNumber}`}
+                data-testid="home-daily"
+              >
+                <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+                  <circle cx="16" cy="16" r="5.5" fill="none" stroke={RAW.warmBlack} strokeWidth="2.5" />
+                  <path d="M16 3v4M16 25v4M3 16h4M25 16h4M6.8 6.8l2.8 2.8M22.4 22.4l2.8 2.8M25.2 6.8l-2.8 2.8M9.6 22.4l-2.8 2.8" fill="none" stroke={RAW.warmBlack} strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+                <div style={playModeLabelStyle(RAW.warmBlack)}>
+                  {dailyPlayed ? "See Today's Daily" : `Play Daily #${puzzleNumber}`}
+                </div>
+                {dailyPlayed ? (
+                  <div style={{ ...textStyle("caption", mobile), color: RAW.warmBlack, textAlign: "center" }}>
+                    {formatNextPuzzle(now)}
+                  </div>
+                ) : null}
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={handlePlaySolo}
               disabled={busy}
               style={playModeTileStyle(COLORS.blue)}
               aria-label="Play Solo"
+              data-testid={umbrella && home ? "home-solo" : undefined}
             >
               <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
                 <circle cx="16" cy="11" r="5" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" />
@@ -1661,6 +1745,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               disabled={busy}
               style={playModeTileStyle(COLORS.red)}
               aria-label="Play with Peeps"
+              data-testid={umbrella && home ? "home-peeps" : undefined}
             >
               <svg width="64" height="32" viewBox="0 0 64 32" aria-hidden="true">
                 <circle cx="16" cy="12" r="5" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" />
@@ -1675,20 +1760,22 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           {/* Quiet tail — the Daily link and the same legal line the Daily
               ready screen uses. Last step of the entry stagger. */}
           <EntryReveal index={3} ready={entryReady} style={{ width: "100%" }}>
-            <a
-              href="/"
-              style={{
-                ...textStyle("captionItalic", mobile),
-                color: COLORS.inkMuted,
-                textAlign: "center",
-                display: "block",
-                marginTop: sectionGap,
-                textDecoration: "none",
-              }}
-            >
-              <span className="ww-daily-link">Looking for Whoop! Whoop! Daily?</span>
-            </a>
-            <div style={{ marginTop: SPACE[4] }}>
+            {!(umbrella && home) ? (
+              <a
+                href="/"
+                style={{
+                  ...textStyle("captionItalic", mobile),
+                  color: COLORS.inkMuted,
+                  textAlign: "center",
+                  display: "block",
+                  marginTop: sectionGap,
+                  textDecoration: "none",
+                }}
+              >
+                <span className="ww-daily-link">Looking for Whoop! Whoop! Daily?</span>
+              </a>
+            ) : null}
+            <div style={{ marginTop: umbrella && home ? sectionGap : SPACE[4] }}>
               <DailyLegalFooter />
             </div>
           </EntryReveal>

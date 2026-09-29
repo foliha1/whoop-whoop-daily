@@ -103,7 +103,7 @@
 - [ ] Parts 2 and 3: build separately if useful, but publish together (Home/Daily routes, all Daily links, navigation, exits, analytics)
 - [ ] Home email signup: only after one completed Daily and only while unsubscribed; source `home`; preserve `landing`
 - [ ] Daily exit: before start Home is free; after study starts confirm, save unfinished rounds unsolved, keep streak, then Home
-- [x] Part 2: gated Home, `/daily` cutover, Tap to Start, Solo/Peeps entry changes, static tags, and install files
+- [x] Part 2: gated Classic-lobby Home with Daily tile, `/daily` cutover, Tap to Start, Solo/Peeps entry changes, static tags, and install files
 
 ## One launch switch (Parts 1–3 umbrella)
 - [x] Build `launch.config.json` + `src/lib/launch.ts` (`LAUNCHED`, `useUmbrella()` with admin preview), OFF by default
