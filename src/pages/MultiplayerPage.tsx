@@ -36,7 +36,11 @@ import MultiplayerWindow from "@/components/MultiplayerWindow";
 
 type IntroStatus = "pending" | "running" | "skipped" | "complete" | "timeout" | "none";
 
-const MultiplayerPage: React.FC = () => {
+interface MultiplayerPageProps {
+  home?: boolean;
+}
+
+const MultiplayerPage: React.FC<MultiplayerPageProps> = ({ home = false }) => {
   useBodyScrollLock();
   const { roomCode: roomCodeParam } = useParams<{ roomCode?: string }>();
   const [searchParams] = useSearchParams();
@@ -99,7 +103,7 @@ const MultiplayerPage: React.FC = () => {
   // mounts — a visible flash.
   const lobbyVisible = introStatus !== "pending";
 
-  const title = "WHOOP! WHOOP! Classic";
+  const title = home ? "WHOOP! WHOOP!" : "WHOOP! WHOOP! Classic";
 
   // Set the tab title by mutating the existing <title> element in place —
   // a Helmet <title> would append a second tag alongside index.html's.
@@ -123,7 +127,15 @@ const MultiplayerPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <meta name="robots" content="noindex, nofollow" />
+        {home ? (
+          <>
+            <meta name="description" content="The memory game where the rules keep changing. Play the Daily, go Solo, or play with friends." />
+            <link rel="canonical" href="https://whoop-whoop.com/" />
+            <meta property="og:title" content="WHOOP! WHOOP!" />
+            <meta property="og:description" content="The memory game where the rules keep changing. Play the Daily, go Solo, or play with friends." />
+            <meta property="og:url" content="https://whoop-whoop.com/" />
+          </>
+        ) : <meta name="robots" content="noindex, nofollow" />}
       </Helmet>
       <div
         className="mp-page-root"
@@ -153,6 +165,7 @@ const MultiplayerPage: React.FC = () => {
             initialRoomCode={roomCode}
             initialMode={initialMode}
             introStatus={introStatus === "pending" ? "running" : introStatus}
+            home={home}
           />
         </div>
       </div>
