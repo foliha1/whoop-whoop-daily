@@ -48,10 +48,10 @@ const ProductInstallHead: React.FC = () => {
 
   return (
     <Helmet>
-      <link rel="icon" href={home ? "/icons/home/icon-home-PLACEHOLDER-32.png?v=20260927" : `/icons/${product}/favicon-32.png?v=${INSTALL_ASSET_VERSION}`} sizes="32x32" type="image/png" />
-      <link rel="icon" href={home ? "/icons/home/icon-home-PLACEHOLDER-16.png?v=20260927" : `/icons/${product}/favicon-16.png?v=${INSTALL_ASSET_VERSION}`} sizes="16x16" type="image/png" />
-      <link rel="apple-touch-icon" href={home ? "/icons/home/icon-home-PLACEHOLDER-180.png?v=20260927" : `/icons/${product}/apple-touch-icon.png?v=${INSTALL_ASSET_VERSION}`} sizes="180x180" />
-      <link rel="manifest" href={`/${product}.webmanifest?v=${home ? "20260927" : INSTALL_ASSET_VERSION}`} />
+      <link rel="icon" href={home ? "/icons/home/favicon-32.png?v=20260929" : `/icons/${product}/favicon-32.png?v=${INSTALL_ASSET_VERSION}`} sizes="32x32" type="image/png" />
+      <link rel="icon" href={home ? "/icons/home/favicon-16.png?v=20260929" : `/icons/${product}/favicon-16.png?v=${INSTALL_ASSET_VERSION}`} sizes="16x16" type="image/png" />
+      <link rel="apple-touch-icon" href={home ? "/icons/home/apple-touch-icon.png?v=20260929" : `/icons/${product}/apple-touch-icon.png?v=${INSTALL_ASSET_VERSION}`} sizes="180x180" />
+      <link rel="manifest" href={`/${product}.webmanifest?v=${home ? "20260929" : INSTALL_ASSET_VERSION}`} />
       <meta name="apple-mobile-web-app-title" content={title} />
       <meta name="theme-color" content={themeColor} />
     </Helmet>

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { toClassicHtml } from "../../scripts/classicHead.mjs";
-import { UMBRELLA_LAUNCHED } from "../../scripts/umbrellaHead.mjs";
+import { toHomeHtml, UMBRELLA_LAUNCHED } from "../../scripts/umbrellaHead.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const dailyHtml = readFileSync(resolve(root, "index.html"), "utf8");
@@ -58,10 +58,25 @@ describe("product install metadata", () => {
     }
   });
 
-  it("keeps placeholder home assets explicit and replaceable", () => {
+  it("uses Felix's final Home art without a maskable Android icon", () => {
     const home = readJson("public/home.webmanifest");
-    for (const icon of home.icons) expect(icon.src).toContain("PLACEHOLDER");
-    expect(pngDimensions("public/og-home-PLACEHOLDER.png")).toEqual([1200, 630]);
+    expect(home.icons).toEqual([
+      { src: "/icons/home/icon-192.png?v=20260929", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icons/home/icon-512.png?v=20260929", sizes: "512x512", type: "image/png", purpose: "any" },
+    ]);
+    expect(pngDimensions("public/og-home.png")).toEqual([1200, 630]);
+    expect(pngDimensions("public/icons/home/apple-touch-icon.png")).toEqual([180, 180]);
+    expect(pngDimensions("public/icons/home/icon-192.png")).toEqual([192, 192]);
+    expect(pngDimensions("public/icons/home/icon-512.png")).toEqual([512, 512]);
+  });
+
+  it("wires the final Home art only into the ON head", () => {
+    const homeHtml = toHomeHtml(dailyHtml);
+    expect(homeHtml).toContain('content="https://whoop-whoop.com/og-home.png"');
+    expect(homeHtml).toContain('href="/home.webmanifest?v=20260929"');
+    expect(homeHtml).toContain('href="/icons/home/apple-touch-icon.png?v=20260929"');
+    expect(dailyHtml).not.toContain("/og-home.png");
+    expect(dailyHtml).not.toContain("/icons/home/");
   });
 
   it.each(["daily", "classic"])("has the complete %s PNG icon set", (product) => {
