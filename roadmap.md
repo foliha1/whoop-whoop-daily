@@ -98,7 +98,7 @@
 - [ ] Publish day: drop old insert policy (waits on Felix's publish)
 
 ## One WHOOP! WHOOP! home
-- [ ] Refine the gated Home: fixed phone layout/sizing, played-Daily copy, Stats icon, plain animated lockup, and refreshed state grid
+- [x] Refine the gated Home: fixed phone layout/sizing, played-Daily copy, Stats icon, plain lockup, and refreshed state grid
 - [ ] Part 1: global six-character name, account sync, server filtering, Classic anti-spoof, Groups enforcement, Settings/Your Stats editing
 - [ ] Part 1 post-publish: retire the old four-argument Classic join after checking the published bundle
 - [ ] Parts 2 and 3: build separately if useful, but publish together (Home/Daily routes, all Daily links, navigation, exits, analytics)

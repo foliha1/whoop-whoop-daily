@@ -39,7 +39,7 @@ const VARIANTS = {
     alt: "WHOOP! WHOOP! Classic",
   },
   plain: {
-    animation: "/whoop-classic-logo.json",
+    animation: null,
     still: "/WhoopWhoop_Dark_Logo.svg",
     stillCream: "/WhoopWhoop_Stacked_Logo.svg",
     alt: "WHOOP! WHOOP!",
@@ -97,18 +97,6 @@ const recolorToCream = (input: unknown): unknown => {
 // The Classic animation's first top-level precomp is only the handwritten
 // “Classic” suffix. The Home uses the same drawing animation without that
 // layer, cropped to the existing plain stacked-mark artboard.
-const withoutClassicSuffix = (input: unknown): unknown => {
-  const clone = JSON.parse(JSON.stringify(input)) as {
-    w?: number;
-    h?: number;
-    layers?: Array<{ refId?: string }>;
-  };
-  clone.w = 166.15;
-  clone.h = 131.24;
-  clone.layers = clone.layers?.filter((layer) => layer.refId !== "4");
-  return clone;
-};
-
 
 /**
  * The daily logo lockup. The static SVG is painted first and stays visible
@@ -129,7 +117,7 @@ const DailyLogoLockup: React.FC<{ style?: React.CSSProperties; variant?: LockupV
   const lockupSrc = theme === "night" ? art.stillCream : art.still;
 
   useEffect(() => {
-    if (prefersReducedMotion()) return;
+    if (prefersReducedMotion() || !art.animation) return;
     let live = true;
     setJson(null);
     setReady(false);
@@ -146,9 +134,8 @@ const DailyLogoLockup: React.FC<{ style?: React.CSSProperties; variant?: LockupV
 
   const animationData = React.useMemo(() => {
     if (!json) return json;
-    const variantData = variant === "plain" ? withoutClassicSuffix(json) : json;
-    return theme === "night" ? recolorToCream(variantData) : variantData;
-  }, [json, theme, variant]);
+    return theme === "night" ? recolorToCream(json) : json;
+  }, [json, theme]);
 
   const layer: React.CSSProperties = {
     position: "absolute",
