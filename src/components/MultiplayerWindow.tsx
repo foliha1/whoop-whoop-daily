@@ -1105,6 +1105,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // the Daily's chip cluster. No header, no stroked containers.
   const vh = useViewportHeight();
   const t = compressionFactor(vh);
+  const entryMobile = mobile || (umbrella && home);
   const colGap = lerpCompress(t, 12, 36);
   const framePad = lerpCompress(t, 12, 24);
   const railGap = lerpCompress(t, 10, 24);
@@ -1173,7 +1174,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
   // Same chip base the Daily ready screen uses, same class for hover/focus.
   const chipButtonBase: React.CSSProperties = {
-    ...textStyle("chip", mobile),
+    ...textStyle("chip", entryMobile),
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -1266,7 +1267,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           {opts.headline !== undefined &&
             step(
               1,
-              <div style={{ ...textStyle("hero", mobile), textAlign: "center", color: COLORS.ink }}>
+              <div style={{ ...textStyle("hero", entryMobile), textAlign: "center", color: COLORS.ink }}>
                 {opts.headline}
               </div>,
             )}
@@ -1701,10 +1702,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       color: RAW.cream,
       transition: `background ${MOTION.fast}`,
     });
-    const homeMobileSizing = mobile || (umbrella && home);
     const nextDaily = formatNextDaily(now);
     const playModeLabelStyle = (color: string): React.CSSProperties => ({
-      ...textStyle("title", homeMobileSizing),
+      ...textStyle("title", entryMobile),
       color,
       textAlign: "center",
     });
@@ -1759,7 +1759,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                   {dailyPlayed ? "See Today's Results" : `Daily #${puzzleNumber}`}
                 </div>
                 {dailyPlayed ? (
-                  <div style={{ ...textStyle("captionItalic", homeMobileSizing), color: RAW.warmBlack, textAlign: "center" }}>
+                  <div style={{ ...textStyle("captionItalic", entryMobile), color: RAW.warmBlack, textAlign: "center" }}>
                     {nextDaily.visible}
                   </div>
                 ) : null}
