@@ -205,7 +205,7 @@ const GroupsPage: React.FC = () => {
   );
 
   return (
-    <DailyFrame gap={SPACE[6]}>
+    <DailyFrame gap={SPACE[6]} topControl={umbrella}>
       {umbrella ? <HomeControl /> : null}
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />

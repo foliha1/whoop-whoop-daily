@@ -37,7 +37,7 @@ const LegalPage: React.FC<{
         <meta property="og:url" content={url} />
         <meta property="og:type" content="website" />
       </Helmet>
-      <DailyFrame gap={SPACE[10]}>
+      <DailyFrame gap={SPACE[10]} topControl={umbrella}>
         <article
           style={{
             alignSelf: "stretch",

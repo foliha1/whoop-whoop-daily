@@ -2124,13 +2124,14 @@ const MultiplayerGameView: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => setShowLeave(false)}
+              autoFocus
               style={{
                 all: "unset", cursor: "pointer",
-                ...buttonStyle("quiet", "md"),
+                ...buttonStyle(umbrella ? "secondary" : "quiet", "md"),
                 padding: "8px 16px", borderRadius: R_BOX,
               }}
             >
-              Cancel
+              {umbrella ? "Keep Playing" : "Cancel"}
             </button>
             <button
               type="button"

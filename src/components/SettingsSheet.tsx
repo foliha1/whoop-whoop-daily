@@ -34,6 +34,8 @@ import {
 } from "@/lib/account";
 import { SIGN_IN_ENABLED } from "@/lib/featureFlags";
 import DisplayNameEditor from "@/components/DisplayNameEditor";
+import DailyRecognition from "@/components/DailyRecognition";
+import { formatStreakLine } from "@/lib/dailyResults";
 import { useUmbrella } from "@/lib/launch";
 
 const TOUCH = 44;
@@ -123,9 +125,15 @@ const Toggle: React.FC<{
 export interface SettingsSheetProps {
   onClose: () => void;
   /** Kept for callers; the Music toggle now shows in both products. */
-  product: "classic" | "daily";
+  product: "classic" | "daily" | "home";
   /** When provided, How to Play opens the in-app stepper instead of /about. */
   onHowTo?: () => void;
+  dailyHistory?: {
+    streak: number | null;
+    email: string | null;
+    onForget: () => void;
+    onRestored: (email: string, restored: boolean) => void;
+  };
 }
 
 /** Shared by the link and the button form of the How to Play control. */
@@ -143,7 +151,7 @@ const howToStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
-const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo }) => {
+const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo, dailyHistory }) => {
   const umbrella = useUmbrella();
   const { mode, setMode } = useThemeMode();
   const portalHost = usePortalHost("settings-sheet");
@@ -300,6 +308,22 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
             How to Play
           </a>
         )}
+
+        {umbrella && product === "home" && dailyHistory ? (
+          <section data-testid="settings-daily-history" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <p style={labelStyle}>Daily history</p>
+            {dailyHistory.streak !== null && dailyHistory.streak >= 1 ? (
+              <p style={{ ...labelStyle, textTransform: "none", letterSpacing: 0, color: COLORS.ink, textAlign: "center" }}>
+                {formatStreakLine(dailyHistory.streak)}
+              </p>
+            ) : null}
+            <DailyRecognition
+              email={dailyHistory.email}
+              onForget={dailyHistory.onForget}
+              onRestored={dailyHistory.onRestored}
+            />
+          </section>
+        ) : null}
 
         {/* The Whoop Score and all-time numbers require an account. */}
         {SIGN_IN_ENABLED && product === "daily" && account && (
