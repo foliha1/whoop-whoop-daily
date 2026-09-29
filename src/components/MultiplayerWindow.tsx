@@ -304,12 +304,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const [justSignedUp, setJustSignedUp] = useState(false);
   const showHomeSignup = umbrella && home && (justSignedUp || homeSignupEligible(completedAnyDaily, reminderSubscribed));
   const homeViewedRef = useRef(false);
-  useEffect(() => {
-    if (!umbrella || !home || view.kind !== "idle" || homeViewedRef.current) return;
-    homeViewedRef.current = true;
-    trackEvent("home_viewed", { metadata: { played: dailyPlayed } });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [umbrella, home, view.kind]);
   const [view, setView] = useState<View>(() => {
     // Join-by-link wins over ?mode=; the room-code effect below handles it.
     if (initialRoomCode) return { kind: "idle" };
@@ -320,6 +314,12 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   useEffect(() => {
     if (view.kind === "host" || view.kind === "joiner" || view.kind === "solo") preloadGameArt();
   }, [view.kind]);
+  useEffect(() => {
+    if (!umbrella || !home || view.kind !== "idle" || homeViewedRef.current) return;
+    homeViewedRef.current = true;
+    trackEvent("home_viewed", { metadata: { played: dailyPlayed } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [umbrella, home, view.kind]);
   const [busy, setBusy] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [nameInput, setNameInput] = useState<string>(() => getDisplayName());
