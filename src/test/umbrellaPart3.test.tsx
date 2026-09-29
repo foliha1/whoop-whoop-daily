@@ -11,6 +11,7 @@ import { hasCompletedAnyDaily, homeSignupEligible } from "@/lib/homeSignup";
 import HomeControl from "@/components/HomeControl";
 import DailyLeaveDialog, { DAILY_LEAVE_BODY, DAILY_LEAVE_TITLE } from "@/components/DailyLeaveDialog";
 import HomeEmailSignup from "@/components/HomeEmailSignup";
+import DailyEmailModal, { dailyEmailModalBody } from "@/components/DailyEmailModal";
 import { useDailyGame } from "@/hooks/useDailyGame";
 
 const src = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
@@ -87,6 +88,15 @@ describe("Part 3 Home control", () => {
     expect(daily).toContain("umbrella && !ready && !finished && daily.result === null && runInProgress(state)");
     expect(src("src/components/MultiplayerWindow.tsx")).toContain("umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null");
     expect(src("src/components/SiteHeader.tsx")).toContain("umbrella && !onLeave ?");
+  });
+
+  it("moves the Classic in-game exit left only when ON", () => {
+    const view = src("src/components/MultiplayerGameView.tsx");
+    expect(view).toContain("{umbrella ? leaveButton : null}");
+    expect(view).toContain("{umbrella ? null : leaveButton}");
+    expect(view.indexOf("{umbrella ? leaveButton : null}")).toBeLessThan(view.indexOf("Round: {round}"));
+    expect(view.indexOf("{umbrella ? null : leaveButton}")).toBeGreaterThan(view.indexOf('aria-label="Settings"'));
+    expect(view).toContain('data-testid="classic-game-leave"');
   });
 });
 
@@ -166,6 +176,18 @@ describe("Part 3 Daily leave", () => {
 });
 
 describe("Part 3 Home email signup", () => {
+  it("pins restore, Daily-result subscribe, and Home subscribe copy", () => {
+    expect(dailyEmailModalBody("restore", "daily_result")).toBe(
+      "Enter the address you used before and your streak and history come back.",
+    );
+    expect(dailyEmailModalBody("subscribe", "daily_result")).toBe(
+      "A new game every morning. Nothing else.",
+    );
+    expect(dailyEmailModalBody("subscribe", "home")).toBe(
+      "A new game every morning. Nothing else.",
+    );
+  });
+
   it("is for players who finished a Daily and are not subscribed", () => {
     expect(hasCompletedAnyDaily()).toBe(false);
     expect(homeSignupEligible(hasCompletedAnyDaily(), false)).toBe(false); // new visitor

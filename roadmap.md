@@ -98,6 +98,7 @@
 - [ ] Publish day: drop old insert policy (waits on Felix's publish)
 
 ## One WHOOP! WHOOP! home
+- [ ] Move the ON-only Classic in-game exit to the shared top-left control slot and pin all Daily email modal copy variants; verify screenshots and OFF parity
 - [x] Refine the gated Home: fixed phone layout/sizing, played-Daily copy, Stats icon, plain lockup, and refreshed state grid
 - [x] Change ON-only player-facing Peeps copy to Together while preserving OFF copy and internal analytics names
 - [x] Add the ON-only plain Home logo animation by cropping the Classic Lottie and removing its suffix asset
