@@ -874,7 +874,13 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       return;
     }
     // Peeps path: a code joins that table, an empty field starts a new one.
+    // Umbrella "Join a table" is join-only — an empty code is a mistake, not
+    // an invitation to host, so it errors instead of silently creating.
     const code = codeInput.toUpperCase();
+    if (umbrella && view.action === "join" && code.length === 0) {
+      setView({ ...view, error: "Enter a table code to join." });
+      return;
+    }
     if (view.action === "create" || code.length === 0) {
       void enterRoom({ kind: "create" });
       return;
@@ -884,7 +890,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       return;
     }
     void enterRoom(view.via === "link" ? { kind: "join-link", code } : { kind: "join-code", code });
-  }, [view, nameInput, codeInput, busy, enterRoom]);
+  }, [view, nameInput, codeInput, busy, umbrella, enterRoom]);
 
   // Capacity guard — fixed to `>=` per spec so the "full" state matches
   // rather than admitting a 7th before flipping. (See: prompt 8.1.)
@@ -1547,7 +1553,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 htmlFor="table-code"
                 style={{ ...smallCopy, color: RAW.warmBlack, textAlign: "center", whiteSpace: "pre-line" }}
               >
-                {"Already have a table code?\nLeave it blank to start your own."}
+                {umbrella && view.action === "join"
+                  ? "Enter the table code your friend shared."
+                  : "Already have a table code?\nLeave it blank to start your own."}
               </label>
               <input
                 id="table-code"
