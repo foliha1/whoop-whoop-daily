@@ -3,7 +3,7 @@ import { cleanup } from "@testing-library/react";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { setUmbrellaPreviewForTests } from "@/lib/launch";
-import { formatNextPuzzle } from "@/components/MultiplayerWindow";
+import { formatNextPuzzle, isDaytime } from "@/components/MultiplayerWindow";
 
 const windowSource = () =>
   readFileSync(resolve(process.cwd(), "src/components/MultiplayerWindow.tsx"), "utf8");
@@ -16,6 +16,13 @@ afterEach(() => {
 });
 
 describe("Part 2 umbrella home", () => {
+  it("shows the sun 06:00-17:59 and the moon otherwise", () => {
+    expect(isDaytime(new Date(2026, 8, 29, 5, 59))).toBe(false);
+    expect(isDaytime(new Date(2026, 8, 29, 6, 0))).toBe(true);
+    expect(isDaytime(new Date(2026, 8, 29, 17, 59))).toBe(true);
+    expect(isDaytime(new Date(2026, 8, 29, 18, 0))).toBe(false);
+  });
+
   it("rounds the local-midnight countdown up to an hour", () => {
     expect(formatNextPuzzle(new Date(2026, 8, 27, 23, 59))).toBe("Next puzzle in 1h");
   });
