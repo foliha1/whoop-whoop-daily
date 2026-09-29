@@ -1,6 +1,6 @@
 // "Leave today's Daily?" — umbrella ON only, opened by the Daily's top-left X
 // once a run has started. Same panel, scrim and buttons as Classic's leave
-// confirmation. Keep Playing is primary and takes focus; Leave is destructive.
+// confirmation. Keep Playing is blue/secondary and takes focus; Leave is destructive.
 
 import React from "react";
 import { createPortal } from "react-dom";
@@ -50,7 +50,7 @@ const DailyLeaveDialog: React.FC<{ mobile?: boolean; onKeepPlaying: () => void; 
             type="button"
             onClick={onKeepPlaying}
             autoFocus
-            style={{ ...buttonStyle("primary", "lg", { mobile }), flexGrow: 1, flexBasis: 0, height: CONTROL_H.lg + SPACE[2], padding: 0 }}
+            style={{ ...buttonStyle("secondary", "lg", { mobile }), flexGrow: 1, flexBasis: 0, height: CONTROL_H.lg + SPACE[2], padding: 0 }}
           >
             <AutoFitText minScale={0.6}>Keep Playing</AutoFitText>
           </button>

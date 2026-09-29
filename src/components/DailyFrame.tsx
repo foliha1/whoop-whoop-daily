@@ -1,6 +1,6 @@
 import React from "react";
 import DailyShapeRule from "@/components/DailyShapeRule";
-import { COLORS } from "@/lib/tokens";
+import { COLORS, SPACE } from "@/lib/tokens";
 
 /** Max width of the content column shared by every daily screen. */
 export const DAILY_CONTENT_MAX_W = 402;
@@ -25,8 +25,10 @@ const DailyFrame: React.FC<{
   tone?: "surface" | "panel";
   /** Let editorial pages use two Daily content columns on large windows. */
   wide?: boolean;
+  /** Reserve the shared top-left 44px Home/Leave slot in the top pattern. */
+  topControl?: boolean;
   children?: React.ReactNode;
-}> = ({ gap = 24, pad = 24, railGap = 24, fill = false, tone = "surface", wide = false, children }) => (
+}> = ({ gap = 24, pad = 24, railGap = 24, fill = false, tone = "surface", wide = false, topControl = false, children }) => (
   <div
     style={{
       position: "relative",
@@ -47,7 +49,7 @@ const DailyFrame: React.FC<{
     } as React.CSSProperties}
   >
 
-    <DailyShapeRule />
+    <DailyShapeRule clearStart={topControl ? Math.max(0, 12 + 44 + SPACE[4] - pad) : 0} />
 
     <div
       style={{
