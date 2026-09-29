@@ -117,3 +117,5 @@
 - [x] OFF tests: byte-for-byte static HTML vs published, routes, name screen, no editor, Solo "You", no home icon, share links, no home events
 - [x] Preview tests: admin ON / non-admin OFF / signed-out OFF / failed check OFF
 - [x] Full suite + grants readback + report; do NOT publish; do NOT start Parts 2/3
+
+- [ ] Build approved ON-only Daily start, Home Daily history, blue safe leave actions, and whole-shape pattern clearance; verify OFF parity and requested screens.
