@@ -88,6 +88,14 @@ export function umbrellaHead() {
           writeFileSync(resolve(process.cwd(), "dist/daily.html"), daily);
           mkdirSync(resolve(process.cwd(), "dist/daily"), { recursive: true });
           writeFileSync(resolve(process.cwd(), "dist/daily/index.html"), daily);
+          const sitemapPath = resolve(process.cwd(), "dist/sitemap.xml");
+          const sitemap = readFileSync(sitemapPath, "utf8");
+          if (!sitemap.includes(`${ORIGIN}/daily<`)) {
+            writeFileSync(sitemapPath, sitemap.replace(
+              `<loc>${ORIGIN}/</loc>`,
+              `<loc>${ORIGIN}/</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n  <url>\n    <loc>${ORIGIN}/daily</loc>`,
+            ));
+          }
         }
       } catch {
         return undefined;

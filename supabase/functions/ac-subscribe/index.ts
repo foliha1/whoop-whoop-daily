@@ -223,7 +223,7 @@ Deno.serve(async (req) => {
       ? body.visitorId.trim().slice(0, 128)
       : null;
   const source =
-    body.source === "landing" || body.source === "prelaunch"
+    body.source === "landing" || body.source === "prelaunch" || body.source === "home"
       ? body.source
       : "daily_result";
   // Seeded once at signup by an AC automation from here on, so an invalid or

@@ -1,4 +1,5 @@
 // The player's own long-term score. Presentation only; all scoring stays in the points RPC.
+import HomeControl from "@/components/HomeControl";
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, useLocation } from "react-router-dom";
@@ -66,13 +67,16 @@ const YouPage: React.FC = () => {
 
   return (
     <DailyFrame gap={SPACE[6]} wide>
+      {umbrella ? <HomeControl /> : null}
       <Helmet><meta name="robots" content="noindex, nofollow" /></Helmet>
       <div style={{ width: "100%", minWidth: 0, display: "flex", flexDirection: "column", alignItems: "stretch", gap: SPACE[20] }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: SPACE[4] }}>
           <MotionReveal index={0} style={{ justifySelf: "start" }}>
-            <Link to="/" state={backToResults ? { wwOpenResult: true } : undefined} className="ww-press" style={buttonStyle("ink", "md", { mobile })}>
+            {umbrella && !backToResults ? <span aria-hidden="true" /> : (
+            <Link to={umbrella ? "/daily" : "/"} state={backToResults ? { wwOpenResult: true } : undefined} className="ww-press" style={buttonStyle("ink", "md", { mobile })}>
               <ChevronLeft size={SPACE[8]} strokeWidth={2} aria-hidden="true" />Back
             </Link>
+            )}
           </MotionReveal>
           <MotionReveal index={1}>
             <h1 style={{ ...textStyle("title", mobile), color: COLORS.ink, textAlign: "center", margin: 0 }}>Your Stats</h1>

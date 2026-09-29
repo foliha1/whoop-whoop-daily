@@ -4,6 +4,7 @@
 // while everyone on the same calendar date shares the same puzzle.
 // ============================================================================
 
+import { umbrellaOn } from "@/lib/launch";
 import { DAILY_ROUNDS, type DailyMark } from "@/lib/dailyEngine";
 
 /** Fixed launch day. Puzzle #1 is the local calendar date 2026-08-11. */
@@ -268,6 +269,10 @@ export function saveDailyResult(result: DailyResult, owner: DailyResultOwner): v
 // ---------------------------------------------------------------------------
 
 export const DAILY_SHARE_URL = "https://whoop-whoop.com";
+/** Umbrella ON: every Daily share points at /daily. OFF: today's root link. */
+export function dailyShareUrl(): string {
+  return umbrellaOn() ? `${DAILY_SHARE_URL}/daily` : DAILY_SHARE_URL;
+}
 
 /**
  * The caption that travels WITH the share image, where the picture already
@@ -280,7 +285,7 @@ export function formatDailyShareCaption(puzzleNumber: number): string {
   return [
     `Hey! Look at my Whoop! Whoop! Daily #${puzzleNumber}.`,
     "Have you done it yet?",
-    "whoop-whoop.com",
+    umbrellaOn() ? "whoop-whoop.com/daily" : "whoop-whoop.com",
   ].join("\n");
 }
 
@@ -331,7 +336,7 @@ export function formatDailyShare(
     rounds.join(" · "),
     line3,
     "",
-    DAILY_SHARE_URL,
+    dailyShareUrl(),
   ].join("\n");
 }
 

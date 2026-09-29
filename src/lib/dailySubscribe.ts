@@ -137,7 +137,7 @@ export async function subscribeDaily(
   /** Where the signup came from. Omitted keeps the server's own default.
    *  `restore` is a client-side label only — the server maps anything it does
    *  not know to its default, so nothing about ac-subscribe changes. */
-  source?: "daily_result" | "landing" | "prelaunch" | "restore"
+  source?: "daily_result" | "landing" | "prelaunch" | "restore" | "home"
 ): Promise<boolean> {
   if (!isValidEmail(email)) return false;
   const puzzleNumber = localPuzzleNumber();

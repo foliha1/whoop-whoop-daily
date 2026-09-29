@@ -15,6 +15,8 @@
 // group that does not exist.
 // ============================================================================
 
+import { useUmbrella } from "@/lib/launch";
+import HomeControl from "@/components/HomeControl";
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
@@ -149,6 +151,7 @@ const CarryOverEmail: React.FC<{ mobile: boolean; onLinked: (email: string) => v
 
 const GroupsPage: React.FC = () => {
   const mobile = useIsMobile();
+  const umbrella = useUmbrella();
   const [params, setParams] = useSearchParams();
   const location = useLocation();
   // Arrived from the results screen's "Groups" button: Back returns there,
@@ -191,7 +194,7 @@ const GroupsPage: React.FC = () => {
 
   const backLink = (
     <Link
-      to="/"
+      to={umbrella ? "/daily" : "/"}
       state={backToResults ? { wwOpenResult: true } : undefined}
       className="ww-press"
       style={{ ...buttonStyle("ink", "md", { mobile }), alignSelf: "flex-start" }}
@@ -203,6 +206,7 @@ const GroupsPage: React.FC = () => {
 
   return (
     <DailyFrame gap={SPACE[6]}>
+      {umbrella ? <HomeControl /> : null}
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
@@ -227,7 +231,7 @@ const GroupsPage: React.FC = () => {
             gap: SPACE[6],
           }}
         >
-          <MotionReveal index={0}>{backLink}</MotionReveal>
+          {umbrella && !backToResults ? null : <MotionReveal index={0}>{backLink}</MotionReveal>}
 
           <MotionReveal index={1}><h1 style={{ ...textStyle("title", mobile), color: COLORS.ink, margin: 0 }}>
             Your groups

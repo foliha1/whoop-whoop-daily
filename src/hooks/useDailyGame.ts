@@ -34,6 +34,8 @@ import {
   saveDailyResultRemote,
   type FirstAttempt,
 } from "@/lib/dailyResults";
+import { buildForfeitResult, runInProgress } from "@/lib/dailyForfeit";
+import { umbrellaOn } from "@/lib/launch";
 import { currentRecordOwner, getSessionEmail, getSessionUserId, isDeviceLinkedHint, onAccountChange, whenAccountReady } from "@/lib/account";
 import {
   DAILY_MATCH_SETTLE_MS,
@@ -87,6 +89,11 @@ export interface UseDailyGameResult {
    * from here is submitted.
    */
   recheckEmail: (email: string) => Promise<void>;
+  /**
+   * Umbrella ON: end a started run now. Saves today's first attempt with the
+   * unfinished rounds unsolved and returns true; false when nothing to save.
+   */
+  forfeit: () => boolean;
 }
 
 /** How long Play waits on the already-played check before dealing anyway. */
@@ -373,6 +380,49 @@ export function useDailyGame(): UseDailyGameResult {
     ctx.preLaunch,
   ]);
 
+  // ---- leaving mid-run (umbrella ON) ----
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const forfeit = useCallback((): boolean => {
+    const s = stateRef.current;
+    if (resultRef.current !== null || adoptedRef.current || !runInProgress(s)) return false;
+    const left = buildForfeitResult(s, seed, puzzleNumber);
+    resultRef.current = left;
+    if (ctx.preLaunch) return false;
+    if (debugBypass) {
+      setResult(left);
+      setResultSaved(true);
+      return true;
+    }
+    // Local first: synchronous, so it survives the page going away.
+    saveDailyResult(left, currentRecordOwner());
+    markForfeitPending(puzzleNumber);
+    void saveDailyResultRemote(left).then((ok) => {
+      clearForfeitPending(puzzleNumber);
+      if (!ok && !getSessionUserId() && isDeviceLinkedHint()) markPendingSave(puzzleNumber);
+    });
+    setResult(left);
+    setAlreadyPlayed(true);
+    setResultSaved(true);
+    return true;
+  }, [seed, puzzleNumber, ctx.preLaunch, debugBypass]);
+
+  // Closing the tab or app mid-run follows the same rule where the browser
+  // delivers pagehide. The local save is synchronous; the remote write is
+  // best effort and retried on the next visit (below).
+  useEffect(() => {
+    const onHide = () => {
+      if (umbrellaOn()) forfeit();
+    };
+    window.addEventListener("pagehide", onHide);
+    return () => window.removeEventListener("pagehide", onHide);
+  }, [forfeit]);
+  useEffect(() => {
+    if (!stored || !hasForfeitPending(puzzleNumber) || debugBypass) return;
+    void saveDailyResultRemote(stored).then(() => clearForfeitPending(puzzleNumber));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // The gate is enforced here too, so no path can start a pre-launch run.
   // A pending already-played check is awaited (briefly) so a known player's
   // board is never dealt when their first attempt already exists.
@@ -423,7 +473,19 @@ export function useDailyGame(): UseDailyGameResult {
     select,
     peek,
     recheckEmail,
+    forfeit,
   };
+}
+
+const forfeitKey = (n: number) => `ww_daily_forfeit_pending_${n}`;
+function markForfeitPending(n: number): void {
+  try { localStorage.setItem(forfeitKey(n), "1"); } catch { /* ignore */ }
+}
+function hasForfeitPending(n: number): boolean {
+  try { return localStorage.getItem(forfeitKey(n)) === "1"; } catch { return false; }
+}
+function clearForfeitPending(n: number): void {
+  try { localStorage.removeItem(forfeitKey(n)); } catch { /* ignore */ }
 }
 
 const pendingKey = (n: number) => `ww_daily_pending_save_${n}`;

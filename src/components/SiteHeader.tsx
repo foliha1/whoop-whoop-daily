@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { Settings, X } from "lucide-react";
+import { House, Settings, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useUmbrella } from "@/lib/launch";
 import { COLORS, FONT_FAMILY } from "@/lib/tokens";
 import SettingsSheet from "@/components/SettingsSheet";
 
@@ -31,6 +33,8 @@ export interface SiteHeaderProps {
 const SiteHeader: React.FC<SiteHeaderProps> = ({ onSettings, onLeave, onHowTo }) => {
   const [showSettings, setShowSettings] = useState(false);
   const openSettings = onSettings ?? (() => setShowSettings(true));
+  const umbrella = useUmbrella();
+  const navigate = useNavigate();
 
   const controlBase: React.CSSProperties = {
     minHeight: TOUCH,
@@ -84,6 +88,19 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onSettings, onLeave, onHowTo })
             boxSizing: "border-box",
           }}
         >
+          {/* Umbrella ON: Home takes the top-left slot, 44×44. */}
+          <div style={{ display: "flex", alignItems: "center", flex: "none" }}>
+          {umbrella && !onLeave ? (
+            <button
+              type="button"
+              data-testid="home-control"
+              aria-label="Home"
+              onClick={() => navigate("/")}
+              style={{ ...controlBase, width: TOUCH, height: TOUCH, padding: 0 }}
+            >
+              <House size={22} color={COLORS.surface} aria-hidden="true" />
+            </button>
+          ) : null}
           {onHowTo ? (
             <button type="button" onClick={onHowTo} style={{ ...controlBase, flex: "none" }}>
               How to Play
@@ -93,6 +110,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ onSettings, onLeave, onHowTo })
               How to Play
             </a>
           )}
+          </div>
 
 
           <div style={{ display: "flex", alignItems: "center", flex: "none" }}>
