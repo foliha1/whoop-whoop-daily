@@ -9,6 +9,8 @@ const windowSource = () =>
   readFileSync(resolve(process.cwd(), "src/components/MultiplayerWindow.tsx"), "utf8");
 const demoSource = () =>
   readFileSync(resolve(process.cwd(), "src/components/ClassicDemo.tsx"), "utf8");
+const lockupSource = () =>
+  readFileSync(resolve(process.cwd(), "src/components/DailyLogoLockup.tsx"), "utf8");
 
 afterEach(() => {
   cleanup();
@@ -46,10 +48,22 @@ describe("Part 2 umbrella home", () => {
 
   it("keeps the Home layout stacked and uses the plain animated lockup", () => {
     const source = windowSource();
+    const lockup = lockupSource();
     expect(source).toContain('variant={umbrella && home ? "plain" : "classic"}');
+    expect(lockup).toContain('animation: "/whoop-plain-logo.json"');
     expect(source).toContain("See Today's Results");
     expect(source).toContain("<BarChart3 size={16}");
     expect(source).not.toContain("See result · Next in");
+  });
+
+  it("keeps the plain animation independent from the Classic suffix asset", () => {
+    const animation = JSON.parse(
+      readFileSync(resolve(process.cwd(), "public/whoop-plain-logo.json"), "utf8"),
+    ) as { w: number; h: number; layers: Array<{ refId?: string }>; assets: Array<{ id?: string }> };
+    expect(animation.w).toBe(167);
+    expect(animation.h).toBe(132);
+    expect(animation.layers.some((layer) => layer.refId === "4")).toBe(false);
+    expect(animation.assets.some((asset) => asset.id === "4")).toBe(false);
   });
 
   it("uses Together in ON-facing copy while preserving OFF Peeps copy and analytics", () => {

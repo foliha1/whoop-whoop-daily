@@ -39,7 +39,7 @@ const VARIANTS = {
     alt: "WHOOP! WHOOP! Classic",
   },
   plain: {
-    animation: null,
+    animation: "/whoop-plain-logo.json",
     still: "/WhoopWhoop_Dark_Logo.svg",
     stillCream: "/WhoopWhoop_Stacked_Logo.svg",
     alt: "WHOOP! WHOOP!",
