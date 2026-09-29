@@ -68,6 +68,7 @@ import {
 } from "@/lib/sounds";
 import AutoFitText from "@/components/AutoFitText";
 import { hapticTap, hapticImpact, hapticSuccess, hapticError } from "@/lib/haptics";
+import { useUmbrella } from "@/lib/launch";
 
 const prefersReducedMotion = (): boolean => {
   try {
@@ -341,9 +342,10 @@ const CallerSignal: React.FC<{ name: string }> = ({ name }) => (
 const Header: React.FC<{
   round: number;
   deckCount: number;
+  umbrella: boolean;
   onLeave: () => void;
   onSettings: () => void;
-}> = ({ round, deckCount, onLeave, onSettings }) => {
+}> = ({ round, deckCount, umbrella, onLeave, onSettings }) => {
   const half: React.CSSProperties = {
     flex: "1 1 0", display: "flex", alignItems: "center",
     justifyContent: "center", padding: "0 4px", minWidth: 0,
@@ -354,10 +356,30 @@ const Header: React.FC<{
     color: SURFACE, textAlign: "center",
     whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
   };
+  const leaveButton = (
+    <button
+      type="button"
+      className="mp-header-btn"
+      onClick={onLeave}
+      aria-label="Leave game"
+      data-testid="classic-game-leave"
+      style={{
+        all: "unset",
+        ...buttonStyle("danger", "md"),
+        boxSizing: "border-box",
+        width: 44, height: 44, flex: "none",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "pointer",
+      }}
+    >
+      <X size={22} aria-hidden="true" />
+    </button>
+  );
   return (
     <div style={{
       display: "flex", flexDirection: "row", gap: 8, height: 44, flex: "none",
     }}>
+      {umbrella ? leaveButton : null}
       {/* 44px bar - 2px borders = 40px content box; 8px inset top and bottom
           makes the stretched divider exactly 24px tall. */}
       <div style={{
@@ -386,22 +408,7 @@ const Header: React.FC<{
       >
         <SettingsIcon size={22} color={SURFACE} aria-hidden="true" />
       </button>
-      <button
-        type="button"
-        className="mp-header-btn"
-        onClick={onLeave}
-        aria-label="Leave game"
-        style={{
-          all: "unset",
-          ...buttonStyle("danger", "md"),
-          boxSizing: "border-box",
-          width: 44, height: 44, flex: "none",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer",
-        }}
-      >
-        <X size={22} aria-hidden="true" />
-      </button>
+      {umbrella ? null : leaveButton}
     </div>
   );
 };
@@ -874,6 +881,7 @@ const MultiplayerGameView: React.FC<Props> = ({
   publicState: s, mySeat, events = [], rollCommit = null, lastClaimReject = null, onIntent, onLeave, mobile = false, roomId, visitorId, browserId = "", playerKey, isHost, presenceVisitorIds,
   heartbeatStale, awaySkip, hostDisconnectedSeats, presenceStatus, soloMode = false, onInvite,
 }) => {
+  const umbrella = useUmbrella();
   const [showSettings, setShowSettings] = React.useState(false);
   const [showLeave, setShowLeave] = React.useState(false);
   const [showHowTo, setShowHowTo] = React.useState(false);
@@ -1694,6 +1702,7 @@ const MultiplayerGameView: React.FC<Props> = ({
     <Header
       round={s.roundNum}
       deckCount={s.deckCount}
+      umbrella={umbrella}
       onLeave={() => setShowLeave(true)}
       onSettings={() => setShowSettings(true)}
     />

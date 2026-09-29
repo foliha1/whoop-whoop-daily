@@ -193,7 +193,7 @@ const DailyEmailModal: React.FC<{
             ? "Enter the address you used before and your streak and history come back."
             : source === "home"
               ? "A new game every morning. Nothing else."
-              : "Enter the address you used before and your streak and history come back."}
+              : "A new game every morning. Nothing else."}
           note={null}
           submitLabel={mode === "restore" ? "Restore" : "Sign Me Up"}
           onChoiceRequiredChange={setChoiceRequired}
