@@ -35,6 +35,15 @@ import { COLORS, RADIUS, SPACE } from "@/lib/tokens";
 const FOCUSABLE =
   'button:not([disabled]), input:not([disabled]), [href], select, textarea, [tabindex]:not([tabindex="-1"])';
 
+export const dailyEmailModalBody = (
+  mode: "restore" | "subscribe",
+  source: "daily_result" | "home" = "daily_result",
+) => mode === "restore"
+  ? "Enter the address you used before and your streak and history come back."
+  : source === "home"
+    ? "A new game every morning. Nothing else."
+    : "A new game every morning. Nothing else.";
+
 /** Live visual viewport box, so the keyboard cannot push the submit off screen. */
 function useVisualViewportBox() {
   const read = () => {
@@ -189,11 +198,7 @@ const DailyEmailModal: React.FC<{
           source={mode === "restore" ? "restore" : source}
           autoFocus
           heading={mode === "restore" ? "Restore your streak." : "Get tomorrow's grid."}
-          body={mode === "restore"
-            ? "Enter the address you used before and your streak and history come back."
-            : source === "home"
-              ? "A new game every morning. Nothing else."
-              : "A new game every morning. Nothing else."}
+          body={dailyEmailModalBody(mode, source)}
           note={null}
           submitLabel={mode === "restore" ? "Restore" : "Sign Me Up"}
           onChoiceRequiredChange={setChoiceRequired}

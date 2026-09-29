@@ -11,7 +11,7 @@ import { hasCompletedAnyDaily, homeSignupEligible } from "@/lib/homeSignup";
 import HomeControl from "@/components/HomeControl";
 import DailyLeaveDialog, { DAILY_LEAVE_BODY, DAILY_LEAVE_TITLE } from "@/components/DailyLeaveDialog";
 import HomeEmailSignup from "@/components/HomeEmailSignup";
-import DailyEmailModal from "@/components/DailyEmailModal";
+import DailyEmailModal, { dailyEmailModalBody } from "@/components/DailyEmailModal";
 import { useDailyGame } from "@/hooks/useDailyGame";
 
 const src = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
@@ -177,16 +177,15 @@ describe("Part 3 Daily leave", () => {
 
 describe("Part 3 Home email signup", () => {
   it("pins restore, Daily-result subscribe, and Home subscribe copy", () => {
-    const restore = render(<DailyEmailModal mode="restore" onClose={() => undefined} />);
-    expect(screen.getByText("Enter the address you used before and your streak and history come back.")).toBeTruthy();
-    restore.unmount();
-
-    const daily = render(<DailyEmailModal mode="subscribe" source="daily_result" onClose={() => undefined} />);
-    expect(screen.getByText("A new game every morning. Nothing else.")).toBeTruthy();
-    daily.unmount();
-
-    render(<DailyEmailModal mode="subscribe" source="home" onClose={() => undefined} />);
-    expect(screen.getByText("A new game every morning. Nothing else.")).toBeTruthy();
+    expect(dailyEmailModalBody("restore", "daily_result")).toBe(
+      "Enter the address you used before and your streak and history come back.",
+    );
+    expect(dailyEmailModalBody("subscribe", "daily_result")).toBe(
+      "A new game every morning. Nothing else.",
+    );
+    expect(dailyEmailModalBody("subscribe", "home")).toBe(
+      "A new game every morning. Nothing else.",
+    );
   });
 
   it("is for players who finished a Daily and are not subscribed", () => {
