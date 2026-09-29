@@ -11,7 +11,7 @@ Owner: Felix. Do these in order. Nothing here is done by the build.
 ## 2. Flip and publish
 - [ ] Set `LAUNCHED = true` in `src/launch.config.ts` (the only switch).
 - [ ] Publish.
-- [ ] Hard-refresh `/`, `/daily`, `/today` (should redirect to `/daily`, keeping `?i=` invites), `/support`, `/privacy`, `/terms`.
+- [ ] Hard-refresh `/`, `/daily`, `/today` (should redirect to `/daily`, keeping `?i=` invites), `/about`, `/privacy`, `/terms`.
 
 ## 3. ActiveCampaign (outside the repo — not changed by us)
 - [ ] Change the daily reminder email's "Play" link from `https://whoop-whoop.com/` to `https://whoop-whoop.com/daily`.
