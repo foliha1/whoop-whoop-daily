@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import HomeControl from "@/components/HomeControl";
+import DailyLeaveDialog from "@/components/DailyLeaveDialog";
+import { runInProgress } from "@/lib/dailyForfeit";
 import { Helmet } from "react-helmet-async";
 import { HelpCircle, Settings } from "lucide-react";
 
@@ -1307,6 +1310,8 @@ const DailyPage: React.FC = () => {
 
   const daily = useDailyGame();
   const { state, phase } = daily;
+  const navigate = useNavigate();
+  const [leaveOpen, setLeaveOpen] = useState(false);
   const todayArtReady = React.useRef<Promise<void>>(Promise.resolve());
   const todayArtSources = React.useMemo(
     () => state.grid.flatMap((card) => card ? [card.svgPath] : []),
@@ -1814,6 +1819,29 @@ const DailyPage: React.FC = () => {
         <meta name="twitter:image" content="https://whoop-whoop.com/og-daily.png" />
       </Helmet>
 
+      {umbrella && (ready || finished) ? <HomeControl /> : null}
+      {umbrella && !ready && !finished && daily.result === null && runInProgress(state) ? (
+        <HomeControl kind="leave" onLeave={() => { hapticTap(); setLeaveOpen(true); }} />
+      ) : null}
+      {umbrella && leaveOpen ? (
+        <DailyLeaveDialog
+          mobile={mobile}
+          onKeepPlaying={() => setLeaveOpen(false)}
+          onLeave={() => {
+            setLeaveOpen(false);
+            if (runOpenRef.current && !runClosedRef.current) {
+              runClosedRef.current = true;
+              trackDaily("run_abandoned", {
+                puzzleNumber,
+                props: { round: state.roundIndex, roundsSolved: state.roundsSolved, totalMisses: state.totalMisses },
+              });
+              void flushDailyEvents();
+            }
+            daily.forfeit();
+            navigate("/");
+          }}
+        />
+      ) : null}
       <DailyScreenFade
         screenKey={finished ? "result" : ready ? "ready" : "play"}
         background={finished || ready ? COLORS.surface : COLORS.panel}
