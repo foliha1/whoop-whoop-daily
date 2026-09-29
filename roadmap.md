@@ -118,4 +118,5 @@
 - [x] Preview tests: admin ON / non-admin OFF / signed-out OFF / failed check OFF
 - [x] Full suite + grants readback + report; do NOT publish; do NOT start Parts 2/3
 
-- [ ] Build approved ON-only Daily start, Home Daily history, blue safe leave actions, and whole-shape pattern clearance; verify OFF parity and requested screens.
+- [x] Build approved ON-only Daily start, Home Daily history, blue safe leave actions, and whole-shape pattern clearance.
+- [ ] Verify OFF parity, full suite, and requested before/after screen grid.

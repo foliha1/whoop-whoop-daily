@@ -1637,10 +1637,10 @@ const DailyPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
+  const directStart = umbrella && !daily.preLaunch;
   const playedToday =
     daily.result !== null && (daily.alreadyPlayed || (phase === "DONE" && runSettled));
-  const finished = playedToday && showResult;
-  const directStart = umbrella && !daily.preLaunch;
+  const finished = playedToday && (showResult || directStart);
   const ready = !finished && (!directStart && phase === "READY" || playedToday);
   const startDialogOpen = directStart && phase === "READY" && !playedToday && onboardingComplete && howTo === null;
 
@@ -1651,11 +1651,6 @@ const DailyPage: React.FC = () => {
     if (!directStart || phase !== "READY" || playedToday || onboardingComplete || howTo !== null) return;
     setHowTo("gate");
   }, [directStart, phase, playedToday, onboardingComplete, howTo]);
-
-  // A known first attempt is a result destination, never a second start.
-  useEffect(() => {
-    if (directStart && playedToday) setShowResult(true);
-  }, [directStart, playedToday]);
 
   // Results-only release note; caller-validated point history proves return.
   const [announcementReady, setAnnouncementReady] = useState(false);
@@ -1864,6 +1859,17 @@ const DailyPage: React.FC = () => {
       {startDialogOpen ? (
         <DailyStartDialog puzzleNumber={daily.puzzleNumber} mobile={mobile} busy={playWaiting} onStart={startRun} />
       ) : null}
+      {directStart && howTo ? (
+        <DailyHowToSteps
+          mode={howTo}
+          mobile={mobile}
+          onStart={() => {
+            setHowTo(null);
+            setOnboardingComplete(true);
+          }}
+          onClose={() => setHowTo(null)}
+        />
+      ) : null}
       <DailyScreenFade
         screenKey={finished ? "result" : ready ? "ready" : "play"}
         background={finished || ready ? COLORS.surface : COLORS.panel}
@@ -1953,7 +1959,7 @@ const DailyPage: React.FC = () => {
               }}
 
             />
-            {howTo && (
+            {howTo && !directStart && (
               <DailyHowToSteps
                 mode={howTo}
                 mobile={mobile}
