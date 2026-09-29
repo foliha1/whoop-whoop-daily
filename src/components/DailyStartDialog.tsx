@@ -1,6 +1,6 @@
 import React from "react";
 import { createPortal } from "react-dom";
-import { useMotionExit } from "@/hooks/useMotionExit";
+import { DAILY_SCREEN_FADE_MS } from "@/lib/animationTiming";
 import { COLORS, SPACE, buttonStyle, panelStyle, textStyle } from "@/lib/tokens";
 
 const FOCUSABLE = '[data-testid="home-control"], [data-testid="daily-start"]';
@@ -13,13 +13,20 @@ const DailyStartDialog: React.FC<{
 }> = ({ puzzleNumber, mobile = false, busy = false, onStart }) => {
   const panelRef = React.useRef<HTMLDivElement>(null);
   const startedRef = React.useRef(false);
-  const { exiting, requestExit } = useMotionExit(onStart);
+  const timerRef = React.useRef<number | null>(null);
+  const [exiting, setExiting] = React.useState(false);
 
   const start = React.useCallback(() => {
     if (busy || startedRef.current) return;
     startedRef.current = true;
-    requestExit();
-  }, [busy, requestExit]);
+    setExiting(true);
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+    timerRef.current = window.setTimeout(onStart, reduced ? 0 : DAILY_SCREEN_FADE_MS);
+  }, [busy, onStart]);
+
+  React.useEffect(() => () => {
+    if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+  }, []);
 
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
