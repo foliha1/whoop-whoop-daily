@@ -7,7 +7,8 @@ export const UMBRELLA_LAUNCHED = /LAUNCH_CONFIG\s*=\s*\{\s*launched:\s*true\s*\}
 
 export const HOME_META = {
   title: "WHOOP! WHOOP!",
-  description: "The memory game where the rules keep changing. Play the Daily, go Solo, or play with friends.",
+  description: "The memory game where the rules keep changing. Play the Daily, go Solo, or play Together.",
+  installName: "Whoop! Whoop!",
   url: `${ORIGIN}/`,
   image: `${ORIGIN}/og-home.png`,
 };
@@ -32,7 +33,7 @@ export function toHomeHtml(dailyHtml) {
   html = setMeta(html, "name", "twitter:title", HOME_META.title);
   html = setMeta(html, "name", "twitter:description", HOME_META.description);
   html = setMeta(html, "name", "twitter:image", HOME_META.image);
-  html = setMeta(html, "name", "apple-mobile-web-app-title", HOME_META.title);
+  html = setMeta(html, "name", "apple-mobile-web-app-title", HOME_META.installName);
   html = setLink(html, "canonical", HOME_META.url);
   return html
     .replace("/daily.webmanifest?v=20260925", "/home.webmanifest?v=20260929")

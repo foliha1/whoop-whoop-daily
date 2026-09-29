@@ -129,10 +129,10 @@ const MultiplayerPage: React.FC<MultiplayerPageProps> = ({ home = false }) => {
       <Helmet>
         {home ? (
           <>
-            <meta name="description" content="The memory game where the rules keep changing. Play the Daily, go Solo, or play with friends." />
+            <meta name="description" content="The memory game where the rules keep changing. Play the Daily, go Solo, or play Together." />
             <link rel="canonical" href="https://whoop-whoop.com/" />
             <meta property="og:title" content="WHOOP! WHOOP!" />
-            <meta property="og:description" content="The memory game where the rules keep changing. Play the Daily, go Solo, or play with friends." />
+            <meta property="og:description" content="The memory game where the rules keep changing. Play the Daily, go Solo, or play Together." />
             <meta property="og:url" content="https://whoop-whoop.com/" />
           </>
         ) : <meta name="robots" content="noindex, nofollow" />}
