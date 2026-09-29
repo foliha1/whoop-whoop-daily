@@ -217,6 +217,11 @@ export function formatNextPuzzle(now: Date = new Date()): string {
   return `Next puzzle in ${hours}h`;
 }
 
+/** Daily tile icon clock: sun 06:00–17:59 local, moon otherwise. Independent of theme. */
+export function isDaytime(now: Date = new Date()): boolean {
+  const h = now.getHours();
+  return h >= 6 && h < 18;
+}
 
 /** The only grid the digital rules are calibrated for. */
 const FIXED_GRID = "3x3" as const;
@@ -1715,15 +1720,22 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 style={{ ...playModeTileStyle(RAW.orange), color: RAW.warmBlack }}
                 aria-label={dailyPlayed
                   ? `See Today's Daily, ${formatNextPuzzle(now)}`
-                  : `Play Daily #${puzzleNumber}`}
+                  : `Daily #${puzzleNumber}`}
                 data-testid="home-daily"
+                data-icon={isDaytime(now) ? "sun" : "moon"}
               >
-                <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-                  <circle cx="16" cy="16" r="5.5" fill="none" stroke={RAW.warmBlack} strokeWidth="2.5" />
-                  <path d="M16 3v4M16 25v4M3 16h4M25 16h4M6.8 6.8l2.8 2.8M22.4 22.4l2.8 2.8M25.2 6.8l-2.8 2.8M9.6 22.4l-2.8 2.8" fill="none" stroke={RAW.warmBlack} strokeWidth="2.5" strokeLinecap="round" />
-                </svg>
+                {isDaytime(now) ? (
+                  <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+                    <circle cx="16" cy="16" r="5.5" fill="none" stroke={RAW.warmBlack} strokeWidth="2.5" />
+                    <path d="M16 3v4M16 25v4M3 16h4M25 16h4M6.8 6.8l2.8 2.8M22.4 22.4l2.8 2.8M25.2 6.8l-2.8 2.8M9.6 22.4l-2.8 2.8" fill="none" stroke={RAW.warmBlack} strokeWidth="2.5" strokeLinecap="round" />
+                  </svg>
+                ) : (
+                  <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+                    <path d="M25 19.5A10 10 0 1 1 12.5 7a8 8 0 0 0 12.5 12.5z" fill="none" stroke={RAW.warmBlack} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
                 <div style={playModeLabelStyle(RAW.warmBlack)}>
-                  {dailyPlayed ? "See Today's Daily" : `Play Daily #${puzzleNumber}`}
+                  {dailyPlayed ? "See Today's Daily" : `Daily #${puzzleNumber}`}
                 </div>
                 {dailyPlayed ? (
                   <div style={{ ...textStyle("caption", mobile), color: RAW.warmBlack, textAlign: "center" }}>
@@ -1737,14 +1749,14 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               onClick={handlePlaySolo}
               disabled={busy}
               style={playModeTileStyle(COLORS.blue)}
-              aria-label="Play Solo"
+              aria-label={umbrella && home ? "Solo" : "Play Solo"}
               data-testid={umbrella && home ? "home-solo" : undefined}
             >
               <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
                 <circle cx="16" cy="11" r="5" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" />
                 <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" strokeLinecap="round" />
               </svg>
-              <div style={playModeLabelStyle(RAW.cream)}>Play Solo</div>
+              <div style={playModeLabelStyle(RAW.cream)}>{umbrella && home ? "Solo" : "Play Solo"}</div>
             </button>
 
             <button
@@ -1752,7 +1764,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               onClick={handleStartRoom}
               disabled={busy}
               style={playModeTileStyle(COLORS.red)}
-              aria-label="Play with Peeps"
+              aria-label={umbrella && home ? "With Peeps" : "Play with Peeps"}
               data-testid={umbrella && home ? "home-peeps" : undefined}
             >
               <svg width="64" height="32" viewBox="0 0 64 32" aria-hidden="true">
@@ -1761,7 +1773,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 <circle cx="48" cy="12" r="5" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" />
                 <path d="M38 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
               </svg>
-              <div style={playModeLabelStyle(RAW.cream)}>Play with Peeps</div>
+              <div style={playModeLabelStyle(RAW.cream)}>{umbrella && home ? "With Peeps" : "Play with Peeps"}</div>
             </button>
           </div>
 
