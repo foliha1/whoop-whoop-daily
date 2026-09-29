@@ -890,7 +890,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       return;
     }
     void enterRoom(view.via === "link" ? { kind: "join-link", code } : { kind: "join-code", code });
-  }, [view, nameInput, codeInput, busy, enterRoom]);
+  }, [view, nameInput, codeInput, busy, umbrella, enterRoom]);
 
   // Capacity guard — fixed to `>=` per spec so the "full" state matches
   // rather than admitting a 7th before flipping. (See: prompt 8.1.)
@@ -1553,7 +1553,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 htmlFor="table-code"
                 style={{ ...smallCopy, color: RAW.warmBlack, textAlign: "center", whiteSpace: "pre-line" }}
               >
-                {"Already have a table code?\nLeave it blank to start your own."}
+                {umbrella && view.action === "join"
+                  ? "Enter the table code your friend shared."
+                  : "Already have a table code?\nLeave it blank to start your own."}
               </label>
               <input
                 id="table-code"
