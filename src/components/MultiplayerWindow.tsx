@@ -1167,7 +1167,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         <HelpCircle size={16} aria-hidden="true" />
         How to Play
       </button>
-      {umbrella && home && account ? (
+      {account ? (
         <button
           type="button"
           className="ww-press daily-btn-howto"
@@ -1699,11 +1699,15 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             {umbrella && home ? (
               <button
                 type="button"
-                onClick={() => navigate(`/daily${window.location.search}`)}
+                onClick={() => navigate(`/daily${window.location.search}`, {
+                  state: dailyPlayed ? { wwOpenResult: true } : undefined,
+                })}
                 disabled={busy}
                 className="ww-home-daily-tile"
                 style={{ ...playModeTileStyle(RAW.orange), color: RAW.warmBlack }}
-                aria-label={dailyPlayed ? "See Today's Daily" : `Play Daily #${puzzleNumber}`}
+                aria-label={dailyPlayed
+                  ? `See Today's Daily, ${formatNextPuzzle(now)}`
+                  : `Play Daily #${puzzleNumber}`}
                 data-testid="home-daily"
               >
                 <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
