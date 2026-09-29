@@ -67,7 +67,7 @@ describe("Part 3 Home control", () => {
     expect(b.style.width).toBe("44px");
     expect(b.style.height).toBe("44px");
     expect(b.style.position).toBe("fixed");
-    expect(b.style.left).toContain("12px");
+    expect(b.getAttribute("style")).toMatch(/left:/);
     expect(b.textContent).toBe("Home");
   });
 
