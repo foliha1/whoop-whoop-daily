@@ -253,6 +253,13 @@
       "when": 1790552376603,
       "tag": "0035_umbrella_preview_check",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1790701421433,
+      "tag": "0036_home_analytics_and_signup_source",
+      "breakpoints": true
     }
   ]
 }
