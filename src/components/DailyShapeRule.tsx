@@ -91,6 +91,19 @@ const DailyShapeRule: React.FC<{ style?: React.CSSProperties; clearStart?: numbe
     transition: `opacity ${MOTION.slow}`,
   };
 
+  if (clearStart <= 0) {
+    return (
+      <div
+        ref={hostRef}
+        className="daily-shape-rule"
+        aria-hidden="true"
+        style={{ ...style, position: "relative" }}
+      >
+        <div style={layerStyle} />
+      </div>
+    );
+  }
+
   return (
     <div
       className="daily-shape-rule"
