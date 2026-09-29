@@ -1167,7 +1167,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         <HelpCircle size={16} aria-hidden="true" />
         How to Play
       </button>
-      {account ? (
+      {umbrella && home && account ? (
         <button
           type="button"
           className="ww-press daily-btn-howto"
