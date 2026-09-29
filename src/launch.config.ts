@@ -8,4 +8,4 @@
 // Signed-in admins (admin_allowlist) preview the ON version on the live site
 // without any player or crawler seeing it. See src/lib/launch.ts.
 // ============================================================================
-export const LAUNCH_CONFIG = { launched: true } as const;
+export const LAUNCH_CONFIG = { launched: false } as const;
