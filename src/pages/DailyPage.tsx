@@ -114,7 +114,7 @@ import {
 
 } from "@/lib/tokens";
 import { useThemeMode } from "@/lib/nightMode";
-import { useUmbrella } from "@/lib/launch";
+import { umbrellaOn, useUmbrella } from "@/lib/launch";
 import DailyMilestoneConfetti, { BURST_LIFETIME_MS } from "@/components/DailyMilestoneConfetti";
 import WhoopScoreAnnouncement, { isReturningScorePlayer, hasEarlierDailyResult, hasSeenScoreAnnouncement, SCORE_ANNOUNCEMENT } from "@/components/WhoopScoreAnnouncement";
 import { fetchDailyResults } from "@/lib/dailyResults";
@@ -400,7 +400,7 @@ const ShareBlock: React.FC<{
     inviteBusyRef.current = true;
     hapticTap();
     const code = getInviteCode();
-    const url = `https://whoop-whoop.com/?i=${code}`;
+    const url = umbrellaOn() ? `https://whoop-whoop.com/daily?i=${code}` : `https://whoop-whoop.com/?i=${code}`;
     const text = "Play today's Whoop! Whoop! Daily.";
 
     try {
