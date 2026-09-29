@@ -1,4 +1,6 @@
 import React from "react";
+import { useUmbrella } from "@/lib/launch";
+import HomeControl from "@/components/HomeControl";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import DailyFrame from "@/components/DailyFrame";
@@ -52,7 +54,7 @@ const LegalPage: React.FC<{
           </header>
           {children}
           <Link
-            to="/"
+            to={umbrella ? "/daily" : "/"}
             style={{
               ...bodyStyle,
               color: COLORS.inkMuted,

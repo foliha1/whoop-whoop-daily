@@ -1,4 +1,5 @@
 import { cardArt } from "@/lib/assetUrls";
+import { useUmbrella } from "@/lib/launch";
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import SiteHeader, { SITE_HEADER_OFFSET } from "@/components/SiteHeader";
@@ -133,7 +134,7 @@ const SupportPage: React.FC = () => {
             <h1 style={{ ...textStyle("subhead", true), fontStyle: "italic", color: COLORS.ink, margin: 0 }}>
               A memory game where the rules keep changing.
             </h1>
-            <Link to="/" style={{ textDecoration: "none", width: "100%" }}>
+            <Link to={umbrella ? "/daily" : "/"} style={{ textDecoration: "none", width: "100%" }}>
               <AppButton roleStyle="primary" size="md" fullWidth>
                 Play Now
               </AppButton>
@@ -278,11 +279,14 @@ const SupportPage: React.FC = () => {
             </div>
           </section>
 
+          {/* ON: Home in the header does the same thing, so this goes. */}
+          {!umbrella ? (
           <footer style={{ textAlign: "center" }}>
             <Link to="/" style={{ ...captionStyle, color: COLORS.ink }}>
               ← Back to the game
             </Link>
           </footer>
+          ) : null}
         </div>
       </div>
     </>

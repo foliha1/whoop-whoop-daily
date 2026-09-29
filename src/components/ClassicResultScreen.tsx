@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { umbrellaOn } from "@/lib/launch";
 import { createPortal } from "react-dom";
 import { usePortalHost } from "@/hooks/usePortalHost";
 import DailyShapeRule from "@/components/DailyShapeRule";
@@ -372,7 +373,7 @@ const ClassicResultScreen: React.FC<{
             }}
           >
             <a
-              href="/"
+              href={umbrellaOn() ? "/daily" : "/"}
               style={{
                 ...textStyle("caption", mobile),
                 color: COLORS.inkMuted,

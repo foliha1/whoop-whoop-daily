@@ -1803,7 +1803,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           <EntryReveal index={3} ready={entryReady} style={{ width: "100%" }}>
             {!(umbrella && home) ? (
               <a
-                href="/"
+                href={umbrella ? "/daily" : "/"}
                 style={{
                   ...textStyle("captionItalic", mobile),
                   color: COLORS.inkMuted,
