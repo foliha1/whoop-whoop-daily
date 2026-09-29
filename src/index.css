@@ -224,18 +224,13 @@ All colors MUST be HSL.
   .ww-loading-flip { animation: none; }
 }
 
-/* Umbrella Home keeps the Classic lobby tiles. On phones Daily spans the
-   first row; tablet and desktop widths use three equal columns. */
+/* Umbrella Home keeps the same phone tile arrangement at every width. */
 .ww-home-mode-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .ww-home-mode-grid > * { min-width: 0; }
 .ww-home-daily-tile { grid-column: 1 / -1; }
-@media (min-width: 700px) {
-  .ww-home-mode-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .ww-home-daily-tile { grid-column: auto; }
-}
 
 /* ── Wrong-claim card animation (squeeze + shake/rotate, wash, ring) ──
    Designed values: 1000ms, linear, plays once. Scale eases to 0.96 by 20%,

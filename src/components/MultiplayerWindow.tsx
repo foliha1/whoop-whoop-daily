@@ -63,7 +63,7 @@ import { useEntryReady } from "@/hooks/useEntryReady";
 const ENTRY_ASSETS = [...lockupStills("classic"), PATTERN_URL] as const;
 
 import SettingsSheet from "@/components/SettingsSheet";
-import { HelpCircle, Settings as SettingsIcon } from "lucide-react";
+import { BarChart3, HelpCircle, Settings as SettingsIcon } from "lucide-react";
 import { useViewportHeight, compressionFactor, lerpCompress } from "@/hooks/useViewportHeight";
 import MultiplayerGameView from "@/components/MultiplayerGameView";
 import { preloadGameArt } from "@/lib/preloadArt";
@@ -81,7 +81,7 @@ import DailyLegalFooter from "@/components/DailyLegalFooter";
  * "measure then scale" approach the board uses for cards, and it keeps the
  * entry screens whole at 390x520 instead of clipping them.
  */
-const FitColumn: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const FitColumn: React.FC<{ children: React.ReactNode; disableScale?: boolean }> = ({ children, disableScale = false }) => {
   const boxRef = useRef<HTMLDivElement | null>(null);
   const innerRef = useRef<HTMLDivElement | null>(null);
   const [scale, setScale] = useState(1);
@@ -94,14 +94,14 @@ const FitColumn: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       const avail = box.clientHeight;
       const natural = inner.scrollHeight;
       if (!avail || !natural) return;
-      setScale(Math.min(1, avail / natural));
+      setScale(disableScale ? 1 : Math.min(1, avail / natural));
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(box);
     ro.observe(inner);
     return () => ro.disconnect();
-  }, [children]);
+  }, [children, disableScale]);
 
   return (
     <div
@@ -218,6 +218,21 @@ export function hoursToNextPuzzle(now: Date = new Date()): number {
 
 export function formatNextPuzzle(now: Date = new Date()): string {
   return `Next puzzle in ${hoursToNextPuzzle(now)}h`;
+}
+
+export function formatNextDaily(now: Date = new Date()): { visible: string; spoken: string } {
+  const minutes = Math.max(1, Math.ceil((nextMidnight(now) - now.getTime()) / 60_000));
+  if (minutes < 60) {
+    return {
+      visible: `Next Daily in ${minutes}min`,
+      spoken: `Next Daily in ${minutes} ${minutes === 1 ? "minute" : "minutes"}`,
+    };
+  }
+  const hours = Math.ceil(minutes / 60);
+  return {
+    visible: `Next Daily in ${hours}${hours === 1 ? "hr" : "hrs"}`,
+    spoken: `Next Daily in ${hours} ${hours === 1 ? "hour" : "hours"}`,
+  };
 }
 
 /** Daily tile icon clock: sun 06:00–17:59 local, moon otherwise. Independent of theme. */
@@ -1188,6 +1203,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           onClick={() => navigate("/you")}
           style={chipButtonBase}
         >
+          <BarChart3 size={16} aria-hidden="true" />
           Your Stats
         </button>
       ) : null}
@@ -1229,7 +1245,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     return (
     <>
       <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill>
-        <FitColumn>
+        <FitColumn disableScale={umbrella && home}>
         <div
           style={{
             width: "100%",
@@ -1243,7 +1259,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           {opts.logo &&
             step(
               0,
-              <DailyLogoLockup variant="classic" style={{ maxWidth: lockupMax }} />,
+              <DailyLogoLockup variant={umbrella && home ? "plain" : "classic"} style={{ maxWidth: lockupMax }} />,
               { display: "flex", justifyContent: "center" },
             )}
           {opts.chips && step(1, chipRow, { display: "flex", justifyContent: "center" })}
@@ -1685,8 +1701,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       color: RAW.cream,
       transition: `background ${MOTION.fast}`,
     });
+    const homeMobileSizing = mobile || (umbrella && home);
+    const nextDaily = formatNextDaily(now);
     const playModeLabelStyle = (color: string): React.CSSProperties => ({
-      ...textStyle("title", mobile),
+      ...textStyle("title", homeMobileSizing),
       color,
       textAlign: "center",
     });
@@ -1722,7 +1740,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 className="ww-home-daily-tile"
                 style={{ ...playModeTileStyle(RAW.orange), color: RAW.warmBlack }}
                 aria-label={dailyPlayed
-                  ? `Daily #${puzzleNumber}. See result. Next puzzle in ${hoursToNextPuzzle(now)} hours`
+                  ? `See today's results. ${nextDaily.spoken}`
                   : `Daily #${puzzleNumber}`}
                 data-testid="home-daily"
                 data-icon={isDaytime(now) ? "sun" : "moon"}
@@ -1738,11 +1756,11 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                   </svg>
                 )}
                 <div style={playModeLabelStyle(RAW.warmBlack)}>
-                  {`Daily #${puzzleNumber}`}
+                  {dailyPlayed ? "See Today's Results" : `Daily #${puzzleNumber}`}
                 </div>
                 {dailyPlayed ? (
-                  <div style={{ ...textStyle("caption", mobile), color: RAW.warmBlack, textAlign: "center" }}>
-                    {`See result · Next in ${hoursToNextPuzzle(now)}h`}
+                  <div style={{ ...textStyle("captionItalic", homeMobileSizing), color: RAW.warmBlack, textAlign: "center" }}>
+                    {nextDaily.visible}
                   </div>
                 ) : null}
               </button>
