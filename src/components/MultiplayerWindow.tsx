@@ -33,6 +33,10 @@ import { getDailyNumber, getDailySeed, loadDailyResult } from "@/lib/daily";
 import { fetchFirstAttempt } from "@/lib/dailyResults";
 import { getSessionEmail, onAccountChange, whenAccountReady } from "@/lib/account";
 import { trackEvent } from "@/lib/analytics";
+import HomeControl from "@/components/HomeControl";
+import HomeEmailSignup from "@/components/HomeEmailSignup";
+import { hasCompletedAnyDaily, homeSignupEligible } from "@/lib/homeSignup";
+import { useSubscriberStatus } from "@/hooks/useSubscriberStatus";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
 import {
   ACTIVE_TABLE_KEY,
@@ -293,6 +297,12 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const puzzleNumber = getDailyNumber(now);
   const locallyPlayed = useMemo(() => loadDailyResult(getDailySeed(now)) !== null, [now]);
   const [dailyPlayed, setDailyPlayed] = useState(locallyPlayed);
+  // Home email signup: finished ≥1 Daily and not subscribed (ON Home only).
+  // Stays mounted after a signup so its "You're in." line can show.
+  const { subscribed: reminderSubscribed, markLocal: markSubscriberLocal } = useSubscriberStatus();
+  const [signupEligibleAtMount] = useState(() => homeSignupEligible(hasCompletedAnyDaily(), reminderSubscribed));
+  const showHomeSignup = umbrella && home && signupEligibleAtMount;
+  const homeViewedRef = useRef(false);
   const [view, setView] = useState<View>(() => {
     // Join-by-link wins over ?mode=; the room-code effect below handles it.
     if (initialRoomCode) return { kind: "idle" };
@@ -1231,6 +1241,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     /** Staggered entry reveal (the Daily's treatment), gated on assets/fonts. */
     reveal?: boolean;
     fade?: React.CSSProperties;
+    /** Umbrella ON, off Home: the shared top-left Home control. */
+    homeControl?: boolean;
     children: React.ReactNode;
   }) => {
     // Without `reveal` the element renders bare, exactly as before.
@@ -1245,6 +1257,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
     return (
     <>
+      {umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null}
       <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill>
         <FitColumn disableScale={umbrella && home}>
         <div
@@ -1733,9 +1746,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             {umbrella && home ? (
               <button
                 type="button"
-                onClick={() => navigate(`/daily${window.location.search}`, {
+                onClick={() => { trackEvent("home_daily_tapped", { metadata: { played: dailyPlayed } }); navigate(`/daily${window.location.search}`, {
                   state: dailyPlayed ? { wwOpenResult: true } : undefined,
-                })}
+                }); }}
                 disabled={busy}
                 className="ww-home-daily-tile"
                 style={{ ...playModeTileStyle(RAW.orange), color: RAW.warmBlack }}
@@ -1767,7 +1780,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             ) : null}
             <button
               type="button"
-              onClick={handlePlaySolo}
+              onClick={() => { if (umbrella && home && !busy) trackEvent("home_solo_tapped"); handlePlaySolo(); }}
               disabled={busy}
               style={playModeTileStyle(COLORS.blue)}
               aria-label={umbrella && home ? "Solo" : "Play Solo"}
@@ -1782,7 +1795,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
             <button
               type="button"
-              onClick={handleStartRoom}
+              onClick={() => { if (umbrella && home && !busy) trackEvent("home_peeps_tapped"); handleStartRoom(); }}
               disabled={busy}
               style={playModeTileStyle(COLORS.red)}
               aria-label={umbrella && home ? "Together" : "Play with Peeps"}
@@ -1815,6 +1828,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               >
                 <span className="ww-daily-link">Looking for Whoop! Whoop! Daily?</span>
               </a>
+            ) : showHomeSignup ? (
+              <div style={{ marginTop: sectionGap }}>
+                <HomeEmailSignup mobile={entryMobile} onSubscribed={() => markSubscriberLocal("")} />
+              </div>
             ) : null}
             <div style={{ marginTop: umbrella && home ? sectionGap : SPACE[4] }}>
               <DailyLegalFooter />
@@ -2107,6 +2124,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
   return entryFrame({
     logo: false,
+    homeControl: false,
     headline: isHost ? "Your table is ready." : "You're at the table.",
     children: (
       <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: sectionGap }}>

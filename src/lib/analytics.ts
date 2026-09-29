@@ -12,7 +12,12 @@ export type AnalyticsEventType =
   // Classic How to Play (scripted demo).
   | "classic_demo_opened"
   | "classic_demo_finished"
-  | "classic_demo_skipped";
+  | "classic_demo_skipped"
+  // Umbrella Home. "peeps" is the internal name for the Together tile.
+  | "home_viewed"
+  | "home_daily_tapped"
+  | "home_solo_tapped"
+  | "home_peeps_tapped";
 
 interface TrackOpts {
   roomCode?: string;
