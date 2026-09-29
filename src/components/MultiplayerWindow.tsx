@@ -300,9 +300,16 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // Home email signup: finished ≥1 Daily and not subscribed (ON Home only).
   // Stays mounted after a signup so its "You're in." line can show.
   const { subscribed: reminderSubscribed, markLocal: markSubscriberLocal } = useSubscriberStatus();
-  const [signupEligibleAtMount] = useState(() => homeSignupEligible(hasCompletedAnyDaily(), reminderSubscribed));
-  const showHomeSignup = umbrella && home && signupEligibleAtMount;
+  const [completedAnyDaily] = useState(() => hasCompletedAnyDaily());
+  const [justSignedUp, setJustSignedUp] = useState(false);
+  const showHomeSignup = umbrella && home && (justSignedUp || homeSignupEligible(completedAnyDaily, reminderSubscribed));
   const homeViewedRef = useRef(false);
+  useEffect(() => {
+    if (!umbrella || !home || view.kind !== "idle" || homeViewedRef.current) return;
+    homeViewedRef.current = true;
+    trackEvent("home_viewed", { metadata: { played: dailyPlayed } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [umbrella, home, view.kind]);
   const [view, setView] = useState<View>(() => {
     // Join-by-link wins over ?mode=; the room-code effect below handles it.
     if (initialRoomCode) return { kind: "idle" };
@@ -1830,7 +1837,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               </a>
             ) : showHomeSignup ? (
               <div style={{ marginTop: sectionGap }}>
-                <HomeEmailSignup mobile={entryMobile} onSubscribed={() => markSubscriberLocal("")} />
+                <HomeEmailSignup mobile={entryMobile} onSubscribed={(email) => { setJustSignedUp(true); markSubscriberLocal(email); }} />
               </div>
             ) : null}
             <div style={{ marginTop: umbrella && home ? sectionGap : SPACE[4] }}>
