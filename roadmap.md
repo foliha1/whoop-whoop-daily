@@ -104,9 +104,9 @@
 - [x] Replace the ON-only Home preview and install-icon placeholders with Felix's final art; keep Android icons purpose `any`
 - [ ] Part 1: global six-character name, account sync, server filtering, Classic anti-spoof, Groups enforcement, Settings/Your Stats editing
 - [ ] Part 1 post-publish: retire the old four-argument Classic join after checking the published bundle
-- [ ] Parts 2 and 3: build separately if useful, but publish together (Home/Daily routes, all Daily links, navigation, exits, analytics)
-- [ ] Home email signup: only after one completed Daily and only while unsubscribed; source `home`; preserve `landing`
-- [ ] Daily exit: before start Home is free; after study starts confirm, save unfinished rounds unsolved, keep streak, then Home
+- [x] Parts 2 and 3: build separately if useful, but publish together (Home/Daily routes, all Daily links, navigation, exits, analytics)
+- [x] Home email signup: compact line opens the shared modal after one completed Daily while unsubscribed; source `home`; preserve `landing`
+- [x] Daily exit: before start Home is free; after study starts confirm, save unfinished rounds unsolved, keep streak, then Home
 - [x] Part 2: gated Classic-lobby Home with Daily tile, `/daily` cutover, Tap to Start, Solo/Peeps entry changes, static tags, and install files
 
 ## One launch switch (Parts 1–3 umbrella)

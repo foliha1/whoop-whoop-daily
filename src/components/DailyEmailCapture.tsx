@@ -27,7 +27,7 @@ const bodyStyle: React.CSSProperties = {
  * situation without duplicating the form, the validation or the AC path.
  */
 const DailyEmailCapture: React.FC<{
-  source?: "daily_result" | "landing" | "prelaunch" | "restore";
+  source?: "daily_result" | "landing" | "prelaunch" | "restore" | "home";
   /** Fired after a successful signup so the caller can re-read streak/stats. */
   onSubscribed?: (email: string, restored: boolean) => void;
   heading?: string;
@@ -58,7 +58,7 @@ const DailyEmailCapture: React.FC<{
   // The results box and the lobby restore are sign-in; pre-launch and the
   // landing page stay an explicit reminder signup. With sign-in off, every box
   // is a reminder signup — and never promises a restore.
-  const reminderOnly = source === "prelaunch" || source === "landing";
+  const reminderOnly = source === "prelaunch" || source === "landing" || source === "home";
   if (SIGN_IN_ENABLED && !reminderOnly) {
     return (
       <DailySignIn
@@ -86,7 +86,7 @@ const DailyEmailCapture: React.FC<{
 };
 
 const ReminderSignup: React.FC<{
-  source?: "daily_result" | "landing" | "prelaunch" | "restore";
+  source?: "daily_result" | "landing" | "prelaunch" | "restore" | "home";
   onSubscribed?: (email: string, restored: boolean) => void;
   heading?: string;
   body?: string;

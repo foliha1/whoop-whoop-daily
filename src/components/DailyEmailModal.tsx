@@ -69,11 +69,13 @@ function useVisualViewportBox() {
 const DailyEmailModal: React.FC<{
   /** Restore mode only changes the heading; everything else is shared. */
   mode: "restore" | "subscribe";
+  /** Reminder-signup attribution. Home uses the same modal with source home. */
+  source?: "daily_result" | "home";
   onClose: () => void;
   onSubscribed?: (email: string, restored: boolean) => void;
   /** Delay before the modal closes itself once the success state has shown. */
   successHoldMs?: number;
-}> = ({ mode, onClose, onSubscribed, successHoldMs = 1400 }) => {
+}> = ({ mode, source = "daily_result", onClose, onSubscribed, successHoldMs = 1400 }) => {
   const portalHost = usePortalHost("email-modal");
   const hostRef = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
@@ -184,10 +186,14 @@ const DailyEmailModal: React.FC<{
         {/* Same component, same validation, same submit path. Only the heading
             differs between modes. */}
         <DailyEmailCapture
-          source={mode === "restore" ? "restore" : "daily_result"}
+          source={mode === "restore" ? "restore" : source}
           autoFocus
           heading={mode === "restore" ? "Restore your streak." : "Get tomorrow's grid."}
-          body="Enter the address you used before and your streak and history come back."
+          body={mode === "restore"
+            ? "Enter the address you used before and your streak and history come back."
+            : source === "home"
+              ? "A new game every morning. Nothing else."
+              : "Enter the address you used before and your streak and history come back."}
           note={null}
           submitLabel={mode === "restore" ? "Restore" : "Sign Me Up"}
           onChoiceRequiredChange={setChoiceRequired}
