@@ -7,6 +7,8 @@ import { formatNextDaily, formatNextPuzzle, isDaytime } from "@/components/Multi
 
 const windowSource = () =>
   readFileSync(resolve(process.cwd(), "src/components/MultiplayerWindow.tsx"), "utf8");
+const demoSource = () =>
+  readFileSync(resolve(process.cwd(), "src/components/ClassicDemo.tsx"), "utf8");
 
 afterEach(() => {
   cleanup();
@@ -48,6 +50,17 @@ describe("Part 2 umbrella home", () => {
     expect(source).toContain("See Today's Results");
     expect(source).toContain("<BarChart3 size={16}");
     expect(source).not.toContain("See result · Next in");
+  });
+
+  it("uses Together in ON-facing copy while preserving OFF Peeps copy and analytics", () => {
+    const window = windowSource();
+    const demo = demoSource();
+    expect(window).toContain('umbrella && home ? "Together" : "Play with Peeps"');
+    expect(window).toContain('umbrellaOn() ? "Play Together" : "Play with Peeps"');
+    expect(demo).toContain('umbrellaOn() ? "Play Together" : "Play with Peeps"');
+    expect(demo).toContain('via: "peeps"');
+    expect(window).toContain('kind: "peeps-chooser"');
+    expect(window).toContain('data-testid={umbrella && home ? "home-peeps" : undefined}');
   });
 });
 

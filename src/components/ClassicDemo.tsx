@@ -39,6 +39,7 @@ import { ROLL_HERO_MS, type RollAttribute, type RollCommitPayload } from "@/lib/
 import { CLASSIC_ACTION_ROW_HEIGHT } from "@/lib/layout";
 import { TARGET_SCORE } from "@/hooks/useGameState";
 import { trackEvent } from "@/lib/analytics";
+import { umbrellaOn } from "@/lib/launch";
 import {
   playCorrect,
   playDeal,
@@ -942,7 +943,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               }}
               style={{ ...buttonStyle("primary", "md", { mobile: true, fullWidth: true }), flex: "1 1 0" }}
             >
-              Play with Peeps
+              {umbrellaOn() ? "Play Together" : "Play with Peeps"}
             </button>
           </>
         )}
