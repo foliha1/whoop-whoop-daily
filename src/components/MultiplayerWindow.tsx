@@ -212,9 +212,12 @@ interface MultiplayerWindowProps {
 const nextMidnight = (now: Date): number =>
   new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime();
 
+export function hoursToNextPuzzle(now: Date = new Date()): number {
+  return Math.max(1, Math.ceil((nextMidnight(now) - now.getTime()) / 3_600_000));
+}
+
 export function formatNextPuzzle(now: Date = new Date()): string {
-  const hours = Math.max(1, Math.ceil((nextMidnight(now) - now.getTime()) / 3_600_000));
-  return `Next puzzle in ${hours}h`;
+  return `Next puzzle in ${hoursToNextPuzzle(now)}h`;
 }
 
 /** Daily tile icon clock: sun 06:00–17:59 local, moon otherwise. Independent of theme. */
@@ -1719,7 +1722,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 className="ww-home-daily-tile"
                 style={{ ...playModeTileStyle(RAW.orange), color: RAW.warmBlack }}
                 aria-label={dailyPlayed
-                  ? `See Today's Daily, ${formatNextPuzzle(now)}`
+                  ? `Daily #${puzzleNumber}. See result. Next puzzle in ${hoursToNextPuzzle(now)} hours`
                   : `Daily #${puzzleNumber}`}
                 data-testid="home-daily"
                 data-icon={isDaytime(now) ? "sun" : "moon"}
@@ -1735,11 +1738,11 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                   </svg>
                 )}
                 <div style={playModeLabelStyle(RAW.warmBlack)}>
-                  {dailyPlayed ? "See Today's Daily" : `Daily #${puzzleNumber}`}
+                  {`Daily #${puzzleNumber}`}
                 </div>
                 {dailyPlayed ? (
                   <div style={{ ...textStyle("caption", mobile), color: RAW.warmBlack, textAlign: "center" }}>
-                    {formatNextPuzzle(now)}
+                    {`See result · Next in ${hoursToNextPuzzle(now)}h`}
                   </div>
                 ) : null}
               </button>
