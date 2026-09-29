@@ -8,7 +8,7 @@ export const UMBRELLA_LAUNCHED = /LAUNCH_CONFIG\s*=\s*\{\s*launched:\s*true\s*\}
 export const HOME_META = {
   title: "WHOOP! WHOOP!",
   description: "The memory game where the rules keep changing. Play the Daily, go Solo, or play Together.",
-  installName: "Whoop! Whoop!",
+  installName: "Whoop Whoop",
   url: `${ORIGIN}/`,
   image: `${ORIGIN}/og-home.png`,
 };
