@@ -3,7 +3,7 @@ import { cleanup } from "@testing-library/react";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { setUmbrellaPreviewForTests } from "@/lib/launch";
-import { formatNextPuzzle, isDaytime } from "@/components/MultiplayerWindow";
+import { formatNextDaily, formatNextPuzzle, isDaytime } from "@/components/MultiplayerWindow";
 
 const windowSource = () =>
   readFileSync(resolve(process.cwd(), "src/components/MultiplayerWindow.tsx"), "utf8");
@@ -25,6 +25,29 @@ describe("Part 2 umbrella home", () => {
 
   it("rounds the local-midnight countdown up to an hour", () => {
     expect(formatNextPuzzle(new Date(2026, 8, 27, 23, 59))).toBe("Next puzzle in 1h");
+  });
+
+  it("formats the played Daily countdown for hours and minutes", () => {
+    expect(formatNextDaily(new Date(2026, 8, 27, 10, 1))).toEqual({
+      visible: "Next Daily in 14hrs",
+      spoken: "Next Daily in 14 hours",
+    });
+    expect(formatNextDaily(new Date(2026, 8, 27, 23, 1))).toEqual({
+      visible: "Next Daily in 59min",
+      spoken: "Next Daily in 59 minutes",
+    });
+    expect(formatNextDaily(new Date(2026, 8, 27, 23, 59))).toEqual({
+      visible: "Next Daily in 1min",
+      spoken: "Next Daily in 1 minute",
+    });
+  });
+
+  it("keeps the Home layout stacked and uses the plain animated lockup", () => {
+    const source = windowSource();
+    expect(source).toContain('variant={umbrella && home ? "plain" : "classic"}');
+    expect(source).toContain("See Today's Results");
+    expect(source).toContain("<BarChart3 size={16}");
+    expect(source).not.toContain("See result · Next in");
   });
 });
 
