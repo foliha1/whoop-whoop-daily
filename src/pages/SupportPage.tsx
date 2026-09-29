@@ -77,6 +77,7 @@ const DieChip: React.FC<{ label: string; rotate: string }> = ({ label, rotate })
 );
 
 const SupportPage: React.FC = () => {
+  const umbrella = useUmbrella();
   // React Router does not scroll to #hash targets on navigation.
   React.useEffect(() => {
     const hash = window.location.hash.replace("#", "");

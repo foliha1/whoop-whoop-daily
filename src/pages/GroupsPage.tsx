@@ -151,6 +151,7 @@ const CarryOverEmail: React.FC<{ mobile: boolean; onLinked: (email: string) => v
 
 const GroupsPage: React.FC = () => {
   const mobile = useIsMobile();
+  const umbrella = useUmbrella();
   const [params, setParams] = useSearchParams();
   const location = useLocation();
   // Arrived from the results screen's "Groups" button: Back returns there,
@@ -205,6 +206,7 @@ const GroupsPage: React.FC = () => {
 
   return (
     <DailyFrame gap={SPACE[6]}>
+      {umbrella ? <HomeControl /> : null}
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>

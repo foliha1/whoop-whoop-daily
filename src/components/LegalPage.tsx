@@ -23,9 +23,11 @@ const LegalPage: React.FC<{
   children: React.ReactNode;
 }> = ({ title, metaTitle, metaDescription, path, updated, children }) => {
   const mobile = useIsMobile();
+  const umbrella = useUmbrella();
   const url = `https://whoop-whoop.com${path}`;
   return (
     <>
+      {umbrella ? <HomeControl /> : null}
       <Helmet>
         <title>{metaTitle}</title>
         <meta name="description" content={metaDescription} />
