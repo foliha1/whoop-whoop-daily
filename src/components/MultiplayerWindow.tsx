@@ -1656,7 +1656,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
   if (view.kind === "peeps-chooser") {
     return entryFrame({
-      headline: "Play with Peeps",
+      headline: umbrellaOn() ? "Play Together" : "Play with Peeps",
       children: (
         <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[6] }}>
           <AppButton roleStyle="primary" size="lg" fullWidth onClick={() => {
@@ -1785,7 +1785,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               onClick={handleStartRoom}
               disabled={busy}
               style={playModeTileStyle(COLORS.red)}
-              aria-label={umbrella && home ? "With Peeps" : "Play with Peeps"}
+              aria-label={umbrella && home ? "Together" : "Play with Peeps"}
               data-testid={umbrella && home ? "home-peeps" : undefined}
             >
               <svg width="64" height="32" viewBox="0 0 64 32" aria-hidden="true">
@@ -1794,7 +1794,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 <circle cx="48" cy="12" r="5" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" />
                 <path d="M38 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
               </svg>
-              <div style={playModeLabelStyle(RAW.cream)}>{umbrella && home ? "With Peeps" : "Play with Peeps"}</div>
+              <div style={playModeLabelStyle(RAW.cream)}>{umbrella && home ? "Together" : "Play with Peeps"}</div>
             </button>
           </div>
 
