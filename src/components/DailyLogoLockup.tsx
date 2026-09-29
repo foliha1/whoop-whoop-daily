@@ -117,7 +117,8 @@ const DailyLogoLockup: React.FC<{ style?: React.CSSProperties; variant?: LockupV
   const lockupSrc = theme === "night" ? art.stillCream : art.still;
 
   useEffect(() => {
-    if (prefersReducedMotion() || !art.animation) return;
+    if (prefersReducedMotion()) return;
+    if (!art.animation) return;
     let live = true;
     setJson(null);
     setReady(false);
