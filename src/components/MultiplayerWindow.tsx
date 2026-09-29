@@ -1836,11 +1836,11 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 <span className="ww-daily-link">Looking for Whoop! Whoop! Daily?</span>
               </a>
             ) : showHomeSignup ? (
-              <div style={{ marginTop: sectionGap }}>
+              <div style={{ marginTop: SPACE[2] }}>
                 <HomeEmailSignup mobile={entryMobile} onSubscribed={(email) => markSubscriberLocal(email)} />
               </div>
             ) : null}
-            <div style={{ marginTop: umbrella && home ? sectionGap : SPACE[4] }}>
+            <div style={{ marginTop: umbrella && home && showHomeSignup ? SPACE[2] : umbrella && home ? sectionGap : SPACE[4] }}>
               <DailyLegalFooter />
             </div>
           </EntryReveal>
