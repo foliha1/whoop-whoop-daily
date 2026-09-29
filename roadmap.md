@@ -98,7 +98,7 @@
 - [ ] Publish day: drop old insert policy (waits on Felix's publish)
 
 ## One WHOOP! WHOOP! home
-- [ ] Move the ON-only Classic in-game exit to the shared top-left control slot and pin all Daily email modal copy variants; verify screenshots and OFF parity
+- [x] Move the ON-only Classic in-game exit to the shared top-left control slot and pin all Daily email modal copy variants; verify screenshots and OFF parity
 - [x] Refine the gated Home: fixed phone layout/sizing, played-Daily copy, Stats icon, plain lockup, and refreshed state grid
 - [x] Change ON-only player-facing Peeps copy to Together while preserving OFF copy and internal analytics names
 - [x] Add the ON-only plain Home logo animation by cropping the Classic Lottie and removing its suffix asset
@@ -117,3 +117,6 @@
 - [x] OFF tests: byte-for-byte static HTML vs published, routes, name screen, no editor, Solo "You", no home icon, share links, no home events
 - [x] Preview tests: admin ON / non-admin OFF / signed-out OFF / failed check OFF
 - [x] Full suite + grants readback + report; do NOT publish; do NOT start Parts 2/3
+
+- [x] Build approved ON-only Daily start, Home Daily history, blue safe leave actions, and whole-shape pattern clearance.
+- [x] Verify OFF parity, full suite, and requested before/after screen grid.

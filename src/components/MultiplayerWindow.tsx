@@ -37,6 +37,7 @@ import HomeControl from "@/components/HomeControl";
 import HomeEmailSignup from "@/components/HomeEmailSignup";
 import { hasCompletedAnyDaily, homeSignupEligible } from "@/lib/homeSignup";
 import { useSubscriberStatus } from "@/hooks/useSubscriberStatus";
+import { useDailyStreakState } from "@/hooks/useDailyStreak";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
 import {
   ACTIVE_TABLE_KEY,
@@ -300,7 +301,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // Home email signup: finished ≥1 Daily and not subscribed (ON Home only).
   // The trigger disappears after a successful signup; confirmation remains in
   // the shared modal for its normal success hold.
-  const { subscribed: reminderSubscribed, markLocal: markSubscriberLocal } = useSubscriberStatus();
+  const [historyKey, setHistoryKey] = useState(0);
+  const { subscribed: reminderSubscribed, email: historyEmail, markLocal: markSubscriberLocal, forgetLocal: forgetHistoryLocal } = useSubscriberStatus();
+  const { streak: homeStreak } = useDailyStreakState(puzzleNumber, umbrella && home, historyKey);
   const [completedAnyDaily] = useState(() => hasCompletedAnyDaily());
   const showHomeSignup = umbrella && home && homeSignupEligible(completedAnyDaily, reminderSubscribed);
   const homeViewedRef = useRef(false);
@@ -1265,7 +1268,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     return (
     <>
       {umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null}
-      <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill>
+      <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill topControl={umbrella && !home && opts.homeControl !== false}>
         <FitColumn disableScale={umbrella && home}>
         <div
           style={{
@@ -1299,7 +1302,19 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       {howToOverlay}
       {showSettings && (
         <SettingsSheet
-          product="classic"
+          product={home && umbrella ? "home" : "classic"}
+          dailyHistory={home && umbrella ? {
+            streak: homeStreak?.current ?? null,
+            email: historyEmail,
+            onForget: () => {
+              forgetHistoryLocal();
+              setHistoryKey((key) => key + 1);
+            },
+            onRestored: (email) => {
+              markSubscriberLocal(email);
+              setHistoryKey((key) => key + 1);
+            },
+          } : undefined}
           onClose={() => setShowSettings(false)}
           onHowTo={() => {
             setShowSettings(false);

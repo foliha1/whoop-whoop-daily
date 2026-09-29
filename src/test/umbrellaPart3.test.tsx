@@ -12,6 +12,8 @@ import HomeControl from "@/components/HomeControl";
 import DailyLeaveDialog, { DAILY_LEAVE_BODY, DAILY_LEAVE_TITLE } from "@/components/DailyLeaveDialog";
 import HomeEmailSignup from "@/components/HomeEmailSignup";
 import DailyEmailModal, { dailyEmailModalBody } from "@/components/DailyEmailModal";
+import DailyStartDialog from "@/components/DailyStartDialog";
+import DailyShapeRule from "@/components/DailyShapeRule";
 import { useDailyGame } from "@/hooks/useDailyGame";
 
 const src = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
@@ -84,7 +86,7 @@ describe("Part 3 Home control", () => {
 
   it("only mounts Home controls when ON", () => {
     const daily = src("src/pages/DailyPage.tsx");
-    expect(daily).toContain("{umbrella && (ready || finished) ? <HomeControl /> : null}");
+    expect(daily).toContain('{umbrella && (ready || finished || phase === "READY") ? <HomeControl /> : null}');
     expect(daily).toContain("umbrella && !ready && !finished && daily.result === null && runInProgress(state)");
     expect(src("src/components/MultiplayerWindow.tsx")).toContain("umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null");
     expect(src("src/components/SiteHeader.tsx")).toContain("umbrella && !onLeave ?");
@@ -98,6 +100,52 @@ describe("Part 3 Home control", () => {
     expect(view.indexOf("{umbrella ? null : leaveButton}")).toBeGreaterThan(view.indexOf('aria-label="Settings"'));
     expect(view).toContain('data-testid="classic-game-leave"');
   });
+
+  it("keeps the ON-only pattern clear of the shared control on whole shapes", () => {
+    render(<DailyShapeRule clearStart={64} />);
+    expect(document.querySelector('[data-clear-start="true"]')).toBeTruthy();
+    expect(src("src/components/DailyFrame.tsx")).toContain("12 + 44 + SPACE[4] - pad");
+    expect(src("src/components/LegalPage.tsx")).toContain("topControl={umbrella}");
+    expect(src("src/pages/YouPage.tsx")).toContain("topControl={umbrella}");
+  });
+});
+
+describe("ON Daily direct start", () => {
+  it("announces the puzzle, focuses Start, and cannot dismiss from Escape or backdrop", () => {
+    const start = vi.fn();
+    render(<DailyStartDialog puzzleNumber={123} onStart={start} />);
+    const dialog = screen.getByRole("dialog", { name: "Daily #123" });
+    expect(screen.getByText("10 seconds to study. The die rolls after.")).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Start" }));
+    fireEvent.keyDown(window, { key: "Escape" });
+    fireEvent.click(dialog);
+    expect(start).not.toHaveBeenCalled();
+  });
+
+  it("uses the shared exit motion before starting exactly once", async () => {
+    vi.useFakeTimers();
+    const start = vi.fn();
+    render(<DailyStartDialog puzzleNumber={123} onStart={start} />);
+    const button = screen.getByRole("button", { name: "Start" });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    expect(start).not.toHaveBeenCalled();
+    await act(async () => { vi.runAllTimers(); });
+    expect(start).toHaveBeenCalledOnce();
+    vi.useRealTimers();
+  });
+
+  it("keeps pre-start in READY, with a face-down noninteractive nine-card board", () => {
+    const daily = src("src/pages/DailyPage.tsx");
+    expect(daily).toContain('const startDialogOpen = directStart && phase === "READY"');
+    expect(daily).toContain("interactive={cardsTappable}");
+    expect(daily).toContain('phase === "PLAY" &&');
+    const state = initDailyState("whoop-2026-09-29");
+    expect(state.phase).toBe("READY");
+    expect(state.grid).toHaveLength(9);
+    expect(state.faceUp).toBe(false);
+    expect(runInProgress(state)).toBe(false);
+  });
 });
 
 describe("Part 3 Daily leave", () => {
@@ -109,6 +157,7 @@ describe("Part 3 Daily leave", () => {
     expect(DAILY_LEAVE_TITLE).toBe("Leave today's Daily?");
     expect(screen.getByText(DAILY_LEAVE_BODY)).toBeTruthy();
     expect(document.activeElement?.textContent).toBe("Keep Playing");
+    expect((screen.getByText("Keep Playing").closest("button") as HTMLButtonElement).style.background).toBe("rgb(0, 114, 178)");
     fireEvent.keyDown(window, { key: "Escape" });
     expect(keep).toHaveBeenCalled();
     fireEvent.click(screen.getByText("Leave"));

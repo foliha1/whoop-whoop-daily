@@ -36,7 +36,7 @@ const dayCellOffset = (now = new Date()) => {
  *
  * The tile is theme-agnostic: shape colours are frozen brand literals.
  */
-const DailyShapeRule: React.FC<{ style?: React.CSSProperties }> = ({ style }) => {
+const DailyShapeRule: React.FC<{ style?: React.CSSProperties; clearStart?: number }> = ({ style, clearStart = 0 }) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
 
@@ -91,14 +91,29 @@ const DailyShapeRule: React.FC<{ style?: React.CSSProperties }> = ({ style }) =>
     transition: `opacity ${MOTION.slow}`,
   };
 
+  if (clearStart <= 0) {
+    return (
+      <div
+        ref={hostRef}
+        className="daily-shape-rule"
+        aria-hidden="true"
+        style={{ ...style, position: "relative" }}
+      >
+        <div style={layerStyle} />
+      </div>
+    );
+  }
+
   return (
     <div
-      ref={hostRef}
       className="daily-shape-rule"
       aria-hidden="true"
-      style={{ ...style, position: "relative" }}
+      data-clear-start={clearStart > 0 ? "true" : undefined}
+      style={{ ...style, position: "relative", paddingLeft: clearStart, boxSizing: "border-box" }}
     >
-      <div style={layerStyle} />
+      <div ref={hostRef} style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
+        <div style={layerStyle} />
+      </div>
     </div>
   );
 };

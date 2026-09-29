@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import HomeControl from "@/components/HomeControl";
 import DailyLeaveDialog from "@/components/DailyLeaveDialog";
+import DailyStartDialog from "@/components/DailyStartDialog";
 import { runInProgress } from "@/lib/dailyForfeit";
 import { Helmet } from "react-helmet-async";
 import { HelpCircle, Settings } from "lucide-react";
@@ -1201,7 +1202,7 @@ const DailyReadyScreen: React.FC<{
           gap: lerpCompress(t, 6, 12),
         }}
       >
-        {!gated && (
+        {!gated && !umbrella && (
           <DailyRecognition
             email={knownEmail}
             scale={t}
@@ -1346,7 +1347,10 @@ const DailyPage: React.FC = () => {
   // True while a Play tap is waiting on board art: the CTA shows its
   // loading label so the tap never looks ignored.
   const [playWaiting, setPlayWaiting] = useState(false);
+  const startingRef = React.useRef(false);
   const startRun = React.useCallback(() => {
+    if (startingRef.current || daily.phase !== "READY") return;
+    startingRef.current = true;
     setPlayWaiting(true);
     // Wait for today's art, but never longer than the ceiling — the images
     // are already requested, so a late decode beats a stalled button.
@@ -1361,7 +1365,7 @@ const DailyPage: React.FC = () => {
       daily.start();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [daily.start, daily.puzzleNumber]);
+  }, [daily.start, daily.phase, daily.puzzleNumber]);
 
   // True while the round intro overlay is up: taps stay locked.
   const [introUp, setIntroUp] = useState(false);
@@ -1633,10 +1637,20 @@ const DailyPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
+  const directStart = umbrella && !daily.preLaunch;
   const playedToday =
     daily.result !== null && (daily.alreadyPlayed || (phase === "DONE" && runSettled));
-  const finished = playedToday && showResult;
-  const ready = !finished && (phase === "READY" || playedToday);
+  const finished = playedToday && (showResult || directStart);
+  const ready = !finished && (!directStart && phase === "READY" || playedToday);
+  const startDialogOpen = directStart && phase === "READY" && !playedToday && onboardingComplete && howTo === null;
+
+  // ON-only Daily entry has no ready screen. First-time players see the
+  // existing onboarding first; everyone else lands on the untouched READY
+  // board and explicitly starts the existing deal/study sequence.
+  useEffect(() => {
+    if (!directStart || phase !== "READY" || playedToday || onboardingComplete || howTo !== null) return;
+    setHowTo("gate");
+  }, [directStart, phase, playedToday, onboardingComplete, howTo]);
 
   // Results-only release note; caller-validated point history proves return.
   const [announcementReady, setAnnouncementReady] = useState(false);
@@ -1819,7 +1833,7 @@ const DailyPage: React.FC = () => {
         <meta name="twitter:image" content="https://whoop-whoop.com/og-daily.png" />
       </Helmet>
 
-      {umbrella && (ready || finished) ? <HomeControl /> : null}
+      {umbrella && (ready || finished || phase === "READY") ? <HomeControl /> : null}
       {umbrella && !ready && !finished && daily.result === null && runInProgress(state) ? (
         <HomeControl kind="leave" onLeave={() => { hapticTap(); setLeaveOpen(true); }} />
       ) : null}
@@ -1840,6 +1854,20 @@ const DailyPage: React.FC = () => {
             daily.forfeit();
             navigate("/");
           }}
+        />
+      ) : null}
+      {startDialogOpen ? (
+        <DailyStartDialog puzzleNumber={daily.puzzleNumber} mobile={mobile} busy={playWaiting} onStart={startRun} />
+      ) : null}
+      {directStart && howTo ? (
+        <DailyHowToSteps
+          mode={howTo}
+          mobile={mobile}
+          onStart={() => {
+            setHowTo(null);
+            setOnboardingComplete(true);
+          }}
+          onClose={() => setHowTo(null)}
         />
       ) : null}
       <DailyScreenFade
@@ -1888,7 +1916,7 @@ const DailyPage: React.FC = () => {
               gated={daily.preLaunch}
               subscribed={subscribed}
               notifyRef={notifyRef}
-              knownEmail={knownEmail}
+              knownEmail={umbrella ? null : knownEmail}
               onForgetEmail={() => {
                 forgetLocal();
                 // The streak/stats reads must drop the email union too.
@@ -1931,7 +1959,7 @@ const DailyPage: React.FC = () => {
               }}
 
             />
-            {howTo && (
+            {howTo && !directStart && (
               <DailyHowToSteps
                 mode={howTo}
                 mobile={mobile}
@@ -1959,7 +1987,7 @@ const DailyPage: React.FC = () => {
           </>
         )}
         {!ready && (
-        <DailyFrame gap={SPACE[4]} fill={!finished} tone={finished ? "surface" : "panel"}>
+        <DailyFrame gap={SPACE[4]} fill={!finished} tone={finished ? "surface" : "panel"} topControl={umbrella}>
 
           {finished ? (
             <DailyResultCard
