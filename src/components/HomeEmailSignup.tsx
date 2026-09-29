@@ -14,6 +14,14 @@ const HomeEmailSignup: React.FC<{ mobile?: boolean; onSubscribed?: (email: strin
   onSubscribed,
 }) => {
   const [open, setOpen] = useState(false);
+  const subscribedEmailRef = React.useRef<string | null>(null);
+
+  const close = () => {
+    setOpen(false);
+    const email = subscribedEmailRef.current;
+    subscribedEmailRef.current = null;
+    if (email) onSubscribed?.(email);
+  };
 
   return (
     <>
@@ -42,8 +50,8 @@ const HomeEmailSignup: React.FC<{ mobile?: boolean; onSubscribed?: (email: strin
         <DailyEmailModal
           mode="subscribe"
           source="home"
-          onClose={() => setOpen(false)}
-          onSubscribed={(email) => onSubscribed?.(email)}
+          onClose={close}
+          onSubscribed={(email) => { subscribedEmailRef.current = email; }}
         />
       ) : null}
     </>
