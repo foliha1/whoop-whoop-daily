@@ -40,8 +40,8 @@ describe("product install metadata", () => {
       background_color: "#F8F2E9",
     });
     expect(readJson("public/home.webmanifest")).toMatchObject({
-      name: "WHOOP! WHOOP!",
-      short_name: "WHOOP!",
+      name: "Whoop! Whoop!",
+      short_name: "Whoop! Whoop!",
       start_url: "/",
       display: "standalone",
     });
