@@ -9,7 +9,7 @@ export const HOME_META = {
   title: "WHOOP! WHOOP!",
   description: "The memory game where the rules keep changing. Play the Daily, go Solo, or play with friends.",
   url: `${ORIGIN}/`,
-  image: `${ORIGIN}/og-home-PLACEHOLDER.png`,
+  image: `${ORIGIN}/og-home.png`,
 };
 
 function setMeta(html, attr, key, value) {
@@ -35,10 +35,10 @@ export function toHomeHtml(dailyHtml) {
   html = setMeta(html, "name", "apple-mobile-web-app-title", HOME_META.title);
   html = setLink(html, "canonical", HOME_META.url);
   return html
-    .replace("/daily.webmanifest?v=20260925", "/home.webmanifest?v=20260927")
-    .replace("/icons/daily/apple-touch-icon.png?v=20260925", "/icons/home/icon-home-PLACEHOLDER-180.png?v=20260927")
-    .replace("/icons/daily/favicon-32.png?v=20260925", "/icons/home/icon-home-PLACEHOLDER-32.png?v=20260927")
-    .replace("/icons/daily/favicon-16.png?v=20260925", "/icons/home/icon-home-PLACEHOLDER-16.png?v=20260927");
+    .replace("/daily.webmanifest?v=20260925", "/home.webmanifest?v=20260929")
+    .replace("/icons/daily/apple-touch-icon.png?v=20260925", "/icons/home/apple-touch-icon.png?v=20260929")
+    .replace("/icons/daily/favicon-32.png?v=20260925", "/icons/home/favicon-32.png?v=20260929")
+    .replace("/icons/daily/favicon-16.png?v=20260925", "/icons/home/favicon-16.png?v=20260929");
 }
 
 export function toDailyHtml(homeHtml) {
@@ -56,10 +56,10 @@ export function toDailyHtml(homeHtml) {
   html = setMeta(html, "name", "apple-mobile-web-app-title", "WHOOP! WHOOP! Daily");
   html = setLink(html, "canonical", `${ORIGIN}/daily`);
   return html
-    .replace("/home.webmanifest?v=20260927", "/daily.webmanifest?v=20260927")
-    .replace("/icons/home/icon-home-PLACEHOLDER-180.png?v=20260927", "/icons/daily/apple-touch-icon.png?v=20260925")
-    .replace("/icons/home/icon-home-PLACEHOLDER-32.png?v=20260927", "/icons/daily/favicon-32.png?v=20260925")
-    .replace("/icons/home/icon-home-PLACEHOLDER-16.png?v=20260927", "/icons/daily/favicon-16.png?v=20260925");
+    .replace("/home.webmanifest?v=20260929", "/daily.webmanifest?v=20260927")
+    .replace("/icons/home/apple-touch-icon.png?v=20260929", "/icons/daily/apple-touch-icon.png?v=20260925")
+    .replace("/icons/home/favicon-32.png?v=20260929", "/icons/daily/favicon-32.png?v=20260925")
+    .replace("/icons/home/favicon-16.png?v=20260929", "/icons/daily/favicon-16.png?v=20260925");
 }
 
 export function umbrellaHead() {
