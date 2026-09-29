@@ -10,6 +10,7 @@ import { buildForfeitResult, runInProgress } from "@/lib/dailyForfeit";
 import { hasCompletedAnyDaily, homeSignupEligible } from "@/lib/homeSignup";
 import HomeControl from "@/components/HomeControl";
 import DailyLeaveDialog, { DAILY_LEAVE_BODY, DAILY_LEAVE_TITLE } from "@/components/DailyLeaveDialog";
+import HomeEmailSignup from "@/components/HomeEmailSignup";
 import { useDailyGame } from "@/hooks/useDailyGame";
 
 const src = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
@@ -177,8 +178,21 @@ describe("Part 3 Home email signup", () => {
     expect(hasCompletedAnyDaily()).toBe(false);
   });
 
+  it("opens the shared accessible modal with source home and returns focus", async () => {
+    render(<HomeEmailSignup />);
+    const trigger = screen.getByRole("button", { name: "Get a reminder for tomorrow's Daily" });
+    trigger.focus();
+    fireEvent.click(trigger);
+    expect(screen.getByRole("dialog", { name: "Get tomorrow's grid" })).toBeTruthy();
+    expect(screen.getByLabelText("Email address")).toBe(document.activeElement);
+    fireEvent.keyDown(window, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
+  });
+
   it("writes through the shared signup path with source home, ON Home only", () => {
-    expect(src("src/components/HomeEmailSignup.tsx")).toContain('subscribeDaily(email, undefined, "home")');
+    expect(src("src/components/HomeEmailSignup.tsx")).toContain('source="home"');
+    expect(src("src/components/DailyEmailCapture.tsx")).toContain('source === "home"');
     expect(src("src/components/MultiplayerWindow.tsx")).toContain("const showHomeSignup = umbrella && home &&");
     expect(src("supabase/functions/ac-subscribe/index.ts")).toContain('body.source === "home"');
   });

@@ -6,7 +6,7 @@ Owner: Felix. Do these in order. Nothing here is done by the build.
 - [ ] Admin preview on phone: Home, Daily tile (before + after playing), Solo, Together, Home icon, Daily leave dialog, Home email block.
 - [ ] Confirm analytics allowlist has the four `home_*` events (already live since Part 3; harmless while OFF).
 - [ ] Confirm `subscribe_daily` accepts source `home` (already live).
-- [ ] Deploy the `ac-subscribe` backend function so it accepts source `home` (code is in the repo; until deployed, Home signups are rejected as a bad source).
+- [x] Deploy the `ac-subscribe` backend function so it accepts source `home`.
 
 ## 2. Flip and publish
 - [ ] Set `LAUNCHED = true` in `src/launch.config.ts` (the only switch).

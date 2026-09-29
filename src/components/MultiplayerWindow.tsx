@@ -298,11 +298,11 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const locallyPlayed = useMemo(() => loadDailyResult(getDailySeed(now)) !== null, [now]);
   const [dailyPlayed, setDailyPlayed] = useState(locallyPlayed);
   // Home email signup: finished ≥1 Daily and not subscribed (ON Home only).
-  // Stays mounted after a signup so its "You're in." line can show.
+  // The trigger disappears after a successful signup; confirmation remains in
+  // the shared modal for its normal success hold.
   const { subscribed: reminderSubscribed, markLocal: markSubscriberLocal } = useSubscriberStatus();
   const [completedAnyDaily] = useState(() => hasCompletedAnyDaily());
-  const [justSignedUp, setJustSignedUp] = useState(false);
-  const showHomeSignup = umbrella && home && (justSignedUp || homeSignupEligible(completedAnyDaily, reminderSubscribed));
+  const showHomeSignup = umbrella && home && homeSignupEligible(completedAnyDaily, reminderSubscribed);
   const homeViewedRef = useRef(false);
   const [view, setView] = useState<View>(() => {
     // Join-by-link wins over ?mode=; the room-code effect below handles it.
@@ -1837,7 +1837,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               </a>
             ) : showHomeSignup ? (
               <div style={{ marginTop: sectionGap }}>
-                <HomeEmailSignup mobile={entryMobile} onSubscribed={(email) => { setJustSignedUp(true); markSubscriberLocal(email); }} />
+                <HomeEmailSignup mobile={entryMobile} onSubscribed={(email) => markSubscriberLocal(email)} />
               </div>
             ) : null}
             <div style={{ marginTop: umbrella && home ? sectionGap : SPACE[4] }}>
