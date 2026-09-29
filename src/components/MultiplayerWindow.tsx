@@ -874,7 +874,13 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       return;
     }
     // Peeps path: a code joins that table, an empty field starts a new one.
+    // Umbrella "Join a table" is join-only — an empty code is a mistake, not
+    // an invitation to host, so it errors instead of silently creating.
     const code = codeInput.toUpperCase();
+    if (umbrella && view.action === "join" && code.length === 0) {
+      setView({ ...view, error: "Enter a table code to join." });
+      return;
+    }
     if (view.action === "create" || code.length === 0) {
       void enterRoom({ kind: "create" });
       return;
