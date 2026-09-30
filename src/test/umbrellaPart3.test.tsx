@@ -62,6 +62,14 @@ describe("Part 3 destinations", () => {
     expect(src("scripts/umbrellaHead.mjs")).toContain("${ORIGIN}/daily</loc>");
     expect(src("public/sitemap.xml")).not.toContain("/daily");
   });
+
+  it("shows the Classic lobby Your Stats chip only while ON (OFF build renders today's site)", () => {
+    const w = src("src/components/MultiplayerWindow.tsx");
+    // The chip must not appear before launch: its condition must include the
+    // umbrella flag, not only account (a signed-in OFF player sees today's site).
+    expect(w).toMatch(/\{\/\* Umbrella-gated: this chip must not appear before launch\. \*\/\}\n\s*\{umbrella && account \? \(/);
+    expect(w).not.toMatch(/\{account \? \(\s*\n\s*<button[^>]*Your Stats/s);
+  });
 });
 
 describe("Part 3 Home control", () => {
