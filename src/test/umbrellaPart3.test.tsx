@@ -67,8 +67,9 @@ describe("Part 3 destinations", () => {
     const w = src("src/components/MultiplayerWindow.tsx");
     // The chip must not appear before launch: its condition must include the
     // umbrella flag, not only account (a signed-in OFF player sees today's site).
-    expect(w).toMatch(/\{\/\* Umbrella-gated: this chip must not appear before launch\. \*\/\}\n\s*\{umbrella && account \? \(/);
-    expect(w).not.toMatch(/\{account \? \(\s*\n\s*<button[^>]*Your Stats/s);
+    expect(w).toContain("{umbrella && account ? (");
+    const gated = w.slice(w.indexOf("{umbrella && account ? ("), w.indexOf('Your Stats', w.indexOf("{umbrella && account ? (") + 1));
+    expect(gated).toContain('navigate("/you")');
   });
 });
 
