@@ -30,14 +30,18 @@ let checked = false;
 
 /** Resolves the signed-in admin preview once per session. Safe to repeat. */
 export async function initUmbrellaPreview(): Promise<void> {
+  console.log("[umbrella] init called, launched:", LAUNCHED, "checked:", checked);
   if (LAUNCHED || checked) return;
   checked = true;
   try {
     const { data: u } = await supabase.auth.getUser();
+    console.log("[umbrella] getUser:", u.user ? u.user.email : null);
     if (!u.user) return;
     const { data, error } = await supabase.rpc("can_preview_umbrella");
+    console.log("[umbrella] rpc:", data, error ? String(error) : null);
     if (!error && data === true) preview = true;
-  } catch {
+  } catch (e) {
+    console.log("[umbrella] threw:", String(e));
     // Stays OFF.
   }
 }
