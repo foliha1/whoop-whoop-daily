@@ -57,9 +57,11 @@ export function useUmbrella(): boolean {
   useEffect(() => {
     let live = true;
     void initUmbrellaPreview().then(() => {
+      console.log("[umbrella] hook .then, on:", umbrellaOn(), "live:", live);
       if (live) setOn(umbrellaOn());
     });
     const authSubscription = supabase.auth?.onAuthStateChange?.((event) => {
+      console.log("[umbrella] auth event:", event);
       // Only a real identity change re-resolves the preview; the initial
       // session restore and token refreshes must not wipe it.
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") return;
