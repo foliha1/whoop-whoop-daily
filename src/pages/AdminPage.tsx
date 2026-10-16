@@ -296,6 +296,24 @@ const SignInGate: React.FC = () => {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [code, setCode] = useState("");
+
+  const verify = useCallback(async () => {
+    const token = code.trim();
+    if (!/^[0-9]{6}$/.test(token)) {
+      setError("Enter the 6-digit code from the email.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    const { error: err } = await supabase.auth.verifyOtp({
+      email: email.trim().toLowerCase(),
+      token,
+      type: "email",
+    });
+    setBusy(false);
+    if (err) setError("That code didn't work. Check it or send a new one.");
+  }, [code, email]);
 
   const send = useCallback(async () => {
     const value = email.trim();
@@ -315,7 +333,7 @@ const SignInGate: React.FC = () => {
     });
     setBusy(false);
     if (err) {
-      setError("Could not send the link. Try again.");
+      setError("Could not send the code. Try again.");
       return;
     }
     setSent(true);
@@ -335,9 +353,53 @@ const SignInGate: React.FC = () => {
       <div style={{ ...cardStyle, width: "100%", maxWidth: 360, gap: SPACE[8] }}>
         <h1 style={{ ...textStyle("subhead"), color: COLORS.ink, margin: 0 }}>Sign in</h1>
         {sent ? (
-          <p style={{ ...labelStyle, textTransform: "none", letterSpacing: 0, fontSize: FONT_SIZE.xs }}>
-            Check your email for the link.
-          </p>
+          <>
+            <p style={{ ...labelStyle, textTransform: "none", letterSpacing: 0, fontSize: FONT_SIZE.xs }}>
+              Enter the 6-digit code we sent to {email.trim()}.
+            </p>
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value.replace(/\D/g, ""));
+                setError(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void verify();
+              }}
+              placeholder="123456"
+              aria-label="Sign-in code"
+              autoFocus
+              style={{ ...inputStyle, width: "100%" }}
+            />
+            {error ? (
+              <span style={{ ...labelStyle, textTransform: "none", letterSpacing: 0, color: COLORS.red }}>
+                {error}
+              </span>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => void verify()}
+              disabled={busy}
+              style={buttonStyle("primary", "sm", { fullWidth: true })}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSent(false);
+                setCode("");
+                setError(null);
+              }}
+              style={exportButtonStyle}
+            >
+              Use a different email
+            </button>
+          </>
         ) : (
           <>
             <input
@@ -366,7 +428,7 @@ const SignInGate: React.FC = () => {
               disabled={busy}
               style={buttonStyle("primary", "sm", { fullWidth: true })}
             >
-              Send Link
+              Send Code
             </button>
           </>
         )}
