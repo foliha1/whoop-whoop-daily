@@ -53,10 +53,12 @@ describe("initUmbrellaPreview shares the in-flight check", () => {
     expect(umbrellaOn()).toBe(true);
   });
 
-  it("a caller after the check resolves reads the settled state", async () => {
-    await initUmbrellaPreview();
+  it("a caller after the check has settled reads the settled state", async () => {
+    const first = initUmbrellaPreview();
     pending.resolveUser({ data: { user: { id: "u1" } } });
-    // The first check already settled with no user; a new check runs.
+    await first;
+    expect(umbrellaOn()).toBe(true);
+    // A later call returns immediately; the settled result holds.
     await initUmbrellaPreview();
     expect(umbrellaOn()).toBe(true);
   });
