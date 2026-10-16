@@ -120,3 +120,5 @@
 
 - [x] Build approved ON-only Daily start, Home Daily history, blue safe leave actions, and whole-shape pattern clearance.
 - [x] Verify OFF parity, full suite, and requested before/after screen grid.
+
+- [x] Fix admin preview never flipping to the ON lobby: concurrent `initUmbrellaPreview()` callers must share the in-flight check (`src/lib/launch.ts`); regression test `src/test/launchPreviewShare.test.ts`.

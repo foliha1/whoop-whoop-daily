@@ -27,18 +27,39 @@ export const LAUNCHED: boolean = LAUNCH_CONFIG.launched;
 
 let preview = false;
 let checked = false;
+let inFlight: Promise<void> | null = null;
+let generation = 0;
 
-/** Resolves the signed-in admin preview once per session. Safe to repeat. */
-export async function initUmbrellaPreview(): Promise<void> {
-  if (LAUNCHED || checked) return;
-  checked = true;
+async function resolvePreview(gen: number): Promise<void> {
   try {
     const { data: u } = await supabase.auth.getUser();
+    if (gen !== generation) return; // identity changed mid-check: discard
     if (!u.user) return;
     const { data, error } = await supabase.rpc("can_preview_umbrella");
+    if (gen !== generation) return;
     if (!error && data === true) preview = true;
   } catch {
     // Stays OFF.
+  }
+}
+
+/**
+ * Resolves the signed-in admin preview once per session. Safe to repeat:
+ * callers that arrive while a check is running share the same promise, so
+ * every consumer re-reads umbrellaOn() only after the check has settled
+ * (otherwise later hooks resolve early with OFF and never re-render).
+ */
+export async function initUmbrellaPreview(): Promise<void> {
+  if (LAUNCHED) return;
+  if (inFlight) return inFlight;
+  if (checked) return;
+  checked = true;
+  const gen = generation;
+  inFlight = resolvePreview(gen);
+  try {
+    await inFlight;
+  } finally {
+    inFlight = null;
   }
 }
 
@@ -59,6 +80,7 @@ export function useUmbrella(): boolean {
       // Only a real identity change re-resolves the preview; the initial
       // session restore and token refreshes must not wipe it.
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") return;
+      generation += 1; // discards any check that was still running
       checked = false;
       preview = false;
       setOn(false);
@@ -79,8 +101,12 @@ export function setUmbrellaPreviewForTests(on: boolean | null): void {
   if (on === null) {
     preview = false;
     checked = false;
+    inFlight = null;
+    generation += 1;
   } else {
     preview = on;
     checked = true;
+    inFlight = null;
+    generation += 1;
   }
 }
