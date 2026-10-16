@@ -101,8 +101,12 @@ export function setUmbrellaPreviewForTests(on: boolean | null): void {
   if (on === null) {
     preview = false;
     checked = false;
+    inFlight = null;
+    generation += 1;
   } else {
     preview = on;
     checked = true;
+    inFlight = null;
+    generation += 1;
   }
 }
