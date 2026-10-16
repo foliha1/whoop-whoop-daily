@@ -27,22 +27,39 @@ export const LAUNCHED: boolean = LAUNCH_CONFIG.launched;
 
 let preview = false;
 let checked = false;
+let inFlight: Promise<void> | null = null;
+let generation = 0;
 
-/** Resolves the signed-in admin preview once per session. Safe to repeat. */
-export async function initUmbrellaPreview(): Promise<void> {
-  console.log("[umbrella] init called, launched:", LAUNCHED, "checked:", checked);
-  if (LAUNCHED || checked) return;
-  checked = true;
+async function resolvePreview(gen: number): Promise<void> {
   try {
     const { data: u } = await supabase.auth.getUser();
-    console.log("[umbrella] getUser:", u.user ? u.user.email : null);
+    if (gen !== generation) return; // identity changed mid-check: discard
     if (!u.user) return;
     const { data, error } = await supabase.rpc("can_preview_umbrella");
-    console.log("[umbrella] rpc:", data, error ? String(error) : null);
+    if (gen !== generation) return;
     if (!error && data === true) preview = true;
-  } catch (e) {
-    console.log("[umbrella] threw:", String(e));
+  } catch {
     // Stays OFF.
+  }
+}
+
+/**
+ * Resolves the signed-in admin preview once per session. Safe to repeat:
+ * callers that arrive while a check is running share the same promise, so
+ * every consumer re-reads umbrellaOn() only after the check has settled
+ * (otherwise later hooks resolve early with OFF and never re-render).
+ */
+export async function initUmbrellaPreview(): Promise<void> {
+  if (LAUNCHED) return;
+  if (inFlight) return inFlight;
+  if (checked) return;
+  checked = true;
+  const gen = generation;
+  inFlight = resolvePreview(gen);
+  try {
+    await inFlight;
+  } finally {
+    inFlight = null;
   }
 }
 
