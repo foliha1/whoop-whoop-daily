@@ -250,10 +250,11 @@ export const ChipCell: React.FC<{ chip: DerivedChip }> = ({ chip }) => {
       }}>
         {chip.score !== null && (
           <div aria-hidden="true" style={{
-            position: "absolute", left: 0, top: 0, bottom: 0,
+            // Bottom meter in theme ink (brand black / night off-white)
+            // keeps the name at full contrast.
+            position: "absolute", left: 0, bottom: 0, height: 3,
             width: `${progress * 100}%`,
-            background: seatColor, opacity: 0.4,
-            borderRight: progress > 0 && progress < 1 ? `2px solid ${seatColor}` : undefined,
+            background: c.name,
             transition: prefersReducedMotion() ? "none" : "width 400ms ease-out",
           }} />
         )}
@@ -2067,7 +2068,7 @@ const MultiplayerGameView: React.FC<Props> = ({
                   onClick={cardsInteractive ? () => handleCardClick(i) : undefined}
                   onPressStart={cardsInteractive ? () => noteTapAck(i) : undefined}
                   opening={tapAck?.idx === i}
-                  highlighted={selected}
+                  highlighted={selected && pickedCount < 2}
                   pulsing={pulsing}
                   wrong={wrongCards.includes(i)}
                   // Locked to me only: face up and live for everyone else.

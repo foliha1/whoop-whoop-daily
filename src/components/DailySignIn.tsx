@@ -291,7 +291,7 @@ const DailySignIn: React.FC<{
             type="button"
             disabled={busy || resendSeconds > 0}
             onClick={() => void resendCode()}
-            style={{ ...buttonStyle("quiet", "sm", { disabled: resendSeconds > 0 }), fontSize: 13, minHeight: 44 }}
+            style={{ ...buttonStyle("quiet", "sm", { disabled: resendSeconds > 0 }), minHeight: 44 }}
           >
             {resendSeconds > 0 ? `Resend code in ${resendSeconds}s` : "Resend code"}
           </button>
@@ -303,7 +303,7 @@ const DailySignIn: React.FC<{
               setError(null);
               setResendStatus(null);
             }}
-            style={{ ...buttonStyle("quiet", "sm"), fontSize: 13, minHeight: 44 }}
+            style={{ ...buttonStyle("quiet", "sm"), minHeight: 44 }}
           >
             Use a different email
           </button>
