@@ -19,7 +19,7 @@ const ReleaseAnnouncement: React.FC<{
   seenKey: string;
   title: string;
   primaryLabel: string;
-  secondaryLabel: string;
+  secondaryLabel?: string;
   children: React.ReactNode;
   onPrimary: () => void;
   onDismiss: () => void;
@@ -141,9 +141,9 @@ const ReleaseAnnouncement: React.FC<{
             </span>
           </div>
         </div>
-        <div style={{ flex: "0 0 auto", padding: SPACE[10], display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[3], background: COLORS.surface }}>
+        <div style={{ flex: "0 0 auto", padding: SPACE[10], display: "grid", gridTemplateColumns: secondaryLabel ? "repeat(2, minmax(0, 1fr))" : "minmax(0, 1fr)", gap: SPACE[3], background: COLORS.surface }}>
           <AppButton ref={buttonRef} fullWidth roleStyle="primary" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={() => close("primary")}>{primaryLabel}</AppButton>
-          <AppButton fullWidth roleStyle="quiet" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={dismiss}>{secondaryLabel}</AppButton>
+          {secondaryLabel ? <AppButton fullWidth roleStyle="quiet" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={dismiss}>{secondaryLabel}</AppButton> : null}
         </div>
       </div>
     </div>, host

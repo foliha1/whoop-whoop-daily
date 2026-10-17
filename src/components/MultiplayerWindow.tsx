@@ -1,3 +1,4 @@
+import LaunchAnnouncement, { shouldShowLaunchNote } from "@/components/LaunchAnnouncement";
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
@@ -302,6 +303,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const navigate = useNavigate();
   const [account, setAccount] = useState<string | null>(() => getSessionEmail());
   const [now, setNow] = useState(() => new Date());
+  const [launchNoteOpen, setLaunchNoteOpen] = useState(() => shouldShowLaunchNote());
   const puzzleNumber = getDailyNumber(now);
   const locallyPlayed = useMemo(() => loadDailyResult(getDailySeed(now)) !== null, [now]);
   const [dailyPlayed, setDailyPlayed] = useState(locallyPlayed);
@@ -1317,6 +1319,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     return (
     <>
       {umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null}
+      {umbrella && home && view.kind === "idle" && launchNoteOpen ? <LaunchAnnouncement onClose={() => setLaunchNoteOpen(false)} /> : null}
       <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill={!(umbrella && home)} scroll={umbrella && home} noRails={umbrella && home && isMobile} topControl={umbrella && !home && opts.homeControl !== false}>
         <FitColumn disableScale={umbrella && home}>
         <div
