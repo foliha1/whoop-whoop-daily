@@ -125,6 +125,7 @@ interface Props {
 const INK = COLORS.ink;               // #231F20
 const SURFACE = COLORS.surface;       // #F8F2E9
 const PANEL = COLORS.panel;           // #D0C3AF
+const IDLE_HINT_MS = 6000;           // ON-only idle nudge delay
 const MUTED = COLORS.inkMuted;        // #544C4A
 const RED = COLORS.red;               // #D72229
 const BLUE = COLORS.blue;             // #0072B2
@@ -1000,7 +1001,7 @@ const MultiplayerGameView: React.FC<Props> = ({
   // the timer restarts per turn and clears the instant the player acts.
   const idleKind: "roll" | "flip" | null = !umbrella ? null : isMyTurnToRoll ? "roll" : isMyTurnToFlip ? "flip" : null;
   const idleKey = idleKind ? `${idleKind}:${s.grid.filter((g) => g.card !== null).length}` : "";
-  const [idleHint, setIdleHint] = useState<"roll" | "flip" | null>(null);
+  const [idleHint, setIdleHint] = React.useState<"roll" | "flip" | null>(null);
   React.useEffect(() => {
     setIdleHint(null);
     if (!idleKey) return;
