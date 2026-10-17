@@ -296,6 +296,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 }) => {
   const mobile = useIsMobile();
   const umbrella = useUmbrella();
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [account, setAccount] = useState<string | null>(() => getSessionEmail());
   const [now, setNow] = useState(() => new Date());
