@@ -29,13 +29,19 @@ function puzzleDateFromSeed(seed: string): string {
 }
 
 /**
- * Fire-and-forget write of a finished run. Resolves `true` when a new row was
- * stored, `false` when it was a duplicate or the write failed.
+ * What happened to a remote save:
+ *  - "stored": a new row was written.
+ *  - "refused": the server answered and declined (duplicate, validation,
+ *    rate limit, needs sign-in). Retrying the same payload will not help.
+ *  - "retryable": the request never got a server answer (offline, timeout,
+ *    5xx). The run must stay queued and be sent again later.
  */
-export async function saveDailyResultRemote(
+export type DailySaveOutcome = "stored" | "refused" | "retryable";
+
+export async function saveDailyResultOutcome(
   result: DailyResult,
   visitorId: string = getVisitorId()
-): Promise<boolean> {
+): Promise<DailySaveOutcome> {
   try {
     const { data, error } = await supabase.rpc("save_daily_result", {
       p_visitor_id: visitorId,
@@ -47,11 +53,32 @@ export async function saveDailyResultRemote(
       p_round_events: result.roundEvents ?? [],
       p_elapsed_ms: Math.round(result.elapsedMs ?? 0),
     });
-    if (error) return false;
-    return data === true;
+    if (error) return "retryable";
+    return data === true ? "stored" : "refused";
   } catch {
-    return false;
+    return "retryable";
   }
+}
+
+/** Boolean form kept for existing callers: true only when a new row was stored. */
+export async function saveDailyResultRemote(
+  result: DailyResult,
+  visitorId: string = getVisitorId()
+): Promise<boolean> {
+  return (await saveDailyResultOutcome(result, visitorId)) === "stored";
+}
+
+// ---- outbox: a finished run waiting for the server to answer ----
+const OUTBOX_PREFIX = "ww_daily_outbox_";
+
+export function markDailyOutbox(puzzleNumber: number): void {
+  try { localStorage.setItem(`${OUTBOX_PREFIX}${puzzleNumber}`, "1"); } catch { /* ignore */ }
+}
+export function clearDailyOutbox(puzzleNumber: number): void {
+  try { localStorage.removeItem(`${OUTBOX_PREFIX}${puzzleNumber}`); } catch { /* ignore */ }
+}
+export function hasDailyOutbox(puzzleNumber: number): boolean {
+  try { return localStorage.getItem(`${OUTBOX_PREFIX}${puzzleNumber}`) === "1"; } catch { return false; }
 }
 
 export interface FirstAttempt extends StoredDailyResult {
