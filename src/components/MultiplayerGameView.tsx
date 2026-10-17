@@ -1200,6 +1200,12 @@ const MultiplayerGameView: React.FC<Props> = ({
   const cellRefs = React.useRef<(HTMLDivElement | null)[]>([]);
   const gridRef = React.useRef(s.grid);
   gridRef.current = s.grid;
+  // Slots face up as of the previous commit. Effects run after layout
+  // effects, so the settle layout effect still sees the pre-reveal faces.
+  const prevFaceUpRef = React.useRef<Set<number>>(new Set());
+  React.useEffect(() => {
+    prevFaceUpRef.current = new Set(s.grid.flatMap((g, i) => (g.card ? [i] : [])));
+  }, [s.grid]);
   const [ghost, setGhost] = React.useState<GhostCard[]>([]);
   const [ghostElapsed, setGhostElapsed] = React.useState(0);
 
@@ -1223,10 +1229,14 @@ const MultiplayerGameView: React.FC<Props> = ({
         key: `settle-${i}-${r.top}-${r.left}`,
         card,
         rect: { top: r.top, left: r.left, width: r.width, height: r.height },
+        // ON: a card revealed by this claim plays its full flip first.
+        flip: umbrella && !prevFaceUpRef.current.has(i),
       }];
     });
     // A client arriving mid-settle starts at the host's point in the timeline.
     const elapsed = presentationElapsed(s.settleEndsAt, SETTLE_MATCH_MS, serverNow());
+    // A late arrival skips the flip and joins the timeline face up.
+    if (elapsed > 0) copies.forEach((c) => { c.flip = false; });
     setGhostElapsed(elapsed);
     if (elapsed >= SETTLE_MATCH_MS) return;
     if (copies.length) setGhost(copies);

@@ -25,6 +25,8 @@ export interface GhostCard {
   key: string;
   card: Card;
   rect: { top: number; left: number; width: number; height: number };
+  /** With startFaceUp: this copy was face down a moment ago, so it flips up. */
+  flip?: boolean;
 }
 
 const DailyMatchGhost: React.FC<{
@@ -35,7 +37,7 @@ const DailyMatchGhost: React.FC<{
   /** How far into the timeline this client already is (late join). */
   elapsedMs?: number;
 }> = ({ pair, onDone, startFaceUp = false, elapsedMs = 0 }) => {
-  const { stage, faceUp } = useMatchGhostStage(onDone, startFaceUp, elapsedMs);
+  const { stage, faceUp } = useMatchGhostStage(onDone, startFaceUp && !pair.some((g) => g.flip), elapsedMs);
 
   if (pair.length === 0) return null;
 
@@ -49,7 +51,7 @@ const DailyMatchGhost: React.FC<{
           key={g.key}
           card={g.card}
           stage={stage}
-          faceUp={faceUp}
+          faceUp={startFaceUp && !g.flip ? true : faceUp}
           k={g.rect.width / 104.333}
           style={{
             position: "absolute",
