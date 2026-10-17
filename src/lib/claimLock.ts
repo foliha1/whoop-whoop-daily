@@ -26,6 +26,9 @@ import {
   CLAIM_LOCK_RETRY_DELAY_MS,
 } from "@/lib/animationTiming";
 
+/** One attempt never waits longer than this before counting as "unknown". */
+export const CLAIM_LOCK_ATTEMPT_TIMEOUT_MS = 4000;
+
 export type ClaimOutcome = "won" | "lost" | "unknown";
 
 export interface ClaimLockResult {
@@ -58,9 +61,18 @@ async function attempt(input: Input): Promise<ClaimLockResult> {
     error,
   });
   try {
-    const { data, error } = await supabase.functions.invoke("claim-lock", {
-      body: input,
-    });
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<"timeout">((r) => { timer = setTimeout(() => r("timeout"), CLAIM_LOCK_ATTEMPT_TIMEOUT_MS); });
+    const res = await Promise.race([
+      supabase.functions.invoke("claim-lock", { body: input }),
+      timeout,
+    ]);
+    clearTimeout(timer);
+    if (res === "timeout") {
+      console.warn("[claim-lock] attempt timed out — outcome unknown");
+      return unknown(new Error("timeout"));
+    }
+    const { data, error } = res;
     if (error) {
       console.warn("[claim-lock] invoke failed — outcome unknown", error);
       return unknown(error);
@@ -69,7 +81,7 @@ async function attempt(input: Input): Promise<ClaimLockResult> {
       console.warn("[claim-lock] malformed response — outcome unknown", data);
       return unknown(new Error("malformed_response"));
     }
-    const d = data as { won?: boolean | null; outcome?: string; winner_seat?: number; claim_window?: number; error?: string };
+    const d = data as { won?: unknown; outcome?: unknown; winner_seat?: unknown; claim_window?: unknown; error?: unknown };
     if (d.error) {
       console.warn("[claim-lock] server error — outcome unknown", d.error);
       return unknown(d.error);
@@ -80,15 +92,21 @@ async function attempt(input: Input): Promise<ClaimLockResult> {
       console.warn("[claim-lock] grant broadcast failed — outcome unknown, retrying");
       return unknown(new Error("grant_broadcast_failed"));
     }
-    const winner_seat = typeof d.winner_seat === "number" ? d.winner_seat : null;
+    // Strict verdicts only: a reply for another window, or one without a
+    // valid integer winner seat, is not a verdict.
+    if (d.claim_window !== input.claim_window) return unknown(new Error("window_mismatch"));
+    const winner_seat = Number.isSafeInteger(d.winner_seat) && (d.winner_seat as number) >= 0 ? (d.winner_seat as number) : null;
+    if (winner_seat === null) return unknown(new Error("malformed_response"));
+    if (d.won === true && winner_seat !== input.player_seat) return unknown(new Error("inconsistent_response"));
+    if (d.won !== true && d.won !== false) return unknown(new Error("malformed_response"));
     // A fresh insert wins. So does finding the existing row already owned by
     // this seat — that is a retry of a call that actually succeeded.
-    const won = !!d.won || winner_seat === input.player_seat;
+    const won = winner_seat === input.player_seat;
     return {
       outcome: won ? "won" : "lost",
       won,
       winner_seat,
-      claim_window: typeof d.claim_window === "number" ? d.claim_window : input.claim_window,
+      claim_window: input.claim_window,
     };
   } catch (e) {
     console.warn("[claim-lock] threw — outcome unknown", e);

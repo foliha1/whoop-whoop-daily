@@ -411,11 +411,14 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     let cancelled = false;
     let unsub: (() => void) | null = null;
     void (async () => {
-      for (let attempt = 0; attempt < 5 && !cancelled; attempt++) {
+      // Keeps trying (with a growing pause) until it joins or the player
+      // leaves, so a thrown step can never strand the table on "connecting".
+      for (let attempt = 0; !cancelled; attempt++) {
+        try {
         const key = await generateSigningKey();
         const joined = await joinRoomSessionSigned(activeRoomId, browserId, sessionKey, key.publicKeyB64, getDisplayName());
         if (cancelled) return;
-        if (!joined) { await new Promise((r) => setTimeout(r, 1500)); continue; }
+        if (!joined) { await new Promise((r) => setTimeout(r, Math.min(1500 * (attempt + 1), 8000))); continue; }
         setDisplayName(joined.display_name);
         setNameInput(joined.display_name);
         const directory = new KeyDirectory(() => fetchSignKeys(activeRoomId, browserId, sessionKey));
@@ -431,6 +434,11 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           verify: createVerifier({ roomId: activeRoomId, role: isHostView ? "host" : "joiner", directory }),
         });
         return;
+        } catch (e) {
+          console.warn("[room] secure join failed, retrying", e);
+          if (cancelled) return;
+          await new Promise((r) => setTimeout(r, Math.min(1500 * (attempt + 1), 8000)));
+        }
       }
     })();
     return () => { cancelled = true; unsub?.(); };
@@ -449,9 +457,19 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     setMemberNames([]);
     if (!activeRoomId || !security) return;
     let live = true;
+    let busy = false;
+    // One request at a time: a slow reply is never overtaken by a newer poll.
     const refresh = async () => {
-      const rows = await fetchRoomMemberNames(activeRoomId, browserId, sessionKey);
-      if (live) setMemberNames(rows);
+      if (busy) return;
+      busy = true;
+      try {
+        const rows = await fetchRoomMemberNames(activeRoomId, browserId, sessionKey);
+        if (live) setMemberNames(rows);
+      } catch {
+        // keep the last names
+      } finally {
+        busy = false;
+      }
     };
     void refresh();
     const timer = window.setInterval(() => void refresh(), 1000);

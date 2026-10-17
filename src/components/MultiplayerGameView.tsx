@@ -1659,15 +1659,22 @@ const MultiplayerGameView: React.FC<Props> = ({
       setPendingCancelled(false);
       cancelPendingRef.current = false;
       preGrantPairRef.current = null;
-      const result = await callClaimLock({
-        room_id: roomId,
-        game_id: s.gameId,
-        claim_window: window_,
-        player_seat: mySeat,
-        visitor_id: browserId,
-        player_key: playerKey,
-      });
-      setClaimBusy(false);
+      let result: Awaited<ReturnType<typeof callClaimLock>>;
+      try {
+        result = await callClaimLock({
+          room_id: roomId,
+          game_id: s.gameId,
+          claim_window: window_,
+          player_seat: mySeat,
+          visitor_id: browserId,
+          player_key: playerKey,
+        });
+      } catch (error) {
+        result = { outcome: "unknown", won: false, winner_seat: null, claim_window: window_, error };
+      } finally {
+        // Always released, so a failed or slow call can never lock WHOOP.
+        setClaimBusy(false);
+      }
       // Tri-state. ONLY an explicit arbiter verdict naming another seat is a
       // loss. A transport failure is "unknown": we keep our optimistic claim
       // open and let the host's state decide, because the insert may well have

@@ -169,16 +169,20 @@ export function useRoomPresence(
           .catch(() => undefined);
       })
       .subscribe(async (subStatus) => {
+        // A channel replaced by a newer room/visitor must never write state.
+        if (channelRef.current !== exposed) return;
         if (subStatus === "SUBSCRIBED") {
           try {
             await ch.track({
               pid: visitorId,
               joined_at: joinedAtRef.current,
             } satisfies PresenceMeta);
+            if (channelRef.current !== exposed) return;
             setChannel(exposed);
             setStatus("connected");
             setConnectEpoch((n) => n + 1);
           } catch (e) {
+            if (channelRef.current !== exposed) return;
             console.warn("[presence] track failed", e);
             setStatus("error");
           }
