@@ -340,4 +340,24 @@ describe("daily end of run (fast, from round 3)", () => {
     expect(layers().outgoing).toBeNull();
     expect(saveDailyResultRemote).not.toHaveBeenCalled();
   }, 15000);
+
+  it("umbrella ON: the results Done button leaves the results screen", async () => {
+    setUmbrellaPreviewForTests(true);
+    // Skip the first-run onboarding so the Start dialog is what mounts.
+    window.localStorage.setItem("ww_daily_howto_seen", "1");
+    const m = atRound3();
+    preset.state = m;
+    mount();
+    const [i, j] = goodPair(m);
+    await claimInDom(i, j);
+    await expectResultVisible();
+    expect(lastRoute).toBe("/");
+    const done = screen.getByRole("button", { name: /^Done$/i });
+    await act(async () => {
+      done.click();
+    });
+    // With the umbrella ON there is no ready screen to return to, so Done
+    // must navigate Home (the same thing the mid-run leave dialog does).
+    expect(lastRoute).toBe("/");
+  }, 15000);
 });
