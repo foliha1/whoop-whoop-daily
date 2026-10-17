@@ -205,6 +205,7 @@ import {
 
 import { startTheme, stopTheme, unlockAudio, CLASSIC_THEME_FILE } from "@/lib/sounds";
 import { supabase } from "@/integrations/supabase/client";
+import MaterialIcon from "@/components/MaterialIcon";
 
 
 interface MultiplayerWindowProps {
