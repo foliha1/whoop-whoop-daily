@@ -892,7 +892,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   ) : dailyHowTo ? (
     <DailyHowToSteps
       mode="reference"
-      mobile={entryMobileGlobal()}
+      mobile={mobile}
       onStart={() => setDailyHowTo(false)}
       onClose={() => setDailyHowTo(false)}
     />
@@ -1323,6 +1323,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       </DailyFrame>
 
       {howToOverlay}
+      {howToChooserOverlay}
       {showSettings && (
         <SettingsSheet
           product={home && umbrella ? "home" : "classic"}
