@@ -1,4 +1,9 @@
 # Roadmap
+ 
+## Expanded player statistics
+- [ ] Add ON-only Daily / Solo / Together tabs, preserving existing Daily content
+- [ ] Add protected player aggregates and Solo claim/pair tracking; Together tables hosted
+- [ ] Test metric rules, verify live reads and mobile tabs; keep launch OFF and Groups hidden
 
 - [x] Correct How to Play body type to Geist and build the ON-only scripted Daily board demo; verify navigation, reduced motion, themes, and OFF isolation (648 tests pass).
 
