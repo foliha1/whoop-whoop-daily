@@ -31,8 +31,11 @@ const DailyFrame: React.FC<{
   scroll?: boolean;
   /** Hide the top and bottom pattern strips. */
   noRails?: boolean;
+  /** Where the content column sits between the rails: centred (default) or
+   *  pinned under the top rail so short screens do not float mid-page. */
+  align?: "center" | "top";
   children?: React.ReactNode;
-}> = ({ gap = 24, pad = 24, railGap = 24, fill = false, tone = "surface", wide = false, topControl = false, scroll = false, noRails = false, children }) => (
+}> = ({ gap = 24, pad = 24, railGap = 24, fill = false, tone = "surface", wide = false, topControl = false, scroll = false, noRails = false, align = "center", children }) => (
   <div
     style={{
       position: "relative",
@@ -42,7 +45,7 @@ const DailyFrame: React.FC<{
       background: tone === "panel" ? COLORS.panel : COLORS.surface,
       display: "flex",
       flexDirection: "column",
-      justifyContent: "space-between",
+      justifyContent: align === "top" ? "flex-start" : "space-between",
       alignItems: "center",
       gap: railGap,
       padding: pad,
@@ -70,7 +73,11 @@ const DailyFrame: React.FC<{
       {children}
     </div>
 
-    {noRails ? <span /> : <DailyShapeRule />}
+    {noRails ? (
+      <span style={align === "top" ? { marginTop: "auto" } : undefined} />
+    ) : (
+      <DailyShapeRule style={align === "top" ? { marginTop: "auto" } : undefined} />
+    )}
   </div>
 );
 
