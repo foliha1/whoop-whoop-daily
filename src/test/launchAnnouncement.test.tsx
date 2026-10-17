@@ -33,7 +33,7 @@ describe("launch announcement", () => {
       expect(heading).toHaveStyle({ color });
       const marker = heading.closest("li")?.querySelector<HTMLElement>("[aria-hidden='true']");
       expect(marker?.textContent).toBe("•");
-      expect(marker?.style.color).toBe(color);
+      expect(marker).toHaveStyle({ color });
     }
   });
 
