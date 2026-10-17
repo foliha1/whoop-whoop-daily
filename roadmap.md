@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Fix Solo bot grace after the visible roll and rename the ON opponent FELIX; verify scheduler regressions and live Solo entry without changing the launch switch.
+- [x] Fix Solo bot grace after the visible roll and rename the ON opponent FELIX; scheduler regressions and live Solo entry verified; switch remains OFF.
 
 - [x] Centralize unified UI motion tokens and CSS variables.
 - [x] Apply unified entries, capped list stagger, directional screen changes, and modal motion across Daily, YOU, Groups, and Classic.
