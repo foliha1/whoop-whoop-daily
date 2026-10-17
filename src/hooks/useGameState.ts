@@ -504,6 +504,21 @@ function resumeAfterClaim(s: State): State {
 }
 
 /**
+ * A card index from an action is usable only when it is a real integer slot
+ * inside the grid that still holds a card. Rejects out-of-range numbers
+ * (grid[99] is undefined, not null), fractions, NaN and string indices.
+ */
+export function isLiveCardIdx(s: State, idx: unknown): idx is number {
+  return (
+    typeof idx === "number" &&
+    Number.isSafeInteger(idx) &&
+    idx >= 0 &&
+    idx < s.grid.length &&
+    s.grid[idx] != null
+  );
+}
+
+/**
  * A legal card for a seat is a filled grid slot that is not locked out for
  * that seat by an earlier wrong claim this round.
  */
