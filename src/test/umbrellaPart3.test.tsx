@@ -12,7 +12,7 @@ import HomeControl from "@/components/HomeControl";
 import DailyLeaveDialog, { DAILY_LEAVE_BODY, DAILY_LEAVE_TITLE } from "@/components/DailyLeaveDialog";
 import HomeEmailSignup from "@/components/HomeEmailSignup";
 import DailyEmailModal, { dailyEmailModalBody } from "@/components/DailyEmailModal";
-import DailyStartDialog from "@/components/DailyStartDialog";
+import DailyStartDialog, { dailyWelcomeLine, DAILY_WELCOME_LINES } from "@/components/DailyStartDialog";
 import DailyShapeRule from "@/components/DailyShapeRule";
 import { useDailyGame } from "@/hooks/useDailyGame";
 
@@ -123,8 +123,8 @@ describe("ON Daily direct start", () => {
   it("announces the puzzle, focuses Start, and cannot dismiss from Escape or backdrop", () => {
     const start = vi.fn();
     render(<DailyStartDialog puzzleNumber={123} onStart={start} />);
-    const dialog = screen.getByRole("dialog", { name: "Daily #123" });
-    expect(screen.getByText("10 seconds to study. The die rolls after.")).toBeTruthy();
+    const dialog = screen.getByRole("dialog", { name: "Whoop! Whoop! Daily #123" });
+    expect(screen.getByText(dailyWelcomeLine(123))).toBeTruthy();
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Start" }));
     fireEvent.keyDown(window, { key: "Escape" });
     fireEvent.click(dialog);
@@ -294,5 +294,13 @@ describe("Part 3 analytics allowlist", () => {
     expect(sql).not.toMatch(/\bGRANT\b|\bREVOKE\b/);
     const w = src("src/components/MultiplayerWindow.tsx");
     for (const e of ["home_viewed", "home_daily_tapped", "home_solo_tapped", "home_peeps_tapped"]) expect(w).toContain(`"${e}"`);
+  });
+});
+
+describe("Daily start welcome lines", () => {
+  it("leads with Felix's line and cycles by puzzle number", () => {
+    expect(DAILY_WELCOME_LINES[0]).toBe("Welcome back, have a great time, and try not to blink.");
+    expect(dailyWelcomeLine(DAILY_WELCOME_LINES.length * 3)).toBe(DAILY_WELCOME_LINES[0]);
+    expect(dailyWelcomeLine(1)).not.toBe(dailyWelcomeLine(2));
   });
 });

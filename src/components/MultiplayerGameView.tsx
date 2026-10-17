@@ -25,7 +25,7 @@
 
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Settings as SettingsIcon, X } from "lucide-react";
+import { House, Settings as SettingsIcon, X } from "lucide-react";
 import { usePortalHost } from "@/hooks/usePortalHost";
 import { useMotionExit } from "@/hooks/useMotionExit";
 import SettingsSheet from "@/components/SettingsSheet";
@@ -36,7 +36,7 @@ const ClassicDemo = React.lazy(() => import("@/components/ClassicDemo"));
 import { MOBILE_SHELL_PAD } from "@/lib/layout";
 import GameCard from "@/components/GameCard";
 import ClassicResultScreen from "@/components/ClassicResultScreen";
-import { BORDER, COLORS, FONT_FAMILY, MOTION, RADIUS, RAW, SHADOW, SPACE, textStyle, buttonStyle, panelStyle, applySelectionPulseVars } from "@/lib/tokens";
+import { BORDER, COLORS, CONTROL_H, FONT_FAMILY, MOTION, RADIUS, RAW, SHADOW, SPACE, textStyle, buttonStyle, panelStyle, applySelectionPulseVars } from "@/lib/tokens";
 import { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
 import type { PublicState } from "@/lib/publicState";
 import type { IntentAction, RollAttribute, RollCommitPayload, TransientEvent } from "@/lib/multiplayer";
@@ -343,9 +343,11 @@ const Header: React.FC<{
   round: number;
   deckCount: number;
   umbrella: boolean;
+  /** ON + Solo: the leave control shows the Home icon (still confirms). */
+  solo?: boolean;
   onLeave: () => void;
   onSettings: () => void;
-}> = ({ round, deckCount, umbrella, onLeave, onSettings }) => {
+}> = ({ round, deckCount, umbrella, solo = false, onLeave, onSettings }) => {
   const half: React.CSSProperties = {
     flex: "1 1 0", display: "flex", alignItems: "center",
     justifyContent: "center", padding: "0 4px", minWidth: 0,
@@ -361,18 +363,21 @@ const Header: React.FC<{
       type="button"
       className="mp-header-btn"
       onClick={onLeave}
-      aria-label="Leave game"
+      aria-label={umbrella && solo ? "Home" : "Leave game"}
       data-testid="classic-game-leave"
+      data-icon={umbrella && solo ? "home" : "x"}
       style={{
         all: "unset",
-        ...buttonStyle("danger", "md"),
+        ...(umbrella && solo
+          ? { background: INK, color: SURFACE, border: BORDER.heavy, borderRadius: RADIUS.sm }
+          : buttonStyle("danger", "md")),
         boxSizing: "border-box",
         width: 44, height: 44, flex: "none",
         display: "flex", alignItems: "center", justifyContent: "center",
         cursor: "pointer",
       }}
     >
-      <X size={22} aria-hidden="true" />
+      {umbrella && solo ? <House size={22} aria-hidden="true" /> : <X size={22} aria-hidden="true" />}
     </button>
   );
   return (
@@ -423,7 +428,9 @@ const ModalShell: React.FC<{
   titleId: string;
   onCancel: () => void;
   children: React.ReactNode;
-}> = ({ titleId, onCancel, children }) => {
+  /** ON: match the shared Daily modal panel exactly. */
+  unified?: boolean;
+}> = ({ titleId, onCancel, children, unified = false }) => {
   // Portalled to body: the game column is capped at 420px (and scaled entry
   // frames apply transforms), so an in-tree fixed/absolute overlay only ever
   // covered the mobile-width column. A modal must take over the full screen.
@@ -445,9 +452,9 @@ const ModalShell: React.FC<{
       data-motion-exit={exiting ? "true" : undefined}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0,0,0,0.5)",
+        background: unified ? "rgba(35, 31, 32, 0.6)" : "rgba(0,0,0,0.5)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        padding: 16,
+        padding: unified ? SPACE[8] : 16,
       }}
     >
       <div
@@ -457,7 +464,11 @@ const ModalShell: React.FC<{
         onClick={(e) => e.stopPropagation()}
         className="ww-ui-modal-panel"
         data-motion-exit={exiting ? "true" : undefined}
-        style={{
+        style={unified ? {
+          ...panelStyle("surface", 8), maxWidth: 340, width: "100%",
+          display: "flex", flexDirection: "column", gap: SPACE[8],
+          fontFamily: FONT_FAMILY, color: INK,
+        } : {
           background: SURFACE, border: BORDER_HEAVY, borderRadius: R_BOX,
           padding: 16, maxWidth: 340, width: "100%",
           display: "flex", flexDirection: "column", gap: 12,
@@ -1703,6 +1714,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       round={s.roundNum}
       deckCount={s.deckCount}
       umbrella={umbrella}
+      solo={soloMode}
       onLeave={() => setShowLeave(true)}
       onSettings={() => setShowSettings(true)}
     />
@@ -2111,7 +2123,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       )}
 
       {showLeave && (
-        <ModalShell titleId="mp-leave-title" onCancel={() => setShowLeave(false)}>
+        <ModalShell titleId="mp-leave-title" unified={umbrella} onCancel={() => setShowLeave(false)}>
           <h2 id="mp-leave-title" style={{ margin: 0, color: INK, ...textStyle("title") }}>
             {isHost ? "End the game?" : "Leave the table?"}
           </h2>
@@ -2120,6 +2132,25 @@ const MultiplayerGameView: React.FC<Props> = ({
               ? "Leaving now ends the game for everyone. All players will be returned to the lobby and the game cannot be resumed."
               : "Your seat and score stay visible to the table with your turns auto-skipped — you won't be removed."}
           </p>
+          {umbrella ? (
+            <div style={{ display: "flex", gap: SPACE[5] }}>
+              <button
+                type="button"
+                onClick={() => setShowLeave(false)}
+                autoFocus
+                style={{ ...buttonStyle("secondary", "lg"), flexGrow: 1, flexBasis: 0, height: CONTROL_H.lg + SPACE[2], padding: 0 }}
+              >
+                Keep Playing
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowLeave(false); onLeave(); }}
+                style={{ ...buttonStyle("dangerConfirm", "lg"), fontStyle: "italic", flexGrow: 1, flexBasis: 0, height: CONTROL_H.lg + SPACE[2], padding: 0 }}
+              >
+                {isHost && !soloMode ? "End Game" : "Leave"}
+              </button>
+            </div>
+          ) : (
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
             <button
               type="button"
@@ -2146,6 +2177,7 @@ const MultiplayerGameView: React.FC<Props> = ({
               {isHost ? "End Game" : "Leave"}
             </button>
           </div>
+          )}
         </ModalShell>
       )}
     </div>

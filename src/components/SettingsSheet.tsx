@@ -286,10 +286,6 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
           }}
         />
 
-        {/* Umbrella Part 1: the global name editor appears only after launch
-            (or for a signed-in admin previewing). */}
-        {umbrella && <DisplayNameEditor mobile={false} />}
-
         <Toggle
           label="Music"
           checked={music}
@@ -298,6 +294,11 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
             setMusic(next);
           }}
         />
+
+        {/* Umbrella Part 1: the global name editor appears only after launch
+            (or for a signed-in admin previewing). */}
+        {umbrella && <DisplayNameEditor mobile={false} />}
+
 
         {onHowTo ? (
           <button type="button" onClick={onHowTo} style={{ ...buttonStyle("ink", "md", { fullWidth: true }), width: "100%" }}>

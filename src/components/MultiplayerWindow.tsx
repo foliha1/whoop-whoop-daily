@@ -76,6 +76,8 @@ import { useSoloGame } from "@/hooks/useSoloGame";
 import { useClassicResultRecorder } from "@/hooks/useClassicResultRecorder";
 
 import ClassicDemo, { hasSeenClassicDemo } from "@/components/ClassicDemo";
+import DailyHowToSteps from "@/components/DailyHowToSteps";
+import HowToChooser from "@/components/HowToChooser";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
 
 
@@ -874,7 +876,27 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     gateOr(startSoloFlow);
   }, [busy, gateOr, startSoloFlow]);
 
-  const openHowToReference = useCallback(() => setHowTo({ mode: "reference" }), []);
+  const [howToChooser, setHowToChooser] = useState(false);
+  const [dailyHowTo, setDailyHowTo] = useState(false);
+  const openHowToReference = useCallback(() => {
+    if (umbrellaOn()) setHowToChooser(true);
+    else setHowTo({ mode: "reference" });
+  }, []);
+
+  const howToChooserOverlay = howToChooser ? (
+    <HowToChooser
+      onClose={() => setHowToChooser(false)}
+      onDaily={() => { setHowToChooser(false); setDailyHowTo(true); }}
+      onClassic={() => { setHowToChooser(false); setHowTo({ mode: "reference" }); }}
+    />
+  ) : dailyHowTo ? (
+    <DailyHowToSteps
+      mode="reference"
+      mobile={mobile}
+      onStart={() => setDailyHowTo(false)}
+      onClose={() => setDailyHowTo(false)}
+    />
+  ) : null;
 
   const howToOverlay = howTo ? (
     <ClassicDemo
@@ -1301,6 +1323,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       </DailyFrame>
 
       {howToOverlay}
+      {howToChooserOverlay}
       {showSettings && (
         <SettingsSheet
           product={home && umbrella ? "home" : "classic"}
@@ -1695,15 +1718,21 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       headline: umbrellaOn() ? "Play Together" : "Play with Peeps",
       children: (
         <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[6] }}>
-          <AppButton roleStyle="primary" size="lg" fullWidth onClick={() => {
-            setCodeInput("");
-            if (validateDisplayName(getDisplayName()).ok) void enterRoom({ kind: "create" });
-            else setView({ kind: "name-prompt", intent: "peeps", action: "create" });
-          }}>Start a table</AppButton>
-          <AppButton roleStyle="secondary" size="lg" fullWidth onClick={() => {
-            setCodeInput("");
-            setView({ kind: "name-prompt", intent: "peeps", action: "join" });
-          }}>Join a table</AppButton>
+          <div style={{ display: "flex", gap: SPACE[5], width: "100%" }}>
+            <div style={{ flex: "1 1 0", minWidth: 0 }}>
+              <AppButton roleStyle="primary" size="lg" fullWidth onClick={() => {
+                setCodeInput("");
+                if (validateDisplayName(getDisplayName()).ok) void enterRoom({ kind: "create" });
+                else setView({ kind: "name-prompt", intent: "peeps", action: "create" });
+              }}>Start a table</AppButton>
+            </div>
+            <div style={{ flex: "1 1 0", minWidth: 0 }}>
+              <AppButton roleStyle="secondary" size="lg" fullWidth onClick={() => {
+                setCodeInput("");
+                setView({ kind: "name-prompt", intent: "peeps", action: "join" });
+              }}>Join a table</AppButton>
+            </div>
+          </div>
           <AppButton roleStyle="utility" size="md" fullWidth onClick={leaveToIdle}>Back</AppButton>
         </div>
       ),
@@ -1777,7 +1806,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 style={{ ...playModeTileStyle(RAW.orange), color: RAW.warmBlack }}
                 aria-label={dailyPlayed
                   ? `See today's results. ${nextDaily.spoken}`
-                  : `Daily #${puzzleNumber}`}
+                  : `Whoop! Whoop! Daily #${puzzleNumber}`}
                 data-testid="home-daily"
                 data-icon={isDaytime(now) ? "sun" : "moon"}
               >
@@ -1792,7 +1821,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                   </svg>
                 )}
                 <div style={playModeLabelStyle(RAW.warmBlack)}>
-                  {dailyPlayed ? "See Today's Results" : `Daily #${puzzleNumber}`}
+                  {dailyPlayed ? "See Today's Results" : `Whoop! Whoop! Daily #${puzzleNumber}`}
                 </div>
                 {dailyPlayed ? (
                   <div style={{ ...textStyle("captionItalic", entryMobile), color: RAW.warmBlack, textAlign: "center" }}>

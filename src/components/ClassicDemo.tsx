@@ -1019,7 +1019,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               >
                 Welcome to
                 <br />
-                Whoop! Whoop! Classic
+                {umbrellaOn() ? "Whoop! Whoop!" : "Whoop! Whoop! Classic"}
               </h1>
             </div>
             <div

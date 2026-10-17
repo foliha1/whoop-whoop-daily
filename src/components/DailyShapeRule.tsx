@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { getLocalDateString } from "@/lib/daily";
 import { MOTION } from "@/lib/tokens";
+import { useUmbrella } from "@/lib/launch";
+import { useThemeMode } from "@/lib/nightMode";
 
 /** Natural tile geometry — 15 shapes on a 24px pitch, 19px tall. */
 const TILE_W = 360;
@@ -14,6 +16,9 @@ const SHAPES_PER_TILE = TILE_W / PITCH; // 15
  * into the ground: khaki reads on cream and on warm black alike.
  */
 export const PATTERN_URL = "/WhoopWhoop_Daily_Pattern_Seamless.svg";
+/** ON only: triangles in brand black (light) / brand off-white (night). */
+export const PATTERN_URL_INK = "/WhoopWhoop_Daily_Pattern_Seamless_Ink.svg";
+export const PATTERN_URL_NIGHT = "/WhoopWhoop_Daily_Pattern_Seamless_Night.svg";
 
 /**
  * Deterministic per-day shift, in shape cells. Keyed off the same LOCAL
@@ -38,6 +43,9 @@ const dayCellOffset = (now = new Date()) => {
  */
 const DailyShapeRule: React.FC<{ style?: React.CSSProperties; clearStart?: number }> = ({ style, clearStart = 0 }) => {
   const hostRef = useRef<HTMLDivElement>(null);
+  const umbrella = useUmbrella();
+  const { theme } = useThemeMode();
+  const patternUrl = umbrella ? (theme === "night" ? PATTERN_URL_NIGHT : PATTERN_URL_INK) : PATTERN_URL;
   const [box, setBox] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
@@ -87,7 +95,7 @@ const DailyShapeRule: React.FC<{ style?: React.CSSProperties; clearStart?: numbe
 
   const layerStyle: React.CSSProperties = {
     ...baseBand,
-    backgroundImage: `url(${PATTERN_URL})`,
+    backgroundImage: `url(${patternUrl})`,
     transition: `opacity ${MOTION.slow}`,
   };
 

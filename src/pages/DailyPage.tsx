@@ -1857,7 +1857,7 @@ const DailyPage: React.FC = () => {
         />
       ) : null}
       {startDialogOpen ? (
-        <DailyStartDialog puzzleNumber={daily.puzzleNumber} mobile={mobile} busy={playWaiting} onStart={startRun} />
+        <DailyStartDialog puzzleNumber={daily.puzzleNumber} mobile={mobile} busy={playWaiting} onStart={startRun} onHowTo={() => setHowTo("reference")} />
       ) : null}
       {directStart && howTo ? (
         <DailyHowToSteps

@@ -3,14 +3,28 @@ import { createPortal } from "react-dom";
 import { DAILY_SCREEN_FADE_MS } from "@/lib/animationTiming";
 import { COLORS, SPACE, buttonStyle, panelStyle, textStyle } from "@/lib/tokens";
 
-const FOCUSABLE = '[data-testid="home-control"], [data-testid="daily-start"]';
+const FOCUSABLE = '[data-testid="home-control"], [data-testid="daily-start"], [data-testid="daily-start-howto"]';
+
+/** Returning-player welcome lines; one per puzzle, cycling by puzzle number. */
+export const DAILY_WELCOME_LINES = [
+  "Welcome back, have a great time, and try not to blink.",
+  "Good to see you. Eyes open, memory on.",
+  "Nine cards, ten seconds. You've got this.",
+  "Fresh puzzle, fresh brain. Let's go.",
+  "Deep breath. Look closely. Then trust yourself.",
+  "Today's cards are waiting. Don't keep them long.",
+] as const;
+
+export const dailyWelcomeLine = (puzzleNumber: number): string =>
+  DAILY_WELCOME_LINES[((puzzleNumber % DAILY_WELCOME_LINES.length) + DAILY_WELCOME_LINES.length) % DAILY_WELCOME_LINES.length];
 
 const DailyStartDialog: React.FC<{
   puzzleNumber: number;
   mobile?: boolean;
   busy?: boolean;
   onStart: () => void;
-}> = ({ puzzleNumber, mobile = false, busy = false, onStart }) => {
+  onHowTo?: () => void;
+}> = ({ puzzleNumber, mobile = false, busy = false, onStart, onHowTo }) => {
   const panelRef = React.useRef<HTMLDivElement>(null);
   const startedRef = React.useRef(false);
   const timerRef = React.useRef<number | null>(null);
@@ -87,10 +101,10 @@ const DailyStartDialog: React.FC<{
         }}
       >
         <h1 id="daily-start-title" style={{ ...textStyle("title", mobile), color: COLORS.ink, margin: 0 }}>
-          Daily #{puzzleNumber}
+          Whoop! Whoop! Daily #{puzzleNumber}
         </h1>
         <p id="daily-start-body" style={{ ...textStyle("body", mobile), color: COLORS.ink, margin: 0 }}>
-          10 seconds to study. The die rolls after.
+          {dailyWelcomeLine(puzzleNumber)}
         </p>
         <button
           type="button"
@@ -104,6 +118,18 @@ const DailyStartDialog: React.FC<{
         >
           {busy ? "Dealing…" : "Start"}
         </button>
+        {onHowTo ? (
+          <button
+            type="button"
+            data-testid="daily-start-howto"
+            disabled={busy || exiting}
+            onClick={onHowTo}
+            className="ww-press"
+            style={{ ...buttonStyle("quiet", "md", { mobile, fullWidth: true, disabled: busy || exiting }), width: "100%", marginTop: -SPACE[4] }}
+          >
+            How to Play
+          </button>
+        ) : null}
       </div>
     </div>,
     document.body,
