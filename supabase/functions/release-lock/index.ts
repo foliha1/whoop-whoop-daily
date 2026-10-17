@@ -91,16 +91,27 @@ Deno.serve(async (req) => {
     if (lock && lock.player_seat !== seat) return bad(403, "lock_not_owned");
   }
 
-  const { error: delErr } = await supabase
+  // Seat-targeted: a late release for an old holder can never clear a lock
+  // that a different seat has since won in the same window.
+  const { data: deleted, error: delErr } = await supabase
     .from("claim_locks")
     .delete()
     .eq("room_id", room_id)
     .eq("game_id", game_id)
-    .eq("claim_window", claim_window);
+    .eq("claim_window", claim_window)
+    .eq("player_seat", seat)
+    .select("id");
 
   if (delErr) {
     console.error("[release-lock] delete failed", delErr);
     return bad(500, "delete_failed");
+  }
+  if (!deleted || deleted.length === 0) {
+    // Nothing held by this seat: no reject broadcast, nothing else touched.
+    return new Response(JSON.stringify({ released: false }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   // Notify the pressing player so they exit LOCKING…. Reuse claim_reject

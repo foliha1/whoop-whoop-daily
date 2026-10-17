@@ -141,7 +141,12 @@ Deno.serve(async (req) => {
     // Rebroadcast the existing winner's grant so a grant lost in transit is
     // healed by any retry or later caller. The host dedupes repeats and
     // ignores grants for windows that are no longer open.
-    await broadcastGrant(supabase, room_id, game_id, claim_window, existing.player_seat, Date.parse(existing.created_at));
+    const resent = await broadcastGrant(supabase, room_id, game_id, claim_window, existing.player_seat, Date.parse(existing.created_at));
+    // The caller's own earlier win whose announcement still did not go out:
+    // stay "unknown" so the caller retries instead of assuming the host heard.
+    if (!resent && existing.player_seat === player_seat) {
+      return json({ won: null, outcome: "unknown", winner_seat: player_seat, claim_window });
+    }
     return json({ won: false, winner_seat: existing.player_seat, claim_window });
   }
 
