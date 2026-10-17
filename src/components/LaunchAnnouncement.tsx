@@ -1,7 +1,7 @@
 import React from "react";
 import ReleaseAnnouncement, { hasSeenAnnouncement } from "@/components/ReleaseAnnouncement";
 import { LAUNCHED } from "@/lib/launch";
-import { COLORS, FONT_FAMILY, FONT_FAMILY_UI, SPACE } from "@/lib/tokens";
+import { COLORS, FONT_FAMILY, SPACE, textStyle } from "@/lib/tokens";
 
 export const LAUNCH_NOTE_KEY = "ww-launch-note-v1";
 
@@ -13,12 +13,12 @@ export function shouldShowLaunchNote(): boolean {
 const WORD: [string, string][] = [["W", COLORS.ink], ["h", COLORS.ink], ["o", COLORS.orangeStat], ["o", COLORS.orangeStat], ["p", COLORS.blue], ["!", COLORS.red]];
 const Whoop = () => <span>{WORD.map(([c, color], i) => <span key={i} style={{ color }}>{c}</span>)}</span>;
 
-const body: React.CSSProperties = { fontFamily: FONT_FAMILY_UI, fontSize: 16, lineHeight: 1.45, margin: 0, color: COLORS.ink };
+const body: React.CSSProperties = { ...textStyle("body"), margin: 0, color: COLORS.ink };
 const Section = ({ title, color, children }: { title: string; color: string; children: React.ReactNode }) => (
-  <section style={{ display: "flex", flexDirection: "column", gap: SPACE[1] }}>
-    <h3 style={{ fontFamily: FONT_FAMILY, fontSize: 24, fontWeight: 700, margin: 0, color }}>{title}</h3>
+  <li style={{ display: "flex", flexDirection: "column", gap: SPACE[1], paddingLeft: SPACE[2] }}>
+    <h3 style={{ ...textStyle("subhead"), margin: 0, color }}>{title}</h3>
     <p style={body}>{children}</p>
-  </section>
+  </li>
 );
 
 const LaunchAnnouncement: React.FC<{ onClose: () => void }> = ({ onClose }) => (
@@ -30,13 +30,15 @@ const LaunchAnnouncement: React.FC<{ onClose: () => void }> = ({ onClose }) => (
     onDismiss={onClose}
     testId="launch-announcement"
   >
-    <h2 style={{ fontFamily: FONT_FAMILY, fontSize: 34, lineHeight: 1.05, fontWeight: 700, margin: 0, color: COLORS.ink }}>
+    <h2 style={{ fontFamily: FONT_FAMILY, fontSize: "clamp(36px, 11vw, 46px)", lineHeight: 1.02, fontWeight: 700, margin: 0, color: COLORS.ink }}>
       <Whoop /> <Whoop /><br />just got <em>better.</em>
     </h2>
     <p style={body}>The Daily was only the beginning! Now there are two new ways to play, straight from the card game that inspired it all.</p>
+    <ul style={{ margin: 0, paddingLeft: SPACE[6], display: "flex", flexDirection: "column", gap: SPACE[5], listStyleType: "disc", color: COLORS.ink }}>
     <Section title="Play Daily!" color={COLORS.orangeStat}>Your daily habit, just like always. Keep that streak going and become a Whoop! Whoop! Legend.</Section>
     <Section title="Play Solo!" color={COLORS.blue}>Think you're quick? Try to outplay <strong>FELIX the bot.</strong> The die sets the rule, find the match, first to 12 wins.</Section>
     <Section title="Play Together!" color={COLORS.red}>Grab your friends, start a table, send the link, and get your Whoop! Whoop! on.</Section>
+    </ul>
   </ReleaseAnnouncement>
 );
 
