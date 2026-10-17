@@ -23,6 +23,8 @@ vi.mock("@/lib/classicResults", async (orig) => {
 
 import { useClassicResultRecorder, type ClassicSnapshot } from "@/hooks/useClassicResultRecorder";
 import { endReasonFor } from "@/lib/classicResults";
+import { localMatchHistory } from "@/lib/playerStats";
+import { setUmbrellaPreviewForTests } from "@/lib/launch";
 import { verifySeatOwner } from "../../supabase/functions/_shared/seatOwnership";
 
 const read = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
@@ -33,6 +35,8 @@ const snap = (o: Partial<ClassicSnapshot>): ClassicSnapshot => ({
 });
 
 beforeEach(() => {
+  localStorage.clear();
+  setUmbrellaPreviewForTests(false);
   calls.start.mockClear(); calls.saveSolo.mockClear(); calls.saveMulti.mockClear();
 });
 
@@ -88,6 +92,18 @@ describe("multiplayer recorder", () => {
 });
 
 describe("solo recorder", () => {
+  it("counts only human claims, records winning-claim time, and retains pairs after penalties", async () => {
+    setUmbrellaPreviewForTests(true);
+    const { rerender } = renderHook((s: ClassicSnapshot) => useClassicResultRecorder({ snapshot: s, isSolo: true, enabled: true, visitorId: "v-solo" }), { initialProps: snap({}) });
+    rerender(snap({ phase: "SETTLING", settleKind: "MATCH", settleBy: 1, settleToken: 1 }));
+    rerender(snap({ phase: "AWAITING_ROLL" }));
+    rerender(snap({ phase: "SETTLING", settleKind: "MATCH", settleBy: 0, settleToken: 2, scores: [12, 2] }));
+    rerender(snap({ phase: "GAME_OVER", scores: [12, 2] }));
+    await waitFor(() => expect(calls.saveSolo).toHaveBeenCalledTimes(1));
+    expect(localMatchHistory().games[0]).toMatchObject({ mode: "solo", won: true, correct: 1, wrong: 0 });
+    expect(localMatchHistory().games[0]?.victoryMs).not.toBeNull();
+    setUmbrellaPreviewForTests(false);
+  });
   it("asks the server for a game id when the game begins and saves against it", async () => {
     const { rerender } = renderHook((s: ClassicSnapshot) =>
       useClassicResultRecorder({ snapshot: s, isSolo: true, enabled: true, visitorId: "v-solo" }),

@@ -74,6 +74,7 @@ import MultiplayerGameView from "@/components/MultiplayerGameView";
 import { preloadGameArt } from "@/lib/preloadArt";
 import { useSoloGame } from "@/hooks/useSoloGame";
 import { useClassicResultRecorder } from "@/hooks/useClassicResultRecorder";
+import { rememberHostedTable } from "@/lib/playerStats";
 
 import ClassicDemo, { hasSeenClassicDemo } from "@/components/ClassicDemo";
 import DailyHowToSteps from "@/components/DailyHowToSteps";
