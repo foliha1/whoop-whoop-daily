@@ -171,9 +171,11 @@ export default function DailyDemo({ mode, onStart, onClose }: DailyDemoProps) {
       });
     }
     if (step === 3) {
+      // Pick one star, change your mind, pick the other; tapping the first
+      // star again is the second selection that locks the pair.
       at(DEMO_BEAT_MS, { selected: [1] }, playSelect);
       at(DEMO_BEAT_MS * 2, { selected: [] }, playDeselect);
-      at(DEMO_BEAT_MS * 3, { selected: [1] }, playSelect);
+      at(DEMO_BEAT_MS * 3, { selected: [7] }, playSelect);
       // Second tap: outline clears at once, the claim resolves, then the ghost
       // pair flips up, holds and lifts away — the live sequence and cues.
       const claim = DEMO_BEAT_MS * 4;
@@ -243,7 +245,7 @@ export default function DailyDemo({ mode, onStart, onClose }: DailyDemoProps) {
           <button type="button" tabIndex={-1} aria-hidden="true" disabled style={{ ...buttonStyle("secondary", "sm", { mobile: true, disabled: scene.peekSpent }), whiteSpace: "nowrap", pointerEvents: "none" }}>{scene.peekSpent ? "Peek Used" : "Peek (5s)"}</button>
         </Spot>
       </div>
-      <DemoSpotlight active={lit("board") || lit("misses")} instant={reduced} style={{ flex: "1 1 auto", minHeight: 190, position: "relative" }}>
+      <DemoSpotlight active={lit("board") || lit("misses")} instant={reduced} style={{ flex: "1 1 auto", minHeight: 190, position: "relative", marginBottom: SPACE[4] }}>
         <div ref={board} style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
         <div data-testid="daily-demo-board" aria-hidden="true" style={{ width: boardWidth, maxWidth: "100%", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: BOARD_GAP }}>
           {DAILY_DEMO_CARDS.map((card, i) => <div key={card.id} style={{ aspectRatio: "5 / 7", position: "relative" }}>
