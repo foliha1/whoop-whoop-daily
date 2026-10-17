@@ -319,6 +319,7 @@ export function useMultiplayerHost(opts: {
   const rollCommitRef = useRef<RollCommitPayload | null>(null);
 
   const rollAttrs: readonly RollAttribute[] = ["SHAPE", "NUMBER", "COLOR"] as const;
+  const rollLatchRef = useRef<string | null>(null);
   const commitAndRoll = useCallback((bySeat: number) => {
     const s = latestStateRef.current;
     if (s.phase !== "AWAITING_ROLL" || s.rolling) return;
@@ -328,6 +329,10 @@ export function useMultiplayerHost(opts: {
       console.warn("[roll:reject-not-roller]", { bySeat, roller: s.roller });
       return;
     }
+    // Latch: rapid taps before the state shows "rolling" commit one roll only.
+    const latchKey = `${gameIdRef.current}:${s.roundNum}`;
+    if (rollLatchRef.current === latchKey) return;
+    rollLatchRef.current = latchKey;
     const { attribute, faceIndex } = pickRoll(rollAttrs, rngOf(s));
     const tumbleSeed = pickTumbleSeed();
     // startAt is a SERVER-clock timestamp so every client can time the
