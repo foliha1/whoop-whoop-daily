@@ -254,7 +254,8 @@ let bumpParent: () => void = () => {};
 /** Records the router location so tests can assert navigation happened. */
 let lastRoute = "/";
 const RouteProbe: React.FC = () => {
-  lastRoute = useLocation().pathname;
+  const loc = useLocation();
+  lastRoute = `${loc.pathname}${loc.search}`;
   return null;
 };
 const Harness: React.FC = () => {
