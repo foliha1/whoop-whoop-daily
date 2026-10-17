@@ -300,9 +300,6 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
             (or for a signed-in admin previewing). */}
         {umbrella && <DisplayNameEditor mobile={false} />}
 
-        {umbrella && <InstallAppButton />}
-
-
         {onHowTo ? (
           <button type="button" onClick={onHowTo} style={{ ...buttonStyle("ink", "md", { fullWidth: true }), width: "100%" }}>
             How to Play
@@ -312,6 +309,8 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
             How to Play
           </a>
         )}
+
+        {umbrella && <InstallAppButton />}
 
         {umbrella && product === "home" && dailyHistory ? (
           <section data-testid="settings-daily-history" style={{ display: "flex", flexDirection: "column", gap: 8 }}>

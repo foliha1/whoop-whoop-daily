@@ -27,13 +27,15 @@ const DailyFrame: React.FC<{
   wide?: boolean;
   /** Reserve the shared top-left 44px Home/Leave slot in the top pattern. */
   topControl?: boolean;
+  /** Grow with content and let the page scroll instead of clipping. */
+  scroll?: boolean;
   children?: React.ReactNode;
-}> = ({ gap = 24, pad = 24, railGap = 24, fill = false, tone = "surface", wide = false, topControl = false, children }) => (
+}> = ({ gap = 24, pad = 24, railGap = 24, fill = false, tone = "surface", wide = false, topControl = false, scroll = false, children }) => (
   <div
     style={{
       position: "relative",
       minHeight: "var(--ww-vh)",
-      height: "var(--ww-vh)",
+      height: scroll ? "auto" : "var(--ww-vh)",
       boxSizing: "border-box",
       background: tone === "panel" ? COLORS.panel : COLORS.surface,
       display: "flex",
@@ -43,7 +45,7 @@ const DailyFrame: React.FC<{
       gap: railGap,
       padding: pad,
       paddingBottom: `calc(${pad}px + env(safe-area-inset-bottom))`,
-      overflowY: fill ? "hidden" : "auto",
+      overflowY: scroll ? "visible" : fill ? "hidden" : "auto",
       "--daily-content-max-width": `${DAILY_CONTENT_MAX_W}px`,
       "--daily-content-padding-x": `${pad}px`,
     } as React.CSSProperties}
