@@ -1480,3 +1480,14 @@ All colors MUST be HSL.
 @media (prefers-reduced-motion: reduce) {
   .ww-chase-letter { animation: none; }
 }
+
+/* Your Stats tab switcher: visible keyboard focus and a non-colour active cue. */
+.ww-stats-tab:focus-visible {
+  outline: 3px solid hsl(var(--foreground));
+  outline-offset: 2px;
+}
+.ww-stats-tab[data-state="active"] {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
