@@ -17,6 +17,9 @@
 // ============================================================================
 
 import { useEffect, useRef } from "react";
+import { umbrellaOn } from "@/lib/launch";
+import { rememberMatch } from "@/lib/playerStats";
+import { supabase } from "@/integrations/supabase/client";
 import {
   endReasonFor,
   saveClassicGame,
@@ -34,6 +37,8 @@ export interface ClassicSnapshot {
   gameId: string;
   /** Reducer message type; "warning" on GAME_OVER marks the table-empty end. */
   messageType?: string;
+  settleBy?: number | null;
+  settleToken?: number;
 }
 
 interface Opts {
@@ -65,6 +70,12 @@ export function useClassicResultRecorder({
   const wrongRef = useRef(0);
   const prevSettleRef = useRef<"MATCH" | "WRONG" | null>(null);
   const writtenRef = useRef(false);
+  const playerCorrect = useRef(0);
+  const playerWrong = useRef(0);
+  const lastToken = useRef<number | undefined>();
+  const started = useRef(0);
+  const victory = useRef<number | null>(null);
+  const localId = useRef("");
 
   useEffect(() => {
     if (!enabled) return;
@@ -85,6 +96,23 @@ export function useClassicResultRecorder({
       prevSettleRef.current = null;
       writtenRef.current = false;
       soloIdRef.current = isSolo && visitorId ? startSoloGame(visitorId) : null;
+      playerCorrect.current = 0;
+      playerWrong.current = 0;
+      lastToken.current = undefined;
+      started.current = Date.now();
+      victory.current = null;
+      localId.current = crypto.randomUUID();
+      void soloIdRef.current?.then((id) => { if (id) localId.current = id; });
+    }
+
+    if (isSolo && umbrellaOn() && s.settleKind !== null && s.settleToken !== undefined && s.settleToken !== lastToken.current) {
+      lastToken.current = s.settleToken;
+      if (s.settleBy === 0) {
+        if (s.settleKind === "MATCH") {
+          playerCorrect.current += 1;
+          if ((s.scores[0] ?? 0) >= 12) victory.current = Date.now() - started.current;
+        } else playerWrong.current += 1;
+      }
     }
 
     // Claim tallies: every entry into a settle animation is one resolved claim.
@@ -107,10 +135,15 @@ export function useClassicResultRecorder({
     };
 
     if (isSolo) {
+      const selectedStats = { correct: playerCorrect.current, wrong: playerWrong.current, victoryMs: victory.current };
+      if (umbrellaOn()) rememberMatch({ id: localId.current, mode: "solo", won: report.endReason === "target" && (s.scores[0] ?? 0) >= 12, ...selectedStats });
       const pending = soloIdRef.current;
       if (!pending) return;
       void pending.then((id) => {
-        if (id) void saveSoloGame({ ...report, gameId: id });
+        if (!id) return;
+        void saveSoloGame({ ...report, gameId: id }).then(async (saved) => {
+          if (saved && umbrellaOn()) await supabase.rpc("save_solo_player_stats", { p_game_id: id, p_correct: selectedStats.correct, p_wrong: selectedStats.wrong, p_victory_ms: selectedStats.victoryMs });
+        });
       });
       return;
     }

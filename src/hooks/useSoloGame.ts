@@ -56,6 +56,8 @@ export interface UseSoloGameResult {
   visitorId: string;
   gameId: string;
   rollCommit: RollCommitPayload | null;
+  statsSettleBy: number | null;
+  statsSettleToken: number;
 }
 
 export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult {
@@ -386,5 +388,7 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
     visitorId: "solo-you",
     gameId: "solo-game",
     rollCommit,
+    statsSettleBy: state.settleBy,
+    statsSettleToken: state.settleToken,
   };
 }
