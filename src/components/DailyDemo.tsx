@@ -26,7 +26,8 @@ export interface DailyDemoProps {
 // Fixed teaching board, never an actual puzzle or persisted attempt.
 const IDS = ["1-circle-red", "2-star-blue", "3-square-yellow", "4-tri-blue", "2-circle-yellow", "1-square-red", "3-tri-yellow", "4-star-red", "1-tri-red"];
 export const DAILY_DEMO_CARDS: Card[] = IDS.map((id) => {
-  const card = ALL_CARDS.find((item) => item.id === id);
+  const [number, shape, color] = id.split("-");
+  const card = ALL_CARDS.find((item) => item.number === Number(number) && item.shape === shape && item.color === color);
   if (!card) throw new Error(`Missing tutorial card ${id}`);
   return card;
 });
