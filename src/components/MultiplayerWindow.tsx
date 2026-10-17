@@ -205,6 +205,7 @@ import {
 
 import { startTheme, stopTheme, unlockAudio, CLASSIC_THEME_FILE } from "@/lib/sounds";
 import { supabase } from "@/integrations/supabase/client";
+import MaterialIcon from "@/components/MaterialIcon";
 
 
 interface MultiplayerWindowProps {
@@ -1724,13 +1725,13 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 setCodeInput("");
                 if (validateDisplayName(getDisplayName()).ok) void enterRoom({ kind: "create" });
                 else setView({ kind: "name-prompt", intent: "peeps", action: "create" });
-              }}>Start a table</AppButton>
+              }}><span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><MaterialIcon name="group_add" size={20} />Start a table</span></AppButton>
             </div>
             <div style={{ flex: "1 1 0", minWidth: 0 }}>
               <AppButton roleStyle="secondary" size="lg" fullWidth onClick={() => {
                 setCodeInput("");
                 setView({ kind: "name-prompt", intent: "peeps", action: "join" });
-              }}>Join a table</AppButton>
+              }}><span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><MaterialIcon name="login" size={20} />Join a table</span></AppButton>
             </div>
           </div>
           <AppButton roleStyle="utility" size="md" fullWidth onClick={leaveToIdle}>Back</AppButton>

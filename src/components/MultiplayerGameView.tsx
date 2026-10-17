@@ -125,6 +125,7 @@ interface Props {
 const INK = COLORS.ink;               // #231F20
 const SURFACE = COLORS.surface;       // #F8F2E9
 const PANEL = COLORS.panel;           // #D0C3AF
+const IDLE_HINT_MS = 6000;           // ON-only idle nudge delay
 const MUTED = COLORS.inkMuted;        // #544C4A
 const RED = COLORS.red;               // #D72229
 const BLUE = COLORS.blue;             // #0072B2
@@ -995,6 +996,19 @@ const MultiplayerGameView: React.FC<Props> = ({
   }, [s.phase, s.claimWindowEndsAt]);
   const isMyTurnToRoll = mySeat !== null && s.roller === mySeat && s.phase === "AWAITING_ROLL" && !s.rolling;
   const isMyTurnToFlip = mySeat !== null && s.flipper === mySeat && s.phase === "FLIPPING" && s.peekingCard === null;
+  // ON-only idle nudge: after IDLE_HINT_MS of waiting on my roll/flip, show a
+  // hint. The key changes on every new turn (face-up count moves on a flip), so
+  // the timer restarts per turn and clears the instant the player acts.
+  const idleKind: "roll" | "flip" | null = !umbrella ? null : isMyTurnToRoll ? "roll" : isMyTurnToFlip ? "flip" : null;
+  const idleKey = idleKind ? `${idleKind}:${s.grid.filter((g) => g.card !== null).length}` : "";
+  const [idleHint, setIdleHint] = React.useState<"roll" | "flip" | null>(null);
+  React.useEffect(() => {
+    setIdleHint(null);
+    if (!idleKey) return;
+    const kind = idleKey.split(":")[0] as "roll" | "flip";
+    const t = setTimeout(() => setIdleHint(kind), IDLE_HINT_MS);
+    return () => clearTimeout(t);
+  }, [idleKey]);
   // NOTE: the old ~500ms "flip rotation freeze" on WHOOP was removed — a
   // player may claim mid-flip, so there is no window where the button is inert.
   // Cards must LOOK inert while another seat holds an open claim — otherwise a
@@ -1186,6 +1200,12 @@ const MultiplayerGameView: React.FC<Props> = ({
   const cellRefs = React.useRef<(HTMLDivElement | null)[]>([]);
   const gridRef = React.useRef(s.grid);
   gridRef.current = s.grid;
+  // Slots face up as of the previous commit. Effects run after layout
+  // effects, so the settle layout effect still sees the pre-reveal faces.
+  const prevFaceUpRef = React.useRef<Set<number>>(new Set());
+  React.useEffect(() => {
+    prevFaceUpRef.current = new Set(s.grid.flatMap((g, i) => (g.card ? [i] : [])));
+  }, [s.grid]);
   const [ghost, setGhost] = React.useState<GhostCard[]>([]);
   const [ghostElapsed, setGhostElapsed] = React.useState(0);
 
@@ -1209,10 +1229,14 @@ const MultiplayerGameView: React.FC<Props> = ({
         key: `settle-${i}-${r.top}-${r.left}`,
         card,
         rect: { top: r.top, left: r.left, width: r.width, height: r.height },
+        // ON: a card revealed by this claim plays its full flip first.
+        flip: umbrella && !prevFaceUpRef.current.has(i),
       }];
     });
     // A client arriving mid-settle starts at the host's point in the timeline.
     const elapsed = presentationElapsed(s.settleEndsAt, SETTLE_MATCH_MS, serverNow());
+    // A late arrival skips the flip and joins the timeline face up.
+    if (elapsed > 150) copies.forEach((c) => { c.flip = false; });
     setGhostElapsed(elapsed);
     if (elapsed >= SETTLE_MATCH_MS) return;
     if (copies.length) setGhost(copies);
@@ -1865,10 +1889,12 @@ const MultiplayerGameView: React.FC<Props> = ({
       maxHeight: mobile ? undefined : "100%",
       width: "100%",
       boxSizing: "border-box",
-      background: PANEL, overflow: "hidden", position: "relative",
+      // ON: the page background is the true background — no solid panel.
+      background: umbrella ? "transparent" : PANEL, overflow: "hidden", position: "relative",
     }}>
       {/* Solid panel wash over the persistent intro still. z-index:-1 keeps it
           above the frozen Lottie background and below the game column. */}
+      {umbrella ? null : (
       <div
         aria-hidden="true"
         style={{
@@ -1881,6 +1907,24 @@ const MultiplayerGameView: React.FC<Props> = ({
           transition: prefersReducedMotion() ? "none" : "opacity 1200ms cubic-bezier(0.22, 0.61, 0.36, 1)",
         }}
       />
+      )}
+      {idleHint ? (
+        <div
+          role="status"
+          data-testid="idle-hint"
+          style={{
+            position: "fixed", left: "50%", bottom: "calc(120px + env(safe-area-inset-bottom))",
+            transform: "translateX(-50%)", zIndex: 60, pointerEvents: "none",
+            background: COLORS.ink, color: COLORS.surface, fontFamily: FONT_FAMILY,
+            fontSize: 15, fontWeight: 600, padding: "10px 16px", borderRadius: 999,
+            boxShadow: "0 4px 14px rgba(0,0,0,0.25)", whiteSpace: "nowrap",
+            animation: prefersReducedMotion() ? undefined : "ww-idle-hint-in 250ms ease-out both",
+          }}
+        >
+          <style>{"@keyframes ww-idle-hint-in{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}"}</style>
+          {idleHint === "roll" ? "Your turn to roll!" : "Tap a card to flip!"}
+        </div>
+      ) : null}
       <style>{HEADER_FOCUS_CSS}</style>
 
       <RollOverlayPortal
