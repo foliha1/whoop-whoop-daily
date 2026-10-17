@@ -59,20 +59,22 @@ const ProductInstallHead: React.FC = () => {
   );
 };
 
+const EntryRouteMusic: React.FC = () => {
+  useEffect(() => {
+    enterThemeZone(CLASSIC_THEME_FILE);
+    return () => leaveThemeZone();
+  }, []);
+  return null;
+};
+
 const AnimatedRoutes: React.FC = () => {
   const location = useLocation();
   const umbrella = useUmbrella();
   const [displayLocation, setDisplayLocation] = useState(location);
   const [stage, setStage] = useState<"fadeIn" | "fadeOut">("fadeIn");
 
-  // Game routes own their changing screen state. Other ON destinations
-  // (including legal pages and admin) explicitly restore the Classic track.
-  useEffect(() => {
-    const path = displayLocation.pathname;
-    if (!umbrella || path === "/" || path === "/daily" || path === "/today" || path === "/you" || path.startsWith("/classic") || path.startsWith("/play")) return;
-    enterThemeZone(CLASSIC_THEME_FILE);
-    return () => leaveThemeZone();
-  }, [umbrella, displayLocation.pathname]);
+  const path = displayLocation.pathname;
+  const entryMusic = umbrella && path !== "/" && path !== "/daily" && path !== "/today" && path !== "/you" && !path.startsWith("/classic") && !path.startsWith("/play");
 
   useEffect(() => {
     if (location.key === displayLocation.key) return;
@@ -130,6 +132,7 @@ const AnimatedRoutes: React.FC = () => {
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        {entryMusic ? <EntryRouteMusic key={path} /> : null}
       </Suspense>
     </div>
   );
