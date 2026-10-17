@@ -23,6 +23,7 @@ import DisplayNameEditor from "@/components/DisplayNameEditor";
 import { useUmbrella } from "@/lib/launch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PlayStatsBlock from "@/components/PlayStatsBlock";
+import { PLAY_MODES, PLAY_MODE_BUTTON } from "@/lib/playModeTheme";
 
 const EARN_ROWS = [
   { label: "Played", value: "+1" },
@@ -90,7 +91,7 @@ const YouPage: React.FC = () => {
         {umbrella && <MotionReveal index={2} style={section}><DisplayNameEditor mobile={mobile} /></MotionReveal>}
         <Tabs value={umbrella ? activeTab : "daily"} onValueChange={setActiveTab} style={{ width: "100%", minWidth: 0 }}>
           {umbrella && <TabsList aria-label="Play statistics" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", width: "100%", height: "auto", padding: SPACE[2], gap: SPACE[2], background: COLORS.panel, border: BORDER.heavy, borderRadius: RADIUS.md, marginBottom: SPACE[12] }}>
-            {(["daily", "solo", "together"] as const).map((mode) => <TabsTrigger key={mode} value={mode} className="ww-press" style={{ ...buttonStyle("quiet", "md", { mobile, selected: activeTab === mode }), minWidth: 0, padding: `0 ${SPACE[4]}px` }}>{mode === "daily" ? "Daily" : mode === "solo" ? "Solo" : "Together"}</TabsTrigger>)}
+            {PLAY_MODES.map((mode) => <TabsTrigger key={mode} value={mode} className="ww-press" style={{ ...buttonStyle(activeTab === mode ? PLAY_MODE_BUTTON[mode] : "quiet", "md", { mobile }), minWidth: 0, padding: `0 ${SPACE[4]}px` }}>{mode === "daily" ? "Daily" : mode === "solo" ? "Solo" : "Together"}</TabsTrigger>)}
           </TabsList>}
           <TabsContent value="daily" style={{ marginTop: 0, display: umbrella && activeTab !== "daily" ? "none" : undefined }}>
         {loading ? <CardFlipLoader label="Loading Your Stats" /> : points === null ? (
@@ -103,12 +104,12 @@ const YouPage: React.FC = () => {
               <YouScoreTiles points={points} mobile={mobile} />
               <div data-testid="you-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
                 {([
-                  ["Days Played", points.gamesPlayed, COLORS.red],
-                  ["Clean Runs", stats?.cleanRuns ?? "—", COLORS.blue],
-                  ["Longest Streak", stats?.bestStreak ?? "—", COLORS.orangeStat],
-                ] as const).map(([label, value, color]) => (
-                  <div key={label} style={{ ...creamTile, borderColor: color, padding: SPACE[6], display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: SPACE[4], textAlign: "center" }}>
-                    <span style={{ ...textStyle("display", mobile), color }}>{value}</span>
+                  ["Days Played", points.gamesPlayed],
+                  ["Clean Runs", stats?.cleanRuns ?? "—"],
+                  ["Longest Streak", stats?.bestStreak ?? "—"],
+                ] as const).map(([label, value]) => (
+                  <div key={label} style={{ ...creamTile, padding: SPACE[6], display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: SPACE[4], textAlign: "center" }}>
+                    <span style={{ ...textStyle("display", mobile), color: COLORS.ink }}>{value}</span>
                     <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, overflowWrap: "anywhere" }}>{label}</span>
                   </div>
                 ))}
