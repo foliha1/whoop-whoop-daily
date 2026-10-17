@@ -18,7 +18,7 @@
 
 import { useEffect, useRef } from "react";
 import { umbrellaOn } from "@/lib/launch";
-import { rememberMatch } from "@/lib/playerStats";
+import { rememberMatch, replaceLocalMatchId } from "@/lib/playerStats";
 import { supabase } from "@/integrations/supabase/client";
 import {
   endReasonFor,
@@ -102,7 +102,12 @@ export function useClassicResultRecorder({
       started.current = Date.now();
       victory.current = null;
       localId.current = crypto.randomUUID();
-      void soloIdRef.current?.then((id) => { if (id) localId.current = id; });
+      const temporaryId = localId.current;
+      void soloIdRef.current?.then((id) => {
+        if (!id) return;
+        replaceLocalMatchId(temporaryId, id);
+        if (localId.current === temporaryId) localId.current = id;
+      });
     }
 
     if (isSolo && umbrellaOn() && s.settleKind !== null && s.settleToken !== undefined && s.settleToken !== lastToken.current) {

@@ -27,6 +27,14 @@ export function rememberHostedTable(code: string): void {
   history.tables = [...new Set([...history.tables, code])];
   try { localStorage.setItem(key(), JSON.stringify(history)); } catch { /* storage unavailable */ }
 }
+export function replaceLocalMatchId(previous: string, next: string): void {
+  const history = localMatchHistory();
+  const record = history.games.find((g) => g.id === previous);
+  if (!record) return;
+  history.games = history.games.filter((g) => g.id !== previous && g.id !== next);
+  history.games.push({ ...record, id: next });
+  try { localStorage.setItem(key(), JSON.stringify(history)); } catch { /* storage unavailable */ }
+}
 export function mergeHistory(remote: MatchHistory, local: MatchHistory): MatchHistory {
   const games = new Map(local.games.map((g) => [g.id, g]));
   for (const game of remote.games) {
