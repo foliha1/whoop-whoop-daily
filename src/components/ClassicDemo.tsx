@@ -1208,6 +1208,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
               <div
                 style={{
                   ...textStyle("control", true),
+                  ...(umbrellaOn() ? { fontFamily: FONT_FAMILY_UI, fontWeight: FONT_WEIGHT_UI } : {}),
                   fontSize: FONT_SIZE.sm,
                   // +5% over the control role's spacing — derived from the
                   // token so it can never drift from the scale.

@@ -4,6 +4,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import DailyShapeRule from "@/components/DailyShapeRule";
 import GameCard from "@/components/GameCard";
 import CloseButton from "@/components/CloseButton";
+import DailyDemo, { type DailyDemoProps } from "@/components/DailyDemo";
+import { markHowToSeen } from "@/lib/dailyHowTo";
+export { hasSeenHowTo, markHowToSeen } from "@/lib/dailyHowTo";
 import { useDismiss } from "@/hooks/useDismiss";
 import { MatchGhostCard, useMatchGhostStage } from "@/components/matchGhostParts";
 import { ALL_CARDS, type Card } from "@/cardData";
@@ -30,25 +33,6 @@ import {
   RAW,
 } from "@/lib/tokens";
 
-
-/** localStorage flag: the first-run gate fires exactly once per browser. */
-const SEEN_KEY = "ww_daily_howto_seen";
-
-export function hasSeenHowTo(): boolean {
-  try {
-    return window.localStorage.getItem(SEEN_KEY) === "1";
-  } catch {
-    return true; // storage blocked: never trap the player behind the gate
-  }
-}
-
-export function markHowToSeen(): void {
-  try {
-    window.localStorage.setItem(SEEN_KEY, "1");
-  } catch {
-    /* ignore */
-  }
-}
 
 const CARD_BACK = CARD_BACK_URL;
 
@@ -1181,7 +1165,7 @@ const buttonBase: React.CSSProperties = {
 let lastHowToOpen: { mode: string; at: number } = { mode: "", at: 0 };
 
 
-const DailyHowToSteps: React.FC<{
+const LegacyDailyHowToSteps: React.FC<{
   mode: "gate" | "reference";
   mobile?: boolean;
   /** Start the daily run. */
@@ -1530,4 +1514,7 @@ const DailyHowToSteps: React.FC<{
   );
 };
 
-export default DailyHowToSteps;
+export default function DailyHowToSteps(props: DailyDemoProps) {
+  const umbrella = useUmbrella();
+  return umbrella ? <DailyDemo {...props} /> : <LegacyDailyHowToSteps {...props} />;
+}

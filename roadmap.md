@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Correct How to Play body type to Geist and build the ON-only scripted Daily board demo; verify navigation, reduced motion, themes, and OFF isolation (648 tests pass).
+
 - [x] Apply ON/admin-preview screen music policy, keep gameplay silent and OFF behavior unchanged, and test track assignments and transitions.
 
 - [x] Fix Solo bot grace after the visible roll and rename the ON opponent FELIX; scheduler regressions and live Solo entry verified; switch remains OFF.
