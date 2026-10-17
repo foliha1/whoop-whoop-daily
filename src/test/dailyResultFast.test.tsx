@@ -352,7 +352,7 @@ describe("daily end of run (fast, from round 3)", () => {
     const [i, j] = goodPair(m);
     await claimInDom(i, j);
     await expectResultVisible();
-    expect(lastRoute).toBe("/");
+    expect(lastRoute).toBe(`/?debug=1&seed=${SEED}`);
     const done = screen.getByRole("button", { name: /^Done$/i });
     await act(async () => {
       done.click();
