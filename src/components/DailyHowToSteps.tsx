@@ -17,6 +17,8 @@ import {
   WRONG_ANIM_MS,
 } from "@/lib/animationTiming";
 import { trackDaily } from "@/lib/dailyEvents";
+import { useUmbrella } from "@/lib/launch";
+import { startTheme, leaveThemeZone, prewarmTheme, HOW_TO_PLAY_THEME_FILE } from "@/lib/sounds";
 
 import {
   buttonStyle,
@@ -1187,6 +1189,13 @@ const DailyHowToSteps: React.FC<{
   /** Dismiss without starting (reference mode only). */
   onClose: () => void;
 }> = ({ mode, onStart, onClose }) => {
+  const umbrella = useUmbrella();
+  useEffect(() => {
+    if (!umbrella) return;
+    prewarmTheme(HOW_TO_PLAY_THEME_FILE);
+    startTheme(HOW_TO_PLAY_THEME_FILE);
+    return () => leaveThemeZone();
+  }, [umbrella]);
   const [step, setStep] = useState(0);
   const [prev, setPrev] = useState<{ index: number; dir: 1 | -1 } | null>(null);
   const [dir, setDir] = useState<1 | -1>(1);

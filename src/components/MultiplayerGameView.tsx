@@ -70,6 +70,7 @@ import {
 import AutoFitText from "@/components/AutoFitText";
 import { hapticTap, hapticImpact, hapticSuccess, hapticError } from "@/lib/haptics";
 import { useUmbrella } from "@/lib/launch";
+import { screenMusic } from "@/lib/screenMusic";
 
 const prefersReducedMotion = (): boolean => {
   try {
@@ -930,9 +931,9 @@ const MultiplayerGameView: React.FC<Props> = ({
   // ready/results screens, effects only during the run.
   useEffect(() => {
     if (showHowTo) return;
-    if (isGameOver) startTheme(CLASSIC_THEME_FILE);
+    if (isGameOver) startTheme(screenMusic("results", umbrella, CLASSIC_THEME_FILE) ?? undefined);
     else stopTheme();
-  }, [isGameOver, showHowTo]);
+  }, [isGameOver, showHowTo, umbrella]);
 
   useEffect(() => {
     if (isGameOver) {

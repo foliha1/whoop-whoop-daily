@@ -9,6 +9,7 @@ import { COLORS } from "@/lib/tokens";
 import { UI_EASE, UI_ENTER_MS, UI_EXIT_MS } from "@/lib/animationTiming";
 import CardFlipLoader from "@/components/CardFlipLoader";
 import { useUmbrella } from "@/lib/launch";
+import { enterThemeZone, leaveThemeZone, CLASSIC_THEME_FILE } from "@/lib/sounds";
 
 const INSTALL_ASSET_VERSION = "20260925";
 
@@ -63,6 +64,15 @@ const AnimatedRoutes: React.FC = () => {
   const umbrella = useUmbrella();
   const [displayLocation, setDisplayLocation] = useState(location);
   const [stage, setStage] = useState<"fadeIn" | "fadeOut">("fadeIn");
+
+  // Game routes own their changing screen state. Other ON destinations
+  // (including legal pages and admin) explicitly restore the Classic track.
+  useEffect(() => {
+    const path = displayLocation.pathname;
+    if (!umbrella || path === "/" || path === "/daily" || path === "/today" || path === "/you" || path.startsWith("/classic") || path.startsWith("/play")) return;
+    enterThemeZone(CLASSIC_THEME_FILE);
+    return () => leaveThemeZone();
+  }, [umbrella, displayLocation.pathname]);
 
   useEffect(() => {
     if (location.key === displayLocation.key) return;
