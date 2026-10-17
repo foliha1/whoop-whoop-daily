@@ -252,7 +252,9 @@ export const ChipCell: React.FC<{ chip: DerivedChip }> = ({ chip }) => {
           <div aria-hidden="true" style={{
             position: "absolute", left: 0, top: 0, bottom: 0,
             width: `${progress * 100}%`,
-            background: seatColor, opacity: 0.18,
+            background: seatColor, opacity: 0.55,
+            borderRight: progress > 0 && progress < 1 ? `2px solid ${seatColor}` : undefined,
+            transition: prefersReducedMotion() ? "none" : "width 400ms ease-out",
           }} />
         )}
         <AutoFitText minScale={0.8} style={{
@@ -1451,7 +1453,7 @@ const MultiplayerGameView: React.FC<Props> = ({
 
     // ON: the second card must finish its full flip (plus a short read beat)
     // before the match resolves, so the reveal never snaps face up.
-    const minAt = Date.now() + (umbrella && !prefersReducedMotion() ? CARD_FLIP_MS + 150 : 0);
+    const minAt = Date.now() + (umbrella && !prefersReducedMotion() ? CARD_FLIP_MS + 100 : 0);
     let waitT: ReturnType<typeof setTimeout> | null = null;
     const tryFire = () => {
       if (done || !animEnded || !serverReadyRef.current) return;
@@ -1924,15 +1926,16 @@ const MultiplayerGameView: React.FC<Props> = ({
           role="status"
           data-testid="idle-hint"
           style={{
-            position: "fixed", left: "50%", bottom: "calc(120px + env(safe-area-inset-bottom))",
-            transform: "translateX(-50%)", zIndex: 60, pointerEvents: "none",
-            background: COLORS.ink, color: COLORS.surface, fontFamily: FONT_FAMILY,
-            fontSize: 15, fontWeight: 600, padding: "10px 16px", borderRadius: 999,
-            boxShadow: "0 4px 14px rgba(0,0,0,0.25)", whiteSpace: "nowrap",
-            animation: prefersReducedMotion() ? undefined : "ww-idle-hint-in 250ms ease-out both",
+            position: "fixed", left: "50%", top: "50%",
+            transform: "translate(-50%, -50%)", zIndex: 60, pointerEvents: "none",
+            background: COLORS.blue, color: "#FFF8EC", fontFamily: FONT_FAMILY,
+            fontSize: 18, fontWeight: 700, padding: "14px 22px", borderRadius: 999,
+            border: `2px solid ${COLORS.ink}`,
+            boxShadow: "0 6px 20px rgba(0,0,0,0.3)", whiteSpace: "nowrap",
+            animation: prefersReducedMotion() ? undefined : "ww-idle-hint-in 250ms ease-out both, ww-idle-hint-pulse 1600ms ease-in-out 250ms infinite",
           }}
         >
-          <style>{"@keyframes ww-idle-hint-in{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}"}</style>
+          <style>{"@keyframes ww-idle-hint-in{from{opacity:0;transform:translate(-50%,-50%) scale(.9)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}@keyframes ww-idle-hint-pulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.05)}}"}</style>
           {idleHint === "roll" ? "Your turn to roll!" : "Tap a card to flip!"}
         </div>
       ) : null}
