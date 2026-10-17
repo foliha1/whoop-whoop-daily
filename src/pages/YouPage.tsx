@@ -104,12 +104,12 @@ const YouPage: React.FC = () => {
               <YouScoreTiles points={points} mobile={mobile} />
               <div data-testid="you-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
                 {([
-                  ["Days Played", points.gamesPlayed],
-                  ["Clean Runs", stats?.cleanRuns ?? "—"],
-                  ["Longest Streak", stats?.bestStreak ?? "—"],
-                ] as const).map(([label, value]) => (
-                  <div key={label} style={{ ...creamTile, padding: SPACE[6], display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: SPACE[4], textAlign: "center" }}>
-                    <span style={{ ...textStyle("display", mobile), color: COLORS.ink }}>{value}</span>
+                  ["Days Played", points.gamesPlayed, COLORS.red],
+                  ["Clean Runs", stats?.cleanRuns ?? "—", COLORS.blue],
+                  ["Longest Streak", stats?.bestStreak ?? "—", COLORS.orangeStat],
+                ] as const).map(([label, value, legacyColor]) => (
+                  <div key={label} style={{ ...creamTile, borderColor: umbrella ? COLORS.ink : legacyColor, padding: SPACE[6], display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: SPACE[4], textAlign: "center" }}>
+                    <span style={{ ...textStyle("display", mobile), color: umbrella ? COLORS.ink : legacyColor }}>{value}</span>
                     <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, overflowWrap: "anywhere" }}>{label}</span>
                   </div>
                 ))}

@@ -1,6 +1,7 @@
 # Roadmap
  
 ## Expanded player statistics
+- [x] Gate neutral Daily tile accents to ON/admin preview; preserve legacy coloured accents when OFF.
 - [x] Add ON-only Daily / Solo / Together tabs, preserving existing Daily content
 - [x] Add protected player aggregates and Solo claim/pair tracking; Together tables hosted
 - [x] Test metric rules, verify live reads and mobile tabs; keep launch OFF and Groups hidden (674 tests; live new-game write lifecycle remains unverified, documented in docs/player-stats-release.md)
