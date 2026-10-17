@@ -51,6 +51,7 @@ import {
   playWrong,
   startTheme,
   stopTheme,
+  leaveThemeZone,
   prewarmTheme,
   HOW_TO_PLAY_THEME_FILE,
 } from "@/lib/sounds";
@@ -635,7 +636,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   useEffect(() => {
     prewarmTheme(HOW_TO_PLAY_THEME_FILE);
     startTheme(HOW_TO_PLAY_THEME_FILE);
-    return () => stopTheme();
+    return () => { if (umbrellaOn()) leaveThemeZone(); else stopTheme(); };
   }, []);
 
   const [welcome, setWelcome] = useState(true);

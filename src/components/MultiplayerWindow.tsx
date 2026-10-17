@@ -203,7 +203,7 @@ import {
   type RoomRow,
 } from "@/lib/rooms";
 
-import { startTheme, stopTheme, unlockAudio, CLASSIC_THEME_FILE } from "@/lib/sounds";
+import { startTheme, stopTheme, leaveThemeZone, unlockAudio, CLASSIC_THEME_FILE } from "@/lib/sounds";
 import { supabase } from "@/integrations/supabase/client";
 import MaterialIcon from "@/components/MaterialIcon";
 
@@ -673,7 +673,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     startTheme(CLASSIC_THEME_FILE);
   }, [howTo, dailyHowTo, gameOnScreen]);
   // Route change or window close: nothing on the next screen wants this loop.
-  useEffect(() => () => stopTheme(), []);
+  useEffect(() => () => { if (umbrella) leaveThemeZone(); else stopTheme(); }, [umbrella]);
 
 
   const joinerSeat = useMemo(() => {
