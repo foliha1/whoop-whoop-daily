@@ -12,7 +12,7 @@ import { DAILY_ROUNDS, MISSES_PER_ROUND, PEEK_MS, STUDY_MS } from "@/lib/dailyEn
 import { markHowToSeen } from "@/lib/dailyHowTo";
 import { trackDaily } from "@/lib/dailyEvents";
 import { useDismiss } from "@/hooks/useDismiss";
-import { CARD_FLIP_MS, DAILY_MATCH_HOLD_MS, DAILY_MATCH_GREAT_MS, DEAL_MOVE_MS, DEAL_STAGGER_MS, DEMO_BEAT_MS, WRONG_ANIM_MS, UI_ENTER_MS } from "@/lib/animationTiming";
+import { CARD_FLIP_MS, DAILY_MATCH_HOLD_MS, DAILY_MATCH_GREAT_MS, DEMO_BEAT_MS, WRONG_ANIM_MS, UI_ENTER_MS } from "@/lib/animationTiming";
 import { COLORS, BORDER, SPACE, FONT_SIZE, MOTION, buttonStyle, textStyle, panelStyle } from "@/lib/tokens";
 import { playDeal, playFlip, playDiceRoll, playDieLand, playCorrect, playWrong, startTheme, leaveThemeZone, prewarmTheme, HOW_TO_PLAY_THEME_FILE } from "@/lib/sounds";
 
@@ -60,6 +60,8 @@ export default function DailyDemo({ mode, onStart, onClose }: DailyDemoProps) {
   const [scene, setScene] = useState<Scene>(blank);
   const [reduced, setReduced] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const root = useRef<HTMLDivElement>(null);
+  const board = useRef<HTMLDivElement>(null);
+  const [boardWidth, setBoardWidth] = useState(240);
   const finished = useRef(false);
   const current = DAILY_DEMO_STEPS[step];
   const changeStep = (next: number) => setStep(Math.max(0, Math.min(DAILY_DEMO_STEPS.length - 1, next)));
@@ -77,6 +79,19 @@ export default function DailyDemo({ mode, onStart, onClose }: DailyDemoProps) {
     onStart();
   };
   useDismiss(dismiss, { escape: true, returnFocus: true });
+
+  useEffect(() => {
+    const element = board.current;
+    if (!element) return;
+    const resize = () => {
+      const rect = element.getBoundingClientRect();
+      setBoardWidth(Math.max(0, Math.min(300, rect.width, (rect.height - SPACE[4] * 2) / 4.2 + SPACE[4] * 2)));
+    };
+    const observer = new ResizeObserver(resize);
+    observer.observe(element);
+    resize();
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -173,14 +188,16 @@ export default function DailyDemo({ mode, onStart, onClose }: DailyDemoProps) {
         <CloseButton label="Skip" ariaLabel={mode === "gate" ? "Skip how to play and continue" : "Close how to play"} onClick={dismiss} />
       </div>
       <div style={{ ...textStyle("caption"), display: "flex", justifyContent: "space-between", flex: "none" }}><span>Whoop! Whoop! Daily</span><span>{DAILY_ROUNDS} rounds</span></div>
-      <DemoSpotlight active={current.region === "board"} instant={reduced} style={{ flex: "1 1 auto", minHeight: 210, display: "grid", placeItems: "center" }}>
-        <div data-testid="daily-demo-board" aria-hidden="true" style={{ width: "100%", maxWidth: 300, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
+      <DemoSpotlight active={current.region === "board"} instant={reduced} style={{ flex: "1 1 auto", minHeight: 190, display: "flex" }}>
+        <div ref={board} style={{ width: "100%", display: "grid", placeItems: "center" }}>
+        <div data-testid="daily-demo-board" aria-hidden="true" style={{ width: boardWidth, maxWidth: "100%", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
           {DAILY_DEMO_CARDS.map((card, i) => <div key={card.id} style={{ aspectRatio: "180 / 252", position: "relative", opacity: scene.removed.includes(i) ? 0 : 1, transition: reduced ? undefined : `opacity ${MOTION.base}` }}>
             <div style={{ height: "100%", visibility: scene.ghost && PAIR.includes(i) ? "hidden" : "visible" }}>
               <GameCard card={card} faceUp={scene.face.includes(i)} highlighted={scene.selected.includes(i)} wrong={!reduced && scene.wrong.includes(i)} interactive={false} fill dealKey={!reduced && step === 0 ? step : undefined} dealIndex={step === 0 ? i : undefined} />
             </div>
             {scene.ghost && PAIR.includes(i) && <Reward card={card} />}
           </div>)}
+        </div>
         </div>
       </DemoSpotlight>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: SPACE[4], flex: "none", height: 64 }}>
