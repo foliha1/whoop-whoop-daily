@@ -5,6 +5,7 @@
 - [x] Add ON-only Daily / Solo / Together tabs, preserving existing Daily content
 - [x] Add protected player aggregates and Solo claim/pair tracking; Together tables hosted
 - [x] Test metric rules, verify live reads and mobile tabs; keep launch OFF and Groups hidden (674 tests; live new-game write lifecycle remains unverified, documented in docs/player-stats-release.md)
+- [x] Top-align Your Stats content under the top pattern rail in the admin preview only (`DailyFrame align`); OFF stays centred. 679 tests, typecheck clean, grid verified.
 
 - [x] Correct How to Play body type to Geist and build the ON-only scripted Daily board demo; verify navigation, reduced motion, themes, and OFF isolation (648 tests pass).
 
