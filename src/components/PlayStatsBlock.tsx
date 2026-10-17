@@ -31,7 +31,7 @@ export default function PlayStatsBlock({ mode, mobile }: { mode: "solo" | "toget
   if (loading && !history.games.length && !history.tables.length) return <CardFlipLoader label={`Loading ${mode === "solo" ? "Solo" : "Together"} Stats`} />;
   return <div style={{ display: "flex", flexDirection: "column", gap: SPACE[8] }}>
     {error && <p role="status" style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>Couldn’t refresh your stats. Showing this device’s saved results.</p>}
-    <div style={{ display: "grid", gridTemplateColumns: mobile ? "repeat(2, minmax(0, 1fr))" : "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
+    <div data-testid="play-stats" style={{ display: "grid", gridTemplateColumns: mobile ? "repeat(2, minmax(0, 1fr))" : "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
       {rows.map(([label, value]) => <div key={label} style={{ minWidth: 0, border: BORDER.heavy, borderRadius: RADIUS.md, background: COLORS.surface, padding: SPACE[6], display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: SPACE[4], textAlign: "center" }}>
         <span style={{ ...textStyle("display", mobile), ...(label === "Quickest Victory" ? textStyle("title", mobile) : {}), color: COLORS.ink, overflowWrap: "anywhere" }}>{value}</span>
         <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, overflowWrap: "normal" }}>{label}</span>
