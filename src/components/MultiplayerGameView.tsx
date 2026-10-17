@@ -71,6 +71,7 @@ import AutoFitText from "@/components/AutoFitText";
 import { hapticTap, hapticImpact, hapticSuccess, hapticError } from "@/lib/haptics";
 import { useUmbrella } from "@/lib/launch";
 import { screenMusic } from "@/lib/screenMusic";
+import { useTogetherStatsRecorder } from "@/hooks/useTogetherStatsRecorder";
 
 const prefersReducedMotion = (): boolean => {
   try {
@@ -903,6 +904,7 @@ const MultiplayerGameView: React.FC<Props> = ({
   heartbeatStale, awaySkip, hostDisconnectedSeats, presenceStatus, soloMode = false, onInvite,
 }) => {
   const umbrella = useUmbrella();
+  useTogetherStatsRecorder(s, mySeat, umbrella && !soloMode);
   const [showSettings, setShowSettings] = React.useState(false);
   const [showLeave, setShowLeave] = React.useState(false);
   const [showHowTo, setShowHowTo] = React.useState(false);

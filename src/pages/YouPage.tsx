@@ -21,6 +21,8 @@ import { BORDER, COLORS, FONT_SIZE, RADIUS, RAW, SPACE, buttonStyle, textStyle }
 import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
 import DisplayNameEditor from "@/components/DisplayNameEditor";
 import { useUmbrella } from "@/lib/launch";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import PlayStatsBlock from "@/components/PlayStatsBlock";
 
 const EARN_ROWS = [
   { label: "Played", value: "+1" },
@@ -35,6 +37,7 @@ const sectionLabel = (label: string, mobile: boolean) => (
 
 const YouPage: React.FC = () => {
   const umbrella = useUmbrella();
+  const [activeTab, setActiveTab] = React.useState("daily");
   const mobile = useIsMobile();
   const location = useLocation();
   const backToResults = (location.state as { wwReturn?: string } | null)?.wwReturn === "results";
@@ -84,18 +87,18 @@ const YouPage: React.FC = () => {
           <span aria-hidden="true" />
         </div>
 
+        {umbrella && <MotionReveal index={2} style={section}><DisplayNameEditor mobile={mobile} /></MotionReveal>}
+        <Tabs value={umbrella ? activeTab : "daily"} onValueChange={setActiveTab} style={{ width: "100%", minWidth: 0 }}>
+          {umbrella && <TabsList aria-label="Play statistics" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", width: "100%", height: "auto", padding: SPACE[2], gap: SPACE[2], background: COLORS.panel, border: BORDER.heavy, borderRadius: RADIUS.md, marginBottom: SPACE[12] }}>
+            {(["daily", "solo", "together"] as const).map((mode) => <TabsTrigger key={mode} value={mode} className="ww-press" style={{ ...buttonStyle("quiet", "md", { mobile, selected: activeTab === mode }), minWidth: 0, padding: `0 ${SPACE[4]}px` }}>{mode === "daily" ? "Daily" : mode === "solo" ? "Solo" : "Together"}</TabsTrigger>)}
+          </TabsList>}
+          <TabsContent value="daily" style={{ marginTop: 0, display: umbrella && activeTab !== "daily" ? "none" : undefined }}>
         {loading ? <CardFlipLoader label="Loading Your Stats" /> : points === null ? (
           <p data-testid="you-score-error" style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, margin: 0 }}>
             {SCORE_LABEL} could not be loaded. Try again in a moment.
           </p>
         ) : (
-          <>
-            {/* Umbrella Part 1: name editor only after launch / admin preview. */}
-            {umbrella && (
-              <MotionReveal index={2} style={section}>
-                <DisplayNameEditor mobile={mobile} />
-              </MotionReveal>
-            )}
+          <div style={{ display: "flex", flexDirection: "column", gap: SPACE[20] }}>
             <MotionReveal index={2} style={section}>
               <YouScoreTiles points={points} mobile={mobile} />
               <div data-testid="you-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
@@ -188,8 +191,14 @@ const YouPage: React.FC = () => {
                 <YouBadgeShelf badges={points.badges} mobile={mobile} />
               </MotionReveal>
             )}
-          </>
+          </div>
         )}
+          </TabsContent>
+          {umbrella && <>
+            <TabsContent value="solo" style={{ marginTop: 0 }}><PlayStatsBlock mode="solo" mobile={mobile} /></TabsContent>
+            <TabsContent value="together" style={{ marginTop: 0 }}><PlayStatsBlock mode="together" mobile={mobile} /></TabsContent>
+          </>}
+        </Tabs>
       </div>
       <DailyLegalFooter />
     </DailyFrame>

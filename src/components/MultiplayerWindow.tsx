@@ -74,6 +74,7 @@ import MultiplayerGameView from "@/components/MultiplayerGameView";
 import { preloadGameArt } from "@/lib/preloadArt";
 import { useSoloGame } from "@/hooks/useSoloGame";
 import { useClassicResultRecorder } from "@/hooks/useClassicResultRecorder";
+import { rememberHostedTable } from "@/lib/playerStats";
 
 import ClassicDemo, { hasSeenClassicDemo } from "@/components/ClassicDemo";
 import DailyHowToSteps from "@/components/DailyHowToSteps";
@@ -163,6 +164,8 @@ const SoloView: React.FC<{ onLeave: () => void; mobile: boolean }> = ({ onLeave,
     snapshot: {
       phase: solo.publicState.phase,
       settleKind: solo.publicState.settleKind,
+      settleBy: solo.statsSettleBy,
+      settleToken: solo.statsSettleToken,
       scores: solo.publicState.scores,
       names: solo.publicState.seatMap.map((e) => e.display_name),
       roundNum: solo.publicState.roundNum,
@@ -806,6 +809,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       try {
         if (action.kind === "create") {
           const room = await createRoom(browserId);
+          if (umbrellaOn()) rememberHostedTable(room.room_code);
           trackEvent("room_created", { roomCode: room.room_code });
           setView({ kind: "host", room });
           rememberTable(room.room_code);

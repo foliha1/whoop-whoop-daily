@@ -171,6 +171,9 @@ export type Database = {
           rounds_played: number
           seat_identities: Json | null
           seats: Json
+          solo_player_correct: number | null
+          solo_player_wrong: number | null
+          solo_victory_ms: number | null
           started_at: string
           updated_at: string
           verified: boolean
@@ -195,6 +198,9 @@ export type Database = {
           rounds_played?: number
           seat_identities?: Json | null
           seats?: Json
+          solo_player_correct?: number | null
+          solo_player_wrong?: number | null
+          solo_victory_ms?: number | null
           started_at: string
           updated_at?: string
           verified?: boolean
@@ -219,6 +225,9 @@ export type Database = {
           rounds_played?: number
           seat_identities?: Json | null
           seats?: Json
+          solo_player_correct?: number | null
+          solo_player_wrong?: number | null
+          solo_victory_ms?: number | null
           started_at?: string
           updated_at?: string
           verified?: boolean
@@ -609,6 +618,27 @@ export type Database = {
           linked_at?: string
           user_id?: string
           visitor_id?: string
+        }
+        Relationships: []
+      }
+      player_hosted_tables: {
+        Row: {
+          created_at: string
+          room_code: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          room_code: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          room_code?: string
+          room_id?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1188,6 +1218,7 @@ export type Database = {
           puzzle_number: number
         }[]
       }
+      get_player_match_stats: { Args: never; Returns: Json }
       get_reminder_status: { Args: never; Returns: boolean }
       get_room_by_code: {
         Args: { p_code: string; p_visitor_id: string }
@@ -1409,6 +1440,15 @@ export type Database = {
           p_rounds_played: number
           p_seats: Json
           p_wrong_claims: number
+        }
+        Returns: boolean
+      }
+      save_solo_player_stats: {
+        Args: {
+          p_correct: number
+          p_game_id: string
+          p_victory_ms: number
+          p_wrong: number
         }
         Returns: boolean
       }
