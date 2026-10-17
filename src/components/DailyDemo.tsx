@@ -189,8 +189,8 @@ export default function DailyDemo({ mode, onStart, onClose }: DailyDemoProps) {
         <CloseButton label="Skip" ariaLabel={mode === "gate" ? "Skip how to play and continue" : "Close how to play"} onClick={dismiss} />
       </div>
       <div style={{ ...textStyle("caption"), display: "flex", justifyContent: "space-between", flex: "none" }}><span>Whoop! Whoop! Daily</span><span>{DAILY_ROUNDS} rounds</span></div>
-      <DemoSpotlight active={current.region === "board"} instant={reduced} style={{ flex: "1 1 auto", minHeight: 190, display: "flex" }}>
-        <div ref={board} style={{ width: "100%", display: "grid", placeItems: "center" }}>
+      <DemoSpotlight active={current.region === "board"} instant={reduced} style={{ flex: "1 1 auto", minHeight: 190, position: "relative" }}>
+        <div ref={board} style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
         <div data-testid="daily-demo-board" aria-hidden="true" style={{ width: boardWidth, maxWidth: "100%", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
           {DAILY_DEMO_CARDS.map((card, i) => <div key={card.id} style={{ aspectRatio: "180 / 252", position: "relative", opacity: scene.removed.includes(i) ? 0 : 1, transition: reduced ? undefined : `opacity ${MOTION.base}` }}>
             <div style={{ height: "100%", visibility: scene.ghost && PAIR.includes(i) ? "hidden" : "visible" }}>
@@ -202,8 +202,8 @@ export default function DailyDemo({ mode, onStart, onClose }: DailyDemoProps) {
         </div>
       </DemoSpotlight>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: SPACE[4], flex: "none", height: 64 }}>
-        <DemoSpotlight active={current.region === "die" || step === 1} instant={reduced} style={{ ...panelStyle("surface", 3), display: "flex", alignItems: "center", justifyContent: "center", gap: SPACE[4] }}>
-          {scene.rule ? <img src={DIE_ART[scene.rule]} alt={`Match ${scene.rule.toLowerCase()}`} style={{ height: "100%", maxWidth: "100%" }} /> : <span style={textStyle("control", true)}>{step === 1 && scene.seconds !== null ? `${scene.seconds}s` : "Waiting for roll…"}</span>}
+        <DemoSpotlight active={current.region === "die" || step === 1} instant={reduced} style={{ ...panelStyle("surface", 3), height: 64, minHeight: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", gap: SPACE[4] }}>
+          {scene.rule ? <img src={DIE_ART[scene.rule]} alt={`Match ${scene.rule.toLowerCase()}`} style={{ height: 48, width: "100%", objectFit: "contain" }} /> : <span style={textStyle("control", true)}>{step === 1 && scene.seconds !== null ? `${scene.seconds}s` : "Waiting for roll…"}</span>}
         </DemoSpotlight>
         <DemoSpotlight active={current.region === "peek"} instant={reduced} style={{ display: "flex" }}>
           <Button tabIndex={-1} disabled style={{ ...buttonStyle("secondary", "md", { fullWidth: true, disabled: scene.peekSpent }), pointerEvents: "none" }}><Eye size={18} aria-hidden="true" />{step === 5 && scene.seconds !== null ? `${scene.seconds}s` : scene.peekSpent ? "PEEK used" : "PEEK"}</Button>
