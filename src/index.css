@@ -150,6 +150,8 @@ All colors MUST be HSL.
     width: 100%;
     min-height: 100%;
     overscroll-behavior: none;
+    /* Page cross-fades reveal this; follow the theme so night never flashes white. */
+    background-color: var(--ww-surface);
   }
 
   /* ── Themed brand palette ──
