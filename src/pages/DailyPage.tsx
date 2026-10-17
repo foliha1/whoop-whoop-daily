@@ -675,6 +675,8 @@ const DailyResultCard: React.FC<{
   const resultClass = revisit ? undefined : "ww-res-in";
   const resultMotion = (block: keyof typeof RESULT_BLOCK): React.CSSProperties =>
     revisit ? {} : blockIn(block);
+  const scoreSlotMotion = typeof window !== "undefined" &&
+    !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 
   const tileLabelStyle: React.CSSProperties = {
@@ -876,13 +878,24 @@ const DailyResultCard: React.FC<{
         className={resultClass}
         style={{
           alignSelf: "stretch",
-          display: "flex",
-          flexDirection: "column",
-          marginTop: SPACE[6],
+          display: "grid",
+          // Late score reads open their slot smoothly instead of shoving
+          // the share block down in one frame.
+          gridTemplateRows: whoop ? "1fr" : "0fr",
+          marginTop: whoop ? SPACE[6] : 0,
+          transition: scoreSlotMotion
+            ? "grid-template-rows 450ms cubic-bezier(.2,.8,.2,1), margin-top 450ms cubic-bezier(.2,.8,.2,1)"
+            : "none",
           ...resultMotion("score"),
         }}
       >
-        <WhoopPointsChange points={whoop} mobile={mobile} tierUp={tierUp} animate={false} />
+        <div style={{
+          minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column",
+          opacity: whoop ? 1 : 0,
+          transition: scoreSlotMotion ? "opacity 300ms ease-out 150ms" : "none",
+        }}>
+          <WhoopPointsChange points={whoop} mobile={mobile} tierUp={tierUp} animate={false} />
+        </div>
       </div>
 
 
