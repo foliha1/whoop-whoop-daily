@@ -15,16 +15,51 @@ const INSTALL_ASSET_VERSION = "20260925";
 
 import DebugOnlyRoute from "./components/DebugOnlyRoute.tsx";
 
-const MultiplayerPage = lazy(() => import("./pages/MultiplayerPage.tsx"));
-const DailyPage = lazy(() => import("./pages/DailyPage.tsx"));
-const SupportPage = lazy(() => import("./pages/SupportPage.tsx"));
-const AdminPage = lazy(() => import("./pages/AdminPage.tsx"));
-const GroupsPage = lazy(() => import("./pages/GroupsPage.tsx"));
-const YouPage = lazy(() => import("./pages/YouPage.tsx"));
-const TypographyPage = lazy(() => import("./pages/TypographyPage.tsx"));
-const PrivacyPage = lazy(() => import("./pages/PrivacyPage.tsx"));
-const TermsPage = lazy(() => import("./pages/TermsPage.tsx"));
-const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+/**
+ * After a new build, an open tab may still ask for old hashed page files that
+ * no longer exist. Reload once to pick up the fresh build instead of a blank
+ * screen; the session flag prevents a reload loop if the file is truly gone.
+ */
+const RELOAD_FLAG = "ww_chunk_reload";
+const reloadOnceForStaleChunk = (): boolean => {
+  try {
+    if (sessionStorage.getItem(RELOAD_FLAG)) return false;
+    sessionStorage.setItem(RELOAD_FLAG, "1");
+  } catch {
+    return false;
+  }
+  window.location.reload();
+  return true;
+};
+if (typeof window !== "undefined") {
+  window.addEventListener("vite:preloadError", (event) => {
+    if (reloadOnceForStaleChunk()) event.preventDefault();
+  });
+  window.addEventListener("load", () => {
+    window.setTimeout(() => {
+      try { sessionStorage.removeItem(RELOAD_FLAG); } catch { /* ignore */ }
+    }, 10_000);
+  });
+}
+function lazyPage<T extends React.ComponentType<any>>(load: () => Promise<{ default: T }>) {
+  return lazy(() =>
+    load().catch((error) => {
+      if (reloadOnceForStaleChunk()) return new Promise<{ default: T }>(() => {});
+      throw error;
+    }),
+  );
+}
+
+const MultiplayerPage = lazyPage(() => import("./pages/MultiplayerPage.tsx"));
+const DailyPage = lazyPage(() => import("./pages/DailyPage.tsx"));
+const SupportPage = lazyPage(() => import("./pages/SupportPage.tsx"));
+const AdminPage = lazyPage(() => import("./pages/AdminPage.tsx"));
+const GroupsPage = lazyPage(() => import("./pages/GroupsPage.tsx"));
+const YouPage = lazyPage(() => import("./pages/YouPage.tsx"));
+const TypographyPage = lazyPage(() => import("./pages/TypographyPage.tsx"));
+const PrivacyPage = lazyPage(() => import("./pages/PrivacyPage.tsx"));
+const TermsPage = lazyPage(() => import("./pages/TermsPage.tsx"));
+const NotFound = lazyPage(() => import("./pages/NotFound.tsx"));
 
 
 
