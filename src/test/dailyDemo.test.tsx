@@ -6,7 +6,7 @@ import DailyDemo, { DAILY_DEMO_CARDS } from "@/components/DailyDemo";
 import { setUmbrellaPreviewForTests } from "@/lib/launch";
 import { hasSeenHowTo } from "@/lib/dailyHowTo";
 
-vi.mock("@/lib/sounds", () => ({ playDeal: vi.fn(), playFlip: vi.fn(), playDiceRoll: vi.fn(), playDieLand: vi.fn(), playCorrect: vi.fn(), playWrong: vi.fn(), startTheme: vi.fn(), leaveThemeZone: vi.fn(), prewarmTheme: vi.fn(), HOW_TO_PLAY_THEME_FILE: "howto.mp3" }));
+vi.mock("@/lib/sounds", () => ({ playDeal: vi.fn(), playFlip: vi.fn(), playDiceRoll: vi.fn(), playDieLand: vi.fn(), playSelect: vi.fn(), playDeselect: vi.fn(), playWhoopCall: vi.fn(), playPeek: vi.fn(), playTick: vi.fn(), playCorrect: vi.fn(), playWrong: vi.fn(), startTheme: vi.fn(), leaveThemeZone: vi.fn(), prewarmTheme: vi.fn(), HOW_TO_PLAY_THEME_FILE: "howto.mp3" }));
 vi.mock("@/lib/dailyEvents", () => ({ trackDaily: vi.fn() }));
 
 beforeEach(() => { localStorage.clear(); vi.useFakeTimers(); });
@@ -57,18 +57,27 @@ describe("Daily tutorial integration", () => {
     render(<DailyDemo {...props()} />);
     next();
     act(() => { vi.advanceTimersByTime(500); });
-    expect(screen.getByText("10s")).toBeInTheDocument();
+    expect(screen.getByText("Memorize: 10")).toBeInTheDocument();
     next();
     act(() => { vi.advanceTimersByTime(11000); });
-    expect(screen.queryByText("0s")).toBeNull();
-    expect(screen.getByAltText("Match color")).toBeInTheDocument();
+    expect(screen.queryByText("Memorize: 0")).toBeNull();
+    expect(screen.getByTestId("daily-demo-readout")).toHaveTextContent("Match the");
   });
   it("reduced motion shows the readable study state without running a countdown", () => {
     vi.spyOn(window, "matchMedia").mockImplementation((query) => ({ matches: query.includes("reduce"), media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => true }));
     render(<DailyDemo {...props()} />);
     next();
     act(() => { vi.advanceTimersByTime(12000); });
-    expect(screen.getByText("10s")).toBeInTheDocument();
+    expect(screen.getByText("Memorize: 10")).toBeInTheDocument();
+  });
+  it("keeps every region unmasked until the step's animation has finished", () => {
+    render(<DailyDemo {...props()} />);
+    next();
+    const peek = () => screen.getByText("Peek (5s)").closest("div[style*='opacity']") as HTMLElement;
+    act(() => { vi.advanceTimersByTime(600); });
+    expect(peek().style.opacity).toBe("1");
+    act(() => { vi.advanceTimersByTime(12000); });
+    expect(peek().style.opacity).not.toBe("1");
   });
   it("teaches using nine valid cards, a real star match and a mismatching circle/square", () => {
     expect(DAILY_DEMO_CARDS).toHaveLength(9);
