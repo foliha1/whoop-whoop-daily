@@ -41,6 +41,7 @@ import { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
 import type { PublicState } from "@/lib/publicState";
 import type { IntentAction, RollAttribute, RollCommitPayload, TransientEvent } from "@/lib/multiplayer";
 import { ROLL_HERO_MS } from "@/lib/multiplayer";
+import { CARD_FLIP_MS } from "@/lib/animationTiming";
 import {
   GREAT_MATCH_DELAY_MS, DEAL_MOVE_MS, WRONG_ANIM_MS, SETTLE_REVEAL_HOLD_MS,
   applyAnimationTimingVars,
@@ -1448,8 +1449,17 @@ const MultiplayerGameView: React.FC<Props> = ({
     let target: HTMLDivElement | null = null;
     let raf = 0;
 
+    // ON: the second card must finish its full flip (plus a short read beat)
+    // before the match resolves, so the reveal never snaps face up.
+    const minAt = Date.now() + (umbrella && !prefersReducedMotion() ? CARD_FLIP_MS + 150 : 0);
+    let waitT: ReturnType<typeof setTimeout> | null = null;
     const tryFire = () => {
       if (done || !animEnded || !serverReadyRef.current) return;
+      const wait = minAt - Date.now();
+      if (wait > 0) {
+        if (!waitT) waitT = setTimeout(() => { waitT = null; tryFire(); }, wait);
+        return;
+      }
       done = true;
       maybeResolveRef.current = null;
       if (import.meta.env.DEV) {
@@ -1500,10 +1510,12 @@ const MultiplayerGameView: React.FC<Props> = ({
 
     return () => {
       clearTimeout(t);
+      if (waitT) clearTimeout(waitT);
       cancelAnimationFrame(raf);
       target?.removeEventListener("animationend", onEnd);
       maybeResolveRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inClaimMode, localPairKey, mySeat]);
 
   // Server caught up after the animation already ended.
@@ -1892,9 +1904,9 @@ const MultiplayerGameView: React.FC<Props> = ({
       // ON: the page background is the true background — no solid panel.
       background: umbrella ? "transparent" : PANEL, overflow: "hidden", position: "relative",
     }}>
-      {/* Solid panel wash over the persistent intro still. z-index:-1 keeps it
-          above the frozen Lottie background and below the game column. */}
-      {umbrella ? null : (
+      {/* Page-level panel wash over the persistent intro still. z-index:-1
+          keeps it above the frozen Lottie background and below the game
+          column; the wrapper itself stays transparent when ON. */}
       <div
         aria-hidden="true"
         style={{
@@ -1907,7 +1919,6 @@ const MultiplayerGameView: React.FC<Props> = ({
           transition: prefersReducedMotion() ? "none" : "opacity 1200ms cubic-bezier(0.22, 0.61, 0.36, 1)",
         }}
       />
-      )}
       {idleHint ? (
         <div
           role="status"
