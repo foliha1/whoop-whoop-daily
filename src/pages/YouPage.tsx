@@ -70,7 +70,7 @@ const YouPage: React.FC = () => {
   const earnedKeys = new Set(points?.badges.map((badge) => badge.key) ?? []);
 
   return (
-    <DailyFrame gap={SPACE[6]} wide topControl={umbrella}>
+    <DailyFrame gap={SPACE[6]} wide topControl={umbrella} align={umbrella ? "top" : "center"}>
       {umbrella ? <HomeControl /> : null}
       <Helmet><meta name="robots" content="noindex, nofollow" /></Helmet>
       <div style={{ width: "100%", minWidth: 0, display: "flex", flexDirection: "column", alignItems: "stretch", gap: SPACE[20] }}>
