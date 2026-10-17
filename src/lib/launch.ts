@@ -28,6 +28,7 @@ export const LAUNCHED: boolean = LAUNCH_CONFIG.launched;
 let preview = false;
 let checked = false;
 let inFlight: Promise<void> | null = null;
+let inFlightGen = -1;
 let generation = 0;
 
 async function resolvePreview(gen: number): Promise<void> {
@@ -44,22 +45,24 @@ async function resolvePreview(gen: number): Promise<void> {
 }
 
 /**
- * Resolves the signed-in admin preview once per session. Safe to repeat:
- * callers that arrive while a check is running share the same promise, so
- * every consumer re-reads umbrellaOn() only after the check has settled
- * (otherwise later hooks resolve early with OFF and never re-render).
+ * Resolves the signed-in admin preview once per identity. Callers that arrive
+ * while a check for the current identity is running share that promise. A
+ * check started for an older identity is never reused: a sign-in starts a
+ * fresh one immediately.
  */
 export async function initUmbrellaPreview(): Promise<void> {
   if (LAUNCHED) return;
-  if (inFlight) return inFlight;
+  if (inFlight && inFlightGen === generation) return inFlight;
   if (checked) return;
   checked = true;
   const gen = generation;
-  inFlight = resolvePreview(gen);
+  const run = resolvePreview(gen);
+  inFlight = run;
+  inFlightGen = gen;
   try {
-    await inFlight;
+    await run;
   } finally {
-    inFlight = null;
+    if (inFlight === run) inFlight = null;
   }
 }
 
