@@ -20,7 +20,7 @@ describe("Your Stats vertical alignment", () => {
   it("pins the content column under the top rail when align is top", () => {
     const el = frameFor({ align: "top" });
     expect(el.style.justifyContent).toBe("flex-start");
-    const rails = el.querySelectorAll(".daily-shape-rule");
+    const rails = el.querySelectorAll<HTMLElement>(".daily-shape-rule");
     expect(rails).toHaveLength(2);
     expect(rails[0].style.marginTop).toBe("");
     expect(rails[1].style.marginTop).toBe("auto");
@@ -29,7 +29,7 @@ describe("Your Stats vertical alignment", () => {
   it("keeps every other daily screen centred by default", () => {
     const el = frameFor();
     expect(el.style.justifyContent).toBe("space-between");
-    const rails = el.querySelectorAll(".daily-shape-rule");
+    const rails = el.querySelectorAll<HTMLElement>(".daily-shape-rule");
     expect(rails[1].style.marginTop).toBe("");
   });
 
