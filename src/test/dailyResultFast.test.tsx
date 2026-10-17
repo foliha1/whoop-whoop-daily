@@ -12,7 +12,8 @@ import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, within } from "@testing-library/react";
 import { HelmetProvider } from "react-helmet-async";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
+import { setUmbrellaPreviewForTests } from "@/lib/launch";
 
 // Fast path: the page's own reducer starts from a state we built, one claim
 // before round 3 resolves, instead of playing two full rounds under fake time.
@@ -241,6 +242,7 @@ beforeEach(() => {
 
 afterEach(() => {
   preset.state = null;
+  setUmbrellaPreviewForTests(null);
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
@@ -249,12 +251,20 @@ afterEach(() => {
 // app re-renders during the ending (timers, audio, theme). Each bump gives
 // DailyPage — and so DailyScreenFade — brand-new `children` element identities.
 let bumpParent: () => void = () => {};
+/** Records the router location so tests can assert navigation happened. */
+let lastRoute = "/";
+const RouteProbe: React.FC = () => {
+  const loc = useLocation();
+  lastRoute = `${loc.pathname}${loc.search}`;
+  return null;
+};
 const Harness: React.FC = () => {
   const [n, setN] = React.useState(0);
   bumpParent = () => setN((v) => v + 1);
   return (
     <HelmetProvider>
       <MemoryRouter initialEntries={[`/?debug=1&seed=${SEED}`]}>
+        <RouteProbe />
         <div data-parent-renders={n}>
           <DailyPage />
         </div>
@@ -330,5 +340,25 @@ describe("daily end of run (fast, from round 3)", () => {
     await tick(5000);
     expect(layers().outgoing).toBeNull();
     expect(saveDailyResultRemote).not.toHaveBeenCalled();
+  }, 15000);
+
+  it("umbrella ON: the results Done button leaves the results screen", async () => {
+    setUmbrellaPreviewForTests(true);
+    // Skip the first-run onboarding so the Start dialog is what mounts.
+    window.localStorage.setItem("ww_daily_howto_seen", "1");
+    const m = atRound3();
+    preset.state = m;
+    mount();
+    const [i, j] = goodPair(m);
+    await claimInDom(i, j);
+    await expectResultVisible();
+    expect(lastRoute).toBe(`/?debug=1&seed=${SEED}`);
+    const done = screen.getByRole("button", { name: /^Done$/i });
+    await act(async () => {
+      done.click();
+    });
+    // With the umbrella ON there is no ready screen to return to, so Done
+    // must navigate Home (the same thing the mid-run leave dialog does).
+    expect(lastRoute).toBe("/");
   }, 15000);
 });

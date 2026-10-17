@@ -2021,7 +2021,11 @@ const DailyPage: React.FC = () => {
               revisit={daily.alreadyPlayed}
               onLeave={() => {
                 hapticTap();
-                setShowResult(false);
+                // Umbrella ON has no ready screen to return to (directStart
+                // keeps `finished` true), so Done goes Home like the leave
+                // dialog. OFF still toggles back to the ready screen.
+                if (umbrella) navigate("/");
+                else setShowResult(false);
               }}
             />
           ) : ready ? null : (
