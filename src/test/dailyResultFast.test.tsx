@@ -251,12 +251,19 @@ afterEach(() => {
 // app re-renders during the ending (timers, audio, theme). Each bump gives
 // DailyPage — and so DailyScreenFade — brand-new `children` element identities.
 let bumpParent: () => void = () => {};
+/** Records the router location so tests can assert navigation happened. */
+let lastRoute = "/";
+const RouteProbe: React.FC = () => {
+  lastRoute = useLocation().pathname;
+  return null;
+};
 const Harness: React.FC = () => {
   const [n, setN] = React.useState(0);
   bumpParent = () => setN((v) => v + 1);
   return (
     <HelmetProvider>
       <MemoryRouter initialEntries={[`/?debug=1&seed=${SEED}`]}>
+        <RouteProbe />
         <div data-parent-renders={n}>
           <DailyPage />
         </div>
