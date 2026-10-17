@@ -262,6 +262,7 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
         fireAtRef.current = null;
       }
       if (s.disconnected[WHOOP_SEAT]) return;
+      if (!Number.isFinite(postRollClaimAtRef.current)) return;
       // v7.2 cap: WHOOP obeys the same two-calls-per-round limit the human does.
       if ((s.missesThisRound[WHOOP_SEAT] ?? 0) >= MAX_WRONG_CLAIMS_PER_ROUND) {
         fireAtRef.current = null;
