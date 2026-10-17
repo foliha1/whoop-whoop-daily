@@ -3,7 +3,7 @@ import HomeControl from "@/components/HomeControl";
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, useLocation } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { Check, ChevronLeft } from "lucide-react";
 import DailyFrame from "@/components/DailyFrame";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
 import CurrentTierBadge from "@/components/CurrentTierBadge";
@@ -91,7 +91,7 @@ const YouPage: React.FC = () => {
         {umbrella && <MotionReveal index={2} style={section}><DisplayNameEditor mobile={mobile} /></MotionReveal>}
         <Tabs value={umbrella ? activeTab : "daily"} onValueChange={setActiveTab} style={{ width: "100%", minWidth: 0 }}>
           {umbrella && <TabsList aria-label="Play statistics" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", width: "100%", height: "auto", padding: SPACE[2], gap: SPACE[2], background: COLORS.panel, border: BORDER.heavy, borderRadius: RADIUS.md, marginBottom: SPACE[12] }}>
-            {PLAY_MODES.map((mode) => <TabsTrigger key={mode} value={mode} className="ww-press" style={{ ...buttonStyle(activeTab === mode ? PLAY_MODE_BUTTON[mode] : "quiet", "md", { mobile }), minWidth: 0, padding: `0 ${SPACE[4]}px` }}>{mode === "daily" ? "Daily" : mode === "solo" ? "Solo" : "Together"}</TabsTrigger>)}
+            {PLAY_MODES.map((mode) => <TabsTrigger key={mode} value={mode} className="ww-press ww-stats-tab" style={{ ...buttonStyle(activeTab === mode ? PLAY_MODE_BUTTON[mode] : "quiet", "md", { mobile }), minWidth: 0, padding: `0 ${SPACE[4]}px`, gap: SPACE[2] }}>{activeTab === mode && <Check size={SPACE[8]} strokeWidth={2.5} aria-hidden="true" />}{mode === "daily" ? "Daily" : mode === "solo" ? "Solo" : "Together"}</TabsTrigger>)}
           </TabsList>}
           <TabsContent value="daily" style={{ marginTop: 0, display: umbrella && activeTab !== "daily" ? "none" : undefined }}>
         {loading ? <CardFlipLoader label="Loading Your Stats" /> : points === null ? (
