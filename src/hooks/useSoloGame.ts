@@ -25,6 +25,7 @@ import type {
   RollAttribute,
 } from "@/lib/multiplayer";
 import { getDisplayName } from "@/lib/visitor";
+import { ROLL_HERO_MS } from "@/lib/multiplayer";
 import { umbrellaOn } from "@/lib/launch";
 import {
   createBrain,
@@ -37,7 +38,6 @@ import {
   POST_ROLL_BUFFER_MS,
   type Brain,
 } from "@/lib/whoopBrain";
-const OPPONENT_NAME = "WHOOP";
 
 const WHOOP_SEAT = 1;
 const HUMAN_SEAT = 0;
@@ -62,14 +62,15 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
   // Umbrella Part 1: the global name labels the solo seat only after launch;
   // until then solo shows "You", exactly as the published site does today.
   const playerName = umbrellaOn() ? getDisplayName() || "You" : "You";
+  const opponentName = umbrellaOn() ? "FELIX" : "WHOOP";
   const seatMap = useMemo(() => [
     { seat: 0, pid: "solo-you", display_name: playerName },
-    { seat: 1, pid: "solo-whoop", display_name: OPPONENT_NAME },
-  ], [playerName]);
+    { seat: 1, pid: "solo-whoop", display_name: opponentName },
+  ], [playerName, opponentName]);
   const g = useGameState(gridSize, {
     seatCount: 2,
     botSeats: [],
-    names: [playerName, OPPONENT_NAME],
+    names: [playerName, opponentName],
   });
   const { state, dispatch, doRollDice } = g;
 
@@ -97,12 +98,16 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
   // multiplayer. `startAt` is a local wall-clock timestamp; useServerClock's
   // offset is zero in solo, so serverNow() matches Date.now().
   const [rollCommit, setRollCommit] = useState<RollCommitPayload | null>(null);
+  const postRollClaimAtRef = useRef(Number.POSITIVE_INFINITY);
   const commitAndRoll = useCallback(() => {
     const s = stateRef.current;
     if (s.phase !== "AWAITING_ROLL" || s.rolling) return;
     const { attribute, faceIndex } = pickRoll(ROLL_ATTRS, rngOf(s));
     const tumbleSeed = pickTumbleSeed();
     const startAt = Date.now() + 150;
+    // The grace starts AFTER the entire visible roll, not when the round
+    // begins (which can be arbitrarily long before anyone rolls).
+    postRollClaimAtRef.current = startAt + ROLL_HERO_MS + POST_ROLL_BUFFER_MS;
     setRollCommit({
       roundId: `solo:${s.roundNum}`,
       attribute,
@@ -112,7 +117,13 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
     });
     const delay = Math.max(0, startAt - Date.now());
     setTimeout(() => {
-      void doRollDice([attribute]);
+      void doRollDice([attribute]).then(() => {
+        // A delayed/resumed roll must still leave the player the full grace.
+        postRollClaimAtRef.current = Math.max(
+          postRollClaimAtRef.current,
+          Date.now() + POST_ROLL_BUFFER_MS,
+        );
+      });
     }, delay);
   }, [doRollDice]);
 
@@ -241,7 +252,6 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
   // round (and therefore the rule) changes.
   const fireAtRef = useRef<number | null>(null);
   const armedRoundRef = useRef<number>(-1);
-  const armedAtRef = useRef<number>(0);
   useEffect(() => {
     const claimable = (p: string) => p === "FLIPPING" || p === "CLAIM_WINDOW";
     const tick = () => {
@@ -249,10 +259,10 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
       if (s.phase === "GAME_OVER") return;
       if (armedRoundRef.current !== s.roundNum) {
         armedRoundRef.current = s.roundNum;
-        armedAtRef.current = Date.now();
         fireAtRef.current = null;
       }
       if (s.disconnected[WHOOP_SEAT]) return;
+      if (!Number.isFinite(postRollClaimAtRef.current)) return;
       // v7.2 cap: WHOOP obeys the same two-calls-per-round limit the human does.
       if ((s.missesThisRound[WHOOP_SEAT] ?? 0) >= MAX_WRONG_CLAIMS_PER_ROUND) {
         fireAtRef.current = null;
@@ -271,11 +281,12 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
       if (fireAtRef.current === null) {
         fireAtRef.current = Math.max(
           Date.now() + pickReactionDelay(),
-          armedAtRef.current + POST_ROLL_BUFFER_MS,
+          postRollClaimAtRef.current,
         );
         return;
       }
       if (Date.now() < fireAtRef.current) return;
+      if (Date.now() < postRollClaimAtRef.current) return;
       // Reaction elapsed — only the board's own legality gates it now.
       if (!claimable(s.phase) || s.inFlight || s.claimBy !== null) return;
       fireAtRef.current = null;
@@ -339,6 +350,9 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
           // Rematch: same seats, same grid size, scores back to zero.
           const cur = stateRef.current;
           brainRef.current = createBrain();
+          fireAtRef.current = null;
+          armedRoundRef.current = -1;
+          postRollClaimAtRef.current = Number.POSITIVE_INFINITY;
           dispatch({
             type: "INIT",
             slotCount: cur.slotCount,
