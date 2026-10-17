@@ -252,7 +252,7 @@ export const ChipCell: React.FC<{ chip: DerivedChip }> = ({ chip }) => {
           <div aria-hidden="true" style={{
             position: "absolute", left: 0, top: 0, bottom: 0,
             width: `${progress * 100}%`,
-            background: seatColor, opacity: 0.55,
+            background: seatColor, opacity: 0.4,
             borderRight: progress > 0 && progress < 1 ? `2px solid ${seatColor}` : undefined,
             transition: prefersReducedMotion() ? "none" : "width 400ms ease-out",
           }} />
