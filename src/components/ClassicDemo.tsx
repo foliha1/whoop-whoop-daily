@@ -639,7 +639,8 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
     return () => { if (umbrellaOn()) leaveThemeZone(); else stopTheme(); };
   }, []);
 
-  const [welcome, setWelcome] = useState(true);
+  // ON skips the welcome title card and opens on the first scripted step.
+  const [welcome, setWelcome] = useState(() => !umbrellaOn());
   const [step, setStep] = useState(0);
   const [scene, setScene] = useState<Scene>(() => enterScene(0));
   const [copyVisible, setCopyVisible] = useState(false);
