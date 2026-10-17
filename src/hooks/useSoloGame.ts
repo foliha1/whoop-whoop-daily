@@ -34,6 +34,7 @@ import {
   findClaim,
   pickFlipTarget,
   pickReactionDelay,
+  POST_ROLL_BUFFER_MS,
   type Brain,
 } from "@/lib/whoopBrain";
 const OPPONENT_NAME = "WHOOP";
@@ -240,6 +241,7 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
   // round (and therefore the rule) changes.
   const fireAtRef = useRef<number | null>(null);
   const armedRoundRef = useRef<number>(-1);
+  const armedAtRef = useRef<number>(0);
   useEffect(() => {
     const claimable = (p: string) => p === "FLIPPING" || p === "CLAIM_WINDOW";
     const tick = () => {
@@ -247,6 +249,7 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
       if (s.phase === "GAME_OVER") return;
       if (armedRoundRef.current !== s.roundNum) {
         armedRoundRef.current = s.roundNum;
+        armedAtRef.current = Date.now();
         fireAtRef.current = null;
       }
       if (s.disconnected[WHOOP_SEAT]) return;
@@ -266,7 +269,10 @@ export function useSoloGame(gridSize: "3x2" | "3x3" = "3x3"): UseSoloGameResult 
       }
       // Start reacting as soon as the pair is believed, even mid-animation.
       if (fireAtRef.current === null) {
-        fireAtRef.current = Date.now() + pickReactionDelay();
+        fireAtRef.current = Math.max(
+          Date.now() + pickReactionDelay(),
+          armedAtRef.current + POST_ROLL_BUFFER_MS,
+        );
         return;
       }
       if (Date.now() < fireAtRef.current) return;

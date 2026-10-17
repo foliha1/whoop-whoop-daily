@@ -31,6 +31,8 @@ export const DECAY_RATE = 0.97;
 export const CORRUPT_CHANCE = 0.15;
 export const CONFIDENCE_THRESHOLD = 0.55;
 export const REACTION_MIN_MS = 600;
+/** WHOOP never calls sooner than this after a new roll, so a person can read the die. */
+export const POST_ROLL_BUFFER_MS = 1800;
 export const REACTION_MAX_MS = 1400;
 
 

@@ -295,6 +295,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 }) => {
   const mobile = useIsMobile();
   const umbrella = useUmbrella();
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [account, setAccount] = useState<string | null>(() => getSessionEmail());
   const [now, setNow] = useState(() => new Date());
@@ -1292,7 +1293,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     return (
     <>
       {umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null}
-      <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill={!(umbrella && home)} scroll={umbrella && home} topControl={umbrella && !home && opts.homeControl !== false}>
+      <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill={!(umbrella && home)} scroll={umbrella && home} noRails={umbrella && home && isMobile} topControl={umbrella && !home && opts.homeControl !== false}>
         <FitColumn disableScale={umbrella && home}>
         <div
           style={{

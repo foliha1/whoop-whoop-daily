@@ -27,8 +27,17 @@ const DailyScreenFade: React.FC<{
   screenKey: string;
   /** Page background for this screen, cross-faded with the content. */
   background: string;
+  /** Fade the first screen in on mount (opacity only). */
+  fadeInOnMount?: boolean;
   children: React.ReactNode;
-}> = ({ screenKey, background, children }) => {
+}> = ({ screenKey, background, fadeInOnMount = false, children }) => {
+  const [mounted, setMounted] = useState(!fadeInOnMount);
+  useEffect(() => {
+    if (mounted) return;
+    const raf = requestAnimationFrame(() => requestAnimationFrame(() => setMounted(true)));
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [outgoing, setOutgoing] = useState<Layer | null>(null);
   /** True from the render in which the key changes until the next frame. */
   const [entering, setEntering] = useState(false);
@@ -88,7 +97,7 @@ const DailyScreenFade: React.FC<{
         style={
           outgoing
             ? { ...layerStyle, opacity: entering ? 0 : 1 }
-            : { position: "relative", opacity: 1 }
+            : { position: "relative", opacity: mounted ? 1 : 0, transition: fadeInOnMount ? `opacity ${MS}ms ${UI_EASE}` : undefined }
         }
       >
         {children}
