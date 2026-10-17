@@ -1236,7 +1236,7 @@ const MultiplayerGameView: React.FC<Props> = ({
     // A client arriving mid-settle starts at the host's point in the timeline.
     const elapsed = presentationElapsed(s.settleEndsAt, SETTLE_MATCH_MS, serverNow());
     // A late arrival skips the flip and joins the timeline face up.
-    if (elapsed > 0) copies.forEach((c) => { c.flip = false; });
+    if (elapsed > 150) copies.forEach((c) => { c.flip = false; });
     setGhostElapsed(elapsed);
     if (elapsed >= SETTLE_MATCH_MS) return;
     if (copies.length) setGhost(copies);
