@@ -12,7 +12,8 @@ import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, within } from "@testing-library/react";
 import { HelmetProvider } from "react-helmet-async";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
+import { setUmbrellaPreviewForTests } from "@/lib/launch";
 
 // Fast path: the page's own reducer starts from a state we built, one claim
 // before round 3 resolves, instead of playing two full rounds under fake time.
