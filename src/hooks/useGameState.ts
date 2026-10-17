@@ -504,6 +504,21 @@ function resumeAfterClaim(s: State): State {
 }
 
 /**
+ * A card index from an action is usable only when it is a real integer slot
+ * inside the grid that still holds a card. Rejects out-of-range numbers
+ * (grid[99] is undefined, not null), fractions, NaN and string indices.
+ */
+export function isLiveCardIdx(s: State, idx: unknown): idx is number {
+  return (
+    typeof idx === "number" &&
+    Number.isSafeInteger(idx) &&
+    idx >= 0 &&
+    idx < s.grid.length &&
+    s.grid[idx] != null
+  );
+}
+
+/**
  * A legal card for a seat is a filled grid slot that is not locked out for
  * that seat by an earlier wrong claim this round.
  */
@@ -613,7 +628,7 @@ export function reducer(state: State, action: Action): State {
       const idx = action.idx;
       if (state.wrongBy[action.by]?.has(idx)) return state;
       if (state.selectedCards.includes(idx)) return state;
-      if (state.grid[idx] === null) return state;
+      if (!isLiveCardIdx(state, idx)) return state;
       if (state.selectedCards.length >= 2) return state;
       return { ...state, selectedCards: [...state.selectedCards, idx] };
     }
@@ -766,7 +781,7 @@ export function reducer(state: State, action: Action): State {
       if (state.flipper !== action.by) return state;
       if (state.inFlight) return state;
       if (state.wrongBy[action.by]?.has(action.idx)) return state;
-      if (state.grid[action.idx] === null) return state;
+      if (!isLiveCardIdx(state, action.idx)) return state;
       return {
         ...state,
         inFlight: {
@@ -822,7 +837,8 @@ export function reducer(state: State, action: Action): State {
       // v7.2 cap applies to every claim path, bot claims included.
       if ((state.missesThisRound[action.by] ?? 0) >= MAX_WRONG_CLAIMS_PER_ROUND)
         return state;
-      if (state.grid[action.a] === null || state.grid[action.b] === null) return state;
+      if (!isLiveCardIdx(state, action.a) || !isLiveCardIdx(state, action.b)) return state;
+      if (action.a === action.b) return state;
       if (
         state.wrongBy[action.by]?.has(action.a) ||
         state.wrongBy[action.by]?.has(action.b)

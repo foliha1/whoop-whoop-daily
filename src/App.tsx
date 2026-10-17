@@ -14,6 +14,7 @@ import { enterThemeZone, leaveThemeZone, CLASSIC_THEME_FILE } from "@/lib/sounds
 const INSTALL_ASSET_VERSION = "20260925";
 
 import DebugOnlyRoute from "./components/DebugOnlyRoute.tsx";
+import RouteErrorBoundary from "./components/RouteErrorBoundary.tsx";
 
 /**
  * After a new build, an open tab may still ask for old hashed page files that
@@ -130,6 +131,7 @@ const AnimatedRoutes: React.FC = () => {
         minHeight: "var(--ww-vh)",
       }}
     >
+      <RouteErrorBoundary resetKey={displayLocation.key}>
       <Suspense
         fallback={(
           <div
@@ -169,6 +171,7 @@ const AnimatedRoutes: React.FC = () => {
         </Routes>
         {entryMusic ? <EntryRouteMusic key={path} /> : null}
       </Suspense>
+      </RouteErrorBoundary>
     </div>
   );
 };
