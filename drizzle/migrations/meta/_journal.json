@@ -260,6 +260,13 @@
       "when": 1790701421433,
       "tag": "0036_home_analytics_and_signup_source",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1792263299074,
+      "tag": "0037_player_match_stats",
+      "breakpoints": true
     }
   ]
 }
