@@ -1990,6 +1990,7 @@ const DailyPage: React.FC = () => {
         <DailyFrame gap={SPACE[4]} fill={!finished} tone={finished ? "surface" : "panel"} topControl={umbrella}>
 
           {finished ? (
+            <div style={{ width: "100%", display: "contents" }} className={umbrella ? "ww-result-in" : undefined}>
             <DailyResultCard
               puzzleNumber={daily.result!.puzzleNumber}
               attributes={daily.result!.attributes}

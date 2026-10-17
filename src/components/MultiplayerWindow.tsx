@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from "react"
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { usePortalHost } from "@/hooks/usePortalHost";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import AutoFitText from "@/components/AutoFitText";
 import {
@@ -1292,7 +1293,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     return (
     <>
       {umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null}
-      <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill={!(umbrella && home)} scroll={umbrella && home} topControl={umbrella && !home && opts.homeControl !== false}>
+      <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill={!(umbrella && home)} scroll={umbrella && home} noRails={umbrella && home && isMobile} topControl={umbrella && !home && opts.homeControl !== false}>
         <FitColumn disableScale={umbrella && home}>
         <div
           style={{

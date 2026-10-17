@@ -29,8 +29,10 @@ const DailyFrame: React.FC<{
   topControl?: boolean;
   /** Grow with content and let the page scroll instead of clipping. */
   scroll?: boolean;
+  /** Hide the top and bottom pattern strips. */
+  noRails?: boolean;
   children?: React.ReactNode;
-}> = ({ gap = 24, pad = 24, railGap = 24, fill = false, tone = "surface", wide = false, topControl = false, scroll = false, children }) => (
+}> = ({ gap = 24, pad = 24, railGap = 24, fill = false, tone = "surface", wide = false, topControl = false, scroll = false, noRails = false, children }) => (
   <div
     style={{
       position: "relative",
@@ -51,7 +53,7 @@ const DailyFrame: React.FC<{
     } as React.CSSProperties}
   >
 
-    <DailyShapeRule clearStart={topControl ? Math.max(0, 12 + 44 + SPACE[4] - pad) : 0} />
+    {noRails ? <span /> : <DailyShapeRule clearStart={topControl ? Math.max(0, 12 + 44 + SPACE[4] - pad) : 0} />}
 
     <div
       style={{
@@ -68,7 +70,7 @@ const DailyFrame: React.FC<{
       {children}
     </div>
 
-    <DailyShapeRule />
+    {noRails ? <span /> : <DailyShapeRule />}
   </div>
 );
 
