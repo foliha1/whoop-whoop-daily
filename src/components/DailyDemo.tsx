@@ -86,7 +86,7 @@ export default function DailyDemo({ mode, onStart, onClose }: DailyDemoProps) {
     if (!element) return;
     const resize = () => {
       const rect = element.getBoundingClientRect();
-      setBoardWidth(Math.max(0, Math.min(300, rect.width, (rect.height - SPACE[4] * 2) / 4.2 + SPACE[4] * 2)));
+      setBoardWidth(Math.max(0, Math.min(300, rect.width, (rect.height - SPACE[4] * 2) / 1.4 + SPACE[4] * 2)));
     };
     const observer = new ResizeObserver(resize);
     observer.observe(element);
