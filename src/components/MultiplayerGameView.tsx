@@ -261,6 +261,10 @@ export const ChipCell: React.FC<{ chip: DerivedChip }> = ({ chip }) => {
           margin: "0 auto", flex: "1 1 0", minWidth: 0, textAlign: "center",
           fontFamily: FONT_FAMILY, fontSize: 14, lineHeight: 1,
           letterSpacing: "0.04em", color: c.name,
+          position: "relative", zIndex: 1,
+          // A halo in the chip's own name background keeps every letter
+          // readable wherever the seat-colored fill sits under it.
+          textShadow: `0 0 2px ${c.nameBg}, 0 0 2px ${c.nameBg}, 0 0 3px ${c.nameBg}`,
         }}>{chip.name}</AutoFitText>
         {chip.score !== null && (
           <span style={{
@@ -2045,7 +2049,9 @@ const MultiplayerGameView: React.FC<Props> = ({
             // Every occupied card shares the same class and animation-start
             // commit: no delay, stagger, or per-card phase offset. Lock and
             // unavailable treatments remain layered above this shared pulse.
-            const pulsing = activeClaimPulse;
+            // The pulse ends the moment the second card is picked.
+            const pickedCount = new Set([...s.selectedCards, ...optimisticSel]).size;
+            const pulsing = activeClaimPulse && pickedCount < 2;
             return (
               <div key={i}
                 ref={(el) => { cellRefs.current[i] = el; }}
