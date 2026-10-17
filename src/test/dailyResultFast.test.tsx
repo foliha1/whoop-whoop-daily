@@ -242,6 +242,7 @@ beforeEach(() => {
 
 afterEach(() => {
   preset.state = null;
+  setUmbrellaPreviewForTests(null);
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
