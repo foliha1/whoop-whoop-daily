@@ -37,6 +37,7 @@ import DisplayNameEditor from "@/components/DisplayNameEditor";
 import DailyRecognition from "@/components/DailyRecognition";
 import { formatStreakLine } from "@/lib/dailyResults";
 import { useUmbrella } from "@/lib/launch";
+import InstallAppButton from "@/components/InstallAppButton";
 
 const TOUCH = 44;
 
@@ -298,6 +299,8 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
         {/* Umbrella Part 1: the global name editor appears only after launch
             (or for a signed-in admin previewing). */}
         {umbrella && <DisplayNameEditor mobile={false} />}
+
+        {umbrella && <InstallAppButton />}
 
 
         {onHowTo ? (
