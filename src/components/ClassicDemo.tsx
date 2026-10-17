@@ -905,8 +905,8 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
         {SCRIPT[LAST].header}
       </p>
       <p style={{ ...textStyle("body", true), margin: 0, textAlign: "center", color: COLORS.ink, whiteSpace: "pre-line" }}>
-        {mode === "in-game"
-          ? "First to twelve wins!\nNow go play a solo game with WHOOP Bot, or send a link to your people and play together. Have fun and WHOOP! WHOOP!"
+        {umbrellaOn()
+          ? "First to twelve wins!\nNow go play a solo game with FELIX, or send a link to your people and play together. Have fun and WHOOP! WHOOP!"
           : "First to twelve wins!\nNow go play a solo game with WHOOP Bot, or send a link to your people and play together. Have fun and WHOOP! WHOOP!"}
       </p>
       <div style={{ display: "flex", gap: SPACE[4], width: "100%" }}>
@@ -1126,7 +1126,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
         >
           <DemoSpotlight instant={reduce}
  active={lit("chipWhoop")}>
-            <ChipCell chip={chip("WHOOP", scene.whoopChip, scene.whoopScore, 1)} />
+            <ChipCell chip={chip(umbrellaOn() ? "FELIX" : "WHOOP", scene.whoopChip, scene.whoopScore, 1)} />
           </DemoSpotlight>
           <DemoSpotlight instant={reduce}
  active={lit("chipYou")}>
