@@ -41,7 +41,7 @@ const LaunchAnnouncement: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       testId="launch-announcement"
     >
       <h2 style={{ fontFamily: FONT_FAMILY, fontSize: "clamp(32px, 9.5vw, 46px)", lineHeight: 1.02, fontWeight: 700, margin: 0, color: COLORS.ink }}>
-        <Whoop /> <Whoop /><br />just got <em>more fun</em> 🙌
+        <Whoop /> <Whoop /><br />just got <em>more fun</em> <span aria-hidden="true" style={{ fontFamily: '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif' }}>🙌</span>
       </h2>
       <p style={{ ...textStyle("body", mobile), margin: 0, color: COLORS.ink }}>The Daily was only the beginning! Now there are two new ways to play, straight from the card game that inspired it all.</p>
       <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: SPACE[5] }}>
