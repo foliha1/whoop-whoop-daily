@@ -31,7 +31,10 @@ import {
 } from "@/lib/daily";
 import {
   fetchFirstAttempt,
-  saveDailyResultRemote,
+  saveDailyResultOutcome,
+  markDailyOutbox,
+  clearDailyOutbox,
+  hasDailyOutbox,
   type FirstAttempt,
 } from "@/lib/dailyResults";
 import { buildForfeitResult, runInProgress } from "@/lib/dailyForfeit";
@@ -148,12 +151,15 @@ export function useDailyGame(): UseDailyGameResult {
     const retry = () => {
       const r = resultRef.current;
       if (!r || !getSessionUserId()) return;
-      void saveDailyResultRemote(r).then((ok) => {
+      void saveDailyResultOutcome(r).then((outcome) => {
+        // No server answer: keep the prompt and try again on the next change.
+        if (outcome === "retryable") return;
         // Refused again as a repeat means the account already has today's
         // first attempt; either way the prompt is done.
         clearPendingSave(puzzleNumber);
+        clearDailyOutbox(puzzleNumber);
         setNeedsSignInToSave(false);
-        if (ok) saveDailyResult(r, currentRecordOwner());
+        if (outcome === "stored") saveDailyResult(r, currentRecordOwner());
       });
     };
     retry();
@@ -346,13 +352,16 @@ export function useDailyGame(): UseDailyGameResult {
     }
     if (!debugBypass) {
       saveDailyResult(finished, currentRecordOwner());
+      markDailyOutbox(puzzleNumber);
       // Fire-and-forget: the result screen never waits on the network. The
       // streak read is gated on this settling so it counts today's run.
-      void saveDailyResultRemote(finished).then((ok) => {
+      void saveDailyResultOutcome(finished).then((outcome) => {
+        // No server answer: keep the run queued; the outbox resends it.
+        if (outcome !== "retryable") clearDailyOutbox(puzzleNumber);
         // A signed-out save into a browser still linked to an account (an
         // expired session) is refused by the server. Keep the game on this
         // device and ask the player to sign in; it is retried after sign-in.
-        if (!ok && !getSessionUserId() && isDeviceLinkedHint()) {
+        if (outcome === "refused" && !getSessionUserId() && isDeviceLinkedHint()) {
           markPendingSave(puzzleNumber);
           setNeedsSignInToSave(true);
         }
@@ -397,9 +406,12 @@ export function useDailyGame(): UseDailyGameResult {
     // Local first: synchronous, so it survives the page going away.
     saveDailyResult(left, currentRecordOwner());
     markForfeitPending(puzzleNumber);
-    void saveDailyResultRemote(left).then((ok) => {
+    markDailyOutbox(puzzleNumber);
+    void saveDailyResultOutcome(left).then((outcome) => {
+      if (outcome === "retryable") return; // stays queued for the next visit
       clearForfeitPending(puzzleNumber);
-      if (!ok && !getSessionUserId() && isDeviceLinkedHint()) markPendingSave(puzzleNumber);
+      clearDailyOutbox(puzzleNumber);
+      if (outcome === "refused" && !getSessionUserId() && isDeviceLinkedHint()) markPendingSave(puzzleNumber);
     });
     setResult(left);
     setAlreadyPlayed(true);
@@ -417,11 +429,33 @@ export function useDailyGame(): UseDailyGameResult {
     window.addEventListener("pagehide", onHide);
     return () => window.removeEventListener("pagehide", onHide);
   }, [forfeit]);
+
+  // Outbox: a run whose save never got a server answer is resent on the next
+  // visit and whenever the connection comes back, until the server answers.
   useEffect(() => {
-    if (!stored || !hasForfeitPending(puzzleNumber) || debugBypass) return;
-    void saveDailyResultRemote(stored).then(() => clearForfeitPending(puzzleNumber));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (debugBypass) return;
+    let sending = false;
+    const flush = () => {
+      const r = resultRef.current;
+      if (sending || !r || r.puzzleNumber !== puzzleNumber) return;
+      if (!hasDailyOutbox(puzzleNumber) && !hasForfeitPending(puzzleNumber)) return;
+      if (hasPendingSave(puzzleNumber)) return; // waits for sign-in instead
+      sending = true;
+      void saveDailyResultOutcome(r).then((outcome) => {
+        sending = false;
+        if (outcome === "retryable") return;
+        clearDailyOutbox(puzzleNumber);
+        clearForfeitPending(puzzleNumber);
+        if (outcome === "refused" && !getSessionUserId() && isDeviceLinkedHint()) {
+          markPendingSave(puzzleNumber);
+          setNeedsSignInToSave(true);
+        }
+      });
+    };
+    flush();
+    window.addEventListener("online", flush);
+    return () => window.removeEventListener("online", flush);
+  }, [puzzleNumber, debugBypass]);
 
   // The gate is enforced here too, so no path can start a pre-launch run.
   // A pending already-played check is awaited (briefly) so a known player's
