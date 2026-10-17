@@ -8,6 +8,7 @@ import { Helmet } from "react-helmet-async";
 import { HelpCircle, Settings } from "lucide-react";
 
 import GameCard from "@/components/GameCard";
+import DailyMissTracker from "@/components/DailyMissTracker";
 import DailyFrame, { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
 import DailyHowToSteps, { hasSeenHowTo } from "@/components/DailyHowToSteps";
 import DailyRoundIntro, { DAILY_FADE_IN_MS } from "@/components/DailyRoundIntro";
@@ -161,29 +162,7 @@ const blockIn = (block: keyof typeof RESULT_BLOCK): React.CSSProperties =>
 /** Marks start once their block has landed. */
 const MARKS_BASE_DELAY_MS = RESULT_BLOCK.rounds * BLOCK_STAGGER_MS + BLOCK_IN_MS;
 
-/** Two markers for the current round, filled as its misses are spent. */
-const MissTracker: React.FC<{ used: number }> = ({ used }) => (
-  <div
-    role="img"
-    aria-label={`${used} of ${MISSES_PER_ROUND} misses used this round`}
-    style={{ display: "flex", gap: SPACE[2], alignItems: "center" }}
-  >
-    {Array.from({ length: MISSES_PER_ROUND }, (_, i) => (
-      <span
-        key={i}
-        aria-hidden="true"
-        style={{
-          width: 14,
-          height: 14,
-          borderRadius: 999,
-          border: BORDER.heavy,
-          background: i < used ? COLORS.red : "transparent",
-          transition: "background 200ms ease",
-        }}
-      />
-    ))}
-  </div>
-);
+const MissTracker = DailyMissTracker;
 
 /** One marker per resolved call in a round, in the order they happened. */
 const RoundMarks: React.FC<{
