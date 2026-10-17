@@ -428,7 +428,9 @@ const ModalShell: React.FC<{
   titleId: string;
   onCancel: () => void;
   children: React.ReactNode;
-}> = ({ titleId, onCancel, children }) => {
+  /** ON: match the shared Daily modal panel exactly. */
+  unified?: boolean;
+}> = ({ titleId, onCancel, children, unified = false }) => {
   // Portalled to body: the game column is capped at 420px (and scaled entry
   // frames apply transforms), so an in-tree fixed/absolute overlay only ever
   // covered the mobile-width column. A modal must take over the full screen.
@@ -450,9 +452,9 @@ const ModalShell: React.FC<{
       data-motion-exit={exiting ? "true" : undefined}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0,0,0,0.5)",
+        background: unified ? "rgba(35, 31, 32, 0.6)" : "rgba(0,0,0,0.5)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        padding: 16,
+        padding: unified ? SPACE[8] : 16,
       }}
     >
       <div
@@ -462,7 +464,11 @@ const ModalShell: React.FC<{
         onClick={(e) => e.stopPropagation()}
         className="ww-ui-modal-panel"
         data-motion-exit={exiting ? "true" : undefined}
-        style={{
+        style={unified ? {
+          ...panelStyle("surface", 8), maxWidth: 340, width: "100%",
+          display: "flex", flexDirection: "column", gap: SPACE[8],
+          fontFamily: FONT_FAMILY, color: INK,
+        } : {
           background: SURFACE, border: BORDER_HEAVY, borderRadius: R_BOX,
           padding: 16, maxWidth: 340, width: "100%",
           display: "flex", flexDirection: "column", gap: 12,
@@ -2117,7 +2123,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       )}
 
       {showLeave && (
-        <ModalShell titleId="mp-leave-title" onCancel={() => setShowLeave(false)}>
+        <ModalShell titleId="mp-leave-title" unified={umbrella} onCancel={() => setShowLeave(false)}>
           <h2 id="mp-leave-title" style={{ margin: 0, color: INK, ...textStyle("title") }}>
             {isHost ? "End the game?" : "Leave the table?"}
           </h2>
