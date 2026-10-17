@@ -15,15 +15,18 @@ export default function PlayStatsBlock({ mode, mobile }: { mode: "solo" | "toget
     return () => { live = false; };
   }, []);
   const stats = summarizeMatches(history, mode);
+  const extras: [string, string][] = mode === "solo"
+    ? [
+      ["Claim Accuracy", stats.accuracy === null ? "—" : `${stats.accuracy}%`],
+      ["Quickest Victory", formatVictory(stats.quickest)],
+      ["Total Pairs", stats.pairs === null ? "—" : `${stats.pairs}`],
+    ]
+    : [["Tables Hosted", `${stats.hosted}`]];
   const rows: [string, string][] = [
     ["Matches Played", `${stats.played}`],
     [mode === "solo" ? "Solo Wins" : "1st Place Wins", `${stats.wins}`],
     ["Win Rate", stats.winRate === null ? "—" : `${stats.winRate}%`],
-    ...(mode === "solo" ? [
-      ["Claim Accuracy", stats.accuracy === null ? "—" : `${stats.accuracy}%`],
-      ["Quickest Victory", formatVictory(stats.quickest)],
-      ["Total Pairs", stats.pairs === null ? "—" : `${stats.pairs}`],
-    ] : [["Tables Hosted", `${stats.hosted}`]]),
+    ...extras,
   ];
   if (loading && !history.games.length && !history.tables.length) return <CardFlipLoader label={`Loading ${mode === "solo" ? "Solo" : "Together"} Stats`} />;
   return <div style={{ display: "flex", flexDirection: "column", gap: SPACE[8] }}>
