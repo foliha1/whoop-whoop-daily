@@ -39,7 +39,7 @@ const HowToChooser: React.FC<{
           <button type="button" data-testid="howto-classic" onClick={onClassic} className="ww-press" style={{ ...buttonStyle("secondary", "lg"), ...btn, width: "100%" }}>
             Solo &amp; Together
           </button>
-          <button type="button" onClick={onClose} className="ww-press" style={{ ...buttonStyle("utility", "md"), width: "100%" }}>
+          <button type="button" onClick={onClose} className="ww-press" style={{ ...buttonStyle("quiet", "md"), width: "100%" }}>
             Close
           </button>
         </div>
