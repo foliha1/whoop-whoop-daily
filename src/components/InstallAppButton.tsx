@@ -27,10 +27,9 @@ const InstallAppButton: React.FC = () => {
         Add to Home Screen
       </button>
       {showIosHelp && !native ? (
-        <ol style={{ margin: 0, paddingLeft: 20, fontFamily: FONT_FAMILY, fontSize: 14, lineHeight: 1.4, color: COLORS.ink }}>
-          <li>Tap the Share button in Safari.</li>
-          <li>Choose <strong>Add to Home Screen</strong>.</li>
-        </ol>
+        <p role="status" style={{ margin: 0, fontFamily: FONT_FAMILY, fontSize: 14, lineHeight: 1.4, color: COLORS.ink, textAlign: "center" }}>
+          Tap the Share button in your browser. Choose Add to Home Screen.
+        </p>
       ) : null}
     </div>
   );

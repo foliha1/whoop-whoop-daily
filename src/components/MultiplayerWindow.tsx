@@ -1292,7 +1292,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     return (
     <>
       {umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null}
-      <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill topControl={umbrella && !home && opts.homeControl !== false}>
+      <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill={!(umbrella && home)} scroll={umbrella && home} topControl={umbrella && !home && opts.homeControl !== false}>
         <FitColumn disableScale={umbrella && home}>
         <div
           style={{
@@ -1721,17 +1721,17 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[6] }}>
           <div style={{ display: "flex", gap: SPACE[5], width: "100%" }}>
             <div style={{ flex: "1 1 0", minWidth: 0 }}>
-              <AppButton roleStyle="primary" size="lg" fullWidth onClick={() => {
+              <AppButton roleStyle="primary" size="lg" fullWidth style={{ height: "auto", minHeight: 96, padding: SPACE[6] }} onClick={() => {
                 setCodeInput("");
                 if (validateDisplayName(getDisplayName()).ok) void enterRoom({ kind: "create" });
                 else setView({ kind: "name-prompt", intent: "peeps", action: "create" });
-              }}><span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><MaterialIcon name="group_add" size={20} />Start a table</span></AppButton>
+              }}><span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[4] }}><span style={{ color: COLORS.peepsTint, display: "flex" }}><MaterialIcon name="group_add" size={32} /></span>Start a table</span></AppButton>
             </div>
             <div style={{ flex: "1 1 0", minWidth: 0 }}>
-              <AppButton roleStyle="secondary" size="lg" fullWidth onClick={() => {
+              <AppButton roleStyle="secondary" size="lg" fullWidth style={{ height: "auto", minHeight: 96, padding: SPACE[6] }} onClick={() => {
                 setCodeInput("");
                 setView({ kind: "name-prompt", intent: "peeps", action: "join" });
-              }}><span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><MaterialIcon name="login" size={20} />Join a table</span></AppButton>
+              }}><span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[4] }}><span style={{ color: COLORS.soloTint, display: "flex" }}><MaterialIcon name="login" size={32} /></span>Join a table</span></AppButton>
             </div>
           </div>
           <AppButton roleStyle="utility" size="md" fullWidth onClick={leaveToIdle}>Back</AppButton>
@@ -2141,7 +2141,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
             onClick={() => setShowLeaveConfirm(false)}
             autoFocus
             style={{
-              ...buttonStyle("quiet", "lg", { mobile }),
+              ...buttonStyle(umbrella ? "secondary" : "quiet", "lg", { mobile }),
               flexGrow: 1,
               height: CONTROL_H.lg + SPACE[2],
               padding: 0,
