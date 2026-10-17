@@ -995,6 +995,19 @@ const MultiplayerGameView: React.FC<Props> = ({
   }, [s.phase, s.claimWindowEndsAt]);
   const isMyTurnToRoll = mySeat !== null && s.roller === mySeat && s.phase === "AWAITING_ROLL" && !s.rolling;
   const isMyTurnToFlip = mySeat !== null && s.flipper === mySeat && s.phase === "FLIPPING" && s.peekingCard === null;
+  // ON-only idle nudge: after IDLE_HINT_MS of waiting on my roll/flip, show a
+  // hint. The key changes on every new turn (face-up count moves on a flip), so
+  // the timer restarts per turn and clears the instant the player acts.
+  const idleKind: "roll" | "flip" | null = !umbrella ? null : isMyTurnToRoll ? "roll" : isMyTurnToFlip ? "flip" : null;
+  const idleKey = idleKind ? `${idleKind}:${s.grid.filter((g) => g.card !== null).length}` : "";
+  const [idleHint, setIdleHint] = useState<"roll" | "flip" | null>(null);
+  React.useEffect(() => {
+    setIdleHint(null);
+    if (!idleKey) return;
+    const kind = idleKey.split(":")[0] as "roll" | "flip";
+    const t = setTimeout(() => setIdleHint(kind), IDLE_HINT_MS);
+    return () => clearTimeout(t);
+  }, [idleKey]);
   // NOTE: the old ~500ms "flip rotation freeze" on WHOOP was removed — a
   // player may claim mid-flip, so there is no window where the button is inert.
   // Cards must LOOK inert while another seat holds an open claim — otherwise a
@@ -1865,10 +1878,12 @@ const MultiplayerGameView: React.FC<Props> = ({
       maxHeight: mobile ? undefined : "100%",
       width: "100%",
       boxSizing: "border-box",
-      background: PANEL, overflow: "hidden", position: "relative",
+      // ON: the page background is the true background — no solid panel.
+      background: umbrella ? "transparent" : PANEL, overflow: "hidden", position: "relative",
     }}>
       {/* Solid panel wash over the persistent intro still. z-index:-1 keeps it
           above the frozen Lottie background and below the game column. */}
+      {umbrella ? null : (
       <div
         aria-hidden="true"
         style={{
@@ -1881,6 +1896,24 @@ const MultiplayerGameView: React.FC<Props> = ({
           transition: prefersReducedMotion() ? "none" : "opacity 1200ms cubic-bezier(0.22, 0.61, 0.36, 1)",
         }}
       />
+      )}
+      {idleHint ? (
+        <div
+          role="status"
+          data-testid="idle-hint"
+          style={{
+            position: "fixed", left: "50%", bottom: "calc(120px + env(safe-area-inset-bottom))",
+            transform: "translateX(-50%)", zIndex: 60, pointerEvents: "none",
+            background: COLORS.ink, color: COLORS.surface, fontFamily: FONT_FAMILY,
+            fontSize: 15, fontWeight: 600, padding: "10px 16px", borderRadius: 999,
+            boxShadow: "0 4px 14px rgba(0,0,0,0.25)", whiteSpace: "nowrap",
+            animation: prefersReducedMotion() ? undefined : "ww-idle-hint-in 250ms ease-out both",
+          }}
+        >
+          <style>{"@keyframes ww-idle-hint-in{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}"}</style>
+          {idleHint === "roll" ? "Your turn to roll!" : "Tap a card to flip!"}
+        </div>
+      ) : null}
       <style>{HEADER_FOCUS_CSS}</style>
 
       <RollOverlayPortal
