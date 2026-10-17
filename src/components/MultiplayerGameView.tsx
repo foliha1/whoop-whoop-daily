@@ -43,7 +43,7 @@ import type { IntentAction, RollAttribute, RollCommitPayload, TransientEvent } f
 import { ROLL_HERO_MS } from "@/lib/multiplayer";
 import { CARD_FLIP_MS } from "@/lib/animationTiming";
 import {
-  GREAT_MATCH_DELAY_MS, DEAL_MOVE_MS, WRONG_ANIM_MS, SETTLE_REVEAL_HOLD_MS,
+  GREAT_MATCH_DELAY_MS, DEAL_MOVE_MS, WRONG_ANIM_MS, SETTLE_REVEAL_HOLD_MS, DAILY_MATCH_REVEAL_MS,
   applyAnimationTimingVars,
   CLAIM_ABANDON_MS,
   JOINER_TAP_ACK_TIMEOUT_MS,
@@ -1248,11 +1248,15 @@ const MultiplayerGameView: React.FC<Props> = ({
     const elapsed = presentationElapsed(s.settleEndsAt, SETTLE_MATCH_MS, serverNow());
     // A late arrival skips the flip and joins the timeline face up.
     if (elapsed > 150) copies.forEach((c) => { c.flip = false; });
-    setGhostElapsed(elapsed);
+    // ON: a pair the player already flipped face up has nothing to reveal, so
+    // skip the flip beat and start the treatment after the short read hold.
+    const skip = umbrella && copies.length > 0 && copies.every((c) => !c.flip) && elapsed < DAILY_MATCH_REVEAL_MS ? DAILY_MATCH_REVEAL_MS - elapsed : 0;
+    const elapsedShown = elapsed + skip;
+    setGhostElapsed(elapsedShown);
     if (elapsed >= SETTLE_MATCH_MS) return;
     if (copies.length) setGhost(copies);
     // Land the chime with the ghost treatment, not with the reveal.
-    const chimeIn = SETTLE_REVEAL_HOLD_MS + GREAT_MATCH_DELAY_MS - elapsed;
+    const chimeIn = SETTLE_REVEAL_HOLD_MS + GREAT_MATCH_DELAY_MS - elapsedShown;
     if (chimeIn < 0) return;
     const chime = setTimeout(() => { playCorrect(); hapticSuccess(); }, chimeIn);
     soundTimersRef.current.push(chime);
@@ -1278,7 +1282,10 @@ const MultiplayerGameView: React.FC<Props> = ({
     const idxs = [...lastPairRef.current];
     const seat = s.claimBy ?? lastClaimSeatRef.current;
     // Late client: skip what already happened, keep the rest on time.
-    const elapsed = presentationElapsed(s.settleEndsAt, SETTLE_WRONG_MS, serverNow());
+    const rawElapsed = presentationElapsed(s.settleEndsAt, SETTLE_WRONG_MS, serverNow());
+    // ON: both cards already face up — skip the flip beat, keep the read hold.
+    const alreadyUp = umbrella && idxs.length === 2 && idxs.every((i) => prevFaceUpRef.current.has(i));
+    const elapsed = alreadyUp && rawElapsed < DAILY_MATCH_REVEAL_MS ? DAILY_MATCH_REVEAL_MS : rawElapsed;
     const endIn = SETTLE_REVEAL_HOLD_MS + WRONG_ANIM_MS - elapsed;
     if (endIn <= 0) return;
     const startIn = SETTLE_REVEAL_HOLD_MS - elapsed;
