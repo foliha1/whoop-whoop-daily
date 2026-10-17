@@ -288,6 +288,7 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
 
 /** The Daily's theme. `startTheme()` with no argument always means this one. */
 const DEFAULT_THEME_FILE = THEME_MP3.daily;
+export const DAILY_THEME_FILE = DEFAULT_THEME_FILE;
 /** Classic's own tracks, build-hashed from src/assets. */
 export const CLASSIC_THEME_FILE = THEME_MP3.classic;
 export const HOW_TO_PLAY_THEME_FILE = THEME_MP3.howTo;

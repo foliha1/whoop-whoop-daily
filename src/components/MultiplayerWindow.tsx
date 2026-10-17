@@ -203,7 +203,7 @@ import {
   type RoomRow,
 } from "@/lib/rooms";
 
-import { startTheme, stopTheme, unlockAudio, CLASSIC_THEME_FILE } from "@/lib/sounds";
+import { startTheme, stopTheme, leaveThemeZone, unlockAudio, CLASSIC_THEME_FILE } from "@/lib/sounds";
 import { supabase } from "@/integrations/supabase/client";
 import MaterialIcon from "@/components/MaterialIcon";
 
@@ -655,21 +655,25 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
   const joinerPublicState = joiner.publicState;
 
+  const [howToChooser, setHowToChooser] = useState(false);
+  const [dailyHowTo, setDailyHowTo] = useState(false);
+
   // ---- Classic music -----------------------------------------------------
   // The Classic theme plays on the entry screens and on the result screen.
   // Live play is effects-only, so while a game view is mounted that view owns
   // the music (it silences the theme and brings it back at game over). The How
   // to Play demo owns the music while it is open; this effect re-runs on close.
   const gameOnScreen =
+    (umbrella && view.kind === "solo") ||
     (isHostView && frozenSeats !== null && !!activeRoom) ||
     (view.kind === "joiner" && !!joinerPublicState && !!activeRoom);
   useEffect(() => {
-    if (howTo) return; // the demo owns music while it is open
+    if (howTo || dailyHowTo) return; // the demo owns music while it is open
     if (gameOnScreen) return; // the game view owns music while it is mounted
     startTheme(CLASSIC_THEME_FILE);
-  }, [howTo, gameOnScreen]);
+  }, [howTo, dailyHowTo, gameOnScreen]);
   // Route change or window close: nothing on the next screen wants this loop.
-  useEffect(() => () => stopTheme(), []);
+  useEffect(() => () => { if (umbrella) leaveThemeZone(); else stopTheme(); }, [umbrella]);
 
 
   const joinerSeat = useMemo(() => {
@@ -878,8 +882,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     gateOr(startSoloFlow);
   }, [busy, gateOr, startSoloFlow]);
 
-  const [howToChooser, setHowToChooser] = useState(false);
-  const [dailyHowTo, setDailyHowTo] = useState(false);
   const openHowToReference = useCallback(() => {
     if (umbrellaOn()) setHowToChooser(true);
     else setHowTo({ mode: "reference" });

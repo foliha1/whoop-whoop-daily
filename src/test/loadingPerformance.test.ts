@@ -62,7 +62,7 @@ describe("startup loading boundaries", () => {
     expect(logo).not.toMatch(/\nloadData\(VARIANTS\.daily\.animation\)/);
     expect(logo).toContain("if (prefersReducedMotion()) return");
     expect(logo).toContain("loadData(art.animation)");
-    expect(daily).toContain("afterPaintIdleOrInteraction(() => prewarmTheme())");
+    expect(daily).toContain('afterPaintIdleOrInteraction(() => prewarmTheme(screenMusic("entry", umbrella) ?? undefined))');
     expect(daily).toContain("const resultsDataReady = daily.result !== null && daily.resultSaved");
     expect(daily).toContain("useWhoopPointsState(resultsDataReady");
     expect(read("hooks/useDailyProfile.ts")).not.toContain("fetchDailyStats");

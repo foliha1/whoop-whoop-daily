@@ -1,5 +1,7 @@
 # Architecture decisions
 
+- Screen music uses the runtime umbrella flag and a shared screen policy; game pages retain ownership of silence/results and How to Play overrides, while other ON routes explicitly restore entry music.
+
 - Solo bot claim deadlines are anchored to the committed roll's full animation completion and checked again at dispatch, so waiting to roll or an overdue reaction cannot consume the player's grace.
 
 - Stage non-critical media after first paint and deduplicate image decode promises, so entry screens never compete with full game assets.

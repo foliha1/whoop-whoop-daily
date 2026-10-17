@@ -103,6 +103,7 @@ import {
   prewarmTheme,
   unlockAudio,
 } from "@/lib/sounds";
+import { screenMusic } from "@/lib/screenMusic";
 
 import {
   BORDER,
@@ -1732,14 +1733,16 @@ const DailyPage: React.FC = () => {
   // `startTheme()` is safe to call before a gesture — it records the intent and
   // the theme fades in as soon as `unlockAudio()` runs.
   useEffect(() => {
-    if (ready || finished) startTheme();
+    const screen = umbrella && howTo ? "howTo" : finished ? "results" : ready || umbrella && phase === "READY" ? "entry" : "gameplay";
+    const track = screenMusic(screen, umbrella);
+    if (track) startTheme(track);
     else stopTheme();
-  }, [audioReady, ready, finished]);
+  }, [audioReady, ready, finished, umbrella, phase, howTo]);
 
   useEffect(() => {
-    const cancel = afterPaintIdleOrInteraction(() => prewarmTheme());
+    const cancel = afterPaintIdleOrInteraction(() => prewarmTheme(screenMusic("entry", umbrella) ?? undefined));
     return () => { cancel(); leaveThemeZone(); };
-  }, []);
+  }, [umbrella]);
 
   const readout = (() => {
     switch (phase) {
@@ -1967,7 +1970,7 @@ const DailyPage: React.FC = () => {
                 // theme has a window in which to start.
                 unlockAudio();
                 setAudioReady(true);
-                startTheme();
+                startTheme(screenMusic(umbrella ? "howTo" : "entry", umbrella) ?? undefined);
                 hapticTap();
                 setHowTo("reference");
               }}
