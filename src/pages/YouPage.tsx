@@ -72,7 +72,7 @@ const YouPage: React.FC = () => {
       <div style={{ width: "100%", minWidth: 0, display: "flex", flexDirection: "column", alignItems: "stretch", gap: SPACE[20] }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: SPACE[4] }}>
           <MotionReveal index={0} style={{ justifySelf: "start" }}>
-            {umbrella && !backToResults ? <span aria-hidden="true" /> : (
+            {umbrella ? <span aria-hidden="true" /> : (
             <Link to={umbrella ? "/daily" : "/"} state={backToResults ? { wwOpenResult: true } : undefined} className="ww-press" style={buttonStyle("ink", "md", { mobile })}>
               <ChevronLeft size={SPACE[8]} strokeWidth={2} aria-hidden="true" />Back
             </Link>
