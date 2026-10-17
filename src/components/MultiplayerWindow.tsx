@@ -664,7 +664,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // the music (it silences the theme and brings it back at game over). The How
   // to Play demo owns the music while it is open; this effect re-runs on close.
   const gameOnScreen =
-    view.kind === "solo" ||
+    (umbrella && view.kind === "solo") ||
     (isHostView && frozenSeats !== null && !!activeRoom) ||
     (view.kind === "joiner" && !!joinerPublicState && !!activeRoom);
   useEffect(() => {
