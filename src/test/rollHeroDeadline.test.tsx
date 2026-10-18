@@ -12,7 +12,7 @@ describe.each([true, false])("roll deadline with umbrella %s", (on) => {
   it("keeps completion at 2000ms even after tapping to skip", () => {
     setUmbrellaPreviewForTests(on);
     const complete = vi.fn();
-    const rect = new DOMRect(0, 0, 80, 80);
+    const rect = { left: 0, top: 0, width: 80, height: 80 } as DOMRect;
     render(<RollHeroOverlay commit={{ roundId: "test", attribute: "COLOR", faceIndex: 0, tumbleSeed: 1, startAt: 0 }} homeRect={rect} targetRect={rect} parentRect={rect} onComplete={complete} />);
     act(() => { vi.advanceTimersByTime(100); });
     fireEvent.click(screen.getByLabelText("Match die showing COLOR"));

@@ -6,6 +6,7 @@ import { setUmbrellaPreviewForTests } from "@/lib/launch";
 
 vi.mock("@/lib/sounds", () => ({ playCorrect: vi.fn(), playDeal: vi.fn(), playDiceRoll: vi.fn(), playDieLand: vi.fn(), playFlip: vi.fn(), playSelect: vi.fn(), playWhoopCall: vi.fn(), playWrong: vi.fn(), startTheme: vi.fn(), stopTheme: vi.fn(), leaveThemeZone: vi.fn(), prewarmTheme: vi.fn(), HOW_TO_PLAY_THEME_FILE: "howto.mp3" }));
 vi.mock("@/lib/analytics", () => ({ trackEvent: vi.fn() }));
+vi.mock("@/components/RollHeroOverlay", () => ({ default: () => null, TUMBLE_MS: 800 }));
 
 beforeEach(() => { localStorage.clear(); vi.useFakeTimers(); setUmbrellaPreviewForTests(true); });
 afterEach(() => { cleanup(); vi.useRealTimers(); setUmbrellaPreviewForTests(null); });
