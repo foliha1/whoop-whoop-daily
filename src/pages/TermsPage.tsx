@@ -1,7 +1,7 @@
 import React from "react";
 import LegalPage, { LegalSection, LegalText, MailLink } from "@/components/LegalPage";
 
-const UPDATED = "4 September 2026";
+const UPDATED = "18 October 2026";
 
 const TermsPage: React.FC = () => (
   <LegalPage
@@ -46,6 +46,22 @@ const TermsPage: React.FC = () => (
       <LegalText>
         Table codes are shareable by design. Anyone holding a code can join that table. Do not share
         a code more widely than you mean to.
+      </LegalText>
+    </LegalSection>
+
+    <LegalSection heading="Play fair">
+      <LegalText>
+        Do not cheat, use bots or scripts, tamper with the game or its results, try to get into
+        other people's accounts, or overload the service. We may reset results or block access if
+        we see this.
+      </LegalText>
+    </LegalSection>
+
+    <LegalSection heading="Your account">
+      <LegalText>
+        Accounts are optional. Keep access to your email safe, since the sign-in code goes there.
+        You can delete your account at any time in Settings. Our Privacy page explains what we
+        store.
       </LegalText>
     </LegalSection>
 
