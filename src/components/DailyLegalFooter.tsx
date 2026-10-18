@@ -38,6 +38,9 @@ const DailyLegalFooter: React.FC = () => (
     <Link to="/terms" style={linkStyle}>
       Terms
     </Link>
+    <Link to="/faq" style={linkStyle}>
+      FAQ
+    </Link>
     <a href={`mailto:${CONTACT}`} style={linkStyle}>
       {CONTACT}
     </a>
