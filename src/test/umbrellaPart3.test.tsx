@@ -56,7 +56,7 @@ describe("Part 3 destinations", () => {
     expect(src("src/components/ClassicResultScreen.tsx")).toContain('href={umbrellaOn() ? "/daily" : "/"}');
     expect(src("src/components/MultiplayerWindow.tsx")).toContain('href={umbrella ? "/daily" : "/"}');
     expect(src("src/pages/SupportPage.tsx")).toContain('to={umbrella ? "/daily" : "/"}');
-    expect(src("src/components/LegalPage.tsx")).toContain('to={umbrella ? "/daily" : "/"}');
+    expect(src("src/components/LegalPage.tsx")).not.toContain("Back to the daily");
     expect(src("src/pages/GroupsPage.tsx")).toContain('to={umbrella ? "/daily" : "/"}');
     expect(src("src/pages/YouPage.tsx")).toContain('to={umbrella ? "/daily" : "/"}');
     expect(src("scripts/umbrellaHead.mjs")).toContain("${ORIGIN}/daily</loc>");

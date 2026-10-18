@@ -2,7 +2,6 @@ import React from "react";
 import { useUmbrella } from "@/lib/launch";
 import HomeControl from "@/components/HomeControl";
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
 import DailyFrame from "@/components/DailyFrame";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { COLORS, FONT_FAMILY_UI, FONT_WEIGHT_UI, SPACE, textStyle } from "@/lib/tokens";
@@ -55,17 +54,6 @@ const LegalPage: React.FC<{
             </p>
           </header>
           {children}
-          <Link
-            to={umbrella ? "/daily" : "/"}
-            style={{
-              ...bodyStyle,
-              color: COLORS.inkMuted,
-              textDecoration: "underline",
-              alignSelf: "flex-start",
-            }}
-          >
-            Back to the daily
-          </Link>
         </article>
       </DailyFrame>
     </>
@@ -97,7 +85,7 @@ export const LegalText: React.FC<{ children: React.ReactNode }> = ({ children })
 );
 
 export const LegalList: React.FC<{ items: React.ReactNode[] }> = ({ items }) => (
-  <ul style={{ ...bodyStyle, paddingLeft: 18, display: "grid", gap: SPACE[3] }}>
+  <ul style={{ ...bodyStyle, paddingLeft: 18, listStyleType: "disc", display: "grid", gap: SPACE[3] }}>
     {items.map((item, i) => (
       <li key={i}>{item}</li>
     ))}

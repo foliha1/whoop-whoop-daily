@@ -1,6 +1,6 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import LegalPage, { LegalSection, LegalText, LegalList } from "@/components/LegalPage";
+import LegalPage, { LegalSection, LegalText, LegalList, MailLink } from "@/components/LegalPage";
 
 /** One source for the visible answers and the FAQPage structured data, so they never drift. */
 export const FAQ_ITEMS: { q: string; a: string; list?: string[] }[] = [
@@ -64,6 +64,11 @@ const FaqPage: React.FC = () => (
           {item.list ? <LegalList items={item.list} /> : null}
         </LegalSection>
       ))}
+      <LegalSection heading="Have more questions?">
+        <LegalText>
+          Reach out to <MailLink />.
+        </LegalText>
+      </LegalSection>
     </LegalPage>
   </>
 );
