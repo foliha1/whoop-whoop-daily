@@ -1,19 +1,29 @@
 import React from "react";
 import LegalPage, { LegalSection, LegalText, MailLink } from "@/components/LegalPage";
+import { useUmbrella } from "@/lib/launch";
 
 const UPDATED = "18 October 2026";
 
-const TermsPage: React.FC = () => (
+const TermsPage: React.FC = () => {
+  const umbrella = useUmbrella();
+  // Player-facing mode name: OFF keeps today's "Classic" copy exactly; the
+  // launched version calls the same multiplayer mode "Together".
+  const mode = umbrella ? "Together" : "Classic";
+  return (
   <LegalPage
     title="Terms"
-    metaTitle="Terms of Use — WHOOP! WHOOP! Daily and Classic"
-    metaDescription="WHOOP! WHOOP! Daily and Classic are free to play and provided as is. We may change or stop them at any time. Questions: hello@whoop-whoop.com."
+    metaTitle={`Terms of Use — WHOOP! WHOOP! Daily and ${mode}`}
+    metaDescription={
+      umbrella
+        ? "WHOOP! WHOOP! Daily and Together are free to play and provided as is. We may change or stop them at any time. Questions: hello@whoop-whoop.com."
+        : "WHOOP! WHOOP! Daily and Classic are free to play and provided as is. We may change or stop them at any time. Questions: hello@whoop-whoop.com."
+    }
     path="/terms"
     updated={UPDATED}
   >
     <LegalSection heading="The game is free">
       <LegalText>
-        WHOOP! WHOOP! Daily and WHOOP! WHOOP! Classic are free to play. There is nothing to buy,
+        WHOOP! WHOOP! Daily and WHOOP! WHOOP! {mode} are free to play. There is nothing to buy,
         and no account is required.
       </LegalText>
     </LegalSection>
@@ -28,7 +38,7 @@ const TermsPage: React.FC = () => (
 
     <LegalSection heading="Playing with other people">
       <LegalText>
-        Classic is played with other people in real time. Your display name is visible to everyone
+        {mode} is played with other people in real time. Your display name is visible to everyone
         at your table.
       </LegalText>
       <LegalText>
@@ -85,6 +95,7 @@ const TermsPage: React.FC = () => (
       </LegalText>
     </LegalSection>
   </LegalPage>
-);
+  );
+};
 
 export default TermsPage;
