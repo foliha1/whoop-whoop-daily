@@ -37,6 +37,38 @@
     <meta name="twitter:title" content="WHOOP! WHOOP! — Daily Memory Game">
     <meta name="twitter:description" content="Play the free WHOOP! WHOOP! daily memory game. Nine cards, ten seconds, three rounds, two misses a round. A new memory challenge every day—no signup needed.">
     <meta name="twitter:image" content="https://whoop-whoop.com/og-daily.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://whoop-whoop.com/#org",
+            "name": "Oleeha & Co",
+            "url": "https://whoop-whoop.com/"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://whoop-whoop.com/#website",
+            "name": "WHOOP! WHOOP!",
+            "url": "https://whoop-whoop.com/",
+            "publisher": { "@id": "https://whoop-whoop.com/#org" }
+          },
+          {
+            "@type": ["VideoGame", "WebApplication"],
+            "name": "WHOOP! WHOOP!",
+            "url": "https://whoop-whoop.com/",
+            "description": "A free online memory card game where the matching rules change every round. A new Daily puzzle every day: nine cards, ten seconds to study, three rounds, two misses a round.",
+            "genre": ["Memory game", "Card game", "Daily puzzle", "Brain training"],
+            "applicationCategory": "GameApplication",
+            "operatingSystem": "Any (web browser)",
+            "isAccessibleForFree": true,
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+            "publisher": { "@id": "https://whoop-whoop.com/#org" }
+          }
+        ]
+      }
+    </script>
 
 </head>
 

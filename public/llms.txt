@@ -1,9 +1,21 @@
 # WHOOP! WHOOP!
 
-> A competitive memory card game by Oleeha & Co where matching rules change every round. Play online in the browser or pre-order the physical game.
+> WHOOP! WHOOP! is a free online memory card game by Oleeha & Co where the matching rules change every round. It runs in any modern web browser on phones, tablets and computers — no download, no account and no payment required.
 
-WHOOP! WHOOP! is designed for 2–6 players, ages 7+, with 15–20 minute play time. Players flip face-down cards, memorize positions, and race to call out matching pairs by shape, number, or color — with rules that shift every round via dice rolls.
+WHOOP! WHOOP! is an independent card game. It is not affiliated with WHOOP, Inc. or the WHOOP fitness tracker.
+
+## The Daily
+
+- A new puzzle every day, refreshing at local midnight.
+- 9 face-down cards and 10 seconds to study them.
+- 3 rounds; a die roll decides whether pairs match by shape, number or color.
+- 2 misses allowed per round.
+- Results can be shared, and streaks are tracked.
+
+## Also available
+
+- WHOOP! WHOOP! is also a physical tabletop game for 2–6 players, ages 7+, with 15–20 minute play time.
 
 ## Pages
 
-- [Home](/): Play the game online, learn the rules, and pre-order the physical edition.
+- [Home](https://whoop-whoop.com/): Play today's Daily memory game in the browser.
