@@ -1,6 +1,7 @@
 import React from "react";
 import CardFlipLoader from "@/components/CardFlipLoader";
 import MotionReveal from "@/components/MotionReveal";
+import { StatInfoTile } from "@/components/StatInfo";
 import { fetchMatchHistory, localMatchHistory, summarizeMatches, formatVictory } from "@/lib/playerStats";
 import { BORDER, COLORS, RADIUS, SPACE, textStyle } from "@/lib/tokens";
 
@@ -34,10 +35,10 @@ export default function PlayStatsBlock({ mode, mobile }: { mode: "solo" | "toget
     {error && <p role="status" style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>Couldn’t refresh your stats. Showing this device’s saved results.</p>}
     <MotionReveal index={2}>
     <div data-testid="play-stats" style={{ display: "grid", gridTemplateColumns: mobile ? "repeat(2, minmax(0, 1fr))" : "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
-      {rows.map(([label, value], i) => <MotionReveal kind="list" index={i} key={label} style={{ minWidth: 0, display: "flex" }}><div style={{ flex: 1, minWidth: 0, border: BORDER.heavy, borderRadius: RADIUS.md, background: COLORS.surface, padding: SPACE[6], display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: SPACE[4], textAlign: "center" }}>
+      {rows.map(([label, value], i) => <MotionReveal kind="list" index={i} key={label} style={{ minWidth: 0, display: "flex" }}><StatInfoTile label={label} mobile={mobile} style={{ flex: 1, minWidth: 0, border: BORDER.heavy, borderRadius: RADIUS.md, background: COLORS.surface, padding: SPACE[6], display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: SPACE[4], textAlign: "center" }}>
         <span style={{ ...textStyle("display", mobile), ...(label === "Quickest Victory" ? textStyle("title", mobile) : {}), color: COLORS.ink, overflowWrap: "anywhere" }}>{value}</span>
         <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, overflowWrap: "normal" }}>{label}</span>
-      </div></MotionReveal>)}
+      </StatInfoTile></MotionReveal>)}
     </div>
     </MotionReveal>
   </div>;

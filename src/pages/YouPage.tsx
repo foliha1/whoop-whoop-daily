@@ -22,6 +22,7 @@ import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
 import DisplayNameEditor from "@/components/DisplayNameEditor";
 import { useUmbrella } from "@/lib/launch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { StatInfoTile } from "@/components/StatInfo";
 import PlayStatsBlock from "@/components/PlayStatsBlock";
 import { PLAY_MODES, PLAY_MODE_BUTTON } from "@/lib/playModeTheme";
 
@@ -101,17 +102,20 @@ const YouPage: React.FC = () => {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: SPACE[20] }}>
             <MotionReveal index={2} style={section}>
-              <YouScoreTiles points={points} mobile={mobile} />
+              <YouScoreTiles points={points} mobile={mobile} explain={umbrella} />
               <div data-testid="you-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
                 {([
                   ["Days Played", points.gamesPlayed, COLORS.red],
                   ["Clean Runs", stats?.cleanRuns ?? "—", COLORS.blue],
                   ["Longest Streak", stats?.bestStreak ?? "—", COLORS.orangeStat],
-                ] as const).map(([label, value, legacyColor]) => (
-                  <div key={label} style={{ ...creamTile, borderColor: umbrella ? COLORS.ink : legacyColor, padding: SPACE[6], display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: SPACE[4], textAlign: "center" }}>
+                ] as const).map(([label, value, legacyColor]) => {
+                  const tileStyle: React.CSSProperties = { ...creamTile, borderColor: umbrella ? COLORS.ink : legacyColor, padding: SPACE[6], display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: SPACE[4], textAlign: "center" };
+                  const body = <>
                     <span style={{ ...textStyle("display", mobile), color: umbrella ? COLORS.ink : legacyColor }}>{value}</span>
                     <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, overflowWrap: "anywhere" }}>{label}</span>
-                  </div>
+                  </>;
+                  return umbrella ? <StatInfoTile key={label} label={label} mobile={mobile} style={tileStyle}>{body}</StatInfoTile> : <div key={label} style={tileStyle}>{body}</div>;
+                }
                 ))}
               </div>
             </MotionReveal>
