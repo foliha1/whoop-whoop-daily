@@ -17,9 +17,9 @@ const PrivacyPage: React.FC = () => (
     updated={UPDATED}
   >
     <LegalText>
-      WHOOP! WHOOP! Daily and WHOOP! WHOOP! Classic are free memory games. This page describes
-      exactly what they collect and why. There is no account to create, and you can play without
-      giving us anything.
+      WHOOP! WHOOP! Daily and WHOOP! WHOOP! Classic are free memory games made by Oleeha & Co. This
+      page describes exactly what they collect and why. You never need an account, and you can
+      play without giving us anything.
     </LegalText>
 
     <LegalSection heading="Accounts">
@@ -106,6 +106,39 @@ const PrivacyPage: React.FC = () => (
         shares, and where a visit came from (the referring site or a campaign tag in the link). We
         use this to see which puzzles are too hard or too easy and to improve the game. These events
         carry the random visitor ID, never a name or an email.
+      </LegalText>
+    </LegalSection>
+
+    <LegalSection heading="Game results and stats">
+      <LegalText>
+        When you finish a game we save the result (for example score, pairs found, claims made and
+        how long a win took) so your stats can show. Signed in, these are saved to your account;
+        otherwise they stay on your device. We also note which tables you started, so your stats
+        can count them.
+      </LegalText>
+    </LegalSection>
+
+    <LegalSection heading="Who helps us run the game">
+      <LegalText>
+        Our hosting and database providers store and process the data above on our behalf, and
+        ActiveCampaign sends the reminder email. They may only use it to provide that service to
+        us.
+      </LegalText>
+    </LegalSection>
+
+    <LegalSection heading="How long we keep it">
+      <LegalText>
+        We keep your account and results until you delete them, and your email until you
+        unsubscribe or ask us to remove it. Table records exist for running games and are cleaned
+        up afterwards. Anonymous gameplay events may be kept to understand the game over time.
+      </LegalText>
+    </LegalSection>
+
+    <LegalSection heading="Your rights">
+      <LegalText>
+        You can ask to see, correct, export or delete your data, or object to how we use it, by
+        writing to <MailLink />. If you are in the EU or UK, you can also complain to your local
+        data protection authority.
       </LegalText>
     </LegalSection>
 
