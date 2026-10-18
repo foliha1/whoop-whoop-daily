@@ -1,7 +1,7 @@
 import React from "react";
 import LegalPage, { LegalSection, LegalText, MailLink } from "@/components/LegalPage";
 
-const UPDATED = "4 September 2026";
+const UPDATED = "18 October 2026";
 
 const TermsPage: React.FC = () => (
   <LegalPage
