@@ -630,6 +630,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   const portalHost = usePortalHost("classic-demo");
   const reduce = useReducedMotion();
   const isMobile = useIsMobile();
+  const umbrella = umbrellaOn();
   // Demo-only music: the How to Play track loops for as long as the demo is
   // open, including the welcome card. The screen underneath (lobby or game)
   // resumes its own music when the demo closes.
@@ -656,10 +657,16 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
   // step's copy renders into the still-visible bubble for a frame before the
   // step effect clears it, which reads as a flash before the animation beat.
   const goToStep = useCallback((next: (current: number) => number) => {
+    if (umbrella) {
+      for (const id of timers.current) window.clearTimeout(id);
+      timers.current = [];
+      setRollCommit(null);
+      setRollRects(null);
+    }
     setCopyVisible(false);
     setStepSettled(false);
     setStep((current) => next(current));
-  }, []);
+  }, [umbrella]);
 
   useEffect(() => {
     markClassicDemoSeen();
@@ -1068,6 +1075,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
           flexDirection: "column",
           gap: SPACE[2],
           minHeight: 0,
+          ...(umbrella ? { overflowY: "auto", paddingBottom: SPACE[2] } : {}),
         }}
       >
         {/* progress + skip */}
@@ -1142,35 +1150,35 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
           style={{
             ...panelStyle("panel", 5),
             flex: "1 1 auto",
-            minHeight: 0,
+            minHeight: umbrella ? 190 : 0,
             overflow: "hidden",
           }}
         >
           <div data-testid="classic-demo-board" style={{ width: "100%", height: "100%" }}>{grid}</div>
         </DemoSpotlight>
 
-        {/* One fixed lower slot: the real die/action row occupies it while the
-            action plays, then the explanation fades over that same reserved
-            footprint. Nothing below the board ever reflows. We intentionally
-            rely on the spotlight rather than route a connector across cards. */}
+        {/* ON reserves separate rows for gameplay and explanation. OFF retains
+            the original shared footprint and its crossfade. */}
         <div
           style={{
-            flex: "0 0 176px",
+            flex: umbrella ? "0 0 auto" : "0 0 176px",
             minHeight: 176,
             position: "relative",
+            ...(umbrella ? { display: "flex", flexDirection: "column", gap: SPACE[4] } : {}),
           }}
         >
           <div
             style={{
-              position: "absolute",
-              inset: 0,
+              position: umbrella ? "relative" : "absolute",
+              inset: umbrella ? undefined : 0,
               display: "flex",
               alignItems: "stretch",
               gap: SPACE[4],
               height: CLASSIC_ACTION_ROW_HEIGHT,
-              opacity: copyVisible || step === LAST ? 0 : 1,
-              transition: reduce ? undefined : `opacity ${DEMO_COPY_FADE_MS}ms ${DEMO_DIE_EASE}`,
-              pointerEvents: copyVisible || step === LAST ? "none" : "auto",
+              opacity: (umbrella ? step === LAST : copyVisible || step === LAST) ? 0 : 1,
+              transition: reduce || umbrella ? undefined : `opacity ${DEMO_COPY_FADE_MS}ms ${DEMO_DIE_EASE}`,
+              pointerEvents: umbrella || copyVisible || step === LAST ? "none" : "auto",
+              ...(umbrella ? { flex: "none", display: step === LAST ? "none" : "flex" } : {}),
             }}
           >
             <DemoSpotlight instant={reduce}
@@ -1190,13 +1198,17 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
             finalPanel
           ) : (
             <div
+              key={umbrella ? step : "legacy-copy"}
               role="status"
               aria-live="polite"
+              aria-atomic={umbrella ? true : undefined}
+              aria-hidden={umbrella && !copyVisible ? true : undefined}
               style={{
                  ...panelStyle("surface", 8),
                 background: COLORS.surface,
                 width: "100%",
-                height: "100%",
+                height: umbrella ? "auto" : "100%",
+                ...(umbrella ? { minHeight: 176, boxSizing: "border-box", visibility: copyVisible ? "visible" : "hidden" } : {}),
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

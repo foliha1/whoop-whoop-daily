@@ -36,6 +36,7 @@ import {
 import type { RollCommitPayload } from "@/lib/multiplayer";
 import { ROLL_HERO_MS } from "@/lib/multiplayer";
 import { serverNow } from "@/hooks/useServerClock";
+import { useUmbrella } from "@/lib/launch";
 
 const HOME_SIZE = 80;         // 80×80 cream home box
 const LIFT_SCALE = 2.5;
@@ -85,6 +86,10 @@ export const RollHeroOverlay: React.FC<Props> = ({
   parentRect,
   onComplete,
 }) => {
+  const umbrella = useUmbrella();
+  // Rasterize ON hero artwork at its displayed resolution, then shrink it
+  // into the tray. OFF keeps the original cube and transforms unchanged.
+  const renderSize = umbrella ? HOME_SIZE * LIFT_SCALE : HOME_SIZE;
   const { attribute, faceIndex, tumbleSeed, startAt } = commit;
 
   // Home position, in the overlay parent's local coordinate space. Centered
@@ -94,8 +99,8 @@ export const RollHeroOverlay: React.FC<Props> = ({
   const targetCenterX = targetRect.left + targetRect.width / 2;
   const targetCenterY = targetRect.top + targetRect.height / 2;
 
-  const localLeft = homeCenterX - parentRect.left - HOME_SIZE / 2;
-  const localTop = homeCenterY - parentRect.top - HOME_SIZE / 2;
+  const localLeft = homeCenterX - parentRect.left - renderSize / 2;
+  const localTop = homeCenterY - parentRect.top - renderSize / 2;
   const dx = targetCenterX - homeCenterX;
   const dy = targetCenterY - homeCenterY;
 
@@ -200,8 +205,8 @@ export const RollHeroOverlay: React.FC<Props> = ({
 
   // Outer transform: lifted → home. Only the transform animates, never left/top.
   const outerTransform = landing
-    ? "translate(0px, 0px) scale(1)"
-    : `translate(${dx}px, ${dy}px) scale(${LIFT_SCALE})`;
+    ? (umbrella ? `translate(0px, 0px) scale(${1 / LIFT_SCALE})` : "translate(0px, 0px) scale(1)")
+    : `translate(${dx}px, ${dy}px) scale(${umbrella ? 1 : LIFT_SCALE})`;
 
   // When we're skipping (reduced-motion, late arrival, or tap), disable all
   // CSS transitions so the jump is instant. Otherwise use the normal bezier
@@ -225,8 +230,8 @@ export const RollHeroOverlay: React.FC<Props> = ({
         position: "absolute",
         left: localLeft,
         top: localTop,
-        width: HOME_SIZE,
-        height: HOME_SIZE,
+        width: renderSize,
+        height: renderSize,
         transform: outerTransform,
         transformOrigin: "50% 50%",
         transition: outerTransition,
@@ -248,7 +253,7 @@ export const RollHeroOverlay: React.FC<Props> = ({
         }}
       >
         <MatchDie
-          size={HOME_SIZE}
+          size={renderSize}
           attribute={attribute}
           faceIndex={faceIndex}
           rotation={cubeRotationStr}

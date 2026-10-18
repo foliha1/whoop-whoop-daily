@@ -1,4 +1,6 @@
 # Architecture decisions
+- ON Classic tutorial tips occupy a separate flow row from die/actions and are replaced per step; compact tutorials scroll instead of overlapping controls.
+- ON gameplay roll cubes render at native hero resolution and scale down into the tray; server-clock animation deadlines and the OFF rendering remain unchanged.
 - Expanded play statistics use identity-scoped local match records deduplicated against a caller-only server aggregate; Solo measurements are collected read-only by seat, because game-wide claims include the bot and cannot be used as player accuracy.
 - Hosted-table history is captured at server room creation and retained independently of room cleanup, so rematches never inflate tables hosted.
 

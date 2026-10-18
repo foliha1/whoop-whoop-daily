@@ -1,4 +1,9 @@
 # Roadmap
+
+## Tutorial tips and gameplay die
+- [x] Separate ON Classic tutorial explanations from controls, clear outgoing tips, and check compact layouts.
+- [x] Render ON Solo/Together hero die at native resolution; preserve roll deadlines and OFF behavior.
+- [x] Run regressions (686 passing) and verify all tutorial steps at 390×844, 360×640 light/night and desktop, plus a real Solo roll; launch remains OFF.
  
 ## Expanded player statistics
 - [x] Gate neutral Daily tile accents to ON/admin preview; preserve legacy coloured accents when OFF.
