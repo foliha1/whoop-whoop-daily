@@ -60,6 +60,7 @@ const YouPage = lazyPage(() => import("./pages/YouPage.tsx"));
 const TypographyPage = lazyPage(() => import("./pages/TypographyPage.tsx"));
 const PrivacyPage = lazyPage(() => import("./pages/PrivacyPage.tsx"));
 const TermsPage = lazyPage(() => import("./pages/TermsPage.tsx"));
+const FaqPage = lazyPage(() => import("./pages/FaqPage.tsx"));
 const NotFound = lazyPage(() => import("./pages/NotFound.tsx"));
 
 
@@ -151,6 +152,7 @@ const AnimatedRoutes: React.FC = () => {
           <Route path="/about" element={<SupportPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/faq" element={<FaqPage />} />
           <Route path="/admin" element={<AdminPage />} />
 
 
