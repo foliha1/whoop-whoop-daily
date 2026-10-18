@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
     let ok = false;
     try {
       if (isTestAddress(email)) {
-        console.log(`delete-account: AC unsubscribe mocked for test address ${email}`);
+        console.log(`delete-account: AC unsubscribe mocked for test address`);
       } else {
         ok = await acUnsubscribe(email);
       }
@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
 
   try {
     if (isTestAddress(email)) {
-      console.log(`delete-account: AC delete mocked for test address ${email}`);
+      console.log(`delete-account: AC delete mocked for test address`);
     } else {
       await acDelete(email);
     }
