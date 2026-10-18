@@ -11,13 +11,13 @@ const UPDATED = "18 October 2026";
 const PrivacyPage: React.FC = () => (
   <LegalPage
     title="Privacy"
-    metaTitle="Privacy Policy — WHOOP! WHOOP! Daily and Classic"
-    metaDescription="What WHOOP! WHOOP! Daily and Classic collect: an email only if you give it, a random visitor ID, your Classic display name, and anonymous gameplay events. No ads, no cross-site tracking."
+    metaTitle="Privacy Policy — WHOOP! WHOOP! Daily and Together"
+    metaDescription="What WHOOP! WHOOP! Daily and Together collect: an email only if you give it, a random visitor ID, your Together display name, and anonymous gameplay events. No ads, no cross-site tracking."
     path="/privacy"
     updated={UPDATED}
   >
     <LegalText>
-      WHOOP! WHOOP! Daily and WHOOP! WHOOP! Classic are free memory games made by Oleeha & Co. This
+      WHOOP! WHOOP! Daily and WHOOP! WHOOP! Together are free memory games made by Oleeha &amp; Co. This
       page describes exactly what they collect and why. You never need an account, and you can
       play without giving us anything.
     </LegalText>
@@ -60,9 +60,9 @@ const PrivacyPage: React.FC = () => (
       </LegalText>
     </LegalSection>
 
-    <LegalSection heading="Display names in Classic">
+    <LegalSection heading="Display names in Together">
       <LegalText>
-        WHOOP! WHOOP! Classic asks for a display name so other players at your table know who is
+        WHOOP! WHOOP! Together asks for a display name so other players at your table know who is
         who. It is up to six characters and you choose it. It is shown to everyone at your table
         while you play, so do not use your full name or anything you would not want a stranger to
         see.
@@ -73,24 +73,9 @@ const PrivacyPage: React.FC = () => (
       </LegalText>
     </LegalSection>
 
-    <LegalSection heading="Groups in Daily">
+    <LegalSection heading="Tables in Together">
       <LegalText>
-        A group shows your display name and your daily results — rounds solved, misses, and
-        whether you used a peek — to everyone in that group. Joining needs only the group's
-        six-character code and a name, so a group is only as private as the code its members
-        share.
-      </LegalText>
-      <LegalText>
-        You can choose to add an email address to a group so your standing follows you to
-        another device. That is optional: if you do not add one, your group place is tied only
-        to the random visitor ID in your browser. If you do add one, we link it to your saved
-        results so the same standing shows up wherever you play.
-      </LegalText>
-    </LegalSection>
-
-    <LegalSection heading="Tables in Classic">
-      <LegalText>
-        A Classic table has a six-character code. Anyone who has the code can join, so a table is
+        A Together table has a six-character code. Anyone who has the code can join, so a table is
         only as private as the code you share. There is no password and no invitation list.
       </LegalText>
       <LegalText>
