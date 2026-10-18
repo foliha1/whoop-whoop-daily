@@ -13,8 +13,7 @@ const TermsPage: React.FC = () => (
   >
     <LegalSection heading="The game is free">
       <LegalText>
-        WHOOP! WHOOP! Daily and WHOOP! WHOOP! Together are free to play. There is nothing to buy,
-        and no account is required.
+        WHOOP! WHOOP! free to play. There is nothing to buy, and no account is required.
       </LegalText>
     </LegalSection>
 
