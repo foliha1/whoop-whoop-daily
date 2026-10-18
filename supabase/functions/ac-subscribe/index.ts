@@ -109,7 +109,7 @@ async function syncToActiveCampaign(
   }
 
   if (!contactId) {
-    console.error("ac-subscribe: no contact id resolved for", email);
+    console.error("ac-subscribe: no contact id resolved");
     return { ok: false, contactId: null };
   }
 
@@ -267,7 +267,7 @@ Deno.serve(async (req) => {
 
   // Disposable test addresses never reach ActiveCampaign.
   if (email.endsWith("@whoop-test.invalid") || /^[^@]+\+deltest@/.test(email)) {
-    console.log(`ac-subscribe: AC sync mocked for test address ${email}`);
+    console.log("ac-subscribe: AC sync mocked for test address");
     return json({ ok: true, syncedToAc: false, test: true });
   }
 
