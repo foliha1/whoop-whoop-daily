@@ -116,7 +116,7 @@ const YouPage: React.FC = () => {
                   </>;
                   return umbrella ? <StatInfoTile key={label} label={label} mobile={mobile} style={tileStyle}>{body}</StatInfoTile> : <div key={label} style={tileStyle}>{body}</div>;
                 }
-                ))}
+                )}
               </div>
             </MotionReveal>
 
