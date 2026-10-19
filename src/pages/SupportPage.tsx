@@ -49,7 +49,7 @@ const SupportPage: React.FC = () => {
     transform: "rotate(-1deg)",
     boxShadow: theme === "light"
       ? "0 1px 1px rgba(0,0,0,0.07), 0 2px 3px rgba(0,0,0,0.06), 0 14px 24px -12px rgba(0,0,0,0.28)"
-      : "0 1px 1px rgba(0,0,0,0.3), 0 14px 24px -12px rgba(0,0,0,0.6)",
+      : "0 1px 2px rgba(0,0,0,0.45), 0 10px 20px -6px rgba(0,0,0,0.75)",
   };
   // The story opens one notch above the system's largest heading role.
   const HEADLINE = Math.round((mobile ? TEXT.resultHero.mobileSize : TEXT.resultHero.size) * 1.2);
