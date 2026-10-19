@@ -15,7 +15,7 @@ import { LEGAL_CONTACT } from "@/components/LegalPage";
 
 const ART = [
   { name: "2-circle-blue", alt: "Two blue circles", rotation: "-9deg" },
-  { name: "3-triangle-orange", alt: "Three orange triangles", rotation: "3deg" },
+  { name: "3-tri-yellow", alt: "Three yellow triangles", rotation: "3deg" },
   { name: "4-circle-red", alt: "Four red circles", rotation: "10deg" },
 ];
 
