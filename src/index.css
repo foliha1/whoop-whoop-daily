@@ -415,6 +415,18 @@ All colors MUST be HSL.
   animation: ww-ui-revisit var(--ww-ui-revisit, 200ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) both;
 }
 
+/* Editorial scroll reveal (About): a longer, softer rise than the in-app UI
+   entry, so sections glide into place instead of snapping. */
+@keyframes ww-scroll-reveal {
+  from { opacity: 0; transform: translateY(var(--ww-scroll-reveal-distance, 26px)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ww-scroll-reveal-in {
+  opacity: 0;
+  animation: ww-scroll-reveal var(--ww-scroll-reveal-ms, 760ms) var(--ww-scroll-reveal-ease, cubic-bezier(0.16, 1, 0.3, 1)) var(--ww-scroll-reveal-delay, 0ms) both;
+}
+
 .ww-ui-modal-backdrop { animation: ww-ui-revisit var(--ww-ui-enter, 250ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) both; }
 .ww-ui-modal-panel { animation: ww-ui-modal-in var(--ww-ui-enter, 250ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) both; }
 .ww-ui-modal-backdrop[data-motion-exit="true"] { animation: ww-ui-revisit var(--ww-ui-exit, 150ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) reverse both; }
@@ -460,14 +472,16 @@ All colors MUST be HSL.
   .ww-ui-section-in,
   .ww-ui-list-in,
   .ww-ui-small-in,
-  .ww-ui-modal-panel {
+  .ww-ui-modal-panel,
+  .ww-scroll-reveal-in {
     animation-name: ww-ui-revisit;
     transform: none;
   }
   .daily-intro,
   .ww-ui-section-in,
   .ww-ui-list-in,
-  .ww-ui-small-in { animation-delay: 0ms; }
+  .ww-ui-small-in,
+  .ww-scroll-reveal-in { animation-delay: 0ms; }
 }
 
 /* ── Daily pattern strip ──
