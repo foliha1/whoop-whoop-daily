@@ -5,14 +5,13 @@ import { ArrowUpRight } from "lucide-react";
 import { cardArt } from "@/lib/assetUrls";
 import { useUmbrella } from "@/lib/launch";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { COLORS, SPACE, RADIUS, SHADOW, TEXT, buttonStyle, textStyle } from "@/lib/tokens";
+import { COLORS, SPACE, RADIUS, SHADOW, TEXT, textStyle } from "@/lib/tokens";
 import { useThemeMode } from "@/lib/nightMode";
 import DailyFrame from "@/components/DailyFrame";
 import HomeControl from "@/components/HomeControl";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
 import MotionReveal from "@/components/MotionReveal";
 import { AppButton } from "@/components/ui/AppButton";
-import { LEGAL_CONTACT } from "@/components/LegalPage";
 import CardWaterfall from "@/components/CardWaterfall";
 import FelixSignature from "@/components/FelixSignature";
 
@@ -129,14 +128,6 @@ const SupportPage: React.FC = () => {
                 <p style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>Felix · Designer &amp; game builder, Oleeha &amp; Co</p>
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: SPACE[5], flexWrap: "wrap" }}>
-                <a
-                  href={`mailto:${LEGAL_CONTACT}`}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = COLORS.surfaceHover; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = COLORS.surface; }}
-                  style={{ ...buttonStyle("quiet", "md", { mobile }), borderRadius: RADIUS.md, textDecoration: "none" }}
-                >
-                  Say hello <ArrowUpRight size={18} aria-hidden="true" />
-                </a>
                 <Link to={umbrella ? "/daily" : "/"} style={{ textDecoration: "none", display: "inline-flex" }}>
                   <AppButton roleStyle="primary" size="md">Play Whoop! Whoop! <ArrowUpRight size={18} aria-hidden="true" /></AppButton>
                 </Link>
