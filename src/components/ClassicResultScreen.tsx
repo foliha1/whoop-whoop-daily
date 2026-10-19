@@ -401,7 +401,12 @@ const ClassicResultScreen: React.FC<{
     </div>
   );
 
-  return portalHost ? createPortal(body, portalHost) : null;
+  return portalHost ? (
+    <>
+      {createPortal(body, portalHost)}
+      {celebrate && <DailyMilestoneConfetti delayMs={330} />}
+    </>
+  ) : null;
 };
 
 export default ClassicResultScreen;
