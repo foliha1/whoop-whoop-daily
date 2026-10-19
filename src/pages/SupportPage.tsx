@@ -125,7 +125,7 @@ const SupportPage: React.FC = () => {
                   <br />
                   and less everything else,
                 </p>
-                <FelixSignature style={{ height: mobile ? 64 : 88, marginTop: SPACE[2], color: COLORS.ink }} />
+                <FelixSignature style={{ height: mobile ? 76 : 104, marginTop: SPACE[2], color: COLORS.ink }} />
                 <p style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>Felix · Designer &amp; game builder, Oleeha &amp; Co</p>
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: SPACE[5], flexWrap: "wrap" }}>
