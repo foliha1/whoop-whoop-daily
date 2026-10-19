@@ -17,7 +17,7 @@ const PrivacyPage: React.FC = () => (
     updated={UPDATED}
   >
     <LegalText>
-      WHOOP! WHOOP! Daily and WHOOP! WHOOP! Together are free memory games made by Oleeha &amp; Co. This
+      WHOOP! WHOOP! is a free memory game made by Oleeha &amp; Co. This
       page describes exactly what they collect and why. You never need an account, and you can
       play without giving us anything.
     </LegalText>
