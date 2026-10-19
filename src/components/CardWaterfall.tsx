@@ -60,7 +60,7 @@ export default function CardWaterfall({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   return createPortal(
-    <div role="dialog" aria-label="Card cascade — tap anywhere to close" data-testid="card-waterfall" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 1000, cursor: "pointer" }}>
+    <div role="dialog" aria-label="Card cascade — tap anywhere to close" data-testid="card-waterfall" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 1000, cursor: "pointer", background: "rgba(35, 31, 32, 0.6)" }}>
       <canvas ref={ref} style={{ width: "100%", height: "100%", display: "block" }} />
     </div>,
     document.body,
