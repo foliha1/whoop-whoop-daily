@@ -20,6 +20,9 @@ const ART = [
   { name: "4-star-blue", alt: "Four blue stars", rotation: "9deg" },
 ];
 
+// Set to the imported team photo (e.g. `import teamPhoto from "@/assets/team.jpg"`) when the photo lands.
+const TEAM_PHOTO: string | null = null;
+
 const SupportPage: React.FC = () => {
   const umbrella = useUmbrella();
   const mobile = useIsMobile();
