@@ -14,6 +14,7 @@ import MotionReveal from "@/components/MotionReveal";
 import { AppButton } from "@/components/ui/AppButton";
 import { LEGAL_CONTACT } from "@/components/LegalPage";
 import CardWaterfall from "@/components/CardWaterfall";
+import FelixSignature from "@/components/FelixSignature";
 
 const ART = [
   { name: "1-circle-blue", alt: "One blue circle", rotation: "-9deg" },
@@ -25,9 +26,6 @@ const ART = [
 // Set to the imported team photo (e.g. `import teamPhoto from "@/assets/team.jpg"`) when the photo lands.
 const TEAM_PHOTO: string | null = null;
 
-// Set to the imported signature image (e.g. `import signature from "@/assets/signature.png"`) when it lands.
-// Until then a hand-drawn placeholder scribble stands in so the composition can be judged.
-const SIGNATURE: string | null = null;
 
 const SupportPage: React.FC = () => {
   const umbrella = useUmbrella();
@@ -127,13 +125,7 @@ const SupportPage: React.FC = () => {
                   <br />
                   and less everything else,
                 </p>
-                {SIGNATURE ? (
-                  <img src={SIGNATURE} alt="Felix Oliha's signature" style={{ display: "block", height: 48, width: "auto", marginTop: SPACE[2] }} />
-                ) : (
-                  <svg aria-hidden="true" viewBox="0 0 160 56" fill="none" style={{ display: "block", height: 44, width: "auto", marginTop: SPACE[2], color: COLORS.ink }}>
-                    <path d="M12 42 C 24 8, 40 8, 36 26 C 33 40, 20 44, 30 34 C 44 20, 52 20, 54 30 C 56 40, 48 44, 50 32 C 53 16, 70 12, 74 24 C 77 34, 68 42, 72 30 C 76 18, 92 14, 96 24 C 100 34, 90 42, 94 30 C 98 18, 114 16, 118 26 C 121 34, 112 40, 118 34 C 124 28, 132 26, 148 30" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
+                <FelixSignature style={{ height: mobile ? 64 : 88, marginTop: SPACE[2], color: COLORS.ink }} />
                 <p style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>Felix · Designer &amp; game builder, Oleeha &amp; Co</p>
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: SPACE[5], flexWrap: "wrap" }}>
