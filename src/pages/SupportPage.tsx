@@ -36,6 +36,8 @@ const SupportPage: React.FC = () => {
   // the shared playing-card lift to separate from the background. Night mode
   // already puts off-white art on near-black, where a shadow reads as mud.
   const cardShadow = theme === "light" ? SHADOW.card : undefined;
+  // The story opens one notch above the system's largest heading role.
+  const HEADLINE = Math.round((mobile ? TEXT.resultHero.mobileSize : TEXT.resultHero.size) * 1.2);
   const title = "About WHOOP! WHOOP! — A game by Felix Oliha";
   const description = "The story behind WHOOP! WHOOP!: Felix Oliha, a graphic designer exploring world building through games, under Oleeha & Co.";
   const url = "https://whoop-whoop.com/about";
