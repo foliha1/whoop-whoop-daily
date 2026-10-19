@@ -5,7 +5,8 @@ import { ArrowUpRight } from "lucide-react";
 import { cardArt } from "@/lib/assetUrls";
 import { useUmbrella } from "@/lib/launch";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { COLORS, SPACE, RADIUS, buttonStyle, textStyle } from "@/lib/tokens";
+import { COLORS, SPACE, RADIUS, SHADOW, buttonStyle, textStyle } from "@/lib/tokens";
+import { useThemeMode } from "@/lib/nightMode";
 import DailyFrame from "@/components/DailyFrame";
 import HomeControl from "@/components/HomeControl";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
@@ -30,6 +31,11 @@ const SIGNATURE: string | null = null;
 const SupportPage: React.FC = () => {
   const umbrella = useUmbrella();
   const mobile = useIsMobile();
+  const { theme } = useThemeMode();
+  // The card art sits on an off-white page in the light colour way, so it needs
+  // the shared playing-card lift to separate from the background. Night mode
+  // already puts off-white art on near-black, where a shadow reads as mud.
+  const cardShadow = theme === "light" ? SHADOW.card : undefined;
   const title = "About WHOOP! WHOOP! — A game by Felix Oliha";
   const description = "The story behind WHOOP! WHOOP!: Felix Oliha, a graphic designer exploring world building through games, under Oleeha & Co.";
   const url = "https://whoop-whoop.com/about";
@@ -74,7 +80,7 @@ const SupportPage: React.FC = () => {
           <MotionReveal index={2}>
             <figure aria-label="WHOOP! WHOOP! card designs" style={{ margin: 0, padding: `${SPACE[12]}px ${SPACE[6]}px`, display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: SPACE[6], alignItems: "center" }}>
               {ART.map((card) => (
-                <img key={card.name} src={cardArt(card.name)} alt={card.alt} loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "5 / 7", objectFit: "contain", borderRadius: RADIUS.md, transform: `rotate(${card.rotation})` }} />
+                <img key={card.name} src={cardArt(card.name)} alt={card.alt} loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "5 / 7", objectFit: "contain", borderRadius: RADIUS.md, boxShadow: cardShadow, transform: `rotate(${card.rotation})` }} />
               ))}
             </figure>
           </MotionReveal>
@@ -117,10 +123,11 @@ const SupportPage: React.FC = () => {
                   <br />
                   and less everything else,
                 </p>
+                {/* Left-aligned so it starts on the same edge as the sign-off line. */}
                 {SIGNATURE ? (
-                  <img src={SIGNATURE} alt="Felix Oliha's signature" style={{ display: "block", height: 48, width: "auto", marginTop: SPACE[2] }} />
+                  <img src={SIGNATURE} alt="Felix Oliha's signature" style={{ display: "block", height: 48, width: "auto", alignSelf: "flex-start", marginTop: SPACE[2] }} />
                 ) : (
-                  <svg aria-hidden="true" viewBox="0 0 160 56" fill="none" style={{ display: "block", height: 44, width: "auto", marginTop: SPACE[2], color: COLORS.ink }}>
+                  <svg aria-hidden="true" viewBox="0 0 160 56" fill="none" style={{ display: "block", height: 44, width: "auto", alignSelf: "flex-start", marginTop: SPACE[2], color: COLORS.ink }}>
                     <path d="M12 42 C 24 8, 40 8, 36 26 C 33 40, 20 44, 30 34 C 44 20, 52 20, 54 30 C 56 40, 48 44, 50 32 C 53 16, 70 12, 74 24 C 77 34, 68 42, 72 30 C 76 18, 92 14, 96 24 C 100 34, 90 42, 94 30 C 98 18, 114 16, 118 26 C 121 34, 112 40, 118 34 C 124 28, 132 26, 148 30" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
@@ -136,7 +143,7 @@ const SupportPage: React.FC = () => {
                   Say hello <ArrowUpRight size={18} aria-hidden="true" />
                 </a>
                 <Link to={umbrella ? "/daily" : "/"} style={{ textDecoration: "none", display: "inline-flex" }}>
-                  <AppButton roleStyle="primary" size="md">Play Now <ArrowUpRight size={18} aria-hidden="true" /></AppButton>
+                  <AppButton roleStyle="primary" size="md">Play Whoop! Whoop! <ArrowUpRight size={18} aria-hidden="true" /></AppButton>
                 </Link>
               </div>
             </footer>
