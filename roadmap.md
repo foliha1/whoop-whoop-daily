@@ -144,3 +144,7 @@
 - [x] Verify OFF parity, full suite, and requested before/after screen grid.
 
 - [x] Fix admin preview never flipping to the ON lobby: concurrent `initUmbrellaPreview()` callers must share the in-flight check (`src/lib/launch.ts`); regression test `src/test/launchPreviewShare.test.ts`.
+
+## About page polish (unpublished)
+- [x] Lift the four showcase cards with the shared card shadow in the light colour way only, left-align the signature under the sign-off, and rename the primary action "Play Whoop! Whoop!"; verified light/night at desktop and 402×725.
+- [x] Let the Stats alignment guard accept About as an always top-aligned editorial screen (`src/test/statsAlignment.test.tsx`); full suite 686.
