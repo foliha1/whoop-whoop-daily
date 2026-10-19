@@ -32,6 +32,7 @@ const SIGNATURE: string | null = null;
 const SupportPage: React.FC = () => {
   const umbrella = useUmbrella();
   const mobile = useIsMobile();
+  const [cascade, setCascade] = React.useState(false);
   const { theme } = useThemeMode();
   // The card art sits on an off-white page in the light colour way, so it needs
   // the shared playing-card lift to separate from the background. Night mode
