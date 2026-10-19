@@ -35,6 +35,14 @@ const SupportPage: React.FC = () => {
   // the shared playing-card lift to separate from the background. Night mode
   // already puts off-white art on near-black, where a shadow reads as mud.
   const cardShadow = theme === "light" ? SHADOW.card : undefined;
+  // The team photo leans into depth: the top-left corner tips away from the
+  // viewer while the front (bottom-right) corner comes toward it. The shadow
+  // follows the tilted plane and leans toward the near corner to sell it.
+  // Night mode stays flat and shadow-free for the same reason as the cards.
+  const photoTransform = "perspective(1200px) rotateX(4deg) rotateY(-5deg) rotate(-1deg)";
+  const photoShadow = theme === "light"
+    ? "20px 26px 48px rgba(0,0,0,0.28), 7px 9px 18px rgba(0,0,0,0.16)"
+    : undefined;
   // The story opens one notch above the system's largest heading role.
   const HEADLINE = Math.round((mobile ? TEXT.resultHero.mobileSize : TEXT.resultHero.size) * 1.2);
   const title = "About WHOOP! WHOOP! — A game by Felix Oliha";
