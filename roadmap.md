@@ -1,5 +1,9 @@
 # Roadmap
 
+## Personal About page
+- [ ] Replace the rules and pre-order panels with Felix's editorial story, existing game artwork, sign-off, and contact.
+- [ ] Verify reading, navigation, mobile/desktop layouts, and themes without changing the launch switch or publishing.
+
 ## Tutorial tips and gameplay die
 - [x] Separate ON Classic tutorial explanations from controls, clear outgoing tips, and check compact layouts.
 - [x] Render ON Solo/Together hero die at native resolution; preserve roll deadlines and OFF behavior.
