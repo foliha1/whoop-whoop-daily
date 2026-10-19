@@ -63,7 +63,10 @@ const SupportPage: React.FC = () => {
           <MotionReveal index={0}>
             <header style={{ ...stack, gap: SPACE[12], textAlign: "center" }}>
               <h1 style={{ ...textStyle("resultHero", mobile), fontSize: HEADLINE, lineHeight: 1.08, color: COLORS.ink, margin: 0, letterSpacing: 0 }}>
-                A peek 👀<br />
+                A peek{" "}
+                <span aria-hidden="true" style={{ fontFamily: '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif' }}>👀</span>
+                <br />
+
                 behind the cards.
               </h1>
 
