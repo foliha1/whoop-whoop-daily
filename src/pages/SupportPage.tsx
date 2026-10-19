@@ -13,6 +13,7 @@ import DailyLegalFooter from "@/components/DailyLegalFooter";
 import MotionReveal from "@/components/MotionReveal";
 import { AppButton } from "@/components/ui/AppButton";
 import { LEGAL_CONTACT } from "@/components/LegalPage";
+import CardGallery from "@/components/CardGallery";
 
 const ART = [
   { name: "1-circle-blue", alt: "One blue circle", rotation: "-9deg" },
@@ -83,11 +84,16 @@ const SupportPage: React.FC = () => {
           </MotionReveal>
 
           <MotionReveal index={2}>
-            <figure aria-label="WHOOP! WHOOP! card designs" style={{ margin: 0, padding: `${SPACE[12]}px ${SPACE[6]}px`, display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: SPACE[6], alignItems: "center" }}>
-              {ART.map((card) => (
-                <img key={card.name} src={cardArt(card.name)} alt={card.alt} loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "5 / 7", objectFit: "contain", borderRadius: RADIUS.md, boxShadow: cardShadow, transform: `rotate(${card.rotation})` }} />
-              ))}
-            </figure>
+            <CardGallery
+              mobile={mobile}
+              trigger={(
+                <button type="button" aria-label="WHOOP! WHOOP! card designs — open the card gallery" data-testid="card-gallery-trigger" style={{ margin: 0, padding: `${SPACE[12]}px ${SPACE[6]}px`, width: "100%", background: "transparent", border: 0, cursor: "pointer", display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: SPACE[6], alignItems: "center" }}>
+                  {ART.map((card) => (
+                    <img key={card.name} src={cardArt(card.name)} alt="" loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "5 / 7", objectFit: "contain", borderRadius: RADIUS.md, boxShadow: cardShadow, transform: `rotate(${card.rotation})` }} />
+                  ))}
+                </button>
+              )}
+            />
           </MotionReveal>
 
           <MotionReveal index={3}>
