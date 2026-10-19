@@ -2,6 +2,7 @@ import React from "react";
 import {
   listEntryDelay,
   motionDelayStyle,
+  scrollEntryDelay,
   sectionEntryDelay,
 } from "@/lib/animationTiming";
 
@@ -13,11 +14,12 @@ type ScrollRevealProps = {
 };
 
 /**
- * Scroll-triggered variant of the standard section entry: the same
- * rise + fade keyframes (`ww-ui-section-in`), the same tokens, and the same
- * reduced-motion fallback (the `@media` rule in index.css already rewrites the
- * class to a plain fade). The animation runs once, the first time the block
- * scrolls into view; blocks already on screen at mount stagger by index.
+ * Scroll-triggered editorial reveal (About): its own slower treatment —
+ * `.ww-scroll-reveal-in` — rather than the snappy shared `.ww-ui-section-in`
+ * beat, so long-read sections glide into place. Same tokens, and the same
+ * reduced-motion fallback (the `@media` rule in index.css rewrites the class
+ * to a plain fade with no travel). The animation runs once, the first time the
+ * block scrolls into view; blocks already on screen at mount stagger by index.
  * While waiting, the paused animation holds its first frame, so hidden blocks
  * reserve their layout space and never flash.
  */
@@ -58,9 +60,9 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
   return (
     <div
       ref={ref}
-      className={["ww-ui-section-in", className].filter(Boolean).join(" ")}
+      className={["ww-scroll-reveal-in", className].filter(Boolean).join(" ")}
       style={{
-        ...motionDelayStyle(sectionEntryDelay(index)),
+        ...motionDelayStyle(scrollEntryDelay(index), "--ww-scroll-reveal-delay"),
         animationPlayState: playing ? "running" : "paused",
         ...style,
       }}

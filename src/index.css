@@ -472,14 +472,16 @@ All colors MUST be HSL.
   .ww-ui-section-in,
   .ww-ui-list-in,
   .ww-ui-small-in,
-  .ww-ui-modal-panel {
+  .ww-ui-modal-panel,
+  .ww-scroll-reveal-in {
     animation-name: ww-ui-revisit;
     transform: none;
   }
   .daily-intro,
   .ww-ui-section-in,
   .ww-ui-list-in,
-  .ww-ui-small-in { animation-delay: 0ms; }
+  .ww-ui-small-in,
+  .ww-scroll-reveal-in { animation-delay: 0ms; }
 }
 
 /* ── Daily pattern strip ──
