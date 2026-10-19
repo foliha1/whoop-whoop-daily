@@ -13,6 +13,7 @@ import DailyLegalFooter from "@/components/DailyLegalFooter";
 import { ScrollReveal } from "@/components/MotionReveal";
 import { AppButton } from "@/components/ui/AppButton";
 import CardWaterfall from "@/components/CardWaterfall";
+import { trackEvent } from "@/lib/analytics";
 import FelixSignature from "@/components/FelixSignature";
 import teamPlaceholder from "@/assets/team-placeholder.jpg.asset.json";
 
@@ -103,7 +104,7 @@ const SupportPage: React.FC = () => {
           </ScrollReveal>
 
           <ScrollReveal index={2}>
-                <button type="button" onClick={() => setCascade(true)} aria-label="WHOOP! WHOOP! card designs" data-testid="card-waterfall-trigger" style={{ margin: 0, padding: `${SPACE[12]}px ${SPACE[6]}px`, width: "100%", background: "transparent", border: 0, cursor: "pointer", display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: SPACE[6], alignItems: "center" }}>
+                <button type="button" onClick={() => { setCascade(true); try { if (!localStorage.getItem("ww_egg_found")) { localStorage.setItem("ww_egg_found", "1"); trackEvent("easter_egg_found"); } } catch { trackEvent("easter_egg_found"); } }} aria-label="WHOOP! WHOOP! card designs" data-testid="card-waterfall-trigger" style={{ margin: 0, padding: `${SPACE[12]}px ${SPACE[6]}px`, width: "100%", background: "transparent", border: 0, cursor: "pointer", display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: SPACE[6], alignItems: "center" }}>
                   {ART.map((card) => (
                     <img key={card.name} src={cardArt(card.name)} alt="" loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "5 / 7", objectFit: "contain", borderRadius: RADIUS.md, boxShadow: cardShadow, transform: `rotate(${card.rotation})` }} />
                   ))}
