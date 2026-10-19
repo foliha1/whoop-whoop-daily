@@ -37,11 +37,11 @@ describe("launch announcement", () => {
     }
   });
 
-  it("lists only the two new ways to play, with no Daily copy", async () => {
+  it("lists only the two new ways to play, with no Daily bullet", async () => {
     mount();
     const dialog = await screen.findByRole("dialog", { name: LAUNCH_NOTE_HEADLINE });
     expect(within(dialog).queryByRole("heading", { name: "Play Daily!" })).toBeNull();
-    expect(within(dialog).queryByText(/Daily/)).toBeNull();
+    expect(within(dialog).getByText(/The Daily was only the beginning!/)).toBeTruthy();
     for (const { title } of SECTIONS) {
       expect(within(dialog).getByRole("heading", { name: title })).toBeInTheDocument();
     }
