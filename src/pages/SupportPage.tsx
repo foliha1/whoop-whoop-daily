@@ -1,95 +1,32 @@
-import { cardArt } from "@/lib/assetUrls";
-import { useUmbrella } from "@/lib/launch";
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import SiteHeader, { SITE_HEADER_OFFSET } from "@/components/SiteHeader";
 import { Link } from "react-router-dom";
-import { COLORS, SPACE, RADIUS, BORDER, FONT_FAMILY, TEXT, textStyle } from "@/lib/tokens";
+import { ArrowUpRight } from "lucide-react";
+import { cardArt } from "@/lib/assetUrls";
+import { useUmbrella } from "@/lib/launch";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { COLORS, SPACE, RADIUS, textStyle } from "@/lib/tokens";
+import DailyFrame from "@/components/DailyFrame";
+import HomeControl from "@/components/HomeControl";
+import DailyLegalFooter from "@/components/DailyLegalFooter";
+import MotionReveal from "@/components/MotionReveal";
 import { AppButton } from "@/components/ui/AppButton";
+import { LEGAL_CONTACT } from "@/components/LegalPage";
 
-const panelStyle: React.CSSProperties = {
-  background: COLORS.surface,
-  border: BORDER.heavy,
-  borderRadius: RADIUS.sm,
-  padding: SPACE[12],
-  display: "flex",
-  flexDirection: "column",
-  gap: SPACE[6],
-};
-
-const sectionTitleStyle: React.CSSProperties = {
-  ...textStyle("heading", true),
-  fontStyle: "italic",
-  color: COLORS.ink,
-  margin: 0,
-};
-
-const bodyStyle: React.CSSProperties = {
-  ...textStyle("body", true),
-  color: COLORS.inkMuted,
-  lineHeight: 1.5,
-  margin: 0,
-};
-
-const captionStyle: React.CSSProperties = {
-  ...textStyle("captionItalic", true),
-  color: COLORS.inkMuted,
-};
-
-const stepTitleStyle: React.CSSProperties = {
-  ...textStyle("subhead", true),
-  color: COLORS.ink,
-  margin: 0,
-};
-
-const chipStyle: React.CSSProperties = {
-  ...textStyle("caption", true),
-  backgroundColor: COLORS.surface,
-  border: BORDER.standard,
-  borderRadius: RADIUS.md,
-  padding: `${SPACE[3]}px ${SPACE[4]}px`,
-  color: COLORS.inkMuted,
-  whiteSpace: "nowrap",
-};
-
-const DieChip: React.FC<{ label: string; rotate: string }> = ({ label, rotate }) => (
-  <div
-    style={{
-      width: 56,
-      height: 56,
-      borderRadius: 10,
-      border: `4px solid ${COLORS.ink}`,
-      background: COLORS.surface,
-      color: COLORS.ink,
-      fontFamily: FONT_FAMILY,
-      fontStyle: "italic",
-      fontWeight: 900,
-      fontSize: TEXT.caption.mobileSize,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      boxShadow: "2px 4px 8px rgba(0,0,0,0.3)",
-      transform: `rotate(${rotate})`,
-    }}
-  >
-    {label}
-  </div>
-);
+const ART = [
+  { name: "2-circle-blue", alt: "Two blue circles", rotation: "-9deg" },
+  { name: "3-tri-yellow", alt: "Three yellow triangles", rotation: "3deg" },
+  { name: "4-circle-red", alt: "Four red circles", rotation: "10deg" },
+];
 
 const SupportPage: React.FC = () => {
   const umbrella = useUmbrella();
-  // React Router does not scroll to #hash targets on navigation.
-  React.useEffect(() => {
-    const hash = window.location.hash.replace("#", "");
-    if (!hash) return;
-    const el = document.getElementById(hash);
-    if (el) requestAnimationFrame(() => el.scrollIntoView({ behavior: "auto", block: "start" }));
-  }, []);
-
-  const url = "https://whoop-whoop.lovable.app/about";
-  const title = "How to Play WHOOP! WHOOP! — Rules, About & Pre-Order";
-  const description =
-    "Learn how to play WHOOP! WHOOP!, the memory card game where the die changes what a match means every round. Read the rules and pre-order the physical game.";
+  const mobile = useIsMobile();
+  const title = "About WHOOP! WHOOP! — A game by Felix Oliha";
+  const description = "The story behind WHOOP! WHOOP!: Felix Oliha, a graphic designer exploring world building through games, under Oleeha & Co.";
+  const url = "https://whoop-whoop.com/about";
+  const body: React.CSSProperties = { ...textStyle("body", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 };
+  const stack: React.CSSProperties = { display: "flex", flexDirection: "column", gap: SPACE[8] };
 
   return (
     <>
@@ -104,192 +41,60 @@ const SupportPage: React.FC = () => {
         <meta name="twitter:card" content="summary" />
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
+      {umbrella ? <HomeControl /> : null}
+      <DailyFrame wide scroll align="top" topControl={umbrella} railGap={SPACE[20]}>
+        <article id="about" style={{ ...stack, gap: SPACE[20], width: "100%", maxWidth: 600, paddingTop: SPACE[6], paddingBottom: SPACE[12] }}>
+          <MotionReveal index={0}>
+            <header style={{ ...stack, gap: SPACE[12] }}>
+              <p style={{ ...textStyle("subhead", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 }}>WHOOP! WHOOP!</p>
+              <h1 style={{ ...textStyle("resultHero", mobile), fontSize: mobile ? textStyle("hero").fontSize : textStyle("resultHero", true).fontSize, lineHeight: 1.1, color: COLORS.ink, margin: 0, letterSpacing: 0 }}>
+                Designing games<br />
+                <em style={{ color: COLORS.red }}>by accident.</em>
+              </h1>
+              <p style={{ ...body, color: COLORS.inkMuted }}>A little about the person behind the cards.</p>
+            </header>
+          </MotionReveal>
 
-      <SiteHeader />
-      <div
-        style={{
-          minHeight: "var(--ww-vh)",
-          background: COLORS.surface,
-          color: COLORS.ink,
-          fontFamily: FONT_FAMILY,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 420,
-            margin: "0 auto",
-            padding: `calc(${SPACE[12]}px + ${SITE_HEADER_OFFSET}) ${SPACE[6]}px calc(${SPACE[16]}px + env(safe-area-inset-bottom))`,
-            display: "flex",
-            flexDirection: "column",
-            gap: SPACE[8],
-            boxSizing: "border-box",
-          }}
-        >
-          {/* Header */}
-          <header style={{ ...panelStyle, alignItems: "center", textAlign: "center" }}>
-            <img
-              src="/WhoopWhoop_Dark_Logo.svg"
-              alt="WHOOP! WHOOP!"
-              style={{ height: 48, display: "block", maxWidth: "100%" }}
-            />
-            <h1 style={{ ...textStyle("subhead", true), fontStyle: "italic", color: COLORS.ink, margin: 0 }}>
-              A memory game where the rules keep changing.
-            </h1>
-            <Link to={umbrella ? "/daily" : "/"} style={{ textDecoration: "none", width: "100%" }}>
-              <AppButton roleStyle="primary" size="md" fullWidth>
-                Play Now
-              </AppButton>
-            </Link>
-          </header>
+          <MotionReveal index={1}>
+            <section aria-label="My story" style={stack}>
+              <p style={body}>Hi, I’m Felix. A graphic designer, and now, somewhat accidentally, an indie game builder.</p>
+              <p style={body}>My work has lived in brand identities, layouts, and visual systems. But I wanted to see what happened beyond the logo. Less designing how something looks. More building a world people can step into.</p>
+              <p style={body}>WHOOP! WHOOP! is my way of following that curiosity. Colors, numbers, shapes — familiar design ingredients, turned into something you can play with.</p>
+              <p style={body}>It turns out a few simple cards can make people surprisingly competitive. Myself included.</p>
+            </section>
+          </MotionReveal>
 
-          {/* How to Play */}
-          <section id="how-to-play" style={{ ...panelStyle, scrollMarginTop: SPACE[6] }} aria-labelledby="how-to-play-title">
-            <h2 id="how-to-play-title" style={sectionTitleStyle}>
-              How to Play
-            </h2>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-              <h3 style={stepTitleStyle}>What is WHOOP! WHOOP!?</h3>
-              <p style={bodyStyle}>
-                A fast memory game where the rule keeps changing. Cards sit face-down; you flip them one at a
-                time, remember what's where, and race to call matching pairs — but a die decides what counts as
-                a match, and it changes every round.
-              </p>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-              <h3 style={stepTitleStyle}>Roll · Flip · Remember</h3>
-              <p style={bodyStyle}>
-                Each round starts with a roll — the die shows SHAPE, NUMBER, or COLOR. Then each player flips
-                one card face-up for everyone to see. Watch every flip, yours and your opponents' — it's all
-                information.
-              </p>
-              <div style={{ display: "flex", gap: SPACE[6], alignItems: "center" }}>
-                <DieChip label="SHAPE" rotate="-4deg" />
-                <DieChip label="COLOR" rotate="6deg" />
-              </div>
-              <div style={captionStyle}>The die picks what to match this round.</div>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-              <h3 style={stepTitleStyle}>WHOOP! WHOOP!</h3>
-              <p style={bodyStyle}>
-                Spot a matching pair? Shout WHOOP! WHOOP! and tap the two cards — anytime. Right: they're
-                yours, and you roll next. Wrong: one card goes from your pile back to the bottom of the draw
-                pile. Land the most pairs to win.
-              </p>
-              <div style={{ display: "flex", gap: SPACE[5], alignItems: "center" }}>
-                <img
-                  src={cardArt("2-circle-blue")}
-                  alt="Blue circle card, number 2"
-                  loading="lazy"
-                  style={{
-                    width: 72,
-                    height: 101,
-                    borderRadius: RADIUS.md,
-                    boxShadow: `0 0 0 3px ${COLORS.success}, 0 0 16px rgba(89,205,144,0.5)`,
-                  }}
-                />
-                <img
-                  src={cardArt("4-circle-red")}
-                  alt="Red circle card, number 4"
-                  loading="lazy"
-                  style={{
-                    width: 72,
-                    height: 101,
-                    borderRadius: RADIUS.md,
-                    boxShadow: `0 0 0 3px ${COLORS.success}, 0 0 16px rgba(89,205,144,0.5)`,
-                  }}
-                />
-              </div>
-              <div style={captionStyle}>Both circles — that's a SHAPE match!</div>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-              <h3 style={stepTitleStyle}>Ending the game</h3>
-              <p style={bodyStyle}>
-                Once the draw pile is empty, the game ends when two consecutive full rotations pass with no
-                correct claim. Any cards still on the table are stranded and score for nobody. Most cards wins.
-              </p>
-            </div>
-          </section>
-
-          {/* About */}
-          <section id="about" style={{ ...panelStyle, scrollMarginTop: SPACE[6] }} aria-labelledby="about-title">
-            <h2 id="about-title" style={sectionTitleStyle}>
-              About
-            </h2>
-            <div style={{ ...textStyle("body", true), fontStyle: "italic", color: COLORS.inkMuted }}>
-              Luck, memory, and just enough competition to ruin a family dinner.
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: SPACE[3] }}>
-              <span style={chipStyle}>2–6 players</span>
-              <span style={chipStyle}>Ages 7+</span>
-              <span style={chipStyle}>15–20 min</span>
-            </div>
-            <p style={bodyStyle}>
-              Flip a card, remember what's on it, and race to call the pairs. A die decides what a match even
-              means — same shape, same number, same color — and it changes its mind every round. Your brain has
-              to keep up.
-            </p>
-            <p style={bodyStyle}>
-              This is a playable preview of the real thing — a physical card game meant for a table full of
-              people. WHOOP! WHOOP! comes alive with 3, 4, 5, or 6 players all shouting over each other.
-              That's where it's meant to be played.
-            </p>
-            <div
-              style={{
-                width: "100%",
-                borderTop: `1px solid ${COLORS.panelMuted}`,
-                opacity: 0.4,
-              }}
-            />
-            <div style={{ display: "flex", alignItems: "center", gap: SPACE[3] }}>
-              {[COLORS.red, COLORS.blue, COLORS.orange].map((c) => (
-                <div
-                  key={c}
-                  style={{
-                    width: 16,
-                    height: 16,
-                    backgroundColor: c,
-                    border: BORDER.standard,
-                    borderRadius: RADIUS.sm,
-                  }}
-                />
+          <MotionReveal index={2}>
+            <figure aria-label="WHOOP! WHOOP! card designs" style={{ margin: 0, padding: `${SPACE[12]}px ${SPACE[6]}px`, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[6], alignItems: "center" }}>
+              {ART.map((card) => (
+                <img key={card.name} src={cardArt(card.name)} alt={card.alt} loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "5 / 7", objectFit: "contain", borderRadius: RADIUS.md, transform: `rotate(${card.rotation})` }} />
               ))}
-              <span style={{ ...captionStyle, marginLeft: SPACE[2] }}>An Oleeha &amp; Co game.</span>
-            </div>
-            <div style={{ ...textStyle("caption", true), color: COLORS.inkMuted }}>
-              WHOOP! WHOOP! · v6.0 Dice Edition
-            </div>
-          </section>
+            </figure>
+          </MotionReveal>
 
-          {/* Pre-Order */}
-          <section id="pre-order" style={{ ...panelStyle, alignItems: "center", textAlign: "center", scrollMarginTop: SPACE[6] }} aria-labelledby="pre-order-title">
-            <h2 id="pre-order-title" style={sectionTitleStyle}>
-              Get the physical game
-            </h2>
-            <p style={{ ...bodyStyle, maxWidth: 280 }}>
-              48 cards, 2 match dice, and enough competition to ruin your family dinner.
-            </p>
-            <AppButton roleStyle="secondary" size="md">
-              Pre-Order Now
-            </AppButton>
-            <div style={{ ...textStyle("caption", true), color: COLORS.inkMuted }}>
-              Coming soon — Oleeha &amp; Co
-            </div>
-          </section>
+          <MotionReveal index={3}>
+            <section style={stack} aria-labelledby="real-table-title">
+              <h2 id="real-table-title" style={{ ...textStyle("hero", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 }}>Made for a real table, too.</h2>
+              <p style={body}>You can play here in your browser, but the idea reaches beyond the screen: real cards, rolling dice, and a table full of people shouting over each other.</p>
+              <p style={body}>A physical edition is part of that world. More on that when it’s ready. For now, I’m glad you’re here, playing along.</p>
+            </section>
+          </MotionReveal>
 
-          {/* ON: Home in the header does the same thing, so this goes. */}
-          {!umbrella ? (
-          <footer style={{ textAlign: "center" }}>
-            <Link to="/" style={{ ...captionStyle, color: COLORS.ink }}>
-              ← Back to the game
-            </Link>
-          </footer>
-          ) : null}
-        </div>
-      </div>
+          <MotionReveal index={4}>
+            <footer style={{ ...stack, gap: SPACE[12], paddingTop: SPACE[8], borderTop: `1px solid ${COLORS.panelMuted}` }}>
+              <div style={{ ...stack, gap: SPACE[3] }}>
+                <p style={{ ...textStyle("hero", mobile), color: COLORS.ink, fontStyle: "italic", margin: 0, letterSpacing: 0 }}>Felix Oliha</p>
+                <p style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>Designer &amp; game builder · Oleeha &amp; Co</p>
+              </div>
+              <a href={`mailto:${LEGAL_CONTACT}`} style={{ ...body, color: COLORS.blue, display: "inline-flex", alignItems: "center", gap: SPACE[3], alignSelf: "flex-start", textUnderlineOffset: 4 }}>Say hello <ArrowUpRight size={16} aria-hidden="true" /></a>
+              <Link to={umbrella ? "/daily" : "/"} style={{ textDecoration: "none", alignSelf: "flex-start" }}>
+                <AppButton roleStyle="primary" size="md">Play Now <ArrowUpRight size={18} aria-hidden="true" /></AppButton>
+              </Link>
+            </footer>
+          </MotionReveal>
+          <DailyLegalFooter />
+        </article>
+      </DailyFrame>
     </>
   );
 };
