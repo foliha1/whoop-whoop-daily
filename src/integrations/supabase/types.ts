@@ -934,6 +934,12 @@ export type Database = {
           solved: number
         }[]
       }
+      admin_easter_eggs: {
+        Args: never
+        Returns: {
+          found: number
+        }[]
+      }
       admin_export_subscribers: {
         Args: never
         Returns: {
