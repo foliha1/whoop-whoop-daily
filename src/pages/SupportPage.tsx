@@ -26,6 +26,11 @@ const ART = [
 // Stand-in until the real team photo arrives: swap this for the imported photo.
 const TEAM_PHOTO: string | null = teamPlaceholder.url;
 
+// The team section stays off the page until the real photo and the studio line
+// are settled. Flip this to true to bring the whole section back as it was.
+const SHOW_TEAM_SECTION: boolean = false;
+
+
 
 const SupportPage: React.FC = () => {
   const umbrella = useUmbrella();
@@ -114,26 +119,29 @@ const SupportPage: React.FC = () => {
             </section>
           </ScrollReveal>
 
-          <ScrollReveal index={4}>
-            <section style={stack} aria-labelledby="team-title">
-              <h2 id="team-title" style={{ ...textStyle("hero", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 }}>The people behind Oleeha &amp; Co.</h2>
-              <p style={body}>Oleeha &amp; Co. is the small creative practice of a few lovely people.</p>
-              <figure aria-label="The Oleeha & Co. team" style={{ margin: 0 }}>
-                <div style={photoFrame}>
-                  {TEAM_PHOTO ? (
-                    <img src={TEAM_PHOTO} alt="The Oleeha & Co. team" loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "4 / 3", objectFit: "cover" }} />
-                  ) : (
-                    <div aria-hidden="true" style={{ width: "100%", aspectRatio: "4 / 3", backgroundColor: COLORS.panelMuted, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>Team photo, soon.</span>
-                    </div>
-                  )}
-                </div>
-                <figcaption style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0, marginTop: SPACE[3] }}>Felix, Alyssa &amp; Makenzie — Oleeha &amp; Co.</figcaption>
-              </figure>
-            </section>
-          </ScrollReveal>
+          {SHOW_TEAM_SECTION ? (
+            <ScrollReveal index={4}>
+              <section style={stack} aria-labelledby="team-title">
+                <h2 id="team-title" style={{ ...textStyle("hero", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 }}>The people behind Oleeha &amp; Co.</h2>
+                <p style={body}>Oleeha &amp; Co. is the small creative practice of a few lovely people.</p>
+                <figure aria-label="The Oleeha & Co. team" style={{ margin: 0 }}>
+                  <div style={photoFrame}>
+                    {TEAM_PHOTO ? (
+                      <img src={TEAM_PHOTO} alt="The Oleeha & Co. team" loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "4 / 3", objectFit: "cover" }} />
+                    ) : (
+                      <div aria-hidden="true" style={{ width: "100%", aspectRatio: "4 / 3", backgroundColor: COLORS.panelMuted, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>Team photo, soon.</span>
+                      </div>
+                    )}
+                  </div>
+                  <figcaption style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0, marginTop: SPACE[3] }}>Felix, Alyssa &amp; Makenzie — Oleeha &amp; Co.</figcaption>
+                </figure>
+              </section>
+            </ScrollReveal>
+          ) : null}
 
-          <ScrollReveal index={5}>
+          <ScrollReveal index={4}>
+
             <footer style={{ ...stack, gap: SPACE[12], paddingTop: SPACE[8], alignItems: "center", textAlign: "center" }}>
               <div style={{ ...stack, gap: SPACE[3], alignItems: "center" }}>
                 <p style={{ ...textStyle("hero", mobile), color: COLORS.ink, fontStyle: "italic", margin: 0, letterSpacing: 0 }}>
