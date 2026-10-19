@@ -7,10 +7,13 @@ import { COLORS } from "@/lib/tokens";
 
 /** Each section's marker must carry that section's own title colour. */
 const SECTIONS = [
-  { title: "Play Daily!", color: COLORS.orangeStat },
   { title: "Play Solo!", color: COLORS.blue },
   { title: "Play Together!", color: COLORS.red },
 ];
+
+/** Reassuring closer shown under the two bullets, in place of a Daily bullet. */
+const DAILY_REASSURANCE =
+  "Don't worry, the Daily isn't going anywhere! Now there's more ways to play & keep the fun going.";
 
 const mount = () => render(
   <MemoryRouter>
@@ -36,6 +39,14 @@ describe("launch announcement", () => {
       expect(marker).toHaveStyle({ color });
     }
   });
+
+  it("keeps the Daily as a reassuring closer rather than a bullet", async () => {
+    mount();
+    const dialog = await screen.findByRole("dialog", { name: LAUNCH_NOTE_HEADLINE });
+    expect(within(dialog).queryByRole("heading", { name: "Play Daily!" })).toBeNull();
+    expect(within(dialog).getByText(DAILY_REASSURANCE)).toBeInTheDocument();
+  });
+
 
   it("shows on every entry while the umbrella switch is off", () => {
     expect(shouldShowLaunchNote()).toBe(true);
