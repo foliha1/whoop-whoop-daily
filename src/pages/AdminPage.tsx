@@ -648,7 +648,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
     setFailures(failed);
 
     // Every report failing means the fetch itself is broken, not an empty range.
-    if (failed.length === 13) {
+    if (failed.length === 14) {
       setState("error");
       return;
     }

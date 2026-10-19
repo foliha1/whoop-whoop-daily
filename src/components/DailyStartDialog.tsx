@@ -7,15 +7,21 @@ const FOCUSABLE = '[data-testid="home-control"], [data-testid="daily-start"], [d
 
 /** Returning-player welcome lines; one per puzzle, cycling by puzzle number. */
 export const DAILY_WELCOME_LINES = [
-  "Welcome back, have a great time, and try not to blink.",
-  "Good to see you. Eyes open, memory on.",
-  "Nine cards, ten seconds. You've got this.",
-  "Fresh puzzle, fresh brain. Let's go.",
-  "Deep breath. Look closely. Then trust yourself.",
-  "Today's cards are waiting. Don't keep them long.",
+  ["Cards down. Die up.", "Ready when you are."],
+  ["Shape, number, or color?", "Ready to find out?"],
+  ["Last chance to stretch.", "Then it’s go time."],
+  ["Eyes up. Brain on.", "The cards are about to flip."],
+  ["Don’t blink.", "Okay, blink a little."],
+  ["Stretch your brain.", "It’s go time."],
+  ["Same nine cards for everyone.", "Ready to beat them?"],
+  ["Memory feeling good today?", "Let’s find out real quick."],
+  ["It’s about to get dicey.", "You can laugh."],
+  ["Rub those eyes.", "It’s Whoop! Whoop! time."],
+  ["I’m sure today will go great.", "But it might not, and that’s fine."],
+  ["Did you stretch before this?", "You probably should."],
 ] as const;
 
-export const dailyWelcomeLine = (puzzleNumber: number): string =>
+export const dailyWelcomeLine = (puzzleNumber: number): readonly [string, string] =>
   DAILY_WELCOME_LINES[((puzzleNumber % DAILY_WELCOME_LINES.length) + DAILY_WELCOME_LINES.length) % DAILY_WELCOME_LINES.length];
 
 const DailyStartDialog: React.FC<{
@@ -104,7 +110,7 @@ const DailyStartDialog: React.FC<{
           Whoop! Whoop! Daily #{puzzleNumber}
         </h1>
         <p id="daily-start-body" style={{ ...textStyle("body", mobile), color: COLORS.ink, margin: 0 }}>
-          {dailyWelcomeLine(puzzleNumber)}
+          {dailyWelcomeLine(puzzleNumber)[0]}<br />{dailyWelcomeLine(puzzleNumber)[1]}
         </p>
         <button
           type="button"

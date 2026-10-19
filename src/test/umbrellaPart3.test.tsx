@@ -124,7 +124,7 @@ describe("ON Daily direct start", () => {
     const start = vi.fn();
     render(<DailyStartDialog puzzleNumber={123} onStart={start} />);
     const dialog = screen.getByRole("dialog", { name: "Whoop! Whoop! Daily #123" });
-    expect(screen.getByText(dailyWelcomeLine(123))).toBeTruthy();
+    expect(screen.getByText(dailyWelcomeLine(123)[0], { exact: false })).toBeTruthy();
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Start" }));
     fireEvent.keyDown(window, { key: "Escape" });
     fireEvent.click(dialog);
@@ -299,7 +299,8 @@ describe("Part 3 analytics allowlist", () => {
 
 describe("Daily start welcome lines", () => {
   it("leads with Felix's line and cycles by puzzle number", () => {
-    expect(DAILY_WELCOME_LINES[0]).toBe("Welcome back, have a great time, and try not to blink.");
+    expect(DAILY_WELCOME_LINES[0]).toEqual(["Cards down. Die up.", "Ready when you are."]);
+    expect(DAILY_WELCOME_LINES.every((l) => l.length === 2)).toBe(true);
     expect(dailyWelcomeLine(DAILY_WELCOME_LINES.length * 3)).toBe(DAILY_WELCOME_LINES[0]);
     expect(dailyWelcomeLine(1)).not.toBe(dailyWelcomeLine(2));
   });
