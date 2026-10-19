@@ -5,7 +5,7 @@ import { ArrowUpRight } from "lucide-react";
 import { cardArt } from "@/lib/assetUrls";
 import { useUmbrella } from "@/lib/launch";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { COLORS, SPACE, RADIUS, SHADOW, buttonStyle, textStyle } from "@/lib/tokens";
+import { COLORS, SPACE, RADIUS, SHADOW, TEXT, buttonStyle, textStyle } from "@/lib/tokens";
 import { useThemeMode } from "@/lib/nightMode";
 import DailyFrame from "@/components/DailyFrame";
 import HomeControl from "@/components/HomeControl";
@@ -59,8 +59,8 @@ const SupportPage: React.FC = () => {
       <DailyFrame wide scroll align="top" topControl={umbrella} railGap={SPACE[20]}>
         <article id="about" style={{ ...stack, gap: SPACE[20], width: "100%", maxWidth: 600, paddingTop: SPACE[6], paddingBottom: SPACE[12] }}>
           <MotionReveal index={0}>
-            <header style={{ ...stack, gap: SPACE[12] }}>
-              <h1 style={{ ...textStyle("resultHero", mobile), lineHeight: 1.08, color: COLORS.ink, margin: 0, letterSpacing: 0 }}>
+            <header style={{ ...stack, gap: SPACE[12], textAlign: "center" }}>
+              <h1 style={{ ...textStyle("resultHero", mobile), fontSize: HEADLINE, lineHeight: 1.08, color: COLORS.ink, margin: 0, letterSpacing: 0 }}>
                 Whoop! Whoop!<br />
                 is a happy accident.
               </h1>
