@@ -149,3 +149,5 @@
 - [x] Lift the four showcase cards with the shared card shadow in the light colour way only, left-align the signature under the sign-off, and rename the primary action "Play Whoop! Whoop!"; verified light/night at desktop and 402×725.
 - [x] Let the Stats alignment guard accept About as an always top-aligned editorial screen (`src/test/statsAlignment.test.tsx`); full suite 686.
 - [x] Home byline set to Friend italic (400) instead of the Geist caption role; About headline scaled to the full `resultHero` step (72/48) in brand black with the red italic removed, and an Oleeha & Co. studio line added above the team photo; verified as the signed-in admin preview and at 1280/390 with no overflow; full suite 686.
+- [x] About headline and subhead centered, headline grown 20% (86 desktop / 58 phone); headline replaced with "A peek 👀 / behind the cards." (emoji in an aria-hidden emoji-font span, matching the announcement popup) and the "A little about the person behind the cards." subhead removed; verified two centered lines with no overflow at 1280×1800, 390×844 and 360×640 in light and night; full suite 686.
+
