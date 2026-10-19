@@ -11,9 +11,6 @@ const SECTIONS = [
   { title: "Play Together!", color: COLORS.red },
 ];
 
-/** Reassuring closer shown under the two bullets, in place of a Daily bullet. */
-const DAILY_REASSURANCE =
-  "Don't worry, the Daily isn't going anywhere! Now there's more ways to play & keep the fun going.";
 
 const mount = () => render(
   <MemoryRouter>
@@ -40,11 +37,14 @@ describe("launch announcement", () => {
     }
   });
 
-  it("keeps the Daily as a reassuring closer rather than a bullet", async () => {
+  it("lists only the two new ways to play, with no Daily copy", async () => {
     mount();
     const dialog = await screen.findByRole("dialog", { name: LAUNCH_NOTE_HEADLINE });
     expect(within(dialog).queryByRole("heading", { name: "Play Daily!" })).toBeNull();
-    expect(within(dialog).getByText(DAILY_REASSURANCE)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/Daily/)).toBeNull();
+    for (const { title } of SECTIONS) {
+      expect(within(dialog).getByRole("heading", { name: title })).toBeInTheDocument();
+    }
   });
 
 

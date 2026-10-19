@@ -159,4 +159,5 @@
 
 
 ## Launch popup copy (unpublished)
-- [x] Home announcement popup: the "Play Daily!" bullet removed, leaving Play Solo! and Play Together!, and the closer "Don't worry, the Daily isn't going anywhere! Now there's more ways to play & keep the fun going." added under the two bullets (`src/components/LaunchAnnouncement.tsx`, `src/test/launchAnnouncement.test.tsx`); verified as the signed-in admin preview at 1024×927 — dialog fits with no scroll hint, closer fully opaque; typecheck clean, full suite 691.
+- [x] Home announcement popup: the "Play Daily!" bullet removed, leaving Play Solo! and Play Together! (`src/components/LaunchAnnouncement.tsx`, `src/test/launchAnnouncement.test.tsx`).
+- [x] Home announcement popup: both Daily sentences removed on request — the intro "The Daily was only the beginning! ..." and the closer "Don't worry, the Daily isn't going anywhere! ...". The popup is now headline, the two bullets, and Let's Play only.

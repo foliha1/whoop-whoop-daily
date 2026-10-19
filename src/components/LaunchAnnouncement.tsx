@@ -44,14 +44,10 @@ const LaunchAnnouncement: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       <MotionReveal index={0}><h2 style={{ fontFamily: FONT_FAMILY, fontSize: "clamp(32px, 9.5vw, 46px)", lineHeight: 1.02, fontWeight: 700, margin: 0, color: COLORS.ink }}>
         <Whoop /> <Whoop /><br />just got <em>more fun</em> <span aria-hidden="true" style={{ fontFamily: '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif' }}>🙌</span>
       </h2></MotionReveal>
-      <MotionReveal index={1}><p style={{ ...textStyle("body", mobile), margin: 0, color: COLORS.ink }}>The Daily was only the beginning! Now there are two new ways to play, straight from the card game that inspired it all.</p></MotionReveal>
       <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: SPACE[5] }}>
         <Section index={0} title="Play Solo!" color={COLORS.blue} mobile={mobile}>Think you're quick? Try to outplay <strong>FELIX the bot.</strong> The die sets the rule, find the match, first to 12 wins.</Section>
         <Section index={1} title="Play Together!" color={COLORS.red} mobile={mobile}>Grab your friends, start a table, send the link, and get your Whoop! Whoop! on.</Section>
       </ul>
-      <MotionReveal index={2}><p style={{ ...textStyle("body", mobile), margin: 0, color: COLORS.ink }}>
-        Don't worry, the Daily isn't going anywhere! Now there's more ways to play &amp; keep the fun going.
-      </p></MotionReveal>
     </ReleaseAnnouncement>
   );
 };
