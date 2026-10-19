@@ -96,6 +96,7 @@ const SupportPage: React.FC = () => {
           <MotionReveal index={4}>
             <section style={stack} aria-labelledby="team-title">
               <h2 id="team-title" style={{ ...textStyle("hero", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 }}>The people behind Oleeha &amp; Co.</h2>
+              <p style={body}>Oleeha &amp; Co. is the small studio that makes WHOOP! WHOOP! — the imprint behind the cards, the dice, and everything still to come.</p>
               <figure aria-label="The Oleeha & Co. team" style={{ margin: 0 }}>
                 {/* Drop the team photo here: set TEAM_PHOTO to the imported image path. */}
                 {TEAM_PHOTO ? (
