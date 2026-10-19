@@ -5,7 +5,7 @@ import { ArrowUpRight } from "lucide-react";
 import { cardArt } from "@/lib/assetUrls";
 import { useUmbrella } from "@/lib/launch";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { COLORS, SPACE, RADIUS, SHADOW, TEXT, textStyle } from "@/lib/tokens";
+import { COLORS, RAW, SPACE, RADIUS, SHADOW, TEXT, textStyle } from "@/lib/tokens";
 import { useThemeMode } from "@/lib/nightMode";
 import DailyFrame from "@/components/DailyFrame";
 import HomeControl from "@/components/HomeControl";
@@ -36,14 +36,21 @@ const SupportPage: React.FC = () => {
   // the shared playing-card lift to separate from the background. Night mode
   // already puts off-white art on near-black, where a shadow reads as mud.
   const cardShadow = theme === "light" ? SHADOW.card : undefined;
-  // The team photo leans into depth: the top-left corner tips away from the
-  // viewer while the front (bottom-right) corner comes toward it. The shadow
-  // follows the tilted plane and leans toward the near corner to sell it.
-  // Night mode stays flat and shadow-free for the same reason as the cards.
-  const photoTransform = "perspective(1200px) rotateX(4deg) rotateY(-5deg) rotate(-1deg)";
-  const photoShadow = theme === "light"
-    ? "20px 26px 48px rgba(0,0,0,0.28), 7px 9px 18px rgba(0,0,0,0.16)"
-    : undefined;
+  // The team photo is a print lying on the table: paper all the way round, with
+  // the deeper bottom margin a Polaroid leaves for a caption, a hair of a turn
+  // so it reads placed by hand, and a soft shadow pooled right under the print
+  // so it sits down on the page instead of floating above it. Night keeps the
+  // same shadow, just heavier, because black barely registers on near-black.
+  const photoFrame: React.CSSProperties = {
+    width: "100%",
+    backgroundColor: theme === "light" ? RAW.offWhite : RAW.creamHover,
+    padding: `${mobile ? SPACE[6] : SPACE[10]}px ${mobile ? SPACE[6] : SPACE[10]}px ${mobile ? SPACE[16] : SPACE[20]}px`,
+    borderRadius: RADIUS.sm,
+    transform: "rotate(-1deg)",
+    boxShadow: theme === "light"
+      ? "0 1px 1px rgba(0,0,0,0.07), 0 2px 3px rgba(0,0,0,0.06), 0 14px 24px -12px rgba(0,0,0,0.28)"
+      : "0 1px 2px rgba(0,0,0,0.45), 0 10px 20px -6px rgba(0,0,0,0.75)",
+  };
   // The story opens one notch above the system's largest heading role.
   const HEADLINE = Math.round((mobile ? TEXT.resultHero.mobileSize : TEXT.resultHero.size) * 1.2);
   const title = "About WHOOP! WHOOP! — A game by Felix Oliha";
@@ -112,14 +119,15 @@ const SupportPage: React.FC = () => {
               <h2 id="team-title" style={{ ...textStyle("hero", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 }}>The people behind Oleeha &amp; Co.</h2>
               <p style={body}>Oleeha &amp; Co. is the small creative practice of a few lovely people.</p>
               <figure aria-label="The Oleeha & Co. team" style={{ margin: 0 }}>
-                {/* Drop the team photo here: set TEAM_PHOTO to the imported image path. */}
-                {TEAM_PHOTO ? (
-                  <img src={TEAM_PHOTO} alt="The Oleeha & Co. team" loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "4 / 3", objectFit: "cover", borderRadius: RADIUS.md, transform: photoTransform, boxShadow: photoShadow }} />
-                ) : (
-                  <div aria-hidden="true" style={{ width: "100%", aspectRatio: "4 / 3", borderRadius: RADIUS.md, transform: photoTransform, boxShadow: photoShadow, backgroundColor: COLORS.panelMuted, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>Team photo, soon.</span>
-                  </div>
-                )}
+                <div style={photoFrame}>
+                  {TEAM_PHOTO ? (
+                    <img src={TEAM_PHOTO} alt="The Oleeha & Co. team" loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "4 / 3", objectFit: "cover" }} />
+                  ) : (
+                    <div aria-hidden="true" style={{ width: "100%", aspectRatio: "4 / 3", backgroundColor: COLORS.panelMuted, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>Team photo, soon.</span>
+                    </div>
+                  )}
+                </div>
                 <figcaption style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0, marginTop: SPACE[3] }}>Felix, Alyssa &amp; Makenzie — Oleeha &amp; Co.</figcaption>
               </figure>
             </section>
