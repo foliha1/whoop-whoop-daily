@@ -32,6 +32,9 @@ const DailyLegalFooter: React.FC = () => (
       opacity: 0.85,
     }}
   >
+    <Link to="/about" style={linkStyle}>
+      About
+    </Link>
     <Link to="/privacy" style={linkStyle}>
       Privacy
     </Link>

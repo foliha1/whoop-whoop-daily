@@ -1338,6 +1338,24 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               <DailyLogoLockup variant={umbrella && home ? "plain" : "classic"} style={{ maxWidth: lockupMax }} />,
               { display: "flex", justifyContent: "center" },
             )}
+          {opts.logo && umbrella && home &&
+            step(
+              0,
+              <a
+                href="/about"
+                data-testid="home-byline"
+                className="ww-daily-link"
+                style={{
+                  ...textStyle("captionItalic", entryMobile),
+                  color: COLORS.inkMuted,
+                  textDecoration: "none",
+                  marginTop: -SPACE[2],
+                }}
+              >
+                A game by Oleeha &amp; Co.
+              </a>,
+              { display: "flex", justifyContent: "center" },
+            )}
           {opts.chips && step(1, chipRow, { display: "flex", justifyContent: "center" })}
           {opts.headline !== undefined &&
             step(
