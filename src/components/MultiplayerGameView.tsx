@@ -2119,6 +2119,7 @@ const MultiplayerGameView: React.FC<Props> = ({
             onInvite={soloMode ? undefined : onInvite}
             onDone={onLeave}
             mobile={mobile}
+            mySeat={mySeat}
           />
         )}
 

@@ -6,6 +6,7 @@ import DailyShapeRule from "@/components/DailyShapeRule";
 import { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
 import MotionReveal from "@/components/MotionReveal";
 import ChaseHeadline from "@/components/ChaseHeadline";
+import DailyMilestoneConfetti from "@/components/DailyMilestoneConfetti";
 import {
   BORDER,
   MOTION,
@@ -104,7 +105,9 @@ const ClassicResultScreen: React.FC<{
   onInvite?: () => void;
   onDone: () => void;
   mobile?: boolean;
-}> = ({ entries, target, canRematch, onPlayAgain, onInvite, onDone, mobile = false }) => {
+  /** Launched only: the viewer's seat, so a win gets the streak confetti. */
+  mySeat?: number | null;
+}> = ({ entries, target, canRematch, onPlayAgain, onInvite, onDone, mobile = false, mySeat = null }) => {
   const portalHost = usePortalHost("mp-result");
 
   const ordered = entries.slice().sort((a, b) => b.score - a.score);
@@ -115,6 +118,10 @@ const ClassicResultScreen: React.FC<{
   const top = ordered.length > 0 ? ordered[0].score : -Infinity;
   const winners = ordered.filter((e) => e.score === top);
   const rest = ordered.filter((e) => e.score !== top);
+  const [celebrate] = useState(() =>
+    umbrellaOn() && mySeat !== null && winners.some((w) => w.seat === mySeat)
+    && !(typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches),
+  );
 
   const strip = (
     <DailyShapeRule
