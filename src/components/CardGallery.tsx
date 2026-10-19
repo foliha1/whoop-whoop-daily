@@ -52,9 +52,9 @@ export default function CardGallery({ mobile, trigger }: { mobile: boolean; trig
             You found it. All 48 cards — showing {cards.length}.
           </Dialog.Description>
           <div style={{ display: "flex", flexDirection: "column", gap: SPACE[3] }}>
-            <Chips label="Shape" options={SHAPES} value={shape} onChange={setShape} name={(s) => SHAPE_LABEL[s]} mobile={mobile} />
-            <Chips label="Number" options={NUMBERS} value={number} onChange={setNumber} name={(n) => String(n)} mobile={mobile} />
-            <Chips label="Color" options={COLOR_NAMES} value={color} onChange={setColor} name={(c) => COLOR_LABEL[c]} mobile={mobile} />
+            <Chips<Shape> label="Shape" options={SHAPES} value={shape} onChange={setShape} name={(s) => SHAPE_LABEL[s]} mobile={mobile} />
+            <Chips<CardNumber> label="Number" options={NUMBERS} value={number} onChange={setNumber} name={(n) => String(n)} mobile={mobile} />
+            <Chips<ColorName> label="Color" options={COLOR_NAMES} value={color} onChange={setColor} name={(c) => COLOR_LABEL[c]} mobile={mobile} />
           </div>
           <ul style={{ listStyle: "none", margin: 0, padding: SPACE[2], overflowY: "auto", display: "grid", gridTemplateColumns: `repeat(${mobile ? 4 : 6}, minmax(0, 1fr))`, gap: SPACE[4] }}>
             {cards.map((c) => (
