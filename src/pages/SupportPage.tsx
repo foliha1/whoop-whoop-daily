@@ -83,6 +83,17 @@ const SupportPage: React.FC = () => {
           <MotionReveal index={4}>
             <section style={stack} aria-labelledby="team-title">
               <h2 id="team-title" style={{ ...textStyle("hero", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 }}>The people behind Oleeha &amp; Co.</h2>
+              <figure aria-label="The Oleeha & Co. team" style={{ margin: 0 }}>
+                {/* Drop the team photo here: set TEAM_PHOTO to the imported image path. */}
+                {TEAM_PHOTO ? (
+                  <img src={TEAM_PHOTO} alt="The Oleeha & Co. team" loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "4 / 3", objectFit: "cover", borderRadius: RADIUS.md, transform: "rotate(-1deg)" }} />
+                ) : (
+                  <div aria-hidden="true" style={{ width: "100%", aspectRatio: "4 / 3", borderRadius: RADIUS.md, transform: "rotate(-1deg)", backgroundColor: COLORS.panelMuted, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>Team photo, soon.</span>
+                  </div>
+                )}
+                <figcaption style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0, marginTop: SPACE[3] }}>Felix, Alyssa &amp; Makenzie — Oleeha &amp; Co.</figcaption>
+              </figure>
               <ul style={{ ...stack, gap: SPACE[4], listStyle: "none", margin: 0, padding: 0 }}>
                 {["Felix Oliha", "Alyssa Oliha", "Makenzie Bramblett"].map((name) => (
                   <li key={name} style={body}>{name}</li>
