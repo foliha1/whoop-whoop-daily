@@ -61,8 +61,8 @@ const SupportPage: React.FC = () => {
           <MotionReveal index={0}>
             <header style={{ ...stack, gap: SPACE[12] }}>
               <h1 style={{ ...textStyle("resultHero", mobile), lineHeight: 1.08, color: COLORS.ink, margin: 0, letterSpacing: 0 }}>
-                Whoop! Whoop! Is a<br />
-                happy accident.
+                Whoop! Whoop!<br />
+                is a happy accident.
               </h1>
               <p style={{ ...body, color: COLORS.inkMuted }}>A little about the person behind the cards.</p>
             </header>
