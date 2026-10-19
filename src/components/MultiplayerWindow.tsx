@@ -15,6 +15,7 @@ import {
   textStyle,
   TEXT,
   FONT_FAMILY,
+  FONT_WEIGHT,
   buttonStyle,
   panelStyle,
   CONTROL_H,
@@ -1346,7 +1347,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 data-testid="home-byline"
                 className="ww-daily-link"
                 style={{
+                  // Friend italic: the byline is branded display copy, not UI metadata.
                   ...textStyle("captionItalic", entryMobile),
+                  fontFamily: FONT_FAMILY,
+                  fontWeight: FONT_WEIGHT.regular,
                   color: COLORS.inkMuted,
                   textDecoration: "none",
                   marginTop: -SPACE[2],
