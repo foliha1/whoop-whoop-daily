@@ -20,6 +20,9 @@ const ART = [
   { name: "4-star-blue", alt: "Four blue stars", rotation: "9deg" },
 ];
 
+// Set to the imported team photo (e.g. `import teamPhoto from "@/assets/team.jpg"`) when the photo lands.
+const TEAM_PHOTO: string | null = null;
+
 const SupportPage: React.FC = () => {
   const umbrella = useUmbrella();
   const mobile = useIsMobile();
@@ -47,10 +50,9 @@ const SupportPage: React.FC = () => {
         <article id="about" style={{ ...stack, gap: SPACE[20], width: "100%", maxWidth: 600, paddingTop: SPACE[6], paddingBottom: SPACE[12] }}>
           <MotionReveal index={0}>
             <header style={{ ...stack, gap: SPACE[12] }}>
-              <p style={{ ...textStyle("subhead", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 }}>WHOOP! WHOOP!</p>
               <h1 style={{ ...textStyle("resultHero", mobile), fontSize: mobile ? textStyle("hero").fontSize : textStyle("resultHero", true).fontSize, lineHeight: 1.1, color: COLORS.ink, margin: 0, letterSpacing: 0 }}>
-                Designing games<br />
-                <em style={{ color: COLORS.red }}>by accident.</em>
+                Whoop! Whoop! Is a<br />
+                <em style={{ color: COLORS.red }}>happy accident.</em>
               </h1>
               <p style={{ ...body, color: COLORS.inkMuted }}>A little about the person behind the cards.</p>
             </header>
@@ -84,6 +86,17 @@ const SupportPage: React.FC = () => {
           <MotionReveal index={4}>
             <section style={stack} aria-labelledby="team-title">
               <h2 id="team-title" style={{ ...textStyle("hero", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 }}>The people behind Oleeha &amp; Co.</h2>
+              <figure aria-label="The Oleeha & Co. team" style={{ margin: 0 }}>
+                {/* Drop the team photo here: set TEAM_PHOTO to the imported image path. */}
+                {TEAM_PHOTO ? (
+                  <img src={TEAM_PHOTO} alt="The Oleeha & Co. team" loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "4 / 3", objectFit: "cover", borderRadius: RADIUS.md, transform: "rotate(-1deg)" }} />
+                ) : (
+                  <div aria-hidden="true" style={{ width: "100%", aspectRatio: "4 / 3", borderRadius: RADIUS.md, transform: "rotate(-1deg)", backgroundColor: COLORS.panelMuted, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>Team photo, soon.</span>
+                  </div>
+                )}
+                <figcaption style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0, marginTop: SPACE[3] }}>Felix, Alyssa &amp; Makenzie — Oleeha &amp; Co.</figcaption>
+              </figure>
               <ul style={{ ...stack, gap: SPACE[4], listStyle: "none", margin: 0, padding: 0 }}>
                 {["Felix Oliha", "Alyssa Oliha", "Makenzie Bramblett"].map((name) => (
                   <li key={name} style={body}>{name}</li>
@@ -93,10 +106,10 @@ const SupportPage: React.FC = () => {
           </MotionReveal>
 
           <MotionReveal index={5}>
-            <footer style={{ ...stack, gap: SPACE[12], paddingTop: SPACE[8], borderTop: `1px solid ${COLORS.panelMuted}` }}>
+            <footer style={{ ...stack, gap: SPACE[12], paddingTop: SPACE[8] }}>
               <div style={{ ...stack, gap: SPACE[3] }}>
-                <p style={{ ...textStyle("hero", mobile), color: COLORS.ink, fontStyle: "italic", margin: 0, letterSpacing: 0 }}>Felix Oliha</p>
-                <p style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>Designer &amp; game builder · Oleeha &amp; Co</p>
+                <p style={{ ...textStyle("hero", mobile), color: COLORS.ink, fontStyle: "italic", margin: 0, letterSpacing: 0 }}>Here&rsquo;s to more joy and less everything else,</p>
+                <p style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>Felix · Designer &amp; game builder, Oleeha &amp; Co</p>
               </div>
               <a href={`mailto:${LEGAL_CONTACT}`} style={{ ...body, color: COLORS.blue, display: "inline-flex", alignItems: "center", gap: SPACE[3], alignSelf: "flex-start", textUnderlineOffset: 4 }}>Say hello <ArrowUpRight size={16} aria-hidden="true" /></a>
               <Link to={umbrella ? "/daily" : "/"} style={{ textDecoration: "none", alignSelf: "flex-start" }}>
