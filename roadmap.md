@@ -1,8 +1,8 @@
 # Roadmap
 
 ## Personal About page
-- [ ] Replace the rules and pre-order panels with Felix's editorial story, existing game artwork, sign-off, and contact.
-- [ ] Verify reading, navigation, mobile/desktop layouts, and themes without changing the launch switch or publishing.
+- [x] Replace the rules and pre-order panels with Felix's editorial story, existing game artwork, sign-off, and contact.
+- [x] Verify reading, navigation, mobile/desktop layouts, and themes without changing the launch switch or publishing (26 focused tests passed; browser navigation and artwork checked).
 
 ## Tutorial tips and gameplay die
 - [x] Separate ON Classic tutorial explanations from controls, clear outgoing tips, and check compact layouts.
