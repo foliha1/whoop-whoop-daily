@@ -112,13 +112,33 @@ const SupportPage: React.FC = () => {
           <MotionReveal index={5}>
             <footer style={{ ...stack, gap: SPACE[12], paddingTop: SPACE[8] }}>
               <div style={{ ...stack, gap: SPACE[3] }}>
-                <p style={{ ...textStyle("hero", mobile), color: COLORS.ink, fontStyle: "italic", margin: 0, letterSpacing: 0 }}>Here&rsquo;s to more joy and less everything else,</p>
+                <p style={{ ...textStyle("hero", mobile), color: COLORS.ink, fontStyle: "italic", margin: 0, letterSpacing: 0 }}>
+                  Here&rsquo;s to more joy
+                  <br />
+                  and less everything else,
+                </p>
+                {SIGNATURE ? (
+                  <img src={SIGNATURE} alt="Felix Oliha's signature" style={{ display: "block", height: 48, width: "auto", marginTop: SPACE[2] }} />
+                ) : (
+                  <svg aria-hidden="true" viewBox="0 0 160 56" fill="none" style={{ display: "block", height: 44, width: "auto", marginTop: SPACE[2], color: COLORS.ink }}>
+                    <path d="M12 42 C 24 8, 40 8, 36 26 C 33 40, 20 44, 30 34 C 44 20, 52 20, 54 30 C 56 40, 48 44, 50 32 C 53 16, 70 12, 74 24 C 77 34, 68 42, 72 30 C 76 18, 92 14, 96 24 C 100 34, 90 42, 94 30 C 98 18, 114 16, 118 26 C 121 34, 112 40, 118 34 C 124 28, 132 26, 148 30" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
                 <p style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>Felix · Designer &amp; game builder, Oleeha &amp; Co</p>
               </div>
-              <a href={`mailto:${LEGAL_CONTACT}`} style={{ ...body, color: COLORS.blue, display: "inline-flex", alignItems: "center", gap: SPACE[3], alignSelf: "flex-start", textUnderlineOffset: 4 }}>Say hello <ArrowUpRight size={16} aria-hidden="true" /></a>
-              <Link to={umbrella ? "/daily" : "/"} style={{ textDecoration: "none", alignSelf: "flex-start" }}>
-                <AppButton roleStyle="primary" size="md">Play Now <ArrowUpRight size={18} aria-hidden="true" /></AppButton>
-              </Link>
+              <div style={{ display: "flex", alignItems: "center", gap: SPACE[5], flexWrap: "wrap" }}>
+                <a
+                  href={`mailto:${LEGAL_CONTACT}`}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = COLORS.surfaceHover; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = COLORS.surface; }}
+                  style={{ ...buttonStyle("quiet", "md", { mobile }), borderRadius: RADIUS.md, textDecoration: "none" }}
+                >
+                  Say hello <ArrowUpRight size={18} aria-hidden="true" />
+                </a>
+                <Link to={umbrella ? "/daily" : "/"} style={{ textDecoration: "none", display: "inline-flex" }}>
+                  <AppButton roleStyle="primary" size="md">Play Now <ArrowUpRight size={18} aria-hidden="true" /></AppButton>
+                </Link>
+              </div>
             </footer>
           </MotionReveal>
           <DailyLegalFooter />
