@@ -17,7 +17,9 @@ export type AnalyticsEventType =
   | "home_viewed"
   | "home_daily_tapped"
   | "home_solo_tapped"
-  | "home_peeps_tapped";
+  | "home_peeps_tapped"
+  // About card-waterfall Easter egg; the server keeps one per player.
+  | "easter_egg_found";
 
 interface TrackOpts {
   roomCode?: string;

@@ -180,6 +180,7 @@ interface DashboardData {
   headline: HeadlineRow | null;
   nextDay: NextDayRow | null;
   classic: ClassicRow | null;
+  easterEggs: number | null;
   classicTiming: ClassicTimingRow[];
   retentionSplit: RetentionSplitRow[];
   signinFunnel: SigninFunnelRow[];
@@ -626,7 +627,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       }
     };
 
-    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay, classic, retentionSplit, signinFunnel, classicTiming] =
+    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay, classic, retentionSplit, signinFunnel, classicTiming, easterEggs] =
       await Promise.all([
         call<FunnelRow>("admin_funnel", args),
         call<DifficultyRow>("admin_difficulty", args),
@@ -641,12 +642,13 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         call<RetentionSplitRow>("admin_retention_split"),
         call<SigninFunnelRow>("admin_signin_funnel", { p_days: 30 }),
         call<ClassicTimingRow>("admin_classic_timing", args),
+        call<{ found: number }>("admin_easter_eggs"),
       ]);
 
     setFailures(failed);
 
     // Every report failing means the fetch itself is broken, not an empty range.
-    if (failed.length === 13) {
+    if (failed.length === 14) {
       setState("error");
       return;
     }
@@ -671,6 +673,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       headline: headline[0] ?? null,
       nextDay: nextDay[0] ?? null,
       classic: classic[0] ?? null,
+      easterEggs: easterEggs[0]?.found ?? null,
       classicTiming,
       retentionSplit,
       signinFunnel,
@@ -999,6 +1002,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
               />
             )}
             <Stat label="Email list" value={n(h?.subscribers)} note="Total subscribers" />
+            <Stat label="Easter egg" value={n(data?.easterEggs ?? null)} note="Players who found the card waterfall · all time" />
             {h && h.share_rate !== null ? (
               <Stat
                 label="Share rate"
