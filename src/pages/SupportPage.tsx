@@ -103,10 +103,10 @@ const SupportPage: React.FC = () => {
           </MotionReveal>
 
           <MotionReveal index={5}>
-            <footer style={{ ...stack, gap: SPACE[12], paddingTop: SPACE[8], borderTop: `1px solid ${COLORS.panelMuted}` }}>
+            <footer style={{ ...stack, gap: SPACE[12], paddingTop: SPACE[8] }}>
               <div style={{ ...stack, gap: SPACE[3] }}>
-                <p style={{ ...textStyle("hero", mobile), color: COLORS.ink, fontStyle: "italic", margin: 0, letterSpacing: 0 }}>Felix Oliha</p>
-                <p style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>Designer &amp; game builder · Oleeha &amp; Co</p>
+                <p style={{ ...textStyle("hero", mobile), color: COLORS.ink, fontStyle: "italic", margin: 0, letterSpacing: 0 }}>Here&rsquo;s to more joy and less everything else,</p>
+                <p style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>Felix · Designer &amp; game builder, Oleeha &amp; Co</p>
               </div>
               <a href={`mailto:${LEGAL_CONTACT}`} style={{ ...body, color: COLORS.blue, display: "inline-flex", alignItems: "center", gap: SPACE[3], alignSelf: "flex-start", textUnderlineOffset: 4 }}>Say hello <ArrowUpRight size={16} aria-hidden="true" /></a>
               <Link to={umbrella ? "/daily" : "/"} style={{ textDecoration: "none", alignSelf: "flex-start" }}>
