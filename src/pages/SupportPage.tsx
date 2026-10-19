@@ -47,10 +47,9 @@ const SupportPage: React.FC = () => {
         <article id="about" style={{ ...stack, gap: SPACE[20], width: "100%", maxWidth: 600, paddingTop: SPACE[6], paddingBottom: SPACE[12] }}>
           <MotionReveal index={0}>
             <header style={{ ...stack, gap: SPACE[12] }}>
-              <p style={{ ...textStyle("subhead", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 }}>WHOOP! WHOOP!</p>
               <h1 style={{ ...textStyle("resultHero", mobile), fontSize: mobile ? textStyle("hero").fontSize : textStyle("resultHero", true).fontSize, lineHeight: 1.1, color: COLORS.ink, margin: 0, letterSpacing: 0 }}>
-                Designing games<br />
-                <em style={{ color: COLORS.red }}>by accident.</em>
+                Whoop! Whoop! Is a<br />
+                <em style={{ color: COLORS.red }}>happy accident.</em>
               </h1>
               <p style={{ ...body, color: COLORS.inkMuted }}>A little about the person behind the cards.</p>
             </header>
