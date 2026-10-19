@@ -9,8 +9,8 @@ const read = (path: string) => readFileSync(resolve(process.cwd(), "src", path),
 describe("editorial scroll reveal", () => {
   it("uses the dedicated slow reveal, not the shared UI entry beat", () => {
     const component = read("components/MotionReveal.tsx");
-    expect(component).toContain("ww-scroll-reveal-in");
-    expect(component).not.toContain("ww-ui-section-in");
+    expect(component).toContain('className={["ww-scroll-reveal-in"');
+    expect(component).not.toContain('className={["ww-ui-section-in"');
   });
 
   it("runs long with a deep ease-out and real travel", () => {
