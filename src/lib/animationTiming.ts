@@ -81,6 +81,21 @@ export const UI_MODAL_START_SCALE = 0.96;
 export const UI_SMALL_START_SCALE = 0.8;
 export const UI_EASE = "cubic-bezier(0.23, 1, 0.32, 1)";
 
+// ---- editorial scroll reveal ------------------------------------------------
+// Scroll-triggered section reveal used by the editorial pages (About). Slower
+// and further-travelling than the in-app UI entry: a long read wants a settled,
+// luxurious entrance, not the snappy beat the panels and modals use. The deep
+// ease-out front-loads almost all of the motion, so each block arrives
+// smoothly and glides to rest instead of stopping abruptly.
+export const SCROLL_REVEAL_MS = 760;
+export const SCROLL_REVEAL_DISTANCE_PX = 26;
+export const SCROLL_REVEAL_STAGGER_MS = 90;
+export const SCROLL_REVEAL_EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
+
+/** Delay for an on-screen section of a scroll-revealed page. */
+export const scrollEntryDelay = (index: number): number =>
+  Math.max(0, index) * SCROLL_REVEAL_STAGGER_MS;
+
 /** Delay for a section in a short, authored page sequence. */
 export const sectionEntryDelay = (index: number): number =>
   Math.max(0, index) * UI_SECTION_STAGGER_MS;
@@ -91,7 +106,7 @@ export const listEntryDelay = (index: number): number =>
 
 export const motionDelayStyle = (
   delayMs: number,
-  variable: "--ww-ui-delay" | "--ww-small-delay" = "--ww-ui-delay",
+  variable: "--ww-ui-delay" | "--ww-small-delay" | "--ww-scroll-reveal-delay" = "--ww-ui-delay",
 ): Record<string, string> => ({ [variable]: `${delayMs}ms` });
 
 // ---- entry / ready screen reveal -------------------------------------------
@@ -138,6 +153,10 @@ export function applyAnimationTimingVars(root: HTMLElement = document.documentEl
   root.style.setProperty("--ww-ui-modal-scale", String(UI_MODAL_START_SCALE));
   root.style.setProperty("--ww-ui-small-scale", String(UI_SMALL_START_SCALE));
   root.style.setProperty("--ww-ui-ease", UI_EASE);
+  root.style.setProperty("--ww-scroll-reveal-ms", `${SCROLL_REVEAL_MS}ms`);
+  root.style.setProperty("--ww-scroll-reveal-distance", `${SCROLL_REVEAL_DISTANCE_PX}px`);
+  root.style.setProperty("--ww-scroll-reveal-stagger", `${SCROLL_REVEAL_STAGGER_MS}ms`);
+  root.style.setProperty("--ww-scroll-reveal-ease", SCROLL_REVEAL_EASE);
 }
 
 // ---- rotation claim window --------------------------------------------------
