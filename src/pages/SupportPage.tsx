@@ -113,33 +113,27 @@ const SupportPage: React.FC = () => {
                 )}
                 <figcaption style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0, marginTop: SPACE[3] }}>Felix, Alyssa &amp; Makenzie — Oleeha &amp; Co.</figcaption>
               </figure>
-              <ul style={{ ...stack, gap: SPACE[4], listStyle: "none", margin: 0, padding: 0 }}>
-                {["Felix Oliha", "Alyssa Oliha", "Makenzie Bramblett"].map((name) => (
-                  <li key={name} style={body}>{name}</li>
-                ))}
-              </ul>
             </section>
           </MotionReveal>
 
           <MotionReveal index={5}>
-            <footer style={{ ...stack, gap: SPACE[12], paddingTop: SPACE[8] }}>
-              <div style={{ ...stack, gap: SPACE[3] }}>
+            <footer style={{ ...stack, gap: SPACE[12], paddingTop: SPACE[8], alignItems: "center", textAlign: "center" }}>
+              <div style={{ ...stack, gap: SPACE[3], alignItems: "center" }}>
                 <p style={{ ...textStyle("hero", mobile), color: COLORS.ink, fontStyle: "italic", margin: 0, letterSpacing: 0 }}>
                   Here&rsquo;s to more joy
                   <br />
                   and less everything else,
                 </p>
-                {/* Left-aligned so it starts on the same edge as the sign-off line. */}
                 {SIGNATURE ? (
-                  <img src={SIGNATURE} alt="Felix Oliha's signature" style={{ display: "block", height: 48, width: "auto", alignSelf: "flex-start", marginTop: SPACE[2] }} />
+                  <img src={SIGNATURE} alt="Felix Oliha's signature" style={{ display: "block", height: 48, width: "auto", marginTop: SPACE[2] }} />
                 ) : (
-                  <svg aria-hidden="true" viewBox="0 0 160 56" fill="none" style={{ display: "block", height: 44, width: "auto", alignSelf: "flex-start", marginTop: SPACE[2], color: COLORS.ink }}>
+                  <svg aria-hidden="true" viewBox="0 0 160 56" fill="none" style={{ display: "block", height: 44, width: "auto", marginTop: SPACE[2], color: COLORS.ink }}>
                     <path d="M12 42 C 24 8, 40 8, 36 26 C 33 40, 20 44, 30 34 C 44 20, 52 20, 54 30 C 56 40, 48 44, 50 32 C 53 16, 70 12, 74 24 C 77 34, 68 42, 72 30 C 76 18, 92 14, 96 24 C 100 34, 90 42, 94 30 C 98 18, 114 16, 118 26 C 121 34, 112 40, 118 34 C 124 28, 132 26, 148 30" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
                 <p style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>Felix · Designer &amp; game builder, Oleeha &amp; Co</p>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: SPACE[5], flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: SPACE[5], flexWrap: "wrap" }}>
                 <a
                   href={`mailto:${LEGAL_CONTACT}`}
                   onMouseEnter={(e) => { e.currentTarget.style.background = COLORS.surfaceHover; }}
