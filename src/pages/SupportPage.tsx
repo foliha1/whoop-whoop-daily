@@ -5,7 +5,7 @@ import { ArrowUpRight } from "lucide-react";
 import { cardArt } from "@/lib/assetUrls";
 import { useUmbrella } from "@/lib/launch";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { COLORS, SPACE, RADIUS, textStyle } from "@/lib/tokens";
+import { COLORS, SPACE, RADIUS, buttonStyle, textStyle } from "@/lib/tokens";
 import DailyFrame from "@/components/DailyFrame";
 import HomeControl from "@/components/HomeControl";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
@@ -22,6 +22,10 @@ const ART = [
 
 // Set to the imported team photo (e.g. `import teamPhoto from "@/assets/team.jpg"`) when the photo lands.
 const TEAM_PHOTO: string | null = null;
+
+// Set to the imported signature image (e.g. `import signature from "@/assets/signature.png"`) when it lands.
+// Until then a hand-drawn placeholder scribble stands in so the composition can be judged.
+const SIGNATURE: string | null = null;
 
 const SupportPage: React.FC = () => {
   const umbrella = useUmbrella();
