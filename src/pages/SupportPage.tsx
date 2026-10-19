@@ -14,6 +14,7 @@ import { ScrollReveal } from "@/components/MotionReveal";
 import { AppButton } from "@/components/ui/AppButton";
 import CardWaterfall from "@/components/CardWaterfall";
 import FelixSignature from "@/components/FelixSignature";
+import teamPlaceholder from "@/assets/team-placeholder.jpg.asset.json";
 
 const ART = [
   { name: "1-circle-blue", alt: "One blue circle", rotation: "-9deg" },
@@ -22,8 +23,8 @@ const ART = [
   { name: "4-star-blue", alt: "Four blue stars", rotation: "9deg" },
 ];
 
-// Set to the imported team photo (e.g. `import teamPhoto from "@/assets/team.jpg"`) when the photo lands.
-const TEAM_PHOTO: string | null = null;
+// Stand-in until the real team photo arrives: swap this for the imported photo.
+const TEAM_PHOTO: string | null = teamPlaceholder.url;
 
 
 const SupportPage: React.FC = () => {
