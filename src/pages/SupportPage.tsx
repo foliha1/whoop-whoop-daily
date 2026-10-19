@@ -14,9 +14,10 @@ import { AppButton } from "@/components/ui/AppButton";
 import { LEGAL_CONTACT } from "@/components/LegalPage";
 
 const ART = [
-  { name: "2-circle-blue", alt: "Two blue circles", rotation: "-9deg" },
+  { name: "1-circle-blue", alt: "One blue circle", rotation: "-9deg" },
+  { name: "2-square-red", alt: "Two red squares", rotation: "-3deg" },
   { name: "3-tri-yellow", alt: "Three yellow triangles", rotation: "3deg" },
-  { name: "4-circle-red", alt: "Four red circles", rotation: "10deg" },
+  { name: "4-star-blue", alt: "Four blue stars", rotation: "9deg" },
 ];
 
 const SupportPage: React.FC = () => {
@@ -65,7 +66,7 @@ const SupportPage: React.FC = () => {
           </MotionReveal>
 
           <MotionReveal index={2}>
-            <figure aria-label="WHOOP! WHOOP! card designs" style={{ margin: 0, padding: `${SPACE[12]}px ${SPACE[6]}px`, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[6], alignItems: "center" }}>
+            <figure aria-label="WHOOP! WHOOP! card designs" style={{ margin: 0, padding: `${SPACE[12]}px ${SPACE[6]}px`, display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: SPACE[6], alignItems: "center" }}>
               {ART.map((card) => (
                 <img key={card.name} src={cardArt(card.name)} alt={card.alt} loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "5 / 7", objectFit: "contain", borderRadius: RADIUS.md, transform: `rotate(${card.rotation})` }} />
               ))}
@@ -81,6 +82,17 @@ const SupportPage: React.FC = () => {
           </MotionReveal>
 
           <MotionReveal index={4}>
+            <section style={stack} aria-labelledby="team-title">
+              <h2 id="team-title" style={{ ...textStyle("hero", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 }}>The people behind Oleeha &amp; Co.</h2>
+              <ul style={{ ...stack, gap: SPACE[4], listStyle: "none", margin: 0, padding: 0 }}>
+                {["Felix Oliha", "Alyssa Oliha", "Makenzie Bramblett"].map((name) => (
+                  <li key={name} style={body}>{name}</li>
+                ))}
+              </ul>
+            </section>
+          </MotionReveal>
+
+          <MotionReveal index={5}>
             <footer style={{ ...stack, gap: SPACE[12], paddingTop: SPACE[8], borderTop: `1px solid ${COLORS.panelMuted}` }}>
               <div style={{ ...stack, gap: SPACE[3] }}>
                 <p style={{ ...textStyle("hero", mobile), color: COLORS.ink, fontStyle: "italic", margin: 0, letterSpacing: 0 }}>Felix Oliha</p>
