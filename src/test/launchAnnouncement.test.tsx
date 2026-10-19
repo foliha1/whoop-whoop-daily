@@ -40,6 +40,14 @@ describe("launch announcement", () => {
     }
   });
 
+  it("keeps the Daily as a reassuring closer rather than a bullet", async () => {
+    mount();
+    const dialog = await screen.findByRole("dialog", { name: LAUNCH_NOTE_HEADLINE });
+    expect(within(dialog).queryByRole("heading", { name: "Play Daily!" })).toBeNull();
+    expect(within(dialog).getByText(DAILY_REASSURANCE)).toBeInTheDocument();
+  });
+
+
   it("shows on every entry while the umbrella switch is off", () => {
     expect(shouldShowLaunchNote()).toBe(true);
   });
