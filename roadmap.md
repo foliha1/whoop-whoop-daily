@@ -161,3 +161,7 @@
 ## Launch popup copy (unpublished)
 - [x] Home announcement popup: the "Play Daily!" bullet removed, leaving Play Solo! and Play Together! (`src/components/LaunchAnnouncement.tsx`, `src/test/launchAnnouncement.test.tsx`).
 - [x] Home announcement popup: both Daily sentences removed on request — the intro "The Daily was only the beginning! ..." and the closer "Don't worry, the Daily isn't going anywhere! ...". The popup is now headline, the two bullets, and Let's Play only.
+
+## About team section hidden (unpublished)
+- [x] "The people behind Oleeha & Co." (studio line, Polaroid photo, caption) hidden on request via `SHOW_TEAM_SECTION` in `src/pages/SupportPage.tsx` — markup, photo pointer and frame styling kept in place so it returns with one flip; footer reveal renumbered to index 4 so the stagger stays tight; verified absent at 1024×927 and 390×844 with no gap above the sign-off, typecheck and lint clean, full suite 691.
+
