@@ -48,7 +48,9 @@ describe("launch announcement", () => {
   });
 
 
-  it("shows on every entry while the umbrella switch is off", () => {
-    expect(shouldShowLaunchNote()).toBe(true);
+  it("shows once per player after launch: first entry yes, seen entries no", () => {
+    expect(shouldShowLaunchNote()).toBe(true); // not seen yet
+    localStorage.setItem(LAUNCH_NOTE_KEY, "1");
+    expect(shouldShowLaunchNote()).toBe(false);
   });
 });
