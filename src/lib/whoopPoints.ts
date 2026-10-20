@@ -256,12 +256,15 @@ export interface WhoopPoints {
 /** The caller's own points. Null on any failure so callers can hide the block. */
 export async function fetchWhoopPoints(
   visitorId: string = getVisitorId(),
-  email: string | null = getSubscribedEmail()
+  email: string | null = getSubscribedEmail(),
+  /** The player's local puzzle date, so "today" matches the game just played. */
+  puzzleDate?: string
 ): Promise<WhoopPoints | null> {
   try {
     const { data, error } = await supabase.rpc("get_whoop_points", {
       p_visitor_id: visitorId,
-    });
+      ...(puzzleDate ? { p_puzzle_date: puzzleDate } : {}),
+    } as { p_visitor_id: string });
     if (error) return null;
     const row = Array.isArray(data) ? data[0] : data;
     if (!row) return null;

@@ -1391,7 +1391,8 @@ const DailyPage: React.FC = () => {
   );
   // Same gate as the streak: the total is read only after the run is written,
   // so "+4 today" is the effect of today's game, not yesterday's standing.
-  const { points: whoop, loading: pointsLoading } = useWhoopPointsState(resultsDataReady, profileKey);
+  // "Today" is the puzzle just played, not the server's UTC day.
+  const { points: whoop, loading: pointsLoading } = useWhoopPointsState(resultsDataReady, profileKey, daily.dateKey);
 
   // -------------------------------------------------------------------------
   // Instrumentation. Read-only observers of the engine: nothing here changes
