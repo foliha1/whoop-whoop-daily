@@ -1,6 +1,7 @@
 // ============================================================================
-// Launch switch tests — the umbrella must be OFF by default and provably
-// invisible to players, and the admin preview must be the only way ON.
+// Launch switch tests — the umbrella is ON in this build: the launch switch
+// is true, so every gate is ON for everyone, and the admin preview plumbing
+// is bypassed entirely.
 // ============================================================================
 
 import { describe, it, expect, afterEach } from "vitest";
@@ -25,42 +26,22 @@ afterEach(() => {
 });
 
 describe("launch switch defaults", () => {
-  it("is OFF in this build", () => {
-    expect(LAUNCHED).toBe(false);
-    expect(umbrellaOn()).toBe(false);
-  });
-
-  it("signed-out preview check resolves OFF (no session, no RPC)", async () => {
-    await initUmbrellaPreview();
-    expect(umbrellaOn()).toBe(false);
-  });
-
-  it("a failed preview check stays OFF", async () => {
-    // jsdom has no reachable backend; even if the call errors, OFF holds.
-    setUmbrellaPreviewForTests(null);
-    await initUmbrellaPreview();
-    expect(umbrellaOn()).toBe(false);
-  });
-
-  it("the test override turns the preview ON and back OFF", () => {
-    setUmbrellaPreviewForTests(true);
+  it("is ON in this build", () => {
+    expect(LAUNCHED).toBe(true);
     expect(umbrellaOn()).toBe(true);
-    setUmbrellaPreviewForTests(null);
-    expect(umbrellaOn()).toBe(false);
+  });
+
+  it("stays ON even when a preview check fails or resolves off", async () => {
+    // Signed-out in jsdom: no session, no RPC — the build-time switch still wins.
+    await initUmbrellaPreview();
+    expect(umbrellaOn()).toBe(true);
+    setUmbrellaPreviewForTests(false);
+    expect(umbrellaOn()).toBe(true);
   });
 });
 
-describe("OFF: nothing new is visible", () => {
-  it("Settings shows no name editor while OFF", async () => {
-    const { default: SettingsSheet } = await import("@/components/SettingsSheet");
-    render(
-      React.createElement(SettingsSheet, { onClose: () => {}, product: "daily" })
-    );
-    expect(screen.queryByTestId("display-name-editor")).not.toBeInTheDocument();
-  });
-
-  it("Settings shows the name editor for an admin preview (ON)", async () => {
-    setUmbrellaPreviewForTests(true);
+describe("ON: the umbrella features are visible", () => {
+  it("Settings shows the name editor now that the umbrella is ON", async () => {
     const { default: SettingsSheet } = await import("@/components/SettingsSheet");
     render(
       React.createElement(SettingsSheet, { onClose: () => {}, product: "daily" })
@@ -68,10 +49,10 @@ describe("OFF: nothing new is visible", () => {
     expect(await screen.findByTestId("display-name-editor")).toBeInTheDocument();
   });
 
-  it("Solo labels the human seat 'You' while OFF, even with a stored name", async () => {
+  it("Solo labels the human seat with the stored name once ON", async () => {
     setDisplayName("Felix");
     const { umbrellaOn: on } = await import("@/lib/launch");
     const playerName = on() ? getDisplayName() || "You" : "You";
-    expect(playerName).toBe("You");
+    expect(playerName).toBe("Felix");
   });
 });
