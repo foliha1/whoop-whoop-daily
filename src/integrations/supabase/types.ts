@@ -1244,7 +1244,7 @@ export type Database = {
         }[]
       }
       get_whoop_points: {
-        Args: { p_visitor_id: string }
+        Args: { p_puzzle_date?: string; p_visitor_id: string }
         Returns: {
           badges: Json
           days_away: number
