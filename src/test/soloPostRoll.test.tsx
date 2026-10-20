@@ -1,6 +1,6 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { setUmbrellaPreviewForTests } from "@/lib/launch";
+import { LAUNCHED, setUmbrellaPreviewForTests } from "@/lib/launch";
 import { ROLL_HERO_MS } from "@/lib/multiplayer";
 import { POST_ROLL_BUFFER_MS } from "@/lib/whoopBrain";
 import { useSoloGame } from "@/hooks/useSoloGame";
@@ -71,12 +71,17 @@ describe("Solo post-roll grace", () => {
     expect(claims()).toHaveLength(1);
   });
 
-  it("names the ON opponent FELIX and preserves the OFF opponent", () => {
+  it("names the ON opponent FELIX", () => {
     setUmbrellaPreviewForTests(true);
     const hook = setup();
     expect(mock.names[1]).toBe("FELIX");
+  });
+
+  // The OFF opponent only exists while the build-time switch is off.
+  const itOff = LAUNCHED ? it.skip : it;
+  itOff("preserves the OFF opponent while OFF", () => {
     setUmbrellaPreviewForTests(false);
-    hook.rerender();
+    const hook = setup();
     expect(mock.names[1]).toBe("WHOOP");
   });
 });

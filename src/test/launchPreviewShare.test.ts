@@ -24,7 +24,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
-import { initUmbrellaPreview, umbrellaOn, setUmbrellaPreviewForTests } from "@/lib/launch";
+import { initUmbrellaPreview, LAUNCHED, umbrellaOn, setUmbrellaPreviewForTests } from "@/lib/launch";
 
 beforeEach(() => {
   setUmbrellaPreviewForTests(null);
@@ -36,7 +36,9 @@ afterEach(() => {
 });
 
 describe("initUmbrellaPreview shares the in-flight check", () => {
-  it("a caller during the check waits for it and sees the result", async () => {
+  // The admin-preview plumbing is bypassed entirely once LAUNCHED is true.
+  const itOff = LAUNCHED ? it.skip : it;
+  itOff("a caller during the check waits for it and sees the result", async () => {
     const first = initUmbrellaPreview();
     let secondDone = false;
     const second = initUmbrellaPreview().then(() => {

@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@t
 import { MemoryRouter } from "react-router-dom";
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
-import { setUmbrellaPreviewForTests } from "@/lib/launch";
+import { LAUNCHED, setUmbrellaPreviewForTests } from "@/lib/launch";
 import { dailyShareUrl, formatDailyShare, formatDailyShareCaption, getDailySeed, loadDailyResult } from "@/lib/daily";
 import { initDailyState } from "@/lib/dailyEngine";
 import { buildForfeitResult, runInProgress } from "@/lib/dailyForfeit";
@@ -40,7 +40,9 @@ function serverShapeOk(r: ReturnType<typeof buildForfeitResult>): boolean {
 }
 
 describe("Part 3 destinations", () => {
-  it("points share link, caption and text at /daily only when ON", () => {
+  // The OFF share targets only exist while the build-time switch is off.
+  const itOff = LAUNCHED ? it.skip : it;
+  itOff("points share link, caption and text at /daily only when ON", () => {
     const result = buildForfeitResult({ ...initDailyState("whoop-2026-09-29"), phase: "PLAY" }, "whoop-2026-09-29", 50);
     expect(dailyShareUrl()).toBe("https://whoop-whoop.com");
     expect(formatDailyShareCaption(50)).toMatch(/\nwhoop-whoop\.com$/);
@@ -208,13 +210,15 @@ describe("Part 3 Daily leave", () => {
     expect(saved).toBe(false);
   });
 
-  it("closing the tab mid-run (pagehide) saves the same way when ON, nothing when OFF", async () => {
-    const off = renderHook(() => useDailyGame());
-    act(() => off.result.current.start());
-    await waitFor(() => expect(off.result.current.phase).not.toBe("READY"), { timeout: 4000 });
-    act(() => { window.dispatchEvent(new Event("pagehide")); });
-    expect(loadDailyResult(getDailySeed())).toBeNull();
-    off.unmount();
+  it("closing the tab mid-run (pagehide) saves the same way when ON", async () => {
+    if (!LAUNCHED) {
+      const off = renderHook(() => useDailyGame());
+      act(() => off.result.current.start());
+      await waitFor(() => expect(off.result.current.phase).not.toBe("READY"), { timeout: 4000 });
+      act(() => { window.dispatchEvent(new Event("pagehide")); });
+      expect(loadDailyResult(getDailySeed())).toBeNull();
+      off.unmount();
+    }
 
     setUmbrellaPreviewForTests(true);
     const on = renderHook(() => useDailyGame());

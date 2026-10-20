@@ -45,7 +45,7 @@ describe("page card loaders", () => {
     const view = render(wrap("/you", <YouPage />));
     expect(screen.getByRole("status", { name: "Loading Your Stats" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Your Stats" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Back/ })).toBeInTheDocument();
+    expect(screen.getByTestId("home-control")).toBeInTheDocument();
     pointsState = { points: null, loading: false };
     view.rerender(wrap("/you", <YouPage />));
     expect(screen.queryByRole("status", { name: "Loading Your Stats" })).not.toBeInTheDocument();
@@ -57,7 +57,7 @@ describe("page card loaders", () => {
     const view = render(wrap(path, <GroupsPage />));
     expect(screen.getByRole("status", { name: "Loading Groups" })).toBeInTheDocument();
     expect(screen.queryByTestId("groups-create")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Back/ })).toBeInTheDocument();
+    expect(screen.getByTestId("home-control")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId("group-join-code")).toHaveValue("abc234"));
     groupState = { groups: [], loading: false, reload: vi.fn() };
     view.rerender(wrap(path, <GroupsPage />));
