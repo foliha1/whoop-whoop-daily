@@ -45,7 +45,7 @@ describe("page card loaders", () => {
     const view = render(wrap("/you", <YouPage />));
     expect(screen.getByRole("status", { name: "Loading Your Stats" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Your Stats" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Back/ })).toBeInTheDocument();
+    expect(screen.getByTestId("home-control")).toBeInTheDocument();
     pointsState = { points: null, loading: false };
     view.rerender(wrap("/you", <YouPage />));
     expect(screen.queryByRole("status", { name: "Loading Your Stats" })).not.toBeInTheDocument();

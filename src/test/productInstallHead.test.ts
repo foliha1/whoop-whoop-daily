@@ -34,7 +34,7 @@ describe("product install metadata", () => {
     expect(readJson("public/daily.webmanifest")).toMatchObject({
       name: "WHOOP! WHOOP! Daily",
       short_name: "Daily",
-      start_url: UMBRELLA_LAUNCHED ? "/daily" : "__DAILY_START_URL__",
+      start_url: "__DAILY_START_URL__", // substituted at build time (umbrellaHead closeBundle)
       display: "standalone",
       theme_color: "#F8F2E9",
       background_color: "#F8F2E9",
