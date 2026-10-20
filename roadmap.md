@@ -165,3 +165,8 @@
 ## About team section hidden (unpublished)
 - [x] "The people behind Oleeha & Co." (studio line, Polaroid photo, caption) hidden on request via `SHOW_TEAM_SECTION` in `src/pages/SupportPage.tsx` — markup, photo pointer and frame styling kept in place so it returns with one flip; footer reveal renumbered to index 4 so the stagger stays tight; verified absent at 1024×927 and 390×844 with no gap above the sign-off, typecheck and lint clean, full suite 691.
 
+
+## Launch verification (2026-10-20)
+- [x] Full suite re-run after the launch-state test rewrites: 689 passed + 4 skipped, typecheck clean.
+- [x] Browser checks: About card waterfall opens, fades out on close, no dark tint; stat explainer dialog ("Your Tier") opens from the tile and closes; admin Easter egg tile counts players (2 all time); no page errors.
+- [x] Win confetti wiring covered by new `src/test/winCelebration.test.tsx` (winner celebrates, loser/spectator don't, shared tie celebrates); `mySeat` confirmed wired for solo, host and joiner seats.
