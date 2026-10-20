@@ -170,3 +170,9 @@
 - [x] Full suite re-run after the launch-state test rewrites: 689 passed + 4 skipped, typecheck clean.
 - [x] Browser checks: About card waterfall opens, fades out on close, no dark tint; stat explainer dialog ("Your Tier") opens from the tile and closes; admin Easter egg tile counts players (2 all time); no page errors.
 - [x] Win confetti wiring covered by new `src/test/winCelebration.test.tsx` (winner celebrates, loser/spectator don't, shared tie celebrates); `mySeat` confirmed wired for solo, host and joiner seats.
+
+## Daily score line (unpublished)
+- [x] "+0 today" on the result screen fixed: `get_whoop_points` now takes an optional `p_puzzle_date` (clamped to UTC ±1 day) so the lookup is anchored to the puzzle just finished rather than the server's date — recreated through DDL with grants preserved; `src/pages/DailyPage.tsx` passes `daily.dateKey` through `fetchWhoopPoints` / `useWhoopPointsState`. Covers late-evening players in the Americas (server date already advanced) and early-morning players ahead of UTC whose game could be left out of the total. Backend change live; the results-screen change still needs a publish.
+
+## Claim pulse legibility (unpublished)
+- [x] Active-claim pulse floored at native strength: `--ww-pk: max(var(--ww-k, 1), 1)` now drives `.ww-select-pulse` stroke, inset and radius plus the glow in `src/index.css`, so a narrow window keeps the full 2px outline and 5px glow instead of thinning to ~1.3px on a dark card back; wide windows (k > 1) are untouched. Guard added to `src/test/buttonMotionRegressions.test.ts`. Verified in-browser (Chrome + WebKit, 800×600 and 1920×1080, reduced motion on and off): all 9 cards pulse, peak stroke 2px / glow 5px at k=0.66 and glow 5.37px at k=1.07, the light clears when the claim is cancelled, no page errors; typecheck clean, full suite 690.

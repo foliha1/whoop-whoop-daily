@@ -32,4 +32,16 @@ describe("button and motion regressions", () => {
     expect(source).toContain("playModeLabelStyle(RAW.cream)");
     expect(source.match(/playModeLabelStyle\(RAW\.cream\)/g)).toHaveLength(2);
   });
+
+  it("keeps the active-claim pulse legible at every window size", () => {
+    const css = read("index.css");
+    const pulse = css.slice(
+      css.indexOf("/* ── Active claim:"),
+      css.indexOf("/* ── Great-match ghost"),
+    );
+    // Stroke and glow ride a floored strength, never the raw board scale, so a
+    // narrow window still gets a full 2px outline and a 5px glow.
+    expect(pulse).toContain("--ww-pk: max(var(--ww-k, 1), 1)");
+    expect(pulse).not.toContain("var(--ww-k)");
+  });
 });

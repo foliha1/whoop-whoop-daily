@@ -737,6 +737,16 @@ All colors MUST be HSL.
    in the SVG's single filtered <g>, so the bloom never drifts from the card.
    Colour comes from RAW via applySelectionPulseVars(); the literal here is
    only a fallback. Duration comes from SELECT_PULSE_MS. */
+/* Pulse strength (--ww-pk): the board's card scale, never below 1. Narrow
+   windows make the cards thinner than the authored 104.333px, and a raw --ww-k
+   would thin the breathing stroke under 2px and its glow under 5px until the
+   light is impossible to see on a dark card back. Wide windows (k > 1) are
+   untouched, so large boards look exactly as before. */
+.ww-select-pulse-scale,
+.ww-select-pulse {
+  --ww-pk: max(var(--ww-k, 1), 1);
+}
+
 .ww-select-pulse-scale {
   will-change: transform, filter;
   transform-origin: center;
@@ -745,8 +755,8 @@ All colors MUST be HSL.
 }
 .ww-select-pulse {
   position: absolute;
-  inset: calc(-1px * var(--ww-k));
-  border-radius: calc(6.83px * var(--ww-k));
+  inset: calc(-1px * var(--ww-pk, 1));
+  border-radius: calc(6.83px * var(--ww-pk, 1));
   border: 0 solid var(--ww-sel-blue, #0072B2);
   pointer-events: none;
   will-change: border-width;
@@ -760,7 +770,7 @@ All colors MUST be HSL.
          filter: drop-shadow(0 0 0 var(--ww-sel-blue, #0072B2)); }
   50%  { animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
          transform: scale(0.96);
-         filter: drop-shadow(0 0 calc(5px * var(--ww-k)) var(--ww-sel-blue, #0072B2)); }
+         filter: drop-shadow(0 0 calc(5px * var(--ww-pk, 1)) var(--ww-sel-blue, #0072B2)); }
   100% { transform: scale(1);
          filter: drop-shadow(0 0 0 var(--ww-sel-blue, #0072B2)); }
 }
@@ -769,7 +779,7 @@ All colors MUST be HSL.
   0%   { animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
          border-width: 0; }
   50%  { animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
-         border-width: calc(2px * var(--ww-k)); }
+         border-width: calc(2px * var(--ww-pk, 1)); }
   100% { border-width: 0; }
 }
 
@@ -781,11 +791,11 @@ All colors MUST be HSL.
   .ww-select-pulse-scale {
     animation: none;
     transform: scale(0.96);
-    filter: drop-shadow(0 0 calc(5px * var(--ww-k)) var(--ww-sel-blue, #0072B2));
+    filter: drop-shadow(0 0 calc(5px * var(--ww-pk, 1)) var(--ww-sel-blue, #0072B2));
   }
   .ww-select-pulse {
     animation: none;
-    border-width: calc(2px * var(--ww-k));
+    border-width: calc(2px * var(--ww-pk, 1));
   }
 }
 
