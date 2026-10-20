@@ -481,13 +481,13 @@ describe("peek", () => {
 describe("formatDailyShareCaption", () => {
   it("is a short invitation with the real puzzle number", () => {
     expect(formatDailyShareCaption(1)).toBe(
-      "Hey! Look at my Whoop! Whoop! Daily #1.\nHave you done it yet?\nwhoop-whoop.com"
+      "Hey! Look at my Whoop! Whoop! Daily #1.\nHave you done it yet?\nwhoop-whoop.com/daily"
     );
     expect(formatDailyShareCaption(14)).toBe(
-      "Hey! Look at my Whoop! Whoop! Daily #14.\nHave you done it yet?\nwhoop-whoop.com"
+      "Hey! Look at my Whoop! Whoop! Daily #14.\nHave you done it yet?\nwhoop-whoop.com/daily"
     );
     expect(formatDailyShareCaption(365)).toBe(
-      "Hey! Look at my Whoop! Whoop! Daily #365.\nHave you done it yet?\nwhoop-whoop.com"
+      "Hey! Look at my Whoop! Whoop! Daily #365.\nHave you done it yet?\nwhoop-whoop.com/daily"
     );
   });
 
@@ -519,7 +519,7 @@ describe("formatDailyShare", () => {
         failed: false,
       })
     ).toBe(
-      "WHOOP! WHOOP! #14\nR1 🔵 · R2 🔵 · R3 🔵\n3 of 3 · Clean\n\nhttps://whoop-whoop.com"
+      "WHOOP! WHOOP! #14\nR1 🔵 · R2 🔵 · R3 🔵\n3 of 3 · Clean\n\nhttps://whoop-whoop.com/daily"
     );
   });
 
@@ -533,7 +533,7 @@ describe("formatDailyShare", () => {
         failed: false,
       })
     ).toBe(
-      "WHOOP! WHOOP! #14\nR1 🔵 · R2 🔴🔵 · R3 🔴🔵\n3 of 3 · 2 misses\n\nhttps://whoop-whoop.com"
+      "WHOOP! WHOOP! #14\nR1 🔵 · R2 🔴🔵 · R3 🔴🔵\n3 of 3 · 2 misses\n\nhttps://whoop-whoop.com/daily"
     );
   });
 
@@ -547,7 +547,7 @@ describe("formatDailyShare", () => {
         failed: false,
       })
     ).toBe(
-      "WHOOP! WHOOP! #14\nR1 🔵 · R2 🔴 · R3 🔵\n2 of 3 · 1 miss\n\nhttps://whoop-whoop.com"
+      "WHOOP! WHOOP! #14\nR1 🔵 · R2 🔴 · R3 🔵\n2 of 3 · 1 miss\n\nhttps://whoop-whoop.com/daily"
     );
   });
 
@@ -563,7 +563,7 @@ describe("formatDailyShare", () => {
         failed: false,
       })
     ).toBe(
-      "WHOOP! WHOOP! #14\nR1 🔵 · R2 👀🔴🔵 · R3 🔴🔴\n3 of 3 · 3 misses\n\nhttps://whoop-whoop.com"
+      "WHOOP! WHOOP! #14\nR1 🔵 · R2 👀🔴🔵 · R3 🔴🔴\n3 of 3 · 3 misses\n\nhttps://whoop-whoop.com/daily"
     );
   });
 
@@ -577,7 +577,7 @@ describe("formatDailyShare", () => {
         failed: false,
       })
     ).toBe(
-      "WHOOP! WHOOP! #14\nR1 🔵 · R2 🔴🔴 · R3 🔵\n2 of 3 · 2 misses\n\nhttps://whoop-whoop.com"
+      "WHOOP! WHOOP! #14\nR1 🔵 · R2 🔴🔴 · R3 🔵\n2 of 3 · 2 misses\n\nhttps://whoop-whoop.com/daily"
     );
   });
 
@@ -595,7 +595,7 @@ describe("formatDailyShare", () => {
         failed: true,
       })
     ).toBe(
-      "WHOOP! WHOOP! #14\nR1 🔴🔴 · R2 🔴🔴 · R3 🔴🔴\nWhooped! Better luck tomorrow.\n\nhttps://whoop-whoop.com"
+      "WHOOP! WHOOP! #14\nR1 🔴🔴 · R2 🔴🔴 · R3 🔴🔴\nWhooped! Better luck tomorrow.\n\nhttps://whoop-whoop.com/daily"
     );
   });
 });
