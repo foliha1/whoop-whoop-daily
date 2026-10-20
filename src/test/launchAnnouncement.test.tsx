@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
-import LaunchAnnouncement, { LAUNCH_NOTE_HEADLINE, shouldShowLaunchNote } from "@/components/LaunchAnnouncement";
+import LaunchAnnouncement, { LAUNCH_NOTE_HEADLINE, LAUNCH_NOTE_KEY, shouldShowLaunchNote } from "@/components/LaunchAnnouncement";
 import { COLORS } from "@/lib/tokens";
 
 /** Each section's marker must carry that section's own title colour. */
