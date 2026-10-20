@@ -210,13 +210,15 @@ describe("Part 3 Daily leave", () => {
     expect(saved).toBe(false);
   });
 
-  it("closing the tab mid-run (pagehide) saves the same way when ON, nothing when OFF", async () => {
-    const off = renderHook(() => useDailyGame());
-    act(() => off.result.current.start());
-    await waitFor(() => expect(off.result.current.phase).not.toBe("READY"), { timeout: 4000 });
-    act(() => { window.dispatchEvent(new Event("pagehide")); });
-    expect(loadDailyResult(getDailySeed())).toBeNull();
-    off.unmount();
+  it("closing the tab mid-run (pagehide) saves the same way when ON", async () => {
+    if (!LAUNCHED) {
+      const off = renderHook(() => useDailyGame());
+      act(() => off.result.current.start());
+      await waitFor(() => expect(off.result.current.phase).not.toBe("READY"), { timeout: 4000 });
+      act(() => { window.dispatchEvent(new Event("pagehide")); });
+      expect(loadDailyResult(getDailySeed())).toBeNull();
+      off.unmount();
+    }
 
     setUmbrellaPreviewForTests(true);
     const on = renderHook(() => useDailyGame());
