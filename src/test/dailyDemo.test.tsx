@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import DailyHowToSteps from "@/components/DailyHowToSteps";
 import DailyDemo, { DAILY_DEMO_CARDS } from "@/components/DailyDemo";
-import { setUmbrellaPreviewForTests } from "@/lib/launch";
+import { LAUNCHED, setUmbrellaPreviewForTests } from "@/lib/launch";
 import { hasSeenHowTo } from "@/lib/dailyHowTo";
 
 vi.mock("@/lib/sounds", () => ({ playDeal: vi.fn(), playFlip: vi.fn(), playDiceRoll: vi.fn(), playDieLand: vi.fn(), playSelect: vi.fn(), playDeselect: vi.fn(), playWhoopCall: vi.fn(), playPeek: vi.fn(), playTick: vi.fn(), playCorrect: vi.fn(), playWrong: vi.fn(), startTheme: vi.fn(), leaveThemeZone: vi.fn(), prewarmTheme: vi.fn(), HOW_TO_PLAY_THEME_FILE: "howto.mp3" }));

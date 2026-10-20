@@ -1,6 +1,6 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { setUmbrellaPreviewForTests } from "@/lib/launch";
+import { LAUNCHED, setUmbrellaPreviewForTests } from "@/lib/launch";
 import { ROLL_HERO_MS } from "@/lib/multiplayer";
 import { POST_ROLL_BUFFER_MS } from "@/lib/whoopBrain";
 import { useSoloGame } from "@/hooks/useSoloGame";

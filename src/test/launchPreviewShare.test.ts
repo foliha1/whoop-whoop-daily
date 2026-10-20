@@ -24,7 +24,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
-import { initUmbrellaPreview, umbrellaOn, setUmbrellaPreviewForTests } from "@/lib/launch";
+import { initUmbrellaPreview, LAUNCHED, umbrellaOn, setUmbrellaPreviewForTests } from "@/lib/launch";
 
 beforeEach(() => {
   setUmbrellaPreviewForTests(null);

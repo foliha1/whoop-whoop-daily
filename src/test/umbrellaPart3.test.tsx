@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@t
 import { MemoryRouter } from "react-router-dom";
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
-import { setUmbrellaPreviewForTests } from "@/lib/launch";
+import { LAUNCHED, setUmbrellaPreviewForTests } from "@/lib/launch";
 import { dailyShareUrl, formatDailyShare, formatDailyShareCaption, getDailySeed, loadDailyResult } from "@/lib/daily";
 import { initDailyState } from "@/lib/dailyEngine";
 import { buildForfeitResult, runInProgress } from "@/lib/dailyForfeit";
