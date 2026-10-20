@@ -24,7 +24,8 @@ import {
  */
 export function useWhoopPointsState(
   ready = true,
-  refreshKey = 0
+  refreshKey = 0,
+  puzzleDate?: string
 ): { points: WhoopPoints | null; loading: boolean } {
   const [points, setPoints] = useState<WhoopPoints | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,7 +34,7 @@ export function useWhoopPointsState(
     if (!ready) return;
     let live = true;
     setLoading(true);
-    void fetchWhoopPoints().then((p) => {
+    void fetchWhoopPoints(undefined, undefined, puzzleDate).then((p) => {
       if (!live) return;
       setPoints(p);
       setLoading(false);
@@ -41,7 +42,7 @@ export function useWhoopPointsState(
     return () => {
       live = false;
     };
-  }, [ready, refreshKey]);
+  }, [ready, refreshKey, puzzleDate]);
 
   return { points, loading };
 }
