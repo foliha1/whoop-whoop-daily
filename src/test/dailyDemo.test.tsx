@@ -15,7 +15,10 @@ const props = () => ({ mode: "reference" as const, onStart: vi.fn(), onClose: vi
 const next = () => fireEvent.click(screen.getByRole("button", { name: "Next" }));
 
 describe("Daily tutorial integration", () => {
-  it("retains the legacy tutorial when OFF", () => {
+  // The OFF branch only exists while the build-time switch is off; with
+  // LAUNCHED true the umbrella is always on and preview overrides can't turn it off.
+  const itOff = LAUNCHED ? it.skip : it;
+  itOff("retains the legacy tutorial when OFF", () => {
     setUmbrellaPreviewForTests(false);
     render(<DailyHowToSteps {...props()} />);
     expect(screen.queryByTestId("daily-demo")).toBeNull();

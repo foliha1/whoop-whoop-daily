@@ -40,7 +40,9 @@ function serverShapeOk(r: ReturnType<typeof buildForfeitResult>): boolean {
 }
 
 describe("Part 3 destinations", () => {
-  it("points share link, caption and text at /daily only when ON", () => {
+  // The OFF share targets only exist while the build-time switch is off.
+  const itOff = LAUNCHED ? it.skip : it;
+  itOff("points share link, caption and text at /daily only when ON", () => {
     const result = buildForfeitResult({ ...initDailyState("whoop-2026-09-29"), phase: "PLAY" }, "whoop-2026-09-29", 50);
     expect(dailyShareUrl()).toBe("https://whoop-whoop.com");
     expect(formatDailyShareCaption(50)).toMatch(/\nwhoop-whoop\.com$/);

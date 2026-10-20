@@ -71,12 +71,17 @@ describe("Solo post-roll grace", () => {
     expect(claims()).toHaveLength(1);
   });
 
-  it("names the ON opponent FELIX and preserves the OFF opponent", () => {
+  it("names the ON opponent FELIX", () => {
     setUmbrellaPreviewForTests(true);
     const hook = setup();
     expect(mock.names[1]).toBe("FELIX");
+  });
+
+  // The OFF opponent only exists while the build-time switch is off.
+  const itOff = LAUNCHED ? it.skip : it;
+  itOff("preserves the OFF opponent while OFF", () => {
     setUmbrellaPreviewForTests(false);
-    hook.rerender();
+    const hook = setup();
     expect(mock.names[1]).toBe("WHOOP");
   });
 });
