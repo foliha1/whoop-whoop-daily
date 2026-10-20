@@ -57,7 +57,7 @@ describe("page card loaders", () => {
     const view = render(wrap(path, <GroupsPage />));
     expect(screen.getByRole("status", { name: "Loading Groups" })).toBeInTheDocument();
     expect(screen.queryByTestId("groups-create")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Back/ })).toBeInTheDocument();
+    expect(screen.getByTestId("home-control")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId("group-join-code")).toHaveValue("abc234"));
     groupState = { groups: [], loading: false, reload: vi.fn() };
     view.rerender(wrap(path, <GroupsPage />));
