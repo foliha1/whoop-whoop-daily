@@ -13,6 +13,7 @@ interface StubSource {
 
 const sources: StubSource[] = [];
 const gains: { value: number }[] = [];
+const ctxs: StubCtx[] = [];
 
 function param() {
   return {
@@ -46,6 +47,8 @@ class StubCtx {
   currentTime = 0;
   sampleRate = 48000;
   destination = {};
+  suspendedCount = 0;
+  resumedCount = 0;
   createGain() {
     const g = { gain: param(), connect: () => {} };
     gains.push(g.gain as unknown as { value: number });
@@ -60,13 +63,16 @@ class StubCtx {
   }
   createBufferSource() { return makeSource(); }
   createOscillator() { return makeSource(); }
-  resume() { return Promise.resolve(); }
+  suspend() { this.suspendedCount++; this.state = "suspended"; return Promise.resolve(); }
+  resume() { this.resumedCount++; this.state = "running"; return Promise.resolve(); }
+  constructor() { ctxs.push(this); }
 }
 
 async function loadSounds() {
   vi.resetModules();
   sources.length = 0;
   gains.length = 0;
+  ctxs.length = 0;
   (globalThis as unknown as { AudioContext: unknown }).AudioContext = StubCtx;
   return await import("@/lib/sounds");
 }
