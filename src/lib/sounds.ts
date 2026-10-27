@@ -559,6 +559,27 @@ if (typeof document !== "undefined" && typeof document.addEventListener === "fun
     window.addEventListener("focus", wake);
     window.addEventListener("pageshow", wake);
   }
+
+  // Sleep when the app leaves the foreground — a tab switch, a minimised
+  // window, a locked phone or an app switch. Browsers do not suspend a running
+  // Web Audio graph on their own, so the theme would keep playing (and keep
+  // the audio session alive) after the user has gone. Suspending the context
+  // freezes the clock: the loop source keeps its exact position, and `wake()`
+  // resumes everything on the way back. The media-element fallback is paused
+  // alongside it and resumes from the same spot.
+  const sleep = () => {
+    try {
+      if (themeEl && !themeEl.paused) themeEl.pause();
+      const ctx = audioCtx;
+      if (ctx && ctx.state === "running") void Promise.resolve(ctx.suspend()).catch(() => {});
+    } catch { /* never throw from audio */ }
+  };
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") sleep();
+  });
+  if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+    window.addEventListener("pagehide", sleep);
+  }
 }
 
 
