@@ -127,4 +127,29 @@ describe("audio cues", () => {
     s.playFlip();
     expect(sources.length).toBe(after);
   });
+
+  it("suspends audio when the app is hidden and resumes when it returns", async () => {
+    const s = await loadSounds();
+    s.setSfxEnabled(true);
+    s.playFlip();
+    expect(ctxs.length).toBe(1);
+    const ctx = ctxs[0];
+
+    const setHidden = (hidden: boolean) => {
+      vi.spyOn(document, "visibilityState", "get").mockReturnValue(hidden ? "hidden" : "visible");
+      document.dispatchEvent(new Event("visibilitychange"));
+      vi.restoreAllMocks();
+    };
+
+    setHidden(true);
+    expect(ctx.suspendedCount).toBe(1);
+
+    setHidden(false);
+    // The wake path resumes a context it suspended.
+    expect(ctx.resumedCount).toBeGreaterThanOrEqual(1);
+
+    // A second hidden/visible cycle keeps working.
+    setHidden(true);
+    expect(ctx.suspendedCount).toBe(2);
+  });
 });
