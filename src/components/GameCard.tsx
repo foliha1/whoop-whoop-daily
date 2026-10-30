@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Card, CARD_BACK_PATH } from "@/cardData";
 import { COLORS, RADIUS } from "@/lib/tokens";
 import { CARD_FLIP_MS } from "@/lib/animationTiming";
+import { skinArt, useSkin } from "@/lib/skin";
 
 
 interface GameCardProps {
@@ -74,6 +75,8 @@ const GameCard = ({
   const [focusVis, setFocusVis] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [cardW, setCardW] = useState(0);
+  // Subscribed so a skin toggle re-renders the board; skinArt does the map.
+  useSkin();
 
   useEffect(() => {
     const el = wrapperRef.current;
@@ -247,7 +250,7 @@ const GameCard = ({
               handled by backface-visibility. The delayed fade is kept only for
               clearing (post flip-down), where timing no longer matters. */}
           <img
-            src={frontFace || CARD_BACK_PATH}
+            src={skinArt(frontFace || CARD_BACK_PATH)}
             alt={frontFace ? card.id : ""}
             aria-hidden={frontFace ? undefined : true}
             style={{
@@ -276,7 +279,7 @@ const GameCard = ({
           }}
         >
           <img
-            src={CARD_BACK_PATH}
+            src={skinArt(CARD_BACK_PATH)}
             alt="card back"
             style={{ width: "100%", height: "100%", display: "block" }}
             draggable={false}

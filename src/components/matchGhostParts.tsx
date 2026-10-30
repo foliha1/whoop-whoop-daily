@@ -21,6 +21,7 @@ import {
   DAILY_MATCH_REVEAL_MS,
   DAILY_MATCH_GREAT_MS,
 } from "@/lib/animationTiming";
+import { skinArt, useSkin } from "@/lib/skin";
 
 export type MatchGhostStage = "reveal" | "hold" | "great";
 
@@ -83,7 +84,10 @@ export const MatchGhostCard: React.FC<{
   /** Corner radius in px; defaults to the board's value. */
   radius?: number;
   style?: React.CSSProperties;
-}> = ({ card, stage, faceUp, k, radius = RADIUS.md, style }) => (
+}> = ({ card, stage, faceUp, k, radius = RADIUS.md, style }) => {
+  // Subscribed so a skin toggle re-renders; skinArt maps at render time.
+  useSkin();
+  return (
   <div
     className={stage === "great" ? "ww-great" : undefined}
     style={{
@@ -114,7 +118,7 @@ export const MatchGhostCard: React.FC<{
         }}
       >
         <img
-          src={card.svgPath}
+          src={skinArt(card.svgPath)}
           alt=""
           draggable={false}
           style={{ width: "100%", height: "100%", display: "block" }}
@@ -131,7 +135,7 @@ export const MatchGhostCard: React.FC<{
         }}
       >
         <img
-          src={CARD_BACK_PATH}
+          src={skinArt(CARD_BACK_PATH)}
           alt=""
           draggable={false}
           style={{ width: "100%", height: "100%", display: "block" }}
@@ -153,4 +157,5 @@ export const MatchGhostCard: React.FC<{
       </>
     )}
   </div>
-);
+  );
+};
