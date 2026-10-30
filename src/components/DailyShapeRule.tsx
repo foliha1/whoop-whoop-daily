@@ -19,6 +19,10 @@ export const PATTERN_URL = "/WhoopWhoop_Daily_Pattern_Seamless.svg";
 /** ON only: triangles in brand black (light) / brand off-white (night). */
 export const PATTERN_URL_INK = "/WhoopWhoop_Daily_Pattern_Seamless_Ink.svg";
 export const PATTERN_URL_NIGHT = "/WhoopWhoop_Daily_Pattern_Seamless_Night.svg";
+/** Spook Spook recolours of the three tiles, chosen once at page load. */
+export const PATTERN_URL_SPOOK = "/WhoopWhoop_Daily_Pattern_Seamless_Spook.svg";
+export const PATTERN_URL_INK_SPOOK = "/WhoopWhoop_Daily_Pattern_Seamless_Ink_Spook.svg";
+export const PATTERN_URL_NIGHT_SPOOK = "/WhoopWhoop_Daily_Pattern_Seamless_Night_Spook.svg";
 
 /**
  * Deterministic per-day shift, in shape cells. Keyed off the same LOCAL
