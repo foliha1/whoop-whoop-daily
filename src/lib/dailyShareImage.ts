@@ -118,16 +118,16 @@ function scoreSegments(
   const segs: Segment[] = [];
 
   if (solved === 0) {
-    segs.push({ text: "Whooped! Better luck tomorrow", color: RAW.red });
+    segs.push({ text: "Whooped! Better luck tomorrow", color: TEXT_RED });
   } else {
-    segs.push({ text: `${solved} of ${DAILY_ROUNDS}`, color: RAW.blue });
+    segs.push({ text: `${solved} of ${DAILY_ROUNDS}`, color: TEXT_BLUE });
     segs.push(dot);
     segs.push(
       misses === 0
-        ? { text: "Clean", color: RAW.blue }
+        ? { text: "Clean", color: TEXT_BLUE }
         : {
             text: `${misses} ${misses === 1 ? "miss" : "misses"}`,
-            color: RAW.red,
+            color: TEXT_RED,
           }
     );
   }
