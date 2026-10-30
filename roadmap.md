@@ -1,5 +1,9 @@
 # Roadmap
 
+## Spook Spook part 5
+- [ ] Update seasonal UI and artwork colours, purple-fill foregrounds and share-image text; preserve classic and gameplay.
+- [ ] Verify contrast, exact asset substitutions, card-face green exception and all celebration palettes; run regressions and browser checks. Do not publish.
+
 ## Spook Spook part 4
 - [x] Remap remaining presentation-only card artwork and preloads through the skin helper; preserve card objects and payloads.
 - [x] Add page-load seasonal card-colour wording while preserving classic wording, including legacy yellow accessibility labels.

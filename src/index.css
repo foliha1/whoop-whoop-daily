@@ -198,18 +198,18 @@ All colors MUST be HSL.
      follow RAW in tokens.ts; these vars cover what CSS owns: text shades and
      the animation/focus colours that used to be hard-coded literals. */
   html[data-skin="spook"] {
-    --ww-blue-text: #55731A;
-    --ww-red-text: #8A4D9E;
-    --ww-anim-red: #8A4D9E;
-    --ww-anim-red-hover: #733F85;
-    --ww-anim-blue: #A7CF38;
+    --ww-blue-text: #557202;
+    --ww-red-text: #9400BD;
+    --ww-anim-red: #C900FF;
+    --ww-anim-red-hover: #DB66FF;
+    --ww-anim-blue: #719803;
     --ww-anim-orange: #F05123;
     --ww-anim-orange-glow-30: rgba(240, 81, 35, 0.3);
     --ww-anim-orange-glow-60: rgba(240, 81, 35, 0.6);
   }
   html[data-skin="spook"][data-theme="night"] {
-    --ww-blue-text: #A7CF38;
-    --ww-red-text: #C39BD3;
+    --ww-blue-text: #719803;
+    --ww-red-text: #DB66FF;
   }
 
 

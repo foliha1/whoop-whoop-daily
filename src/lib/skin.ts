@@ -100,8 +100,9 @@ export function useSkin(): boolean {
 // the Spook palette (case-insensitive).
 const RECOLOR: [RegExp, string][] = [
   [/#e79024/i, "#F05123"],
+  // Keep card faces light green so colour-blind players can distinguish green from pumpkin.
   [/#0072b2/i, "#A7CF38"],
-  [/#d72229/i, "#8A4D9E"],
+  [/#d72229/i, "#C900FF"],
 ];
 
 const RAW_FACES = import.meta.glob<string>("../assets/cards/[1-4]-*.svg", {
