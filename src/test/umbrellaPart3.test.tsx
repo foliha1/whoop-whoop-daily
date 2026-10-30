@@ -168,7 +168,7 @@ describe("Part 3 Daily leave", () => {
     expect(DAILY_LEAVE_TITLE).toBe("Leave today's Daily?");
     expect(screen.getByText(DAILY_LEAVE_BODY)).toBeTruthy();
     expect(document.activeElement?.textContent).toBe("Keep Playing");
-    expect((screen.getByText("Keep Playing").closest("button") as HTMLButtonElement).style.background).toBe("rgb(0, 114, 178)");
+    expect((screen.getByText("Keep Playing").closest("button") as HTMLButtonElement).style.background).toBe(BUTTON_PALETTE.secondary.bg);
     fireEvent.keyDown(window, { key: "Escape" });
     expect(keep).toHaveBeenCalled();
     fireEvent.click(screen.getByText("Leave"));

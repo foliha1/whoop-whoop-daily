@@ -7,8 +7,8 @@ import { COLORS } from "@/lib/tokens";
 
 /** Each section's marker must carry that section's own title colour. */
 const SECTIONS = [
-  { title: "Play Solo!", color: COLORS.blue },
-  { title: "Play Together!", color: COLORS.red },
+  { title: "Play Solo!", color: COLORS.blueText },
+  { title: "Play Together!", color: COLORS.redText },
 ];
 
 
