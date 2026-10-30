@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { LAUNCHED, setUmbrellaPreviewForTests } from "@/lib/launch";
+import { BUTTON_PALETTE } from "@/lib/tokens";
 import { dailyShareUrl, formatDailyShare, formatDailyShareCaption, getDailySeed, loadDailyResult } from "@/lib/daily";
 import { initDailyState } from "@/lib/dailyEngine";
 import { buildForfeitResult, runInProgress } from "@/lib/dailyForfeit";
