@@ -1883,7 +1883,7 @@ const DailyPage: React.FC = () => {
               padding: "2px 8px",
               borderRadius: 999,
               background: COLORS.red,
-              color: RAW.cream,
+              color: COLORS.onRed,
               fontSize: 10,
               fontWeight: FONT_WEIGHT_UI,
               letterSpacing: "0.08em",
