@@ -1,8 +1,10 @@
 // Spook Spook palette shift: with the skin off every RAW/BUTTON value is
 // byte-identical to classic; with it on at page load the brand tones shift
-// and every text-on-brand combination must still meet WCAG AA (4.5:1).
+// Purple uses the requested large-text minimum (3:1); other specified pairs use 4.5:1.
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { contrastRatio } from "@/lib/contrast";
 
 async function loadTokens(skin: "on" | "off") {
@@ -15,7 +17,10 @@ async function loadTokens(skin: "on" | "off") {
 describe("Spook Spook palette", () => {
   beforeEach(() => {
     window.localStorage.clear();
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 30, 12));
   });
+  afterEach(() => vi.useRealTimers());
 
   it("leaves RAW and BUTTON exactly as classic when the skin is off", async () => {
     const { RAW, BUTTON_PALETTE, COLORS } = await loadTokens("off");
@@ -28,6 +33,11 @@ describe("Spook Spook palette", () => {
     expect(RAW.orangeStat).toBe("#CC760C");
     expect(RAW.blue2).toBe("#97DAFF");
     expect(RAW.onBlue).toBe("#F8F2E9");
+    expect(RAW.onRed).toBe("#F8F2E9");
+    expect(COLORS.onRed).toBe("#F8F2E9");
+    for (const variant of ["primary", "play", "dangerConfirm"] as const) {
+      expect(BUTTON_PALETTE[variant]).toMatchObject({ bg: "#d72229", bgHover: "#b81b20", fg: "#F8F2E9" });
+    }
     expect(BUTTON_PALETTE.secondary).toMatchObject({
       bg: "#0072B2",
       bgHover: "#005a8f",
@@ -38,30 +48,57 @@ describe("Spook Spook palette", () => {
 
   it("shifts the brand tones when the skin is on at load", async () => {
     const { RAW, BUTTON_PALETTE } = await loadTokens("on");
-    expect(RAW.red).toBe("#8A4D9E");
-    expect(RAW.redHover).toBe("#733F85");
-    expect(RAW.blue).toBe("#A7CF38");
-    expect(RAW.blueHover).toBe("#8FB52A");
+    expect(RAW.red).toBe("#C900FF");
+    expect(RAW.redHover).toBe("#DB66FF");
+    expect(RAW.blue).toBe("#719803");
+    expect(RAW.blueHover).toBe("#7FA70A");
     expect(RAW.orange).toBe("#F05123");
     expect(RAW.orangeHover).toBe("#F4724B");
     expect(RAW.orangeStat).toBe("#F05123");
     expect(RAW.blue2).toBe("#231F20");
     expect(RAW.onBlue).toBe("#231F20");
+    expect(RAW.onRed).toBe("#231F20");
+    for (const variant of ["primary", "play", "dangerConfirm"] as const) expect(BUTTON_PALETTE[variant].fg).toBe("#231F20");
     expect(BUTTON_PALETTE.secondary.fg).toBe("#231F20");
   });
 
-  it("keeps every text-on-brand combination at 4.5:1 or better under Spook", async () => {
+  it("keeps green and pumpkin ink at 4.5:1 under Spook", async () => {
     const { RAW } = await loadTokens("on");
-    // onBlue on the green fill, cream on the purple fill, warm black on orange.
     expect(contrastRatio(RAW.onBlue, RAW.blue)).toBeGreaterThanOrEqual(4.5);
-    expect(contrastRatio(RAW.cream, RAW.red)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(RAW.warmBlack, RAW.orange)).toBeGreaterThanOrEqual(4.5);
-    // blueText / redText on cream (light) and on warm black (night) — the
-    // same shades index.css sets for --ww-blue-text / --ww-red-text.
-    expect(contrastRatio("#55731A", "#F8F2E9")).toBeGreaterThanOrEqual(4.5);
-    expect(contrastRatio("#A7CF38", "#231F20")).toBeGreaterThanOrEqual(4.5);
-    expect(contrastRatio("#8A4D9E", "#F8F2E9")).toBeGreaterThanOrEqual(4.5);
-    expect(contrastRatio("#C39BD3", "#231F20")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("keeps ink on purple at the requested large-text 3:1 minimum", async () => {
+    const { RAW } = await loadTokens("on");
+    // Ink on #C900FF is about 3.8:1: large-text AA, not small-text AA.
+    expect(contrastRatio(RAW.onRed, RAW.red)).toBeGreaterThanOrEqual(3);
+  });
+
+  it("keeps actual light and night text tokens at 4.5:1", () => {
+    const css = readFileSync("src/index.css", "utf8");
+    const light = css.match(/html\[data-skin="spook"\]\s*\{([^}]+)\}/)?.[1] ?? "";
+    const night = css.match(/html\[data-skin="spook"\]\[data-theme="night"\]\s*\{([^}]+)\}/)?.[1] ?? "";
+    for (const [block, expected, bg] of [[light, ["#557202", "#9400BD"], "#F8F2E9"], [night, ["#719803", "#DB66FF"], "#231F20"]] as const) {
+      const actual = ["blue", "red"].map(color => block.match(new RegExp(`--ww-${color}-text:\\s*(#[a-f0-9]+)`, "i"))?.[1]);
+      expect(actual).toEqual(expected);
+      for (const color of actual) {
+        if (!color) throw new Error("Missing text token");
+        expect(contrastRatio(color, bg)).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+
+  it("removes retired Spook hexes from source and art except light-green card recolouring", () => {
+    const retired = new RegExp("#(?:8a4d" + "9e|8a4f" + "9e|a7cf" + "38|a5ce" + "3a)", "gi");
+    const walk = (dir: string): string[] => readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+      const path = join(dir, entry.name);
+      return entry.isDirectory() ? (path === "src/test" ? [] : walk(path)) : /\.(tsx?|css|svg)$/.test(path) ? [path] : [];
+    });
+    const files = [...walk("src"), ...readdirSync("public").filter(name => name.endsWith("_Spook.svg")).map(name => join("public", name))];
+    for (const path of files) {
+      const matches = readFileSync(path, "utf8").match(retired) ?? [];
+      expect(matches, path).toEqual(path === "src/lib/skin.ts" ? ["#A7CF38"] : []);
+    }
   });
 
   it("stamps data-skin on <html> only when the skin was on at load", async () => {
