@@ -171,6 +171,9 @@ All colors MUST be HSL.
     --ww-ink: #231f20;
     /* Meets WCAG AA (4.5:1) on every light surface — including panel. */
     --ww-ink-muted: #544c4a;
+    /* Brand blue/red as TEXT on the page background (COLORS.blueText/redText). */
+    --ww-blue-text: #0072B2;
+    --ww-red-text: #D72229;
   }
 
   html[data-theme="night"] {
@@ -185,6 +188,28 @@ All colors MUST be HSL.
     --ww-ink: #F8F2E9;
     /* Warm grey: 7.66:1 on surface, 5.79:1 on panel. */
     --ww-ink-muted: #BAB0A9;
+    --ww-blue-text: #0072B2;
+    --ww-red-text: #D72229;
+  }
+
+  /* ── Spook Spook palette shift ──
+     Stamped once at page load (initSkin sets data-skin on <html>), so the
+     palette never changes under a player mid-game. The token-level hexes
+     follow RAW in tokens.ts; these vars cover what CSS owns: text shades and
+     the animation/focus colours that used to be hard-coded literals. */
+  html[data-skin="spook"] {
+    --ww-blue-text: #55731A;
+    --ww-red-text: #8A4D9E;
+    --ww-anim-red: #8A4D9E;
+    --ww-anim-red-hover: #733F85;
+    --ww-anim-blue: #A7CF38;
+    --ww-anim-orange: #F05123;
+    --ww-anim-orange-glow-30: rgba(240, 81, 35, 0.3);
+    --ww-anim-orange-glow-60: rgba(240, 81, 35, 0.6);
+  }
+  html[data-skin="spook"][data-theme="night"] {
+    --ww-blue-text: #A7CF38;
+    --ww-red-text: #C39BD3;
   }
 
 
