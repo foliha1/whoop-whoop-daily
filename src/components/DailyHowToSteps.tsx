@@ -318,15 +318,15 @@ const img = (src: string, alt: string, w: number, h: number, style?: React.CSSPr
  * flipping back down. Loop: down → flip up → up → flip down → hold.
  * ------------------------------------------------------------------ */
 const DECK_FACES = [
-  [cardArt(`2-circle-${colorWord("red")}`), `Two ${colorWord("red")} circles`],
+  [cardArt("2-circle-red"), `Two ${colorWord("red")} circles`],
   [cardArt("4-star-yellow"), `Four ${colorWord("yellow")} stars`],
-  [cardArt(`1-square-${colorWord("blue")}`), `One ${colorWord("blue")} square`],
+  [cardArt("1-square-blue"), `One ${colorWord("blue")} square`],
   [cardArt("3-tri-yellow"), `Three ${colorWord("yellow")} triangles`],
-  [cardArt(`2-star-${colorWord("blue")}`), `Two ${colorWord("blue")} stars`],
-  [cardArt(`4-square-${colorWord("red")}`), `Four ${colorWord("red")} squares`],
+  [cardArt("2-star-blue"), `Two ${colorWord("blue")} stars`],
+  [cardArt("4-square-red"), `Four ${colorWord("red")} squares`],
   [cardArt("1-circle-yellow"), `One ${colorWord("yellow")} circle`],
-  [cardArt(`3-square-${colorWord("blue")}`), `Three ${colorWord("blue")} squares`],
-  [cardArt(`2-tri-${colorWord("red")}`), `Two ${colorWord("red")} triangles`],
+  [cardArt("3-square-blue"), `Three ${colorWord("blue")} squares`],
+  [cardArt("2-tri-red"), `Two ${colorWord("red")} triangles`],
 ] as const;
 
 const DECK_STEPS = [
@@ -449,7 +449,7 @@ const StudyVisual: React.FC<{ sz: Step; active: boolean }> = ({ sz, active }) =>
 
   return (
     <div style={{ position: "relative", width: STUDY_BOX.w * v, height: STUDY_BOX.h * v }}>
-      {img(cardArt(`3-star-${colorWord("blue")}`), `A card showing three ${colorWord("blue")} stars`, STUDY_CARD.w * v, STUDY_CARD.h * v, {
+      {img(cardArt("3-star-blue"), `A card showing three ${colorWord("blue")} stars`, STUDY_CARD.w * v, STUDY_CARD.h * v, {
         position: "absolute",
         left: STUDY_CARD.x * v,
         top: STUDY_CARD.y * v,
@@ -541,13 +541,13 @@ const DIE_EXAMPLES: DieExample[] = [
   },
   {
     label: "Match the SHAPE",
-    a: [cardArt(`3-circle-${colorWord("red")}`), `Three ${colorWord("red")} circles`],
-    b: [cardArt(`1-circle-${colorWord("blue")}`), `One ${colorWord("blue")} circle`],
+    a: [cardArt("3-circle-red"), `Three ${colorWord("red")} circles`],
+    b: [cardArt("1-circle-blue"), `One ${colorWord("blue")} circle`],
   },
   {
     label: "Match the NUMBER",
     a: [cardArt("3-square-yellow"), `Three ${colorWord("yellow")} squares`],
-    b: [cardArt(`3-tri-${colorWord("red")}`), `Three ${colorWord("red")} triangles`],
+    b: [cardArt("3-tri-red"), `Three ${colorWord("red")} triangles`],
   },
 ];
 
