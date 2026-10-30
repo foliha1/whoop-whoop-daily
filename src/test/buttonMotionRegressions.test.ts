@@ -27,10 +27,10 @@ describe("button and motion regressions", () => {
     expect(score).toContain('className={animate ? "daily-intro" : undefined}');
   });
 
-  it("keeps Classic mode labels on fixed cream, Solo on the on-blue ink", () => {
+  it("keeps mode labels on their fixed brand-fill foregrounds", () => {
     const source = read("components/MultiplayerWindow.tsx");
-    expect(source).toContain("playModeLabelStyle(RAW.cream)");
-    expect(source.match(/playModeLabelStyle\(RAW\.cream\)/g)).toHaveLength(1);
+    expect(source).toContain("playModeLabelStyle(COLORS.onRed)");
+    expect(source.match(/playModeLabelStyle\(COLORS\.onRed\)/g)).toHaveLength(1);
     // The Solo tile sits on the blue fill, which cannot carry cream under Spook.
     expect(source).toContain("playModeLabelStyle(COLORS.onBlue)");
   });
