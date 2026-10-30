@@ -6,7 +6,7 @@ import DailyShapeRule from "@/components/DailyShapeRule";
 import DailyLogoLockup from "@/components/DailyLogoLockup";
 import DailyEmailCapture from "@/components/DailyEmailCapture";
 import { BORDER, COLORS, FONT_FAMILY, RADIUS } from "@/lib/tokens";
-import { SPOOK_AT_LOAD } from "@/lib/skin";
+import { SPOOK_AT_LOAD, skinArt, useSkin } from "@/lib/skin";
 
 const GEIST = '"Geist", "Geist Sans", system-ui, -apple-system, "Segoe UI", sans-serif';
 
@@ -177,13 +177,16 @@ const BOARD_CARDS: string[] = [
 ];
 
 /** Decorative 3x3 board, desktop only, hidden from assistive tech. */
-const DecorativeBoard: React.FC = () => (
+const DecorativeBoard: React.FC = () => {
+  useSkin();
+  return (
   <div className="ww-landing-board" aria-hidden="true" role="presentation">
     {BOARD_CARDS.map((src, i) => (
-      <img key={i} src={src} alt="" draggable={false} />
+      <img key={i} src={skinArt(src)} alt="" draggable={false} />
     ))}
   </div>
 );
+};
 
 /**
  * Landing page at `/`. Single scrolling page that reuses the daily screen's

@@ -40,6 +40,7 @@ import { CLASSIC_ACTION_ROW_HEIGHT } from "@/lib/layout";
 import { TARGET_SCORE } from "@/hooks/useGameState";
 import { trackEvent } from "@/lib/analytics";
 import { umbrellaOn } from "@/lib/launch";
+import { colorWord } from "@/lib/skin";
 import {
   playCorrect,
   playDeal,
@@ -334,7 +335,7 @@ const SCRIPT: Step[] = [
   // 8 — Pick two.
   {
     header: "Lock In Your Match",
-    copy: "Choose two cards you think match the rule on the die; the second tap locks in your choice. This round is color, so two reds makes a match!",
+    copy: `Choose two cards you think match the rule on the die; the second tap locks in your choice. This round is color, so two ${colorWord("red")}s makes a match!`,
     anchor: "grid",
     enter: { spot: ["all", "chipYou"], lit: [1, 5], pulsing: true, myChip: "WHOOP" },
     beats: [
@@ -401,7 +402,7 @@ const SCRIPT: Step[] = [
   {
     header: "A Missed Call",
     copy:
-      "Blue Star and Blue Triangle. Both blue — but the die says shape now, and a star is not a triangle. That is a miss.",
+      `${colorWord("blue", { capital: true })} Star and ${colorWord("blue", { capital: true })} Triangle. Both ${colorWord("blue")} — but the die says shape now, and a star is not a triangle. That is a miss.`,
     anchor: "grid",
     enter: {
       spot: ["all"],

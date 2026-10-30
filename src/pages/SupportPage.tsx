@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import { cardArt } from "@/lib/assetUrls";
+import { skinArt, useSkin } from "@/lib/skin";
 import { useUmbrella } from "@/lib/launch";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { COLORS, RAW, SPACE, RADIUS, SHADOW, TEXT, textStyle } from "@/lib/tokens";
@@ -34,6 +35,7 @@ const SHOW_TEAM_SECTION: boolean = false;
 
 
 const SupportPage: React.FC = () => {
+  useSkin();
   const umbrella = useUmbrella();
   const mobile = useIsMobile();
   const [cascade, setCascade] = React.useState(false);
@@ -106,7 +108,7 @@ const SupportPage: React.FC = () => {
           <ScrollReveal index={2}>
                 <button type="button" onClick={() => { setCascade(true); try { if (!localStorage.getItem("ww_egg_found")) { localStorage.setItem("ww_egg_found", "1"); trackEvent("easter_egg_found"); } } catch { trackEvent("easter_egg_found"); } }} aria-label="WHOOP! WHOOP! card designs" data-testid="card-waterfall-trigger" style={{ margin: 0, padding: `${SPACE[12]}px ${SPACE[6]}px`, width: "100%", background: "transparent", border: 0, cursor: "pointer", display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: SPACE[6], alignItems: "center" }}>
                   {ART.map((card) => (
-                    <img key={card.name} src={cardArt(card.name)} alt="" loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "5 / 7", objectFit: "contain", borderRadius: RADIUS.md, boxShadow: cardShadow, transform: `rotate(${card.rotation})` }} />
+                    <img key={card.name} src={skinArt(cardArt(card.name))} alt="" loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "5 / 7", objectFit: "contain", borderRadius: RADIUS.md, boxShadow: cardShadow, transform: `rotate(${card.rotation})` }} />
                   ))}
                 </button>
                 {cascade && <CardWaterfall onClose={() => setCascade(false)} />}
