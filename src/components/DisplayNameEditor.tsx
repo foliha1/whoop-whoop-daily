@@ -44,7 +44,7 @@ const DisplayNameEditor: React.FC<{ mobile: boolean }> = ({ mobile }) => {
         />
         <button type="submit" className="ww-press" style={buttonStyle("secondary", "md", { mobile })}>Save</button>
       </div>
-      {message && <p role="status" style={{ ...textStyle("caption", mobile), color: message === DISPLAY_NAME_ERROR ? COLORS.red : COLORS.inkMuted, margin: 0 }}>{message}</p>}
+      {message && <p role="status" style={{ ...textStyle("caption", mobile), color: message === DISPLAY_NAME_ERROR ? COLORS.redText : COLORS.inkMuted, margin: 0 }}>{message}</p>}
     </form>
   );
 };

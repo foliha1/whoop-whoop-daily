@@ -147,7 +147,7 @@ const NameField: React.FC<{
 
 const errorStyle = (mobile: boolean): React.CSSProperties => ({
   ...textStyle("caption", mobile),
-  color: COLORS.red,
+  color: COLORS.redText,
   margin: 0,
 });
 

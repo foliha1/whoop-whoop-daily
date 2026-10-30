@@ -91,7 +91,7 @@ const DailyRecallTrend: React.FC<{ trend: RecallTrend; mobile: boolean }> = ({
         {trend.upPoints !== null && (
           // Inline, immediately before the percentage, sized to the text and
           // glued to it so it can never wrap onto a line of its own.
-          <span style={{ whiteSpace: "nowrap", color: COLORS.blue }}>
+          <span style={{ whiteSpace: "nowrap", color: COLORS.blueText }}>
             <ArrowUp
               size="1em"
               strokeWidth={2}
@@ -101,7 +101,7 @@ const DailyRecallTrend: React.FC<{ trend: RecallTrend; mobile: boolean }> = ({
             <span>{pct}</span>
           </span>
         )}
-        {trend.upPoints === null && <span style={{ color: COLORS.blue }}>{pct}</span>}
+        {trend.upPoints === null && <span style={{ color: COLORS.blueText }}>{pct}</span>}
         {after}
         <button
           type="button"
