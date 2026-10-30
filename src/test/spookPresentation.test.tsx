@@ -2,7 +2,9 @@ import React from "react";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
-import { HelmetProvider } from "react-helmet-async";
+
+vi.mock("react-helmet-async", () => ({ Helmet: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
+vi.mock("@/lib/sounds", () => ({ startTheme: vi.fn(), leaveThemeZone: vi.fn(), prewarmTheme: vi.fn(), HOW_TO_PLAY_THEME_FILE: "howto.mp3" }));
 
 vi.mock("@/lib/analytics", () => ({ trackEvent: vi.fn() }));
 vi.mock("@/lib/dailyEvents", () => ({ trackDaily: vi.fn() }));
@@ -33,7 +35,7 @@ describe("seasonal card presentation", () => {
     const { cardArt, CARD_BACK_URL } = await import("@/lib/assetUrls");
     const { default: SupportPage } = await import("@/pages/SupportPage");
     const { default: CardFlipLoader } = await import("@/components/CardFlipLoader");
-    const { container } = render(<HelmetProvider><MemoryRouter><SupportPage /><CardFlipLoader label="Loading" /></MemoryRouter></HelmetProvider>);
+    const { container } = render(<MemoryRouter><SupportPage /><CardFlipLoader label="Loading" /></MemoryRouter>);
     const faces = Array.from(container.querySelectorAll<HTMLImageElement>("[data-testid=card-waterfall-trigger] img"));
     const names = ["1-circle-blue", "2-square-red", "3-tri-yellow", "4-star-blue"];
     expect(faces.map((img) => img.getAttribute("src"))).toEqual(names.map((name) => skinArt(cardArt(name))));
@@ -49,7 +51,7 @@ describe("seasonal card presentation", () => {
     const { cardArt } = await import("@/lib/assetUrls");
     const { default: DailyHowToSteps } = await import("@/components/DailyHowToSteps");
     render(<DailyHowToSteps mode="reference" onStart={vi.fn()} onClose={vi.fn()} />);
-    const next = () => fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    const next = () => fireEvent.click(screen.getAllByRole("button", { name: "Next" }).slice(-1)[0]);
     next(); next();
     const study = screen.getByAltText(`A card showing three ${state === "on" ? "green" : "blue"} stars`);
     expect(study.getAttribute("src")).toBe(skinArt(cardArt("3-star-blue")));
