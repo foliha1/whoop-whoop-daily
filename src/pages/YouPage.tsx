@@ -105,8 +105,8 @@ const YouPage: React.FC = () => {
               <YouScoreTiles points={points} mobile={mobile} explain={umbrella} />
               <div data-testid="you-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[4] }}>
                 {([
-                  ["Days Played", points.gamesPlayed, COLORS.red],
-                  ["Clean Runs", stats?.cleanRuns ?? "—", COLORS.blue],
+                  ["Days Played", points.gamesPlayed, COLORS.redText],
+                  ["Clean Runs", stats?.cleanRuns ?? "—", COLORS.blueText],
                   ["Longest Streak", stats?.bestStreak ?? "—", COLORS.orangeStat],
                 ] as const).map(([label, value, legacyColor]) => {
                   const tileStyle: React.CSSProperties = { ...creamTile, borderColor: umbrella ? COLORS.ink : legacyColor, padding: SPACE[6], display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: SPACE[4], textAlign: "center" };
@@ -133,7 +133,7 @@ const YouPage: React.FC = () => {
                       <div data-testid="you-ladder-row" data-here={here ? "1" : undefined} style={{
                         boxSizing: "border-box", minWidth: 0, display: "grid", gridTemplateColumns: "auto minmax(0, 1fr) auto", alignItems: "center", gap: SPACE[6],
                         padding: SPACE[4], borderRadius: RADIUS.sm,
-                        background: here ? COLORS.blue : "transparent", color: here ? RAW.cream : earned ? COLORS.ink : COLORS.inkMuted,
+                        background: here ? COLORS.blue : "transparent", color: here ? COLORS.onBlue : earned ? COLORS.ink : COLORS.inkMuted,
                         opacity: !here && !earned ? 0.55 : 1,
                       }}>
                          <div style={{ width: FONT_SIZE["6xl"], height: FONT_SIZE["6xl"], display: "grid", placeItems: "center" }}>
