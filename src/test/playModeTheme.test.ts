@@ -9,7 +9,7 @@ import { BUTTON_PALETTE, RAW } from "@/lib/tokens";
 describe("play-mode accents", () => {
   it("gives every mode a tab pill in its lobby tile's own surface and ink", () => {
     expect(BUTTON_PALETTE[PLAY_MODE_BUTTON.daily]).toMatchObject({ bg: RAW.orange, fg: RAW.warmBlack });
-    expect(BUTTON_PALETTE[PLAY_MODE_BUTTON.solo]).toMatchObject({ bg: RAW.blue, fg: RAW.cream });
+    expect(BUTTON_PALETTE[PLAY_MODE_BUTTON.solo]).toMatchObject({ bg: RAW.blue, fg: RAW.onBlue });
     expect(BUTTON_PALETTE[PLAY_MODE_BUTTON.together]).toMatchObject({ bg: RAW.red, fg: RAW.cream });
   });
 
