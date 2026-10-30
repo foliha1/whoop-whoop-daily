@@ -1,6 +1,6 @@
 import { ALL_CARDS, CARD_BACK_PATH } from "@/cardData";
 import { MATCH_ART_SRC } from "@/components/MatchDie";
-import { SPOOK_AT_LOAD } from "@/lib/skin";
+import { SPOOK_AT_LOAD, skinArt } from "@/lib/skin";
 import spookCardBack from "@/assets/spook/card-back.svg?url";
 
 const preloaded = new Map<string, Promise<void>>();
@@ -22,7 +22,7 @@ function preloadImage(src: string): Promise<void> {
   return promise;
 }
 
-const preload = (sources: readonly string[]) => Promise.all(sources.map(preloadImage)).then(() => undefined);
+const preload = (sources: readonly string[]) => Promise.all(sources.map((src) => preloadImage(skinArt(src)))).then(() => undefined);
 
 /** Small shared art needed by the first game transition. */
 export function preloadEssentialGameArt(): Promise<void> {

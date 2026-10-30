@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Card, CARD_BACK_PATH } from "@/cardData";
 import { COLORS, RADIUS } from "@/lib/tokens";
 import { CARD_FLIP_MS } from "@/lib/animationTiming";
-import { skinArt, useSkin } from "@/lib/skin";
+import { SPOOK_AT_LOAD, colorWord, skinArt, useSkin } from "@/lib/skin";
 
 
 interface GameCardProps {
@@ -129,7 +129,7 @@ const GameCard = ({
 
   const shapeLabel = card.shape === "tri" ? "triangle" : card.shape;
   const ariaLabel = faceUp
-    ? `${card.color} ${shapeLabel}, ${card.number}`
+    ? `${SPOOK_AT_LOAD ? colorWord(card.color) : card.color} ${shapeLabel}, ${card.number}`
     : `Card ${card.id}, face down`;
 
   // NOTE: matched intentionally gets NO `ww-great` here. The scale/slide is
