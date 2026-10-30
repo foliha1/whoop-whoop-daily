@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Card, CARD_BACK_PATH } from "@/cardData";
 import { COLORS, RADIUS } from "@/lib/tokens";
 import { CARD_FLIP_MS } from "@/lib/animationTiming";
+import { skinArt, useSkin } from "@/lib/skin";
 
 
 interface GameCardProps {

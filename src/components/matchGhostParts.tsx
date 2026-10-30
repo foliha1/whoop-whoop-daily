@@ -21,6 +21,7 @@ import {
   DAILY_MATCH_REVEAL_MS,
   DAILY_MATCH_GREAT_MS,
 } from "@/lib/animationTiming";
+import { skinArt, useSkin } from "@/lib/skin";
 
 export type MatchGhostStage = "reveal" | "hold" | "great";
 
