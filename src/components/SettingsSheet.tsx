@@ -156,6 +156,7 @@ const howToStyle: React.CSSProperties = {
 const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo, dailyHistory }) => {
   const umbrella = useUmbrella();
   const { mode, setMode } = useThemeMode();
+  const skin = useSkin();
   const portalHost = usePortalHost("settings-sheet");
   const [sfx, setSfx] = useState(() => getSfxEnabled());
   const [music, setMusic] = useState(() => getMusicEnabled());
@@ -277,6 +278,15 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
             })}
           </div>
         </div>
+
+        {/* Spook Spook — Halloween card art, only while the season is open */}
+        {skinSeasonOpen() && (
+          <Toggle
+            label="Spook Spook"
+            checked={skin}
+            onChange={(next) => setSkinEnabled(next)}
+          />
+        )}
 
         {/* Sound effects */}
         <Toggle
