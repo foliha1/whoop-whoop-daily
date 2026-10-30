@@ -8,6 +8,10 @@ import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 const IntroAnimation = React.lazy(() => import("@/components/IntroAnimation"));
 import { hasSeenIntro, preloadIntroJson } from "@/components/IntroAnimation";
 import whoopLightLogo from "@/assets/WhoopWhoop_Light_Logo.svg.asset.json";
+import spookLightLogo from "@/assets/spook/spook-logo-light.svg?url";
+import spookNightLogo from "@/assets/spook/spook-logo-night.svg?url";
+import { SPOOK_AT_LOAD } from "@/lib/skin";
+import { useThemeMode } from "@/lib/nightMode";
 
 
 // ARCHIVED: the front-loaded Classic logo intro is parked, not deleted.
@@ -42,6 +46,7 @@ interface MultiplayerPageProps {
 
 const MultiplayerPage: React.FC<MultiplayerPageProps> = ({ home = false }) => {
   useBodyScrollLock();
+  const { theme } = useThemeMode();
   const { roomCode: roomCodeParam } = useParams<{ roomCode?: string }>();
   const [searchParams] = useSearchParams();
   // Invite links are /classic?r=CODE (see MultiplayerWindow.shareUrl); the legacy
@@ -66,10 +71,12 @@ const MultiplayerPage: React.FC<MultiplayerPageProps> = ({ home = false }) => {
   const [introStatus, setIntroStatus] = useState<IntroStatus>(initialIntroStatus);
   const [introData, setIntroData] = useState<unknown | null>(null);
 
-  // Preload the logo image for the match-cut.
+  // Preload the current lobby mark without changing the classic match-cut.
   useEffect(() => {
     const img = new Image();
-    img.src = whoopLightLogo.url;
+    img.src = SPOOK_AT_LOAD ? (theme === "night" ? spookNightLogo : spookLightLogo) : whoopLightLogo.url;
+  }, [theme]);
+  useEffect(() => {
     return afterPaintIdleOrInteraction(() => prewarmTheme(CLASSIC_THEME_FILE));
   }, []);
 

@@ -135,7 +135,7 @@ const BLUE = COLORS.blue;             // #0072B2
 const ORANGE = COLORS.orange;         // #E79024
 const GREEN = COLORS.success;         // #59CD90
 
-const SEAT_COLORS = [RED, BLUE, ORANGE, GREEN, RAW.soloTint, RAW.peepsTint];
+export const SEAT_COLORS = [RED, BLUE, ORANGE, RAW.seat4, RAW.seat5, RAW.seat6];
 
 const R_CARD = 6.33043;
 
