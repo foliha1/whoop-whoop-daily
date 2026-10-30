@@ -1,9 +1,9 @@
 # Roadmap
 
 ## Spook Spook part 3
-- [ ] Add exact night-logo recolour and skin-gated lobby logo/preload/bylines.
-- [ ] Correct Spook-only icon contrast and seat 4–6 colours; preserve skin-off presentation.
-- [ ] Run focused tests and verify light/night lobby at desktop and 390×600; do not publish.
+- [x] Add exact night-logo recolour and skin-gated lobby logo/preload/bylines.
+- [x] Correct Spook-only icon contrast and seat 4–6 colours; preserve skin-off presentation. Game view and Settings icons already inherit correct foreground roles.
+- [x] Verify light/night lobby skin on/off at desktop and 390×600: identical logo-slot dimensions, no scrolling, no page errors; table icons checked through Together navigation. Full suite 706 passed, 4 skipped; build clean. Not published.
 
 ## Personal About page
 - [x] Replace the rules and pre-order panels with Felix's editorial story, existing game artwork, sign-off, and contact.
