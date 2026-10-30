@@ -16,6 +16,7 @@ import { createPortal } from "react-dom";
 import { usePortalHost } from "@/hooks/usePortalHost";
 import { BORDER, COLORS, FONT_FAMILY, MOTION, RADIUS, buttonStyle } from "@/lib/tokens";
 import { useThemeMode, type ThemeMode } from "@/lib/nightMode";
+import { setSkinEnabled, skinSeasonOpen, useSkin } from "@/lib/skin";
 import {
   getSfxEnabled,
   setSfxEnabled,
