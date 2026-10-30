@@ -568,7 +568,7 @@ type BannerKind = "YOUR_FLIP" | "TOO_SLOW" | "CLAIM_ERROR" | "CLAIM_LATE" | "CLA
 
 
 const BannerStyles: Record<Exclude<BannerKind, null>, { bg: string; text: string; label: string; icon?: boolean }> = {
-  YOUR_FLIP:   { bg: BLUE,    text: RAW.cream, label: "YOUR FLIP!" },
+  YOUR_FLIP:   { bg: BLUE,    text: COLORS.onBlue, label: "YOUR FLIP!" },
   TOO_SLOW:    { bg: INK,     text: SURFACE, label: "SOMEONE BEAT YOU TO IT" },
   // GENUINE transport failure only: the arbiter never answered and the host
   // never spoke either. A claim the host explicitly refused is CLAIM_LATE.
@@ -1950,7 +1950,7 @@ const MultiplayerGameView: React.FC<Props> = ({
           style={{
             position: "fixed", left: "50%", top: "50%",
             transform: "translate(-50%, -50%)", zIndex: 60, pointerEvents: "none",
-            background: COLORS.blue, color: "#FFF8EC", fontFamily: FONT_FAMILY,
+            background: COLORS.blue, color: COLORS.onBlue, fontFamily: FONT_FAMILY,
             fontSize: 18, fontWeight: 700, padding: "14px 22px", borderRadius: 999,
             border: `2px solid ${COLORS.ink}`,
             boxShadow: "0 6px 20px rgba(0,0,0,0.3)", whiteSpace: "nowrap",

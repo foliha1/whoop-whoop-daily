@@ -1236,7 +1236,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const alertStyle: React.CSSProperties = {
     ...textStyle("body", mobile),
     alignSelf: "stretch",
-    color: COLORS.red,
+    color: COLORS.redText,
     border: `1.5px solid ${COLORS.red}`,
     borderRadius: RADIUS.sm,
     padding: `${SPACE[4]}px ${SPACE[6]}px`,
@@ -1801,7 +1801,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       ? { opacity: 1, transition: `opacity ${MOTION.base} 120ms` }
       : { opacity: 1 };
 
-    const playModeTileStyle = (bg: string): React.CSSProperties => ({
+    const playModeTileStyle = (bg: string, fg: string = RAW.cream): React.CSSProperties => ({
       flex: 1,
       minHeight: 96,
       background: bg,
@@ -1815,7 +1815,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       padding: SPACE[8],
       gap: SPACE[4],
       cursor: busy ? "default" : "pointer",
-      color: RAW.cream,
+      color: fg,
       transition: `background ${MOTION.fast}`,
     });
     const nextDaily = formatNextDaily(now);
