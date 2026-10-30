@@ -955,7 +955,7 @@ const PeekVisual: React.FC<{ sz: Step; active: boolean }> = ({ sz, active }) => 
           fontWeight: 400,
           fontSize: 16 * v,
           letterSpacing: "0.02em",
-          color: RAW.cream,
+          color: COLORS.onBlue,
           transition: reduce ? undefined : `transform ${PRESS_ANIM_MS}ms ease, filter ${PRESS_ANIM_MS}ms ease`,
         }}
       >

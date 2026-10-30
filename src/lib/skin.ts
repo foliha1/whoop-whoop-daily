@@ -43,6 +43,19 @@ export function getSkin(): boolean {
   return skinSeasonOpen() && enabled;
 }
 
+/**
+ * The skin state frozen at page load. Palette-wide decisions (tokens, CSS
+ * overrides, pattern URLs) read this instead of the live state, so nothing
+ * shifts under a player mid-game — a toggle flip applies on the next open.
+ */
+export const SPOOK_AT_LOAD = getSkin();
+
+/** Call once at boot, next to initTheme, before first paint. */
+export function initSkin(): void {
+  if (typeof document === "undefined") return;
+  if (SPOOK_AT_LOAD) document.documentElement.setAttribute("data-skin", "spook");
+}
+
 export function setSkinEnabled(next: boolean): void {
   enabled = next;
   try {

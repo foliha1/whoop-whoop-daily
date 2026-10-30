@@ -12,9 +12,10 @@
 import { useEffect } from "react";
 import confetti from "canvas-confetti";
 import { getBrandConfettiShapes } from "@/lib/confettiShapes";
+import { RAW } from "@/lib/tokens";
 
-/** Brand-only palette: blue, orange, red, warm black. */
-const COLORS = ["#0072B2", "#E79024", "#D72229", "#231F20"];
+/** Brand-only palette: blue, orange, red, warm black — follows RAW (Spook-aware). */
+const CONFETTI_COLORS = [RAW.blue, RAW.orange, RAW.red, RAW.warmBlack];
 
 export const BURST_LIFETIME_MS = 3000;
 export const CONFETTI_Z_INDEX = 9999;
@@ -48,7 +49,7 @@ const DailyMilestoneConfetti: React.FC<{ delayMs?: number }> = ({ delayMs = 0 })
         gravity: 1,
         ticks: 180,
         origin: { x: 0.5, y: 0.35 },
-        colors: COLORS,
+        colors: CONFETTI_COLORS,
         shapes,
         disableForReducedMotion: true,
       });

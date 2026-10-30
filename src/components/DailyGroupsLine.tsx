@@ -35,7 +35,7 @@ const DailyGroupsLine: React.FC<{
         ...textStyle("caption", mobile),
         letterSpacing: "0.05em",
         textTransform: "uppercase",
-        color: COLORS.blue,
+        color: COLORS.blueText,
         textDecoration: "none",
         display: "flex",
         alignItems: "center",

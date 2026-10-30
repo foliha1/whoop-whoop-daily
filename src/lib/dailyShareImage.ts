@@ -8,9 +8,18 @@
 import { DAILY_ROUNDS } from "@/lib/dailyEngine";
 import type { DailyResult } from "@/lib/daily";
 import { RAW, FONT_FAMILY } from "@/lib/tokens";
+import { SPOOK_AT_LOAD } from "@/lib/skin";
 import patternAsset from "@/assets/WhoopWhoop_Daily_Pattern_Seamless.svg.asset.json";
 import lockupAsset from "@/assets/WhoopWhoop_Daily_Lockup.svg.asset.json";
 import lockupCreamAsset from "@/assets/WhoopWhoop_Daily_Lockup_Cream.svg.asset.json";
+
+/**
+ * Blue/red as TEXT on the cream card. Under Spook the brand fills shift with
+ * RAW, but text drawn on cream needs the readable light shades — the same
+ * values --ww-blue-text / --ww-red-text use in the light theme.
+ */
+const TEXT_BLUE = SPOOK_AT_LOAD ? "#55731A" : RAW.blue;
+const TEXT_RED = SPOOK_AT_LOAD ? "#8A4D9E" : RAW.red;
 
 /** Which surface the card is drawn on. Light is the original composition. */
 export type ShareImageTheme = "light" | "night";
@@ -28,7 +37,9 @@ const THEME = {
     pillBg: RAW.warmBlack,
     pillFg: RAW.cream,
     lockup: lockupAsset.url,
-    pattern: patternAsset.url,
+    pattern: SPOOK_AT_LOAD
+      ? "/WhoopWhoop_Daily_Pattern_Seamless_Spook.svg"
+      : patternAsset.url,
   },
   night: {
     surface: RAW.warmBlack,
@@ -38,7 +49,9 @@ const THEME = {
     pillBg: RAW.cream,
     pillFg: RAW.warmBlack,
     lockup: lockupCreamAsset.url,
-    pattern: "/WhoopWhoop_Daily_Pattern_Seamless_Night.svg",
+    pattern: SPOOK_AT_LOAD
+      ? "/WhoopWhoop_Daily_Pattern_Seamless_Night_Spook.svg"
+      : "/WhoopWhoop_Daily_Pattern_Seamless_Night.svg",
   },
 } as const;
 
@@ -105,16 +118,16 @@ function scoreSegments(
   const segs: Segment[] = [];
 
   if (solved === 0) {
-    segs.push({ text: "Whooped! Better luck tomorrow", color: RAW.red });
+    segs.push({ text: "Whooped! Better luck tomorrow", color: TEXT_RED });
   } else {
-    segs.push({ text: `${solved} of ${DAILY_ROUNDS}`, color: RAW.blue });
+    segs.push({ text: `${solved} of ${DAILY_ROUNDS}`, color: TEXT_BLUE });
     segs.push(dot);
     segs.push(
       misses === 0
-        ? { text: "Clean", color: RAW.blue }
+        ? { text: "Clean", color: TEXT_BLUE }
         : {
             text: `${misses} ${misses === 1 ? "miss" : "misses"}`,
-            color: RAW.red,
+            color: TEXT_RED,
           }
     );
   }

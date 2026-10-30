@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { SPOOK_AT_LOAD } from "@/lib/skin";
 
 /* ------------------------------------------------------------------ *
  * RAW — the frozen literal palette.
@@ -12,6 +13,11 @@ import type { CSSProperties } from "react";
  *   • the canvas share image, which is a light brand artifact
  *   • anything doing colour maths (canvas, contrast) — `var(...)`
  *     strings can't be parsed.
+ *
+ * Spook Spook: while the Halloween skin was on at page load (SPOOK_AT_LOAD),
+ * the brand red/blue/orange shift to the Spook palette. Everything that reads
+ * RAW — cards, buttons, animation colours, the canvas share image — follows
+ * automatically. With the skin off every value is byte-identical to classic.
  * ------------------------------------------------------------------ */
 export const RAW = {
   cream: "#F8F2E9",
@@ -21,23 +27,25 @@ export const RAW = {
   khakiMutedHover: "#bdb5a4",
   warmBlack: "#231f20",
   warmGrey: "#544c4a",
-  red: "#d72229",
-  redHover: "#b81b20",
-  blue: "#0072B2",
-  blueHover: "#005a8f",
-  orange: "#E79024",
-  orangeHover: "#c47618",
+  red: SPOOK_AT_LOAD ? "#8A4D9E" : "#d72229",
+  redHover: SPOOK_AT_LOAD ? "#733F85" : "#b81b20",
+  blue: SPOOK_AT_LOAD ? "#A7CF38" : "#0072B2",
+  blueHover: SPOOK_AT_LOAD ? "#8FB52A" : "#005a8f",
+  orange: SPOOK_AT_LOAD ? "#F05123" : "#E79024",
+  orangeHover: SPOOK_AT_LOAD ? "#F4724B" : "#c47618",
   /** Accessible large-stat companion to brand orange on cream (3.06:1). */
-  orangeStat: "#CC760C",
+  orangeStat: SPOOK_AT_LOAD ? "#F05123" : "#CC760C",
   success: "#59cd90",
   successHover: "#4ab87d",
   offWhite: "#fef9f0",
   soloTint: "#97DAFF",
   peepsTint: "#FFC1C3",
   /** Blue 2 — the pale blue used for the winner's rank on the Classic result. */
-  blue2: "#97DAFF",
+  blue2: SPOOK_AT_LOAD ? "#231F20" : "#97DAFF",
   /** Mocha — the quiet rank ink inside the khaki standings panel. */
   mocha: "#544C4A",
+  /** Text/icons sitting on a blue fill — the Spook green cannot carry cream. */
+  onBlue: SPOOK_AT_LOAD ? "#231F20" : "#F8F2E9",
 } as const;
 
 
@@ -77,6 +85,12 @@ export const COLORS = {
   // Play-mode accent tints used on the "How do you want to play?" screen.
   soloTint: RAW.soloTint,
   peepsTint: RAW.peepsTint,
+  /** Text/icons on a blue fill (cream normally, warm black under Spook). */
+  onBlue: RAW.onBlue,
+  // Blue/red as TEXT on the page background — CSS vars so the Spook palette
+  // can pick a readable shade per theme (values live in index.css).
+  blueText: "var(--ww-blue-text)",
+  redText: "var(--ww-red-text)",
 } as const;
 
 
@@ -323,7 +337,7 @@ export const BUTTON_PALETTE: Record<ButtonVariant, { bg: string; bgHover: string
   // Foreground on a fixed brand background stays literal: `surface` flips dark
   // in night mode, which would leave cream-on-blue reading as black-on-blue.
   primary:   { bg: COLORS.red,        bgHover: COLORS.redHover,        fg: RAW.cream,        border: BORDER.heavy },
-  secondary: { bg: COLORS.blue,       bgHover: COLORS.blueHover,       fg: RAW.cream,        border: BORDER.heavy },
+  secondary: { bg: COLORS.blue,       bgHover: COLORS.blueHover,       fg: COLORS.onBlue,    border: BORDER.heavy },
   accent:    { bg: COLORS.orange,     bgHover: COLORS.orangeHover,     fg: RAW.warmBlack,    border: BORDER.heavy },
   neutral:   { bg: COLORS.surface,    bgHover: COLORS.surfaceHover,    fg: COLORS.ink,       border: BORDER.heavy },
   ink:       { bg: COLORS.ink,        bgHover: COLORS.inkMuted,        fg: COLORS.surface,   border: BORDER.heavy },

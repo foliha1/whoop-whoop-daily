@@ -24,4 +24,4 @@
 - The launched Daily holds the engine in READY behind a non-dismissible start dialog; only its Start action enters the existing deal/study sequence, so pre-start exits never create attempts.
 - ON-only pattern rails reserve the shared top-left 44px control plus a token gap and remeasure the remaining rail, so pattern edges always end on complete cells.
 
-- Skins remap card art at render time via skinArt; card data and network payloads always carry classic art.
+- Skins remap card art at render time via skinArt; card data and network payloads always carry classic art. The Spook palette shift is frozen at page load: SPOOK_AT_LOAD (src/lib/skin.ts) drives RAW in tokens.ts and data-skin="spook" on <html> (set by initSkin next to initTheme), so colors never change mid-game; text on blue fills uses COLORS.onBlue, blue/red text on the page uses COLORS.blueText/redText.

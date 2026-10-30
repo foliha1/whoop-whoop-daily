@@ -14,7 +14,7 @@
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePortalHost } from "@/hooks/usePortalHost";
-import { BORDER, COLORS, FONT_FAMILY, MOTION, RADIUS, buttonStyle } from "@/lib/tokens";
+import { BORDER, COLORS, FONT_FAMILY, MOTION, RADIUS, buttonStyle, textStyle } from "@/lib/tokens";
 import { useThemeMode, type ThemeMode } from "@/lib/nightMode";
 import { setSkinEnabled, skinSeasonOpen, useSkin } from "@/lib/skin";
 import {
@@ -281,11 +281,16 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
 
         {/* Spook Spook — Halloween card art, only while the season is open */}
         {skinSeasonOpen() && (
-          <Toggle
-            label="Spook Spook"
-            checked={skin}
-            onChange={(next) => setSkinEnabled(next)}
-          />
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Toggle
+              label="Spook Spook"
+              checked={skin}
+              onChange={(next) => setSkinEnabled(next)}
+            />
+            <p style={{ ...textStyle("caption"), color: COLORS.inkMuted, margin: 0 }}>
+              Colors update next time you open WHOOP! WHOOP!
+            </p>
+          </div>
         )}
 
         {/* Sound effects */}

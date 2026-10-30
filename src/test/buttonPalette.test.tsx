@@ -27,8 +27,8 @@ describe("canonical button palette", () => {
   it.each([
     ["Primary", RAW.cream, RAW.red],
     ["Primary pressed", RAW.cream, RAW.redHover],
-    ["Secondary", RAW.cream, RAW.blue],
-    ["Secondary pressed", RAW.cream, RAW.blueHover],
+    ["Secondary", RAW.onBlue, RAW.blue],
+    ["Secondary pressed", RAW.onBlue, RAW.blueHover],
     ["Accent", RAW.warmBlack, RAW.orange],
     ["Accent pressed", RAW.warmBlack, RAW.orangeHover],
   ])("keeps %s at or above 4.5:1", (_name, foreground, background) => {
@@ -48,7 +48,7 @@ describe("canonical button palette", () => {
 
   it("uses fixed foregrounds for every fixed brand fill", () => {
     expect(BUTTON_PALETTE.primary.fg).toBe(RAW.cream);
-    expect(BUTTON_PALETTE.secondary.fg).toBe(RAW.cream);
+    expect(BUTTON_PALETTE.secondary.fg).toBe(RAW.onBlue);
     expect(BUTTON_PALETTE.accent.fg).toBe(RAW.warmBlack);
     expect(BUTTON_PALETTE.dangerConfirm.fg).toBe(RAW.cream);
   });

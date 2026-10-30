@@ -130,7 +130,7 @@ const CarryOverEmail: React.FC<{ mobile: boolean; onLinked: (email: string) => v
         <p
           role="alert"
           data-testid="groups-carry-over-error"
-          style={{ ...textStyle("caption", mobile), color: COLORS.red, margin: 0 }}
+          style={{ ...textStyle("caption", mobile), color: COLORS.redText, margin: 0 }}
         >
           {error}
         </p>

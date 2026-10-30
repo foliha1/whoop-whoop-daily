@@ -152,7 +152,7 @@ const ClassicResultScreen: React.FC<{
       <span
         style={{
           ...textStyle("resultWinner", mobile),
-          color: RAW.cream,
+          color: COLORS.onBlue,
           flex: "1 1 0",
           minWidth: 0,
           overflow: "hidden",
@@ -335,7 +335,7 @@ const ClassicResultScreen: React.FC<{
                     ...buttonStyle("secondary", "lg", { mobile }),
                     ...textStyle("resultButton", mobile),
                     background: RAW.blue,
-                    color: RAW.cream,
+                    color: COLORS.onBlue,
                     border: BORDER.heavy,
                     borderColor: COLORS.ink,
                     borderRadius: RADIUS.sm,

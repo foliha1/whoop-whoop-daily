@@ -46,8 +46,8 @@ const LaunchAnnouncement: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       </h2></MotionReveal>
       <MotionReveal index={1}><p style={{ ...textStyle("body", mobile), margin: 0, color: COLORS.ink }}>The Daily was only the beginning! Now there are two new ways to play, straight from the card game that inspired it all.</p></MotionReveal>
       <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: SPACE[5] }}>
-        <Section index={0} title="Play Solo!" color={COLORS.blue} mobile={mobile}>Think you're quick? Try to outplay <strong>FELIX the bot.</strong> The die sets the rule, find the match, first to 12 wins.</Section>
-        <Section index={1} title="Play Together!" color={COLORS.red} mobile={mobile}>Grab your friends, start a table, send the link, and get your Whoop! Whoop! on.</Section>
+        <Section index={0} title="Play Solo!" color={COLORS.blueText} mobile={mobile}>Think you're quick? Try to outplay <strong>FELIX the bot.</strong> The die sets the rule, find the match, first to 12 wins.</Section>
+        <Section index={1} title="Play Together!" color={COLORS.redText} mobile={mobile}>Grab your friends, start a table, send the link, and get your Whoop! Whoop! on.</Section>
       </ul>
     </ReleaseAnnouncement>
   );

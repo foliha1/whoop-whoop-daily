@@ -1236,7 +1236,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const alertStyle: React.CSSProperties = {
     ...textStyle("body", mobile),
     alignSelf: "stretch",
-    color: COLORS.red,
+    color: COLORS.redText,
     border: `1.5px solid ${COLORS.red}`,
     borderRadius: RADIUS.sm,
     padding: `${SPACE[4]}px ${SPACE[6]}px`,
@@ -1801,7 +1801,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       ? { opacity: 1, transition: `opacity ${MOTION.base} 120ms` }
       : { opacity: 1 };
 
-    const playModeTileStyle = (bg: string): React.CSSProperties => ({
+    const playModeTileStyle = (bg: string, fg: string = RAW.cream): React.CSSProperties => ({
       flex: 1,
       minHeight: 96,
       background: bg,
@@ -1815,7 +1815,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       padding: SPACE[8],
       gap: SPACE[4],
       cursor: busy ? "default" : "pointer",
-      color: RAW.cream,
+      color: fg,
       transition: `background ${MOTION.fast}`,
     });
     const nextDaily = formatNextDaily(now);
@@ -1885,15 +1885,15 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               type="button"
               onClick={() => { if (umbrella && home && !busy) trackEvent("home_solo_tapped"); handlePlaySolo(); }}
               disabled={busy}
-              style={playModeTileStyle(COLORS.blue)}
+              style={playModeTileStyle(COLORS.blue, COLORS.onBlue)}
               aria-label={umbrella && home ? "Solo" : "Play Solo"}
               data-testid={umbrella && home ? "home-solo" : undefined}
             >
               <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-                <circle cx="16" cy="11" r="5" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" />
-                <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx="16" cy="11" r="5" fill="none" stroke={COLORS.onBlue} strokeWidth="2.5" />
+                <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke={COLORS.onBlue} strokeWidth="2.5" strokeLinecap="round" />
               </svg>
-              <div style={playModeLabelStyle(RAW.cream)}>{umbrella && home ? "Solo" : "Play Solo"}</div>
+              <div style={playModeLabelStyle(COLORS.onBlue)}>{umbrella && home ? "Solo" : "Play Solo"}</div>
             </button>
 
             <button

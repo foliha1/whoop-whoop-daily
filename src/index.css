@@ -171,6 +171,9 @@ All colors MUST be HSL.
     --ww-ink: #231f20;
     /* Meets WCAG AA (4.5:1) on every light surface — including panel. */
     --ww-ink-muted: #544c4a;
+    /* Brand blue/red as TEXT on the page background (COLORS.blueText/redText). */
+    --ww-blue-text: #0072B2;
+    --ww-red-text: #D72229;
   }
 
   html[data-theme="night"] {
@@ -185,6 +188,28 @@ All colors MUST be HSL.
     --ww-ink: #F8F2E9;
     /* Warm grey: 7.66:1 on surface, 5.79:1 on panel. */
     --ww-ink-muted: #BAB0A9;
+    --ww-blue-text: #0072B2;
+    --ww-red-text: #D72229;
+  }
+
+  /* ── Spook Spook palette shift ──
+     Stamped once at page load (initSkin sets data-skin on <html>), so the
+     palette never changes under a player mid-game. The token-level hexes
+     follow RAW in tokens.ts; these vars cover what CSS owns: text shades and
+     the animation/focus colours that used to be hard-coded literals. */
+  html[data-skin="spook"] {
+    --ww-blue-text: #55731A;
+    --ww-red-text: #8A4D9E;
+    --ww-anim-red: #8A4D9E;
+    --ww-anim-red-hover: #733F85;
+    --ww-anim-blue: #A7CF38;
+    --ww-anim-orange: #F05123;
+    --ww-anim-orange-glow-30: rgba(240, 81, 35, 0.3);
+    --ww-anim-orange-glow-60: rgba(240, 81, 35, 0.6);
+  }
+  html[data-skin="spook"][data-theme="night"] {
+    --ww-blue-text: #A7CF38;
+    --ww-red-text: #C39BD3;
   }
 
 
@@ -274,11 +299,11 @@ All colors MUST be HSL.
 }
 
 @keyframes ww-wrong-ring {
-  0%     { box-shadow: inset 0 0 0 0 #D72229; }
-  15.2%  { box-shadow: inset 0 0 0 calc(2px * var(--ww-k)) #D72229; }
-  60%    { box-shadow: inset 0 0 0 calc(2px * var(--ww-k)) #D72229; }
-  75%    { box-shadow: inset 0 0 0 0 #D72229; }
-  100%   { box-shadow: inset 0 0 0 0 #D72229; }
+  0%     { box-shadow: inset 0 0 0 0 var(--ww-anim-red, #D72229); }
+  15.2%  { box-shadow: inset 0 0 0 calc(2px * var(--ww-k)) var(--ww-anim-red, #D72229); }
+  60%    { box-shadow: inset 0 0 0 calc(2px * var(--ww-k)) var(--ww-anim-red, #D72229); }
+  75%    { box-shadow: inset 0 0 0 0 var(--ww-anim-red, #D72229); }
+  100%   { box-shadow: inset 0 0 0 0 var(--ww-anim-red, #D72229); }
 }
 
 /* Reduced motion keeps the red wash fade and drops all movement. */
@@ -304,8 +329,8 @@ All colors MUST be HSL.
 
 /* Uses COLORS.orange (#E79024) — update if token changes */
 @keyframes orange-pulse-border {
-  0%, 100% { box-shadow: 0 0 0 2px #E79024, 0 0 8px rgba(231,144,36,0.3); }
-  50% { box-shadow: 0 0 0 2px #E79024, 0 0 16px rgba(231,144,36,0.6); }
+  0%, 100% { box-shadow: 0 0 0 2px var(--ww-anim-orange, #E79024), 0 0 8px var(--ww-anim-orange-glow-30, rgba(231,144,36,0.3)); }
+  50% { box-shadow: 0 0 0 2px var(--ww-anim-orange, #E79024), 0 0 16px var(--ww-anim-orange-glow-60, rgba(231,144,36,0.6)); }
 }
 
 @keyframes red-pulse-border {
@@ -568,17 +593,17 @@ All colors MUST be HSL.
 }
 
 .daily-btn-play {
-  background: #D72229; /* COLORS.red */
+  background: var(--ww-anim-red, #D72229); /* COLORS.red */
   color: #F8F2E9;      /* COLORS.surface */
 }
 .daily-btn-play:hover:not(:disabled),
 .daily-btn-play:focus-visible {
-  background: #B81B20; /* COLORS.redHover */
+  background: var(--ww-anim-red-hover, #B81B20); /* COLORS.redHover */
 }
 
 .daily-btn-howto:focus-visible,
 .daily-btn-play:focus-visible {
-  outline: 2px solid #0072B2; /* COLORS.blue */
+  outline: 2px solid var(--ww-anim-blue, #0072B2); /* COLORS.blue */
   outline-offset: 2px;
 }
 
@@ -613,7 +638,7 @@ All colors MUST be HSL.
   color: var(--ww-surface);
 }
 .daily-share-pill:focus-visible {
-  outline: 2px solid #0072B2;
+  outline: 2px solid var(--ww-anim-blue, #0072B2);
   outline-offset: 2px;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -636,8 +661,8 @@ All colors MUST be HSL.
 }
 
 @keyframes die-land {
-  0% { transform: scale(1.15); background-color: #E79024; }
-  60% { background-color: #E79024; }
+  0% { transform: scale(1.15); background-color: var(--ww-anim-orange, #E79024); }
+  60% { background-color: var(--ww-anim-orange, #E79024); }
   100% { transform: scale(1); background-color: #F8F2E9; }
 }
 
@@ -704,8 +729,8 @@ All colors MUST be HSL.
 }
 
 @keyframes ww-select-ring {
-  from { box-shadow: inset 0 0 0 0 #0072B2; }
-  to   { box-shadow: inset 0 0 0 calc(2px * var(--ww-k)) #0072B2; }
+  from { box-shadow: inset 0 0 0 0 var(--ww-anim-blue, #0072B2); }
+  to   { box-shadow: inset 0 0 0 calc(2px * var(--ww-k)) var(--ww-anim-blue, #0072B2); }
 }
 
 /* ── Joiner tap acknowledgment ──
@@ -715,7 +740,7 @@ All colors MUST be HSL.
 .ww-tap-target { transition: transform 150ms ease-out; }
 .ww-card-opening {
   position: absolute; inset: 0; pointer-events: none;
-  box-shadow: inset 0 0 0 calc(2px * var(--ww-k, 1)) #0072B2;
+  box-shadow: inset 0 0 0 calc(2px * var(--ww-k, 1)) var(--ww-anim-blue, #0072B2);
   opacity: 0; transition: opacity 150ms ease-out;
 }
 .ww-card-opening.is-on { opacity: 1; }
@@ -999,7 +1024,7 @@ All colors MUST be HSL.
 }
 .ww-grid-option[data-selected="true"] {
   transform: scale(.90);
-  background-color: #0072B2;
+  background-color: var(--ww-anim-blue, #0072B2);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1353,7 +1378,7 @@ All colors MUST be HSL.
 .ww-landing-way-multi:focus-visible,
 .ww-landing-shell input:focus-visible,
 .ww-landing-shell button:focus-visible {
-  outline: 2px solid #0072B2;
+  outline: 2px solid var(--ww-anim-blue, #0072B2);
   outline-offset: 2px;
 }
 
@@ -1471,7 +1496,7 @@ All colors MUST be HSL.
 }
 .ww-daily-link:hover,
 .ww-daily-link:focus-visible {
-  color: var(--ww-daily-link-hover, #0072B2);
+  color: var(--ww-daily-link-hover, var(--ww-anim-blue, #0072B2));
 }
 .ww-daily-link:hover::after,
 .ww-daily-link:focus-visible::after {

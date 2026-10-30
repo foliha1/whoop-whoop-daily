@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { LAUNCHED, setUmbrellaPreviewForTests } from "@/lib/launch";
+import { BUTTON_PALETTE } from "@/lib/tokens";
 import { dailyShareUrl, formatDailyShare, formatDailyShareCaption, getDailySeed, loadDailyResult } from "@/lib/daily";
 import { initDailyState } from "@/lib/dailyEngine";
 import { buildForfeitResult, runInProgress } from "@/lib/dailyForfeit";
@@ -168,7 +169,9 @@ describe("Part 3 Daily leave", () => {
     expect(DAILY_LEAVE_TITLE).toBe("Leave today's Daily?");
     expect(screen.getByText(DAILY_LEAVE_BODY)).toBeTruthy();
     expect(document.activeElement?.textContent).toBe("Keep Playing");
-    expect((screen.getByText("Keep Playing").closest("button") as HTMLButtonElement).style.background).toBe("rgb(0, 114, 178)");
+    // jsdom reports inline styles as rgb(), so normalize the token's hex.
+    const hexToRgb = (h: string) => { const n = parseInt(h.slice(1), 16); return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`; };
+    expect((screen.getByText("Keep Playing").closest("button") as HTMLButtonElement).style.background).toBe(hexToRgb(BUTTON_PALETTE.secondary.bg));
     fireEvent.keyDown(window, { key: "Escape" });
     expect(keep).toHaveBeenCalled();
     fireEvent.click(screen.getByText("Leave"));

@@ -377,7 +377,7 @@ const SignInGate: React.FC = () => {
               style={{ ...inputStyle, width: "100%" }}
             />
             {error ? (
-              <span style={{ ...labelStyle, textTransform: "none", letterSpacing: 0, color: COLORS.red }}>
+              <span style={{ ...labelStyle, textTransform: "none", letterSpacing: 0, color: COLORS.redText }}>
                 {error}
               </span>
             ) : null}
@@ -419,7 +419,7 @@ const SignInGate: React.FC = () => {
               style={{ ...inputStyle, width: "100%" }}
             />
             {error ? (
-              <span style={{ ...labelStyle, textTransform: "none", letterSpacing: 0, color: COLORS.red }}>
+              <span style={{ ...labelStyle, textTransform: "none", letterSpacing: 0, color: COLORS.redText }}>
                 {error}
               </span>
             ) : null}
@@ -819,7 +819,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
 
       {state === "error" ? (
         <div style={{ ...cardStyle, borderColor: COLORS.red }}>
-          <h2 style={{ ...sectionTitle, color: COLORS.red }}>Could not load</h2>
+          <h2 style={{ ...sectionTitle, color: COLORS.redText }}>Could not load</h2>
           <p style={{ ...mono, fontSize: FONT_SIZE.xs, color: COLORS.ink, margin: 0 }}>
             Every dashboard query failed, so nothing below is current. Try refreshing.
           </p>
@@ -830,7 +830,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
           broken report can never be mistaken for a quiet day. */}
       {state !== "error" && failures.length > 0 ? (
         <div style={{ ...cardStyle, borderColor: COLORS.red }}>
-          <h2 style={{ ...sectionTitle, color: COLORS.red }}>Some reports failed to load</h2>
+          <h2 style={{ ...sectionTitle, color: COLORS.redText }}>Some reports failed to load</h2>
           <p style={{ ...mono, fontSize: FONT_SIZE.xs, color: COLORS.ink, margin: 0 }}>
             {failures.join(", ")} — those sections are blank because the query failed, not because
             there is no data. Everything else below is current.
@@ -855,7 +855,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         <button
           type="button"
           onClick={() => setConfirmList(true)}
-          style={{ ...exportButtonStyle, color: COLORS.red, borderColor: COLORS.red }}
+          style={{ ...exportButtonStyle, color: COLORS.redText, borderColor: COLORS.red }}
         >
           ↓ Subscriber List (Emails)
         </button>
@@ -870,7 +870,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
             {session.user.email}.
           </p>
           {listError ? (
-            <span style={{ ...mono, fontSize: FONT_SIZE["2xs"], color: COLORS.red }}>{listError}</span>
+            <span style={{ ...mono, fontSize: FONT_SIZE["2xs"], color: COLORS.redText }}>{listError}</span>
           ) : null}
           <div style={{ display: "flex", flexWrap: "wrap", gap: SPACE[5] }}>
             <button

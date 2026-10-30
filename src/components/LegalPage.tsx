@@ -93,7 +93,7 @@ export const LegalList: React.FC<{ items: React.ReactNode[] }> = ({ items }) => 
 );
 
 export const MailLink: React.FC = () => (
-  <a href={`mailto:${LEGAL_CONTACT}`} style={{ color: COLORS.blue }}>
+  <a href={`mailto:${LEGAL_CONTACT}`} style={{ color: COLORS.blueText }}>
     {LEGAL_CONTACT}
   </a>
 );
