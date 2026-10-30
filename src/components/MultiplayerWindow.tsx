@@ -1885,15 +1885,15 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               type="button"
               onClick={() => { if (umbrella && home && !busy) trackEvent("home_solo_tapped"); handlePlaySolo(); }}
               disabled={busy}
-              style={playModeTileStyle(COLORS.blue)}
+              style={playModeTileStyle(COLORS.blue, COLORS.onBlue)}
               aria-label={umbrella && home ? "Solo" : "Play Solo"}
               data-testid={umbrella && home ? "home-solo" : undefined}
             >
               <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-                <circle cx="16" cy="11" r="5" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" />
-                <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke={COLORS.soloTint} strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx="16" cy="11" r="5" fill="none" stroke={COLORS.onBlue} strokeWidth="2.5" />
+                <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke={COLORS.onBlue} strokeWidth="2.5" strokeLinecap="round" />
               </svg>
-              <div style={playModeLabelStyle(RAW.cream)}>{umbrella && home ? "Solo" : "Play Solo"}</div>
+              <div style={playModeLabelStyle(COLORS.onBlue)}>{umbrella && home ? "Solo" : "Play Solo"}</div>
             </button>
 
             <button

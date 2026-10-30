@@ -309,7 +309,7 @@ const LandingPage: React.FC = () => {
               to="/classic?mode=solo"
               className="ww-landing-way-solo"
               background={COLORS.blue}
-              color={COLORS.surface}
+              color={COLORS.onBlue}
               line="Play the full game against WHOOP. It remembers. Mostly."
             />
             <SecondaryWay
