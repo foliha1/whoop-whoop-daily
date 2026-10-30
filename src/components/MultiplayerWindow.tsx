@@ -1908,8 +1908,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               data-testid={umbrella && home ? "home-solo" : undefined}
             >
               <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-                <circle cx="16" cy="11" r="5" fill="none" stroke={COLORS.onBlue} strokeWidth="2.5" />
-                <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke={COLORS.onBlue} strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx="16" cy="11" r="5" fill="none" stroke={SPOOK_AT_LOAD ? COLORS.onBlue : COLORS.soloTint} strokeWidth="2.5" />
+                <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke={SPOOK_AT_LOAD ? COLORS.onBlue : COLORS.soloTint} strokeWidth="2.5" strokeLinecap="round" />
               </svg>
               <div style={playModeLabelStyle(COLORS.onBlue)}>{umbrella && home ? "Solo" : "Play Solo"}</div>
             </button>
