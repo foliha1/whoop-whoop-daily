@@ -9,6 +9,7 @@
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SPOOK_AT_LOAD } from "@/lib/skin";
 import {
   BORDER,
   COLORS,
@@ -113,11 +114,12 @@ const AdminBackupBanner: React.FC<{ status?: BackupStatus | null }> = ({ status 
 
   const bad = bannerState(data) === "bad";
   const headline = bannerHeadline(data);
+  const failureInk = SPOOK_AT_LOAD ? COLORS.onRed : COLORS.offWhite;
 
   const detailStyle: CSSProperties = {
     ...mono,
     fontSize: FONT_SIZE["2xs"],
-    color: bad ? COLORS.offWhite : COLORS.inkMuted,
+    color: bad ? failureInk : COLORS.inkMuted,
     margin: 0,
   };
 
@@ -156,7 +158,7 @@ const AdminBackupBanner: React.FC<{ status?: BackupStatus | null }> = ({ status 
           fontSize: bad ? FONT_SIZE.sm : FONT_SIZE["2xs"],
           letterSpacing: bad ? "0" : "0.04em",
           textTransform: bad ? "none" : "uppercase",
-          color: bad ? COLORS.offWhite : COLORS.inkMuted,
+          color: bad ? failureInk : COLORS.inkMuted,
           flex: "1 1 auto",
           minWidth: 0,
         }}
@@ -171,8 +173,8 @@ const AdminBackupBanner: React.FC<{ status?: BackupStatus | null }> = ({ status 
           ...mono,
           fontSize: FONT_SIZE["2xs"],
           background: "transparent",
-          color: bad ? COLORS.offWhite : COLORS.inkMuted,
-          border: `1px solid ${bad ? COLORS.offWhite : COLORS.panelMuted}`,
+          color: bad ? failureInk : COLORS.inkMuted,
+          border: `1px solid ${bad ? failureInk : COLORS.panelMuted}`,
           borderRadius: RADIUS.sm,
           padding: `2px ${SPACE[4]}px`,
           cursor: "pointer",

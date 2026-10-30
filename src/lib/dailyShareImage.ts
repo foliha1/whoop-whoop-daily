@@ -18,8 +18,8 @@ import lockupCreamAsset from "@/assets/WhoopWhoop_Daily_Lockup_Cream.svg.asset.j
  * RAW, but text drawn on cream needs the readable light shades — the same
  * values --ww-blue-text / --ww-red-text use in the light theme.
  */
-const TEXT_BLUE = SPOOK_AT_LOAD ? "#55731A" : RAW.blue;
-const TEXT_RED = SPOOK_AT_LOAD ? "#8A4D9E" : RAW.red;
+const TEXT_BLUE = SPOOK_AT_LOAD ? "#557202" : RAW.blue;
+const TEXT_RED = SPOOK_AT_LOAD ? "#9400BD" : RAW.red;
 
 /** Which surface the card is drawn on. Light is the original composition. */
 export type ShareImageTheme = "light" | "night";

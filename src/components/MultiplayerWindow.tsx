@@ -1793,7 +1793,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 setCodeInput("");
                 if (validateDisplayName(getDisplayName()).ok) void enterRoom({ kind: "create" });
                 else setView({ kind: "name-prompt", intent: "peeps", action: "create" });
-              }}><span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[4] }}><span style={{ color: SPOOK_AT_LOAD ? RAW.cream : COLORS.peepsTint, display: "flex" }}><MaterialIcon name="group_add" size={32} /></span>Start a table</span></AppButton>
+              }}><span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[4] }}><span style={{ color: SPOOK_AT_LOAD ? COLORS.onRed : COLORS.peepsTint, display: "flex" }}><MaterialIcon name="group_add" size={32} /></span>Start a table</span></AppButton>
             </div>
             <div style={{ flex: "1 1 0", minWidth: 0 }}>
               <AppButton roleStyle="secondary" size="lg" fullWidth style={{ height: "auto", minHeight: 96, padding: SPACE[6] }} onClick={() => {
@@ -1918,17 +1918,17 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               type="button"
               onClick={() => { if (umbrella && home && !busy) trackEvent("home_peeps_tapped"); handleStartRoom(); }}
               disabled={busy}
-              style={playModeTileStyle(COLORS.red)}
+              style={playModeTileStyle(COLORS.red, COLORS.onRed)}
               aria-label={umbrella && home ? "Together" : "Play with Peeps"}
               data-testid={umbrella && home ? "home-peeps" : undefined}
             >
               <svg width="64" height="32" viewBox="0 0 64 32" aria-hidden="true">
-                <circle cx="16" cy="12" r="5" fill="none" stroke={SPOOK_AT_LOAD ? RAW.cream : COLORS.peepsTint} strokeWidth="2.5" />
-                <path d="M6 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={SPOOK_AT_LOAD ? RAW.cream : COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
-                <circle cx="48" cy="12" r="5" fill="none" stroke={SPOOK_AT_LOAD ? RAW.cream : COLORS.peepsTint} strokeWidth="2.5" />
-                <path d="M38 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={SPOOK_AT_LOAD ? RAW.cream : COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx="16" cy="12" r="5" fill="none" stroke={SPOOK_AT_LOAD ? COLORS.onRed : COLORS.peepsTint} strokeWidth="2.5" />
+                <path d="M6 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={SPOOK_AT_LOAD ? COLORS.onRed : COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx="48" cy="12" r="5" fill="none" stroke={SPOOK_AT_LOAD ? COLORS.onRed : COLORS.peepsTint} strokeWidth="2.5" />
+                <path d="M38 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={SPOOK_AT_LOAD ? COLORS.onRed : COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
               </svg>
-              <div style={playModeLabelStyle(RAW.cream)}>{umbrella && home ? "Together" : "Play with Peeps"}</div>
+              <div style={playModeLabelStyle(COLORS.onRed)}>{umbrella && home ? "Together" : "Play with Peeps"}</div>
             </button>
           </div>
 

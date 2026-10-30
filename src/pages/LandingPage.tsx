@@ -88,7 +88,7 @@ const playButtonStyle: React.CSSProperties = {
   background: COLORS.red,
   border: BORDER.heavy,
   borderRadius: RADIUS.sm,
-  color: COLORS.surface,
+  color: SPOOK_AT_LOAD ? COLORS.onRed : COLORS.surface,
   textDecoration: "none",
   fontFamily: FONT_FAMILY,
   fontStyle: "italic",

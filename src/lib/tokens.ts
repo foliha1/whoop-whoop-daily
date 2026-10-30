@@ -27,10 +27,10 @@ export const RAW = {
   khakiMutedHover: "#bdb5a4",
   warmBlack: "#231f20",
   warmGrey: "#544c4a",
-  red: SPOOK_AT_LOAD ? "#8A4D9E" : "#d72229",
-  redHover: SPOOK_AT_LOAD ? "#733F85" : "#b81b20",
-  blue: SPOOK_AT_LOAD ? "#A7CF38" : "#0072B2",
-  blueHover: SPOOK_AT_LOAD ? "#8FB52A" : "#005a8f",
+  red: SPOOK_AT_LOAD ? "#C900FF" : "#d72229",
+  redHover: SPOOK_AT_LOAD ? "#DB66FF" : "#b81b20",
+  blue: SPOOK_AT_LOAD ? "#719803" : "#0072B2",
+  blueHover: SPOOK_AT_LOAD ? "#7FA70A" : "#005a8f",
   orange: SPOOK_AT_LOAD ? "#F05123" : "#E79024",
   orangeHover: SPOOK_AT_LOAD ? "#F4724B" : "#c47618",
   /** Accessible large-stat companion to brand orange on cream (3.06:1). */
@@ -50,6 +50,8 @@ export const RAW = {
   mocha: "#544C4A",
   /** Text/icons sitting on a blue fill — the Spook green cannot carry cream. */
   onBlue: SPOOK_AT_LOAD ? "#231F20" : "#F8F2E9",
+  /** Text/icons on red fills; Spook purple uses warm black. */
+  onRed: SPOOK_AT_LOAD ? "#231F20" : "#F8F2E9",
 } as const;
 
 
@@ -91,6 +93,7 @@ export const COLORS = {
   peepsTint: RAW.peepsTint,
   /** Text/icons on a blue fill (cream normally, warm black under Spook). */
   onBlue: RAW.onBlue,
+  onRed: RAW.onRed,
   // Blue/red as TEXT on the page background — CSS vars so the Spook palette
   // can pick a readable shade per theme (values live in index.css).
   blueText: "var(--ww-blue-text)",
@@ -340,16 +343,16 @@ export type ButtonVariant =
 export const BUTTON_PALETTE: Record<ButtonVariant, { bg: string; bgHover: string; fg: string; border: string }> = {
   // Foreground on a fixed brand background stays literal: `surface` flips dark
   // in night mode, which would leave cream-on-blue reading as black-on-blue.
-  primary:   { bg: COLORS.red,        bgHover: COLORS.redHover,        fg: RAW.cream,        border: BORDER.heavy },
+  primary:   { bg: COLORS.red,        bgHover: COLORS.redHover,        fg: COLORS.onRed,      border: BORDER.heavy },
   secondary: { bg: COLORS.blue,       bgHover: COLORS.blueHover,       fg: COLORS.onBlue,    border: BORDER.heavy },
   accent:    { bg: COLORS.orange,     bgHover: COLORS.orangeHover,     fg: RAW.warmBlack,    border: BORDER.heavy },
   neutral:   { bg: COLORS.surface,    bgHover: COLORS.surfaceHover,    fg: COLORS.ink,       border: BORDER.heavy },
   ink:       { bg: COLORS.ink,        bgHover: COLORS.inkMuted,        fg: COLORS.surface,   border: BORDER.heavy },
-  play:      { bg: COLORS.red,        bgHover: COLORS.redHover,        fg: RAW.cream,        border: BORDER.heavy },
+  play:      { bg: COLORS.red,        bgHover: COLORS.redHover,        fg: COLORS.onRed,      border: BORDER.heavy },
   quiet:     { bg: COLORS.surface,    bgHover: COLORS.surfaceHover,    fg: COLORS.ink,       border: BORDER.heavy },
   ghost:     { bg: COLORS.surface,    bgHover: COLORS.surfaceHover,    fg: COLORS.ink,       border: BORDER.heavy },
   danger:    { bg: COLORS.surface,    bgHover: COLORS.surfaceHover,    fg: COLORS.ink,       border: `2px solid ${COLORS.red}` },
-  dangerConfirm: { bg: COLORS.red,    bgHover: COLORS.redHover,        fg: RAW.cream,        border: BORDER.heavy },
+  dangerConfirm: { bg: COLORS.red,    bgHover: COLORS.redHover,        fg: COLORS.onRed,      border: BORDER.heavy },
 
 };
 

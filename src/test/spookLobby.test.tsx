@@ -47,6 +47,6 @@ describe("Spook lobby isolation", () => {
   it("uses distinct seasonal accents for seats four through six", async () => {
     await loadSkin("on");
     const { SEAT_COLORS } = await import("@/components/MultiplayerGameView");
-    expect(SEAT_COLORS).toEqual(["#8A4D9E", "#A7CF38", "#F05123", "#C39BD3", "#F9B49C", "#DCEBA6"]);
+    expect(SEAT_COLORS).toEqual(["#C900FF", "#719803", "#F05123", "#C39BD3", "#F9B49C", "#DCEBA6"]);
   });
 });

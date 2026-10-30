@@ -163,21 +163,21 @@ interface ChipStyle {
 
 const CHIP: Record<ChipKind, ChipStyle> = {
   // Fixed brand fills always get a fixed foreground (Rule 1): red and blue
-  // carry RAW.cream, orange and green carry RAW.warmBlack — never the themed
-  // surface/ink, which flips dark in night mode and drops below 4.5:1.
+  // use onRed/onBlue, orange and green carry RAW.warmBlack — never themed
+  // surface/ink, which flips in night mode. Spook purple supports large text at 3:1.
   IDLE:         { bg: PANEL,  border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: INK,     labelText: null,           italic: false },
   ROLLING:      { bg: ORANGE, border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: RAW.warmBlack, labelText: "ROLLING",      italic: false },
-  WHOOP:        { bg: RED,    border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: RAW.cream,     labelText: "WHOOP!", italic: true  },
-  FLIPPING:     { bg: BLUE,   border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: RAW.cream,     labelText: "FLIPPING",     italic: false },
+  WHOOP:        { bg: RED,    border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: COLORS.onRed,     labelText: "WHOOP!", italic: true  },
+  FLIPPING:     { bg: BLUE,   border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: COLORS.onBlue,     labelText: "FLIPPING",     italic: false },
   GREAT_MATCH:  { bg: GREEN,  border: INK,   nameBg: SURFACE, nameBorder: INK,   name: INK,   badgeBg: INK,   badgeText: SURFACE, label: RAW.warmBlack, labelText: "GREAT MATCH!", italic: true  },
   // Round-scoped wrong-claim lockout (v6.4).
   // Red-on-themed-surface text fails contrast (red on panel/surface drops
   // below 4.5:1, worst in night mode), so the name/label use theme ink and
   // the red survives as the border and badge cue — same pattern as the
   // destructive button correction.
-  PENALTY:      { bg: RED,    border: RED,   nameBg: PANEL,   nameBorder: RED,   name: INK,   badgeBg: RED,   badgeText: RAW.cream, label: RAW.cream,  labelText: "PENALTY",      italic: false },
+  PENALTY:      { bg: RED,    border: RED,   nameBg: PANEL,   nameBorder: RED,   name: INK,   badgeBg: RED,   badgeText: COLORS.onRed, label: COLORS.onRed,  labelText: "PENALTY",      italic: false },
   // GONE — heartbeat stale, seat presumed lost. Harsher than DISCONNECTED.
-  GONE:         { bg: PANEL,  border: RED,   nameBg: SURFACE, nameBorder: RED,   name: INK,   badgeBg: RED,   badgeText: RAW.cream, label: INK,     labelText: "GONE",         italic: false },
+  GONE:         { bg: PANEL,  border: RED,   nameBg: SURFACE, nameBorder: RED,   name: INK,   badgeBg: RED,   badgeText: COLORS.onRed, label: INK,     labelText: "GONE",         italic: false },
   // DISCONNECTED — self-reported backgrounded tab; gentler, takes precedence
   // over GONE so a reversible absence never reads as the harsher state.
   DISCONNECTED: { bg: MUTED,  border: MUTED, nameBg: PANEL,   nameBorder: MUTED, name: MUTED, badgeBg: MUTED, badgeText: PANEL,   label: PANEL,   labelText: "DISCONNECTED", italic: false },
@@ -572,7 +572,7 @@ const BannerStyles: Record<Exclude<BannerKind, null>, { bg: string; text: string
   TOO_SLOW:    { bg: INK,     text: SURFACE, label: "SOMEONE BEAT YOU TO IT" },
   // GENUINE transport failure only: the arbiter never answered and the host
   // never spoke either. A claim the host explicitly refused is CLAIM_LATE.
-  CLAIM_ERROR: { bg: RED,     text: RAW.cream, label: "CONNECTION ISSUE — TRY AGAIN" },
+  CLAIM_ERROR: { bg: RED,     text: COLORS.onRed, label: "CONNECTION ISSUE — TRY AGAIN" },
   // The host refused the claim (its window had already moved on). The network
   // was fine, so this must never be dressed up as a connection problem.
   CLAIM_LATE:  { bg: INK,     text: SURFACE, label: "JUST MISSED IT — TRY AGAIN" },
@@ -660,9 +660,9 @@ const ScoreRow: React.FC<{
 /** Exported so the scripted How to Play demo can show the real call button. */
 export type ButtonKind = "WHOOP" | "YOUR_ROLL" | "SELECT_MATCH" | "DISABLED";
 const ButtonStyles: Record<ButtonKind, { bg: string; text: string; label: string }> = {
-  WHOOP:        { bg: RED,    text: RAW.cream,     label: "WHOOP! WHOOP!" },
+  WHOOP:        { bg: RED,    text: COLORS.onRed,     label: "WHOOP! WHOOP!" },
   YOUR_ROLL:    { bg: ORANGE, text: RAW.warmBlack, label: "Your Roll!" },
-  SELECT_MATCH: { bg: BLUE,   text: RAW.cream,     label: "Select Match" },
+  SELECT_MATCH: { bg: BLUE,   text: COLORS.onBlue,     label: "Select Match" },
   DISABLED:     { bg: PANEL,  text: MUTED,   label: "Wait" },
 };
 

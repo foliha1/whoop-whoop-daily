@@ -297,7 +297,7 @@ const ClassicResultScreen: React.FC<{
                   ...buttonStyle("primary", "lg", { mobile, fullWidth: true }),
                   ...textStyle("resultButton", mobile),
                   background: RAW.red,
-                  color: RAW.cream,
+                  color: COLORS.onRed,
                   border: BORDER.heavy,
                   borderColor: COLORS.ink,
                   borderRadius: RADIUS.sm,

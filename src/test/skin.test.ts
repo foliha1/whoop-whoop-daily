@@ -12,7 +12,7 @@ const OLD_COLORS = ["#e79024", "#0072b2", "#d72229"];
 const NEW_COLOR: Record<(typeof COLORS)[number], string> = {
   yellow: "#f05123",
   blue: "#a7cf38",
-  red: "#8a4d9e",
+  red: "#c900ff",
 };
 
 describe("skinArt", () => {
