@@ -49,7 +49,7 @@ const DailyMilestoneConfetti: React.FC<{ delayMs?: number }> = ({ delayMs = 0 })
         gravity: 1,
         ticks: 180,
         origin: { x: 0.5, y: 0.35 },
-        colors: COLORS,
+        colors: CONFETTI_COLORS,
         shapes,
         disableForReducedMotion: true,
       });
