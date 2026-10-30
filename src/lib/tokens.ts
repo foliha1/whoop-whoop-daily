@@ -85,6 +85,12 @@ export const COLORS = {
   // Play-mode accent tints used on the "How do you want to play?" screen.
   soloTint: RAW.soloTint,
   peepsTint: RAW.peepsTint,
+  /** Text/icons on a blue fill (cream normally, warm black under Spook). */
+  onBlue: RAW.onBlue,
+  // Blue/red as TEXT on the page background — CSS vars so the Spook palette
+  // can pick a readable shade per theme (values live in index.css).
+  blueText: "var(--ww-blue-text)",
+  redText: "var(--ww-red-text)",
 } as const;
 
 
@@ -331,7 +337,7 @@ export const BUTTON_PALETTE: Record<ButtonVariant, { bg: string; bgHover: string
   // Foreground on a fixed brand background stays literal: `surface` flips dark
   // in night mode, which would leave cream-on-blue reading as black-on-blue.
   primary:   { bg: COLORS.red,        bgHover: COLORS.redHover,        fg: RAW.cream,        border: BORDER.heavy },
-  secondary: { bg: COLORS.blue,       bgHover: COLORS.blueHover,       fg: RAW.cream,        border: BORDER.heavy },
+  secondary: { bg: COLORS.blue,       bgHover: COLORS.blueHover,       fg: COLORS.onBlue,    border: BORDER.heavy },
   accent:    { bg: COLORS.orange,     bgHover: COLORS.orangeHover,     fg: RAW.warmBlack,    border: BORDER.heavy },
   neutral:   { bg: COLORS.surface,    bgHover: COLORS.surfaceHover,    fg: COLORS.ink,       border: BORDER.heavy },
   ink:       { bg: COLORS.ink,        bgHover: COLORS.inkMuted,        fg: COLORS.surface,   border: BORDER.heavy },
