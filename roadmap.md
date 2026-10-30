@@ -1,5 +1,10 @@
 # Roadmap
 
+## Spook Spook part 4
+- [ ] Remap remaining presentation-only card artwork and preloads through the skin helper.
+- [ ] Add seasonal card-colour wording without changing classic copy or game data.
+- [ ] Run regression tests and verify About and How to Play; do not publish.
+
 ## Spook Spook part 3
 - [x] Add exact night-logo recolour and skin-gated lobby logo/preload/bylines.
 - [x] Correct Spook-only icon contrast and seat 4–6 colours; preserve skin-off presentation. Game view and Settings icons already inherit correct foreground roles.
