@@ -3,6 +3,7 @@ import { getLocalDateString } from "@/lib/daily";
 import { MOTION } from "@/lib/tokens";
 import { useUmbrella } from "@/lib/launch";
 import { useThemeMode } from "@/lib/nightMode";
+import { SPOOK_AT_LOAD } from "@/lib/skin";
 
 /** Natural tile geometry — 15 shapes on a 24px pitch, 19px tall. */
 const TILE_W = 360;
@@ -49,7 +50,9 @@ const DailyShapeRule: React.FC<{ style?: React.CSSProperties; clearStart?: numbe
   const hostRef = useRef<HTMLDivElement>(null);
   const umbrella = useUmbrella();
   const { theme } = useThemeMode();
-  const patternUrl = umbrella ? (theme === "night" ? PATTERN_URL_NIGHT : PATTERN_URL_INK) : PATTERN_URL;
+  const patternUrl = SPOOK_AT_LOAD
+    ? (umbrella ? (theme === "night" ? PATTERN_URL_NIGHT_SPOOK : PATTERN_URL_INK_SPOOK) : PATTERN_URL_SPOOK)
+    : (umbrella ? (theme === "night" ? PATTERN_URL_NIGHT : PATTERN_URL_INK) : PATTERN_URL);
   const [box, setBox] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
