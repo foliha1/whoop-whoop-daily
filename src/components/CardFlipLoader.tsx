@@ -1,4 +1,5 @@
 import { cardArt } from "@/lib/assetUrls";
+import { skinArt, useSkin } from "@/lib/skin";
 import React from "react";
 import { CARD_BACK_PATH } from "@/cardData";
 import { COLORS, RADIUS, SHADOW, SPACE } from "@/lib/tokens";
@@ -21,7 +22,9 @@ type CardFlipLoaderProps = {
 };
 
 /** The same branded flip for Classic, page chunks, and in-page data reads. */
-const CardFlipLoader: React.FC<CardFlipLoaderProps> = ({ label, layout = "inline" }) => (
+const CardFlipLoader: React.FC<CardFlipLoaderProps> = ({ label, layout = "inline" }) => {
+  useSkin();
+  return (
   <div
     role="status"
     aria-label={label}
@@ -39,14 +42,15 @@ const CardFlipLoader: React.FC<CardFlipLoaderProps> = ({ label, layout = "inline
     <div style={{ width: SPACE[20] * 2 + SPACE[4], aspectRatio: "5/7", perspective: 600 }}>
       <div className="ww-loading-flip" style={{ position: "relative", width: "100%", height: "100%", transformStyle: "preserve-3d" }}>
         <div style={faceLayer}>
-          <img src={CARD_BACK_PATH} alt="" aria-hidden="true" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          <img src={skinArt(CARD_BACK_PATH)} alt="" aria-hidden="true" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         </div>
         <div style={{ ...faceLayer, transform: "rotateY(180deg)" }}>
-          <img src={FACE_SRC} alt="" aria-hidden="true" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          <img src={skinArt(FACE_SRC)} alt="" aria-hidden="true" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         </div>
       </div>
     </div>
   </div>
 );
+};
 
 export default CardFlipLoader;

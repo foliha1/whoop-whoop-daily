@@ -11,6 +11,7 @@
 // ============================================================================
 
 import { useEffect, useState } from "react";
+import type { ColorName } from "@/cardData";
 import { CARD_BACK_URL } from "@/lib/assetUrls";
 import spookCardBack from "../assets/spook/card-back.svg?url";
 
@@ -49,6 +50,15 @@ export function getSkin(): boolean {
  * shifts under a player mid-game — a toggle flip applies on the next open.
  */
 export const SPOOK_AT_LOAD = getSkin();
+
+/** Card-colour copy follows the palette frozen at page load. */
+export function colorWord(color: ColorName, opts?: { capital?: boolean }): string {
+  const words: Record<ColorName, string> = SPOOK_AT_LOAD
+    ? { red: "purple", blue: "green", yellow: "pumpkin" }
+    : { red: "red", blue: "blue", yellow: "orange" };
+  const word = words[color];
+  return opts?.capital ? word.charAt(0).toUpperCase() + word.slice(1) : word;
+}
 
 /** Call once at boot, next to initTheme, before first paint. */
 export function initSkin(): void {

@@ -26,3 +26,4 @@
 
 - Skins remap card art at render time via skinArt; card data and network payloads always carry classic art. The Spook palette shift is frozen at page load: SPOOK_AT_LOAD (src/lib/skin.ts) drives RAW in tokens.ts and data-skin="spook" on <html> (set by initSkin next to initTheme), so colors never change mid-game; text on blue fills uses COLORS.onBlue, blue/red text on the page uses COLORS.blueText/redText.
 - Seasonal lobby artwork and bylines use SPOOK_AT_LOAD with theme-resolved static logos capped to the existing lockup slot; seat accents live in RAW tokens, keeping skin-off presentation and Daily artwork unchanged.
+- Non-board card renderers subscribe with useSkin and remap only displayed/preloaded URLs through skinArt; card-colour copy uses colorWord with SPOOK_AT_LOAD so words match the frozen palette. Image readiness keys use JSON encoding rather than comma splitting because skin face data URLs contain commas.

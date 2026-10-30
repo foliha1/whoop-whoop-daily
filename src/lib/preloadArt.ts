@@ -1,5 +1,7 @@
 import { ALL_CARDS, CARD_BACK_PATH } from "@/cardData";
 import { MATCH_ART_SRC } from "@/components/MatchDie";
+import { SPOOK_AT_LOAD, skinArt } from "@/lib/skin";
+import spookCardBack from "@/assets/spook/card-back.svg?url";
 
 const preloaded = new Map<string, Promise<void>>();
 
@@ -20,11 +22,11 @@ function preloadImage(src: string): Promise<void> {
   return promise;
 }
 
-const preload = (sources: readonly string[]) => Promise.all(sources.map(preloadImage)).then(() => undefined);
+const preload = (sources: readonly string[]) => Promise.all(sources.map((src) => preloadImage(skinArt(src)))).then(() => undefined);
 
 /** Small shared art needed by the first game transition. */
 export function preloadEssentialGameArt(): Promise<void> {
-  return preload([CARD_BACK_PATH, ...Object.values(MATCH_ART_SRC)]);
+  return preload([CARD_BACK_PATH, ...(SPOOK_AT_LOAD ? [spookCardBack] : []), ...Object.values(MATCH_ART_SRC)]);
 }
 
 /** Today's fixed Daily board, decoded before its reveal begins. */
@@ -40,6 +42,7 @@ export function preloadDailyBoardArt(sources: readonly string[]): Promise<void> 
 export function preloadGameArt(): void {
   void preload([
     CARD_BACK_PATH,
+    ...(SPOOK_AT_LOAD ? [spookCardBack] : []),
     ...Object.values(MATCH_ART_SRC),
     ...ALL_CARDS.map((c) => c.svgPath),
   ]);

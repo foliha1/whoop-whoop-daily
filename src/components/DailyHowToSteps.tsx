@@ -1,4 +1,5 @@
 import { CARD_BACK_URL, cardArt } from "@/lib/assetUrls";
+import { colorWord, skinArt, useSkin } from "@/lib/skin";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import DailyShapeRule from "@/components/DailyShapeRule";
@@ -183,11 +184,12 @@ const usePhase = (steps: readonly number[], running: boolean): number => {
  */
 const useImagesReady = (srcs: readonly string[]): boolean => {
   const [ready, setReady] = useState(false);
-  const key = srcs.join(",");
+  useSkin();
+  const key = JSON.stringify(srcs.map(skinArt));
   useEffect(() => {
     let cancelled = false;
     Promise.all(
-      key.split(",").map(
+      (JSON.parse(key) as string[]).map(
         (src) =>
           new Promise<void>((resolve) => {
             const im = new Image();
@@ -298,7 +300,7 @@ const cardRadius = (w: number) => w * CARD_RADIUS_RATIO;
 
 const img = (src: string, alt: string, w: number, h: number, style?: React.CSSProperties) => (
   <img
-    src={src}
+    src={skinArt(src)}
     alt={alt}
     style={{
       width: w,
@@ -316,15 +318,15 @@ const img = (src: string, alt: string, w: number, h: number, style?: React.CSSPr
  * flipping back down. Loop: down → flip up → up → flip down → hold.
  * ------------------------------------------------------------------ */
 const DECK_FACES = [
-  [cardArt("2-circle-red"), "Two red circles"],
-  [cardArt("4-star-yellow"), "Four orange stars"],
-  [cardArt("1-square-blue"), "One blue square"],
-  [cardArt("3-tri-yellow"), "Three orange triangles"],
-  [cardArt("2-star-blue"), "Two blue stars"],
-  [cardArt("4-square-red"), "Four red squares"],
-  [cardArt("1-circle-yellow"), "One orange circle"],
-  [cardArt("3-square-blue"), "Three blue squares"],
-  [cardArt("2-tri-red"), "Two red triangles"],
+  [cardArt("2-circle-red"), `Two ${colorWord("red")} circles`],
+  [cardArt("4-star-yellow"), `Four ${colorWord("yellow")} stars`],
+  [cardArt("1-square-blue"), `One ${colorWord("blue")} square`],
+  [cardArt("3-tri-yellow"), `Three ${colorWord("yellow")} triangles`],
+  [cardArt("2-star-blue"), `Two ${colorWord("blue")} stars`],
+  [cardArt("4-square-red"), `Four ${colorWord("red")} squares`],
+  [cardArt("1-circle-yellow"), `One ${colorWord("yellow")} circle`],
+  [cardArt("3-square-blue"), `Three ${colorWord("blue")} squares`],
+  [cardArt("2-tri-red"), `Two ${colorWord("red")} triangles`],
 ] as const;
 
 const DECK_STEPS = [
@@ -338,6 +340,7 @@ const DECK_STEPS = [
 const DECK_FACE_SRCS = [CARD_BACK, ...DECK_FACES.map(([src]) => src)];
 
 const DeckVisual: React.FC<{ sz: Step; active: boolean }> = ({ sz, active }) => {
+  useSkin();
   const v = sz.vis;
   const reduce = useReducedMotion();
   const visible = usePageVisible();
@@ -380,7 +383,7 @@ const DeckVisual: React.FC<{ sz: Step; active: boolean }> = ({ sz, active }) => 
           >
 
             <img
-              src={CARD_BACK}
+              src={skinArt(CARD_BACK)}
               alt=""
               style={{
                 position: "absolute",
@@ -392,7 +395,7 @@ const DeckVisual: React.FC<{ sz: Step; active: boolean }> = ({ sz, active }) => 
               }}
             />
             <img
-              src={src}
+              src={skinArt(src)}
               alt=""
               style={{
                 position: "absolute",
@@ -437,6 +440,7 @@ const STUDY_DOT = 4;
 
 
 const StudyVisual: React.FC<{ sz: Step; active: boolean }> = ({ sz, active }) => {
+  useSkin();
   const v = sz.vis;
   const reduce = useReducedMotion();
   const pageVisible = usePageVisible();
@@ -445,7 +449,7 @@ const StudyVisual: React.FC<{ sz: Step; active: boolean }> = ({ sz, active }) =>
 
   return (
     <div style={{ position: "relative", width: STUDY_BOX.w * v, height: STUDY_BOX.h * v }}>
-      {img(cardArt("3-star-blue"), "A card showing three blue stars", STUDY_CARD.w * v, STUDY_CARD.h * v, {
+      {img(cardArt("3-star-blue"), `A card showing three ${colorWord("blue")} stars`, STUDY_CARD.w * v, STUDY_CARD.h * v, {
         position: "absolute",
         left: STUDY_CARD.x * v,
         top: STUDY_CARD.y * v,
@@ -532,24 +536,25 @@ type DieExample = { label: string; a: [string, string]; b: [string, string] };
 const DIE_EXAMPLES: DieExample[] = [
   {
     label: "Match the COLOR",
-    a: [cardArt("2-circle-yellow"), "Two orange circles"],
-    b: [cardArt("4-star-yellow"), "Four orange stars"],
+    a: [cardArt("2-circle-yellow"), `Two ${colorWord("yellow")} circles`],
+    b: [cardArt("4-star-yellow"), `Four ${colorWord("yellow")} stars`],
   },
   {
     label: "Match the SHAPE",
-    a: [cardArt("3-circle-red"), "Three red circles"],
-    b: [cardArt("1-circle-blue"), "One blue circle"],
+    a: [cardArt("3-circle-red"), `Three ${colorWord("red")} circles`],
+    b: [cardArt("1-circle-blue"), `One ${colorWord("blue")} circle`],
   },
   {
     label: "Match the NUMBER",
-    a: [cardArt("3-square-yellow"), "Three orange squares"],
-    b: [cardArt("3-tri-red"), "Three red triangles"],
+    a: [cardArt("3-square-yellow"), `Three ${colorWord("yellow")} squares`],
+    b: [cardArt("3-tri-red"), `Three ${colorWord("red")} triangles`],
   },
 ];
 
 const CYCLE_MS = T.die.dwell;
 
 const DieVisual: React.FC<{ sz: Step; active: boolean }> = ({ sz, active }) => {
+  useSkin();
   const v = sz.vis;
   const reduce = useReducedMotion();
   const pageVisible = usePageVisible();
@@ -790,7 +795,8 @@ const MATCH_GRID_CARDS = MATCH_GRID_IDS.map(cardById);
 const MATCH_REFILL_CARDS = MATCH_REFILL_IDS.map(cardById);
 const MATCH_SRCS = [
   CARD_BACK,
-  ...MATCH_PAIR.map((i) => MATCH_GRID_CARDS[i].svgPath),
+  ...MATCH_GRID_CARDS.map((c) => c.svgPath),
+  ...MATCH_REFILL_CARDS.map((c) => c.svgPath),
 ];
 
 const MATCH_STEPS = [

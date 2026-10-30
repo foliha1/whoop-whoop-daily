@@ -3,12 +3,14 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ALL_CARDS } from "@/cardData";
+import { skinArt, useSkin } from "@/lib/skin";
 
 export const CASCADE_ORDER = ALL_CARDS.map((c) => c.svgPath);
 
 const FADE_MS = 400;
 
 export default function CardWaterfall({ onClose }: { onClose: () => void }) {
+  const skin = useSkin();
   const ref = useRef<HTMLCanvasElement>(null);
   const [closing, setClosing] = useState(false);
   const close = useCallback(() => {
@@ -16,8 +18,10 @@ export default function CardWaterfall({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   useEffect(() => {
-    const canvas = ref.current!;
-    const ctx = canvas.getContext("2d")!;
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const W = window.innerWidth, H = window.innerHeight;
     canvas.width = W * dpr; canvas.height = H * dpr;
@@ -32,7 +36,7 @@ export default function CardWaterfall({ onClose }: { onClose: () => void }) {
       if (ctx.roundRect) ctx.roundRect(x + 0.75, y + 0.75, cw - 1.5, ch - 1.5, cw * 0.06); else ctx.rect(x + 0.75, y + 0.75, cw - 1.5, ch - 1.5);
       ctx.stroke();
     };
-    const imgs = CASCADE_ORDER.map((src) => { const i = new Image(); i.src = src; return i; });
+    const imgs = CASCADE_ORDER.map((src) => { const i = new Image(); i.src = skinArt(src); return i; });
     let idx = 0, raf = 0, card: { x: number; y: number; vx: number; vy: number; img: HTMLImageElement } | null = null;
     const launch = () => {
       if (idx >= imgs.length) return null;
@@ -65,7 +69,7 @@ export default function CardWaterfall({ onClose }: { onClose: () => void }) {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [skin]);
 
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === "Escape" && close();

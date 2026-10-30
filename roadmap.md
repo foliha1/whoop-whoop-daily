@@ -1,5 +1,10 @@
 # Roadmap
 
+## Spook Spook part 4
+- [x] Remap remaining presentation-only card artwork and preloads through the skin helper; preserve card objects and payloads.
+- [x] Add page-load seasonal card-colour wording while preserving classic wording, including legacy yellow accessibility labels.
+- [x] Verify loaded About/tutorial faces and waterfall open/close with skin on/off, no browser errors; 714 tests passed, 4 skipped; preview build clean. Not published.
+
 ## Spook Spook part 3
 - [x] Add exact night-logo recolour and skin-gated lobby logo/preload/bylines.
 - [x] Correct Spook-only icon contrast and seat 4–6 colours; preserve skin-off presentation. Game view and Settings icons already inherit correct foreground roles.
