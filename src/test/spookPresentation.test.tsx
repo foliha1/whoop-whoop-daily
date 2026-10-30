@@ -57,7 +57,9 @@ describe("seasonal card presentation", () => {
     expect(study.getAttribute("src")).toBe(skinArt(cardArt("3-star-blue")));
     next();
     expect(screen.getByAltText(`Four ${state === "on" ? "pumpkin" : "orange"} stars`).getAttribute("src")).toBe(skinArt(cardArt("4-star-yellow")));
-    fireEvent.click(screen.getByRole("button", { name: "Match the SHAPE", hidden: true }));
+    const shape = document.querySelector<HTMLButtonElement>('button[aria-label="Match the SHAPE"]');
+    if (!shape) throw new Error("Missing shape example selector");
+    fireEvent.click(shape);
     expect(screen.getByAltText(`Three ${state === "on" ? "purple" : "red"} circles`).getAttribute("src")).toBe(skinArt(cardArt("3-circle-red")));
   });
 
