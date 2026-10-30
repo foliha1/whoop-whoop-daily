@@ -40,6 +40,10 @@ export const RAW = {
   offWhite: "#fef9f0",
   soloTint: "#97DAFF",
   peepsTint: "#FFC1C3",
+  /** Seat accents stay distinct from the seasonal brand green. */
+  seat4: SPOOK_AT_LOAD ? "#C39BD3" : "#59cd90",
+  seat5: SPOOK_AT_LOAD ? "#F9B49C" : "#97DAFF",
+  seat6: SPOOK_AT_LOAD ? "#DCEBA6" : "#FFC1C3",
   /** Blue 2 — the pale blue used for the winner's rank on the Classic result. */
   blue2: SPOOK_AT_LOAD ? "#231F20" : "#97DAFF",
   /** Mocha — the quiet rank ink inside the khaki standings panel. */

@@ -62,12 +62,16 @@ import { useMultiplayerHost, useMultiplayerJoiner, useTransientEvents, type Seat
 import { useHeartbeatSender, useHeartbeatMonitor } from "@/hooks/useHeartbeat";
 import DailyFrame from "@/components/DailyFrame";
 import DailyLogoLockup, { lockupStills } from "@/components/DailyLogoLockup";
+import spookLightLogo from "@/assets/spook/spook-logo-light.svg?url";
+import spookNightLogo from "@/assets/spook/spook-logo-night.svg?url";
+import { SPOOK_AT_LOAD } from "@/lib/skin";
+import { useThemeMode } from "@/lib/nightMode";
 import EntryReveal from "@/components/EntryReveal";
 import { PATTERN_URL } from "@/components/DailyShapeRule";
 import { useEntryReady } from "@/hooks/useEntryReady";
 
 /** Everything the Classic entry screen must have decoded before it appears. */
-const ENTRY_ASSETS = [...lockupStills("classic"), PATTERN_URL] as const;
+const ENTRY_ASSETS = [...(SPOOK_AT_LOAD ? [spookLightLogo, spookNightLogo] : lockupStills("classic")), PATTERN_URL] as const;
 
 import SettingsSheet from "@/components/SettingsSheet";
 import { BarChart3, HelpCircle, Settings as SettingsIcon } from "lucide-react";
@@ -300,6 +304,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 }) => {
   const mobile = useIsMobile();
   const umbrella = useUmbrella();
+  const { theme } = useThemeMode();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [account, setAccount] = useState<string | null>(() => getSessionEmail());
@@ -1336,7 +1341,20 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           {opts.logo &&
             step(
               0,
-              <DailyLogoLockup variant={umbrella && home ? "plain" : "classic"} style={{ maxWidth: lockupMax }} />,
+              SPOOK_AT_LOAD ? (
+                <img
+                  src={theme === "night" ? spookNightLogo : spookLightLogo}
+                  alt="Spook Spook!"
+                  style={{
+                    width: "100%",
+                    maxWidth: lockupMax,
+                    height: "auto",
+                    // The Spook artboard is taller: cap it at the classic slot.
+                    maxHeight: lockupMax * (umbrella && home ? 131.24 / 166.15 : 211 / 251),
+                    objectFit: "contain",
+                  }}
+                />
+              ) : <DailyLogoLockup variant={umbrella && home ? "plain" : "classic"} style={{ maxWidth: lockupMax }} />,
               { display: "flex", justifyContent: "center" },
             )}
           {opts.logo && umbrella && home &&
@@ -1356,7 +1374,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                   marginTop: -SPACE[2],
                 }}
               >
-                A game by Oleeha &amp; Co.
+                {SPOOK_AT_LOAD ? "A haunt by Oleeha & Co." : "A game by Oleeha & Co."}
               </a>,
               { display: "flex", justifyContent: "center" },
             )}
@@ -1775,13 +1793,13 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 setCodeInput("");
                 if (validateDisplayName(getDisplayName()).ok) void enterRoom({ kind: "create" });
                 else setView({ kind: "name-prompt", intent: "peeps", action: "create" });
-              }}><span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[4] }}><span style={{ color: COLORS.peepsTint, display: "flex" }}><MaterialIcon name="group_add" size={32} /></span>Start a table</span></AppButton>
+              }}><span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[4] }}><span style={{ color: SPOOK_AT_LOAD ? RAW.cream : COLORS.peepsTint, display: "flex" }}><MaterialIcon name="group_add" size={32} /></span>Start a table</span></AppButton>
             </div>
             <div style={{ flex: "1 1 0", minWidth: 0 }}>
               <AppButton roleStyle="secondary" size="lg" fullWidth style={{ height: "auto", minHeight: 96, padding: SPACE[6] }} onClick={() => {
                 setCodeInput("");
                 setView({ kind: "name-prompt", intent: "peeps", action: "join" });
-              }}><span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[4] }}><span style={{ color: COLORS.soloTint, display: "flex" }}><MaterialIcon name="login" size={32} /></span>Join a table</span></AppButton>
+              }}><span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[4] }}><span style={{ color: SPOOK_AT_LOAD ? COLORS.onBlue : COLORS.soloTint, display: "flex" }}><MaterialIcon name="login" size={32} /></span>Join a table</span></AppButton>
             </div>
           </div>
           <AppButton roleStyle="utility" size="md" fullWidth onClick={leaveToIdle}>Back</AppButton>
@@ -1905,10 +1923,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               data-testid={umbrella && home ? "home-peeps" : undefined}
             >
               <svg width="64" height="32" viewBox="0 0 64 32" aria-hidden="true">
-                <circle cx="16" cy="12" r="5" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" />
-                <path d="M6 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
-                <circle cx="48" cy="12" r="5" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" />
-                <path d="M38 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx="16" cy="12" r="5" fill="none" stroke={SPOOK_AT_LOAD ? RAW.cream : COLORS.peepsTint} strokeWidth="2.5" />
+                <path d="M6 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={SPOOK_AT_LOAD ? RAW.cream : COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx="48" cy="12" r="5" fill="none" stroke={SPOOK_AT_LOAD ? RAW.cream : COLORS.peepsTint} strokeWidth="2.5" />
+                <path d="M38 28c2-5 5-7 10-7s8 2 10 7" fill="none" stroke={SPOOK_AT_LOAD ? RAW.cream : COLORS.peepsTint} strokeWidth="2.5" strokeLinecap="round" />
               </svg>
               <div style={playModeLabelStyle(RAW.cream)}>{umbrella && home ? "Together" : "Play with Peeps"}</div>
             </button>

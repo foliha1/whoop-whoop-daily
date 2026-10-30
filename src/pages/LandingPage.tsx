@@ -6,6 +6,7 @@ import DailyShapeRule from "@/components/DailyShapeRule";
 import DailyLogoLockup from "@/components/DailyLogoLockup";
 import DailyEmailCapture from "@/components/DailyEmailCapture";
 import { BORDER, COLORS, FONT_FAMILY, RADIUS } from "@/lib/tokens";
+import { SPOOK_AT_LOAD } from "@/lib/skin";
 
 const GEIST = '"Geist", "Geist Sans", system-ui, -apple-system, "Segoe UI", sans-serif';
 
@@ -336,7 +337,7 @@ const LandingPage: React.FC = () => {
 
         {/* 7. Footer */}
         <footer style={{ ...section, gap: 4 }}>
-          <p style={subheadStyle}>A game from Oleeha &amp; Co.</p>
+          <p style={subheadStyle}>{SPOOK_AT_LOAD ? "A haunt from Oleeha & Co." : "A game from Oleeha & Co."}</p>
           <p className="ww-landing-fine" style={fineStyle}>
             Coming to a table near you.
           </p>
