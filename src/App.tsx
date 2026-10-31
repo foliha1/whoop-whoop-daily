@@ -187,6 +187,7 @@ const App = () => (
         <BrowserRouter>
           <ProductInstallHead />
           <AnimatedRoutes />
+          <SpookGhost />
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>

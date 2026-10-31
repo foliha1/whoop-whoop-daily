@@ -1,6 +1,7 @@
 import React from "react";
 import DailyShapeRule from "@/components/DailyShapeRule";
 import { COLORS, SPACE } from "@/lib/tokens";
+import { SPOOK_AT_LOAD } from "@/lib/skin";
 
 /** Max width of the content column shared by every daily screen. */
 export const DAILY_CONTENT_MAX_W = 402;
@@ -37,6 +38,7 @@ const DailyFrame: React.FC<{
   children?: React.ReactNode;
 }> = ({ gap = 24, pad = 24, railGap = 24, fill = false, tone = "surface", wide = false, topControl = false, scroll = false, noRails = false, align = "center", children }) => (
   <div
+    className={SPOOK_AT_LOAD ? "ww-spook-frame" : undefined}
     style={{
       position: "relative",
       minHeight: "var(--ww-vh)",
