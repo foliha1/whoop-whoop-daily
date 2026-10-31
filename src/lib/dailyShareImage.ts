@@ -12,6 +12,8 @@ import { SPOOK_AT_LOAD } from "@/lib/skin";
 import patternAsset from "@/assets/WhoopWhoop_Daily_Pattern_Seamless.svg.asset.json";
 import lockupAsset from "@/assets/WhoopWhoop_Daily_Lockup.svg.asset.json";
 import lockupCreamAsset from "@/assets/WhoopWhoop_Daily_Lockup_Cream.svg.asset.json";
+import spookLogoLight from "@/assets/spook/spook-logo-light.svg?url";
+import spookLogoNight from "@/assets/spook/spook-logo-night.svg?url";
 
 /**
  * Blue/red as TEXT on the cream card. Under Spook the brand fills shift with
