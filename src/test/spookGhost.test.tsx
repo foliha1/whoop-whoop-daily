@@ -1,6 +1,6 @@
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { readFileSync } from "node:fs";
 
 afterEach(() => {
@@ -42,6 +42,23 @@ describe("Spook ghost", () => {
     const { container } = render(<mod.default />);
     expect(container).toBeEmptyDOMElement();
     mod.setSpookGhostPaused(false);
+  });
+
+  it("fades out and unmounts promptly when paused mid-float", async () => {
+    await loadSkin("on");
+    const mod = await import("@/components/SpookGhost");
+    render(<mod.default />);
+    expect(screen.getByTestId("spook-ghost")).toBeInTheDocument();
+
+    act(() => mod.setSpookGhostPaused(true));
+    // The fade animation is applied immediately instead of letting the
+    // current 12s trip finish across the cards.
+    expect(screen.getByTestId("spook-ghost").style.animation).toContain("ww-spook-ghost-fade");
+    // jsdom never fires animationend, so the fallback timer must unmount it.
+    await waitFor(() => expect(screen.queryByTestId("spook-ghost")).toBeNull(), { timeout: 2000 });
+
+    act(() => mod.setSpookGhostPaused(false));
+    expect(screen.getByTestId("spook-ghost")).toBeInTheDocument();
   });
 
   it("renders nothing under reduced motion", async () => {
