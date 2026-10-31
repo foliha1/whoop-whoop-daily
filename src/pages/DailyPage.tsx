@@ -1367,6 +1367,18 @@ const DailyPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [daily.start, daily.phase, daily.puzzleNumber]);
 
+  // The Spook ghost never floats over a run in progress: it ducks out the
+  // moment Start is pressed (playWaiting) and stays away until the results
+  // screen. The unpause lives in an unmount-only cleanup so the phase
+  // transitions inside a run never briefly wake it.
+  useEffect(() => {
+    const runActive =
+      playWaiting ||
+      phase === "STUDY" || phase === "HIDE" || phase === "ROLL" || phase === "PLAY" || phase === "WHOOPED";
+    setSpookGhostPaused(runActive);
+  }, [phase, playWaiting]);
+  useEffect(() => () => setSpookGhostPaused(false), []);
+
   // True while the round intro overlay is up: taps stay locked.
   const [introUp, setIntroUp] = useState(false);
   // Measured card-grid width: the single alignment line for the gameplay screen.
