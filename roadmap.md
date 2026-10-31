@@ -1,5 +1,11 @@
 # Roadmap
 
+## Spook Spook part 6
+- [x] Add the floating ghost (SpookGhost, mounted at the app root): 12s cycle, ~7s rise with eased ±50px sway and ±8° tilt, random 15–85% start per trip, transforms only; hidden with the skin off, under reduced motion, and while the tab is hidden.
+- [x] Add setSpookGhostPaused: the current trip finishes, then no new trips during a Daily run (study reveal until results) or a live Solo/Together game (not lobby or results).
+- [x] Add corner cobwebs (cobweb.svg as mask over --ww-ink) to screen frames (48–120px) and modal/sheet panels (40–88px), behind content, untappable, clipped to rounded corners.
+- [x] Verify: 725 tests passed, typecheck clean; browser-checked ghost rise, frame and Settings cobwebs, tappable Close, no scroll at 1280×1800 and 390×600, skin-off renders nothing, no page errors. Not published.
+
 ## Spook Spook part 5
 - [x] Update seasonal UI and artwork colours, purple-fill foregrounds and share-image text; preserve classic and gameplay.
 - [x] Verify contrast, exact substitutions in all six SVGs, card-face green exception and shared Daily/Classic celebration palettes; 719 tests passed, 4 skipped, preview build clean. Browser verified Together and Start a table in light/night with skin on/off, no page errors. Not published.
