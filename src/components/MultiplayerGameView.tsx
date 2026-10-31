@@ -937,6 +937,13 @@ const MultiplayerGameView: React.FC<Props> = ({
     else stopTheme();
   }, [isGameOver, showHowTo, umbrella]);
 
+  // The Spook ghost stays out of live play (Solo and Together alike); it only
+  // drifts back in on the result screen.
+  useEffect(() => {
+    setSpookGhostPaused(!isGameOver);
+    return () => setSpookGhostPaused(false);
+  }, [isGameOver]);
+
   useEffect(() => {
     if (isGameOver) {
       setBgOverlayVisible(false);

@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/lib/theme-context";
 import { COLORS } from "@/lib/tokens";
 import { UI_EASE, UI_ENTER_MS, UI_EXIT_MS } from "@/lib/animationTiming";
 import CardFlipLoader from "@/components/CardFlipLoader";
+import SpookGhost from "@/components/SpookGhost";
 import { useUmbrella } from "@/lib/launch";
 import { enterThemeZone, leaveThemeZone, CLASSIC_THEME_FILE } from "@/lib/sounds";
 

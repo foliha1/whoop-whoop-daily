@@ -1326,6 +1326,14 @@ const DailyPage: React.FC = () => {
     if (phase === "READY") return;
     preloadGameArt();
   }, [phase]);
+  // The Spook ghost never floats over a run in progress: it pauses from the
+  // study reveal until the results screen.
+  useEffect(() => {
+    const runActive =
+      phase === "STUDY" || phase === "HIDE" || phase === "ROLL" || phase === "PLAY" || phase === "WHOOPED";
+    setSpookGhostPaused(runActive);
+    return () => setSpookGhostPaused(false);
+  }, [phase]);
   // Which How to Play mode is open: the first-run gate, or the reference chip.
   const [howTo, setHowTo] = useState<"gate" | "reference" | null>(null);
   const [onboardingComplete, setOnboardingComplete] = useState(() => hasSeenHowTo());
