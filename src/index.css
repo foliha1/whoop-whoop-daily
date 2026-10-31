@@ -1542,3 +1542,78 @@ All colors MUST be HSL.
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
 }
+
+/* ============================================================================
+   Spook Spook — floating ghost + corner cobwebs. Everything here is gated on
+   [data-skin="spook"], so with the skin off none of it renders.
+   ============================================================================ */
+
+/* One 12s cycle: rise from fully below the bottom edge to fully above the top
+   edge in about 7s (58.33% of the cycle), then rest off-screen for about 5s. */
+@keyframes ww-spook-ghost-rise {
+  0% { transform: translateY(110vh); }
+  58.33% { transform: translateY(-22vh); }
+  100% { transform: translateY(-22vh); }
+}
+
+/* Three eased side-to-side swings (±50px) with a gentle ±8° tilt that follows
+   the sway, timed to the rise portion of the cycle, then held still. */
+@keyframes ww-spook-ghost-sway {
+  0% { transform: translateX(0) rotate(0deg); animation-timing-function: ease-in-out; }
+  9.72% { transform: translateX(50px) rotate(8deg); animation-timing-function: ease-in-out; }
+  19.44% { transform: translateX(-50px) rotate(-8deg); animation-timing-function: ease-in-out; }
+  29.17% { transform: translateX(50px) rotate(8deg); animation-timing-function: ease-in-out; }
+  38.89% { transform: translateX(-50px) rotate(-8deg); animation-timing-function: ease-in-out; }
+  48.61% { transform: translateX(50px) rotate(8deg); animation-timing-function: ease-in-out; }
+  58.33% { transform: translateX(0) rotate(0deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+
+/* Corner cobweb: warm black in light mode, cream in night mode (it follows
+   --ww-ink), always behind the window's content and never tappable. The
+   isolation + negative z-index pairing keeps it above the window's own
+   background but below every control and line of text. */
+[data-skin="spook"] .ww-spook-frame,
+[data-skin="spook"] .ww-ui-modal-panel {
+  isolation: isolate;
+}
+
+/* Panels clip the web to their rounded corner; frames are full-viewport and
+   have no corner to clip. */
+[data-skin="spook"] .ww-ui-modal-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+[data-skin="spook"] .ww-spook-frame::before,
+[data-skin="spook"] .ww-ui-modal-panel::before {
+  content: "";
+  top: 0;
+  right: 0;
+  background-color: var(--ww-ink);
+  -webkit-mask-image: url("./assets/spook/cobweb.svg");
+  mask-image: url("./assets/spook/cobweb.svg");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: top right;
+  mask-position: top right;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Screen frames: pinned to the window's top-right corner, so it never scrolls
+   away on editorial pages. */
+[data-skin="spook"] .ww-spook-frame::before {
+  position: fixed;
+  width: clamp(48px, 18vw, 120px);
+  height: clamp(48px, 18vw, 120px);
+}
+
+/* Modal and sheet panels: a smaller web, sized against the panel. */
+[data-skin="spook"] .ww-ui-modal-panel::before {
+  position: absolute;
+  width: clamp(40px, 18%, 88px);
+  height: clamp(40px, 18%, 88px);
+}
