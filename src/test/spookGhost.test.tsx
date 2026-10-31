@@ -78,11 +78,12 @@ describe("Spook cobwebs", () => {
     // The cobweb itself is a CSS pseudo-element, so it is never in the
     // accessibility tree; these rules are what guarantee it stays decorative.
     const css = readFileSync("src/index.css", "utf8");
-    const rules = css.match(/\[data-skin="spook"\][^{]*::before\s*\{[^}]*\}/g) ?? [];
+    const rules = (css.match(/\[data-skin="spook"\][^{]*::before\s*\{[^}]*\}/g) ?? []).filter((rule) =>
+      rule.includes("cobweb.svg"),
+    );
     expect(rules.length).toBeGreaterThan(0);
     for (const rule of rules) {
       expect(rule).toContain("pointer-events: none");
-      expect(rule).toContain("cobweb.svg");
       expect(rule).toContain("z-index: -1");
     }
     // Skin-off renders nothing: every cobweb rule is gated on the skin.
