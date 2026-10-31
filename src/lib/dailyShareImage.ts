@@ -12,6 +12,8 @@ import { SPOOK_AT_LOAD } from "@/lib/skin";
 import patternAsset from "@/assets/WhoopWhoop_Daily_Pattern_Seamless.svg.asset.json";
 import lockupAsset from "@/assets/WhoopWhoop_Daily_Lockup.svg.asset.json";
 import lockupCreamAsset from "@/assets/WhoopWhoop_Daily_Lockup_Cream.svg.asset.json";
+import spookLogoLight from "@/assets/spook/spook-logo-light.svg?url";
+import spookLogoNight from "@/assets/spook/spook-logo-night.svg?url";
 
 /**
  * Blue/red as TEXT on the cream card. Under Spook the brand fills shift with
@@ -20,6 +22,10 @@ import lockupCreamAsset from "@/assets/WhoopWhoop_Daily_Lockup_Cream.svg.asset.j
  */
 const TEXT_BLUE = SPOOK_AT_LOAD ? "#557202" : RAW.blue;
 const TEXT_RED = SPOOK_AT_LOAD ? "#9400BD" : RAW.red;
+
+/** The Spook logo's own box (src/assets/spook/spook-logo-*.svg): 147x133. */
+const SPOOK_LOGO_W = 147;
+const SPOOK_LOGO_H = 133;
 
 /** Which surface the card is drawn on. Light is the original composition. */
 export type ShareImageTheme = "light" | "night";
@@ -36,7 +42,7 @@ const THEME = {
     /** Peek pill: ink chip with surface-coloured type. */
     pillBg: RAW.warmBlack,
     pillFg: RAW.cream,
-    lockup: lockupAsset.url,
+    lockup: SPOOK_AT_LOAD ? spookLogoLight : lockupAsset.url,
     pattern: SPOOK_AT_LOAD
       ? "/WhoopWhoop_Daily_Pattern_Seamless_Spook.svg"
       : patternAsset.url,
@@ -48,7 +54,7 @@ const THEME = {
     panel: "#3A3335",
     pillBg: RAW.cream,
     pillFg: RAW.warmBlack,
-    lockup: lockupCreamAsset.url,
+    lockup: SPOOK_AT_LOAD ? spookLogoNight : lockupCreamAsset.url,
     pattern: SPOOK_AT_LOAD
       ? "/WhoopWhoop_Daily_Pattern_Seamless_Night_Spook.svg"
       : "/WhoopWhoop_Daily_Pattern_Seamless_Night.svg",
@@ -221,7 +227,18 @@ export async function renderDailyShareImage(
   const rowW = LOCKUP_W + HEADER_GAP + BADGE_D;
   const rowX = (SHARE_IMAGE_W - rowW) / 2;
 
-  ctx.drawImage(lockup, rowX, headerTop, LOCKUP_W, HEADER_H);
+  // The Spook logo is squarer than the lockup slot: full slot height, width
+  // from its own aspect ratio, centred inside the slot — never stretched.
+  const lockupW = SPOOK_AT_LOAD
+    ? (HEADER_H * SPOOK_LOGO_W) / SPOOK_LOGO_H
+    : LOCKUP_W;
+  ctx.drawImage(
+    lockup,
+    rowX + (LOCKUP_W - lockupW) / 2,
+    headerTop,
+    lockupW,
+    HEADER_H
+  );
 
   const badgeCx = rowX + LOCKUP_W + HEADER_GAP + BADGE_D / 2;
   const badgeCy = headerTop + HEADER_H / 2;
