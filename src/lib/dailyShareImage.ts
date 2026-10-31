@@ -23,6 +23,10 @@ import spookLogoNight from "@/assets/spook/spook-logo-night.svg?url";
 const TEXT_BLUE = SPOOK_AT_LOAD ? "#557202" : RAW.blue;
 const TEXT_RED = SPOOK_AT_LOAD ? "#9400BD" : RAW.red;
 
+/** The Spook logo's own box (src/assets/spook/spook-logo-*.svg): 147x133. */
+const SPOOK_LOGO_W = 147;
+const SPOOK_LOGO_H = 133;
+
 /** Which surface the card is drawn on. Light is the original composition. */
 export type ShareImageTheme = "light" | "night";
 
@@ -38,7 +42,7 @@ const THEME = {
     /** Peek pill: ink chip with surface-coloured type. */
     pillBg: RAW.warmBlack,
     pillFg: RAW.cream,
-    lockup: lockupAsset.url,
+    lockup: SPOOK_AT_LOAD ? spookLogoLight : lockupAsset.url,
     pattern: SPOOK_AT_LOAD
       ? "/WhoopWhoop_Daily_Pattern_Seamless_Spook.svg"
       : patternAsset.url,
@@ -50,7 +54,7 @@ const THEME = {
     panel: "#3A3335",
     pillBg: RAW.cream,
     pillFg: RAW.warmBlack,
-    lockup: lockupCreamAsset.url,
+    lockup: SPOOK_AT_LOAD ? spookLogoNight : lockupCreamAsset.url,
     pattern: SPOOK_AT_LOAD
       ? "/WhoopWhoop_Daily_Pattern_Seamless_Night_Spook.svg"
       : "/WhoopWhoop_Daily_Pattern_Seamless_Night.svg",
