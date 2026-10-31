@@ -5,7 +5,8 @@
 // gentle tilt as it goes. It never renders with the skin off, under reduced
 // motion, while the tab is hidden, or while a Daily run or a live Solo or
 // Together game is in progress (setSpookGhostPaused) — it must never float
-// over cards a player is trying to remember.
+// over cards a player is trying to remember, so a pause makes it fade out
+// promptly where it is rather than finishing its trip.
 // ============================================================================
 
 import React, { useEffect, useRef, useState } from "react";
@@ -16,7 +17,7 @@ let paused = false;
 const listeners = new Set<() => void>();
 
 /**
- * Pause (or resume) the ghost. A pause lets the current trip finish and then
+ * Pause (or resume) the ghost. A pause fades the ghost out where it is and
  * stops new trips from starting; resuming starts a fresh trip from below.
  */
 export function setSpookGhostPaused(on: boolean): void {
@@ -44,18 +45,39 @@ const isDormant = (): boolean => {
 /** Each trip starts from a random horizontal position, 15%–85% of the width. */
 const randomStartX = (): number => 15 + Math.random() * 70;
 
+/** Keep in sync with the ww-spook-ghost-fade keyframes duration. */
+const FADE_MS = 450;
+
 const SpookGhostInner: React.FC = () => {
   const [visible, setVisible] = useState(() => !isDormant());
+  const [fading, setFading] = useState(false);
   const [startX, setStartX] = useState(randomStartX);
-  const dormantRef = useRef(isDormant());
+  const fadeTimer = useRef<number | null>(null);
 
   useEffect(() => {
+    const clearFadeTimer = () => {
+      if (fadeTimer.current !== null) {
+        window.clearTimeout(fadeTimer.current);
+        fadeTimer.current = null;
+      }
+    };
     const sync = () => {
-      const dormant = isDormant();
-      dormantRef.current = dormant;
-      // Waking starts a new trip from below. Falling dormant mid-trip is
-      // handled at the iteration boundary, so the current trip finishes.
-      if (!dormant) setVisible(true);
+      if (isDormant()) {
+        // Duck out promptly: a short fade, then unmount. The fallback timer
+        // covers engines that never fire animationend (and hidden tabs).
+        setFading((was) => {
+          if (!was && fadeTimer.current === null) {
+            fadeTimer.current = window.setTimeout(() => setVisible(false), FADE_MS + 100);
+          }
+          return true;
+        });
+      } else {
+        // Waking starts a fresh trip from below.
+        clearFadeTimer();
+        setStartX(randomStartX());
+        setFading(false);
+        setVisible(true);
+      }
     };
     sync();
     document.addEventListener("visibilitychange", sync);
@@ -68,6 +90,7 @@ const SpookGhostInner: React.FC = () => {
       /* older engines: the render-time check still applies */
     }
     return () => {
+      clearFadeTimer();
       document.removeEventListener("visibilitychange", sync);
       listeners.delete(sync);
       mq?.removeEventListener("change", sync);
@@ -80,22 +103,24 @@ const SpookGhostInner: React.FC = () => {
     <div
       aria-hidden="true"
       data-testid="spook-ghost"
+      onAnimationEnd={(e) => {
+        if (e.animationName === "ww-spook-ghost-fade") setVisible(false);
+      }}
       style={{
         position: "fixed",
         inset: 0,
         overflow: "hidden",
         pointerEvents: "none",
         zIndex: 30,
+        animation: fading ? `ww-spook-ghost-fade ${FADE_MS}ms ease forwards` : undefined,
       }}
     >
       <div
         onAnimationIteration={(e) => {
           if (e.animationName !== "ww-spook-ghost-rise") return;
           // The trip just ended fully out of frame: pick the next trip's
-          // horizontal position, and if the ghost has gone dormant, unmount
-          // here instead of starting again.
+          // horizontal position.
           setStartX(randomStartX());
-          if (dormantRef.current) setVisible(false);
         }}
         style={{
           position: "absolute",

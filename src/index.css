@@ -1556,6 +1556,13 @@ All colors MUST be HSL.
   100% { transform: translateY(-22vh); }
 }
 
+/* Quick exit when a Daily run or live game starts: the ghost fades where it
+   is instead of finishing its trip across the cards. */
+@keyframes ww-spook-ghost-fade {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
 /* Three eased side-to-side swings (±50px) with a gentle ±8° tilt that follows
    the sway, timed to the rise portion of the cycle, then held still. */
 @keyframes ww-spook-ghost-sway {
