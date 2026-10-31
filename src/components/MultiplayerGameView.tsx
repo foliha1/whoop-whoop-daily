@@ -71,6 +71,7 @@ import AutoFitText from "@/components/AutoFitText";
 import { hapticTap, hapticImpact, hapticSuccess, hapticError } from "@/lib/haptics";
 import { useUmbrella } from "@/lib/launch";
 import { screenMusic } from "@/lib/screenMusic";
+import { setSpookGhostPaused } from "@/components/SpookGhost";
 import { useTogetherStatsRecorder } from "@/hooks/useTogetherStatsRecorder";
 
 const prefersReducedMotion = (): boolean => {
@@ -936,6 +937,13 @@ const MultiplayerGameView: React.FC<Props> = ({
     if (isGameOver) startTheme(screenMusic("results", umbrella, CLASSIC_THEME_FILE) ?? undefined);
     else stopTheme();
   }, [isGameOver, showHowTo, umbrella]);
+
+  // The Spook ghost stays out of live play (Solo and Together alike); it only
+  // drifts back in on the result screen.
+  useEffect(() => {
+    setSpookGhostPaused(!isGameOver);
+    return () => setSpookGhostPaused(false);
+  }, [isGameOver]);
 
   useEffect(() => {
     if (isGameOver) {

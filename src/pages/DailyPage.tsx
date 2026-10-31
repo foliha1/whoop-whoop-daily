@@ -124,6 +124,7 @@ import { umbrellaOn, useUmbrella } from "@/lib/launch";
 import DailyMilestoneConfetti, { BURST_LIFETIME_MS } from "@/components/DailyMilestoneConfetti";
 import WhoopScoreAnnouncement, { isReturningScorePlayer, hasEarlierDailyResult, hasSeenScoreAnnouncement, SCORE_ANNOUNCEMENT } from "@/components/WhoopScoreAnnouncement";
 import { fetchDailyResults } from "@/lib/dailyResults";
+import { setSpookGhostPaused } from "@/components/SpookGhost";
 import { getSubscribedEmail } from "@/lib/dailySubscribe";
 import {
   hasCelebrated,
@@ -1325,6 +1326,14 @@ const DailyPage: React.FC = () => {
   useEffect(() => {
     if (phase === "READY") return;
     preloadGameArt();
+  }, [phase]);
+  // The Spook ghost never floats over a run in progress: it pauses from the
+  // study reveal until the results screen.
+  useEffect(() => {
+    const runActive =
+      phase === "STUDY" || phase === "HIDE" || phase === "ROLL" || phase === "PLAY" || phase === "WHOOPED";
+    setSpookGhostPaused(runActive);
+    return () => setSpookGhostPaused(false);
   }, [phase]);
   // Which How to Play mode is open: the first-run gate, or the reference chip.
   const [howTo, setHowTo] = useState<"gate" | "reference" | null>(null);
