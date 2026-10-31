@@ -227,7 +227,18 @@ export async function renderDailyShareImage(
   const rowW = LOCKUP_W + HEADER_GAP + BADGE_D;
   const rowX = (SHARE_IMAGE_W - rowW) / 2;
 
-  ctx.drawImage(lockup, rowX, headerTop, LOCKUP_W, HEADER_H);
+  // The Spook logo is squarer than the lockup slot: full slot height, width
+  // from its own aspect ratio, centred inside the slot — never stretched.
+  const lockupW = SPOOK_AT_LOAD
+    ? (HEADER_H * SPOOK_LOGO_W) / SPOOK_LOGO_H
+    : LOCKUP_W;
+  ctx.drawImage(
+    lockup,
+    rowX + (LOCKUP_W - lockupW) / 2,
+    headerTop,
+    lockupW,
+    HEADER_H
+  );
 
   const badgeCx = rowX + LOCKUP_W + HEADER_GAP + BADGE_D / 2;
   const badgeCy = headerTop + HEADER_H / 2;
