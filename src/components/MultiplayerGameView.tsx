@@ -71,6 +71,7 @@ import AutoFitText from "@/components/AutoFitText";
 import { hapticTap, hapticImpact, hapticSuccess, hapticError } from "@/lib/haptics";
 import { useUmbrella } from "@/lib/launch";
 import { screenMusic } from "@/lib/screenMusic";
+import { setSpookGhostPaused } from "@/components/SpookGhost";
 import { useTogetherStatsRecorder } from "@/hooks/useTogetherStatsRecorder";
 
 const prefersReducedMotion = (): boolean => {

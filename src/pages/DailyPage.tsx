@@ -124,6 +124,7 @@ import { umbrellaOn, useUmbrella } from "@/lib/launch";
 import DailyMilestoneConfetti, { BURST_LIFETIME_MS } from "@/components/DailyMilestoneConfetti";
 import WhoopScoreAnnouncement, { isReturningScorePlayer, hasEarlierDailyResult, hasSeenScoreAnnouncement, SCORE_ANNOUNCEMENT } from "@/components/WhoopScoreAnnouncement";
 import { fetchDailyResults } from "@/lib/dailyResults";
+import { setSpookGhostPaused } from "@/components/SpookGhost";
 import { getSubscribedEmail } from "@/lib/dailySubscribe";
 import {
   hasCelebrated,
