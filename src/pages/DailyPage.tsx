@@ -1327,12 +1327,6 @@ const DailyPage: React.FC = () => {
     if (phase === "READY") return;
     preloadGameArt();
   }, [phase]);
-  // The Spook ghost never floats over a run in progress: it ducks out the
-  // moment Start is pressed (playWaiting) and stays away until the results
-  // screen. The unpause lives in an unmount-only cleanup so the phase
-  // transitions inside a run never briefly wake it. (Declared below startRun
-  // because it reads playWaiting.)
-
   // Which How to Play mode is open: the first-run gate, or the reference chip.
   const [howTo, setHowTo] = useState<"gate" | "reference" | null>(null);
   const [onboardingComplete, setOnboardingComplete] = useState(() => hasSeenHowTo());
