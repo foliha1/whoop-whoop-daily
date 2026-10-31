@@ -1362,13 +1362,14 @@ const DailyPage: React.FC = () => {
   }, [daily.start, daily.phase, daily.puzzleNumber]);
 
   // The Spook ghost never floats over a run in progress: it ducks out the
-  // moment Start is pressed (playWaiting) and stays away until the results
-  // screen. The unpause lives in an unmount-only cleanup so the phase
-  // transitions inside a run never briefly wake it.
+  // moment Start is pressed (playWaiting) and stays away through the deal
+  // until the results screen. The unpause lives in an unmount-only cleanup
+  // so the phase transitions inside a run never briefly wake it.
   useEffect(() => {
     const runActive =
       playWaiting ||
-      phase === "STUDY" || phase === "HIDE" || phase === "ROLL" || phase === "PLAY" || phase === "WHOOPED";
+      phase === "DEAL" || phase === "STUDY" || phase === "HIDE" ||
+      phase === "ROLL" || phase === "PLAY" || phase === "WHOOPED";
     setSpookGhostPaused(runActive);
   }, [phase, playWaiting]);
   useEffect(() => () => setSpookGhostPaused(false), []);
