@@ -1,4 +1,11 @@
 import { THEME_MP3, THEME_OGG } from "@/lib/assetUrls";
+import { SPOOK_AT_LOAD } from "@/lib/skin";
+import spookDailyMp3 from "@/assets/spook/theme-daily.mp3?url";
+import spookClassicMp3 from "@/assets/spook/theme-classic.mp3?url";
+import spookHowToMp3 from "@/assets/spook/theme-how-to-play.mp3?url";
+import spookDailyOgg from "@/assets/spook/theme-daily.ogg?url";
+import spookClassicOgg from "@/assets/spook/theme-classic.ogg?url";
+import spookHowToOgg from "@/assets/spook/theme-how-to-play.ogg?url";
 // Synthesized audio effects + persisted settings.
 //
 // Every effect is built at play time from Web Audio nodes — there are no
@@ -312,10 +319,25 @@ function canPlayOgg(): boolean {
   return oggSupport;
 }
 
+/** Spook Spook: theremin-processed versions, swapped in at load time only. */
+const SPOOK_MP3: Record<string, string> = {
+  [DEFAULT_THEME_FILE]: spookDailyMp3,
+  [CLASSIC_THEME_FILE]: spookClassicMp3,
+  [HOW_TO_PLAY_THEME_FILE]: spookHowToMp3,
+};
+const SPOOK_OGG: Record<string, string> = {
+  [DEFAULT_THEME_FILE]: spookDailyOgg,
+  [CLASSIC_THEME_FILE]: spookClassicOgg,
+  [HOW_TO_PLAY_THEME_FILE]: spookHowToOgg,
+};
+
 /** The file actually loaded for a requested track: OGG when decodable. */
 export function themeSourceFor(url: string): string {
-  const ogg = OGG_FOR_MP3[url];
-  return ogg && canPlayOgg() ? ogg : url;
+  const mp3s = SPOOK_AT_LOAD ? SPOOK_MP3 : null;
+  const oggs = SPOOK_AT_LOAD ? SPOOK_OGG : OGG_FOR_MP3;
+  const ogg = oggs[url];
+  if (ogg && canPlayOgg()) return ogg;
+  return mp3s?.[url] ?? url;
 }
 
 /** The track the current screen wants. */
