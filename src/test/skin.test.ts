@@ -17,6 +17,10 @@ const NEW_COLOR: Record<(typeof COLORS)[number], string> = {
 
 describe("skinArt", () => {
   beforeEach(() => {
+    // The season closed early on 2 Nov 2026, so these tests pin the clock
+    // inside it instead of trusting the real date.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 30, 12));
     window.localStorage.clear();
     setSkinEnabled(true);
   });
@@ -53,7 +57,6 @@ describe("skinArt", () => {
   });
 
   it("returns inputs unchanged once the season has ended", () => {
-    vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 10, 4));
     expect(skinSeasonOpen()).toBe(false);
     expect(getSkin()).toBe(false);
