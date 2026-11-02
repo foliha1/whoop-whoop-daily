@@ -1,5 +1,10 @@
 # Roadmap
 
+## Spook Spook: season closed early
+- [x] Close the Halloween season at 2 Nov 2026 00:00 UTC in src/lib/skin.ts, so the skin is off for everyone (including players who left it on) and the Settings switch hides itself.
+- [x] Pin the clock inside the season in src/test/skin.test.ts so the art-remap tests stay deterministic now that the real date is past the close.
+- [x] Verify: 730 tests passed, build OK; browser-checked the home byline "A game by Oleeha & Co.", classic Daily card backs, no ghost or cobwebs, no data-skin, no Spook switch. Not published.
+
 ## Spook Spook part 6
 - [x] Add the floating ghost (SpookGhost, mounted at the app root): 12s cycle, ~7s rise with eased ±50px sway and ±8° tilt, random 15–85% start per trip, transforms only; hidden with the skin off, under reduced motion, and while the tab is hidden.
 - [x] Add setSpookGhostPaused: the current trip finishes, then no new trips during a Daily run (study reveal until results) or a live Solo/Together game (not lobby or results).

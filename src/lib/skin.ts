@@ -17,8 +17,11 @@ import spookCardBack from "../assets/spook/card-back.svg?url";
 
 const STORAGE_KEY = "ww-skin";
 
-/** 3 Nov 2026 00:00 in the player's local timezone. */
-const SEASON_END = new Date(2026, 10, 3).getTime();
+/**
+ * The season was closed early on 2 Nov 2026 (originally 3 Nov 2026 00:00
+ * local). A UTC instant, so the cut-over is the same moment everywhere.
+ */
+const SEASON_END = Date.UTC(2026, 10, 2);
 
 /** True while the Spook Spook season is open. */
 export function skinSeasonOpen(now: number = Date.now()): boolean {
