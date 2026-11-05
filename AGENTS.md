@@ -1,4 +1,5 @@
 # Architecture decisions
+- Admin Solo/Together reports use an additive admin-only mode aggregate with the existing created-at date window; game-wide claims are labelled explicitly because Solo includes the bot, and wide report tables scroll within their own sections.
 - Lobby subscription success remains in the shared email dialog until dismissed; only confirmed signup triggers subscriber persistence, keeping retries and unverified addresses separate from success.
 - About uses the shared scrollable Daily frame and existing card artwork as an editorial page in both launch states, keeping its presentation independent of gameplay and signup flows.
 - ON Classic tutorial tips occupy a separate flow row from die/actions and are replaced per step; compact tutorials scroll instead of overlapping controls.
