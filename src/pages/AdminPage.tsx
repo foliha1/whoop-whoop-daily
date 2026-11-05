@@ -577,7 +577,7 @@ const Table: React.FC<{ head: string[]; rows: (string | number)[][] }> = ({ head
               minWidth: i === 0 && head.length > 4 ? 120 : undefined,
               textAlign: i === 0 ? "left" : "right",
               padding: `0 ${i === 0 ? 0 : SPACE[2]}px ${SPACE[3]}px`,
-              whiteSpace: "normal",
+              whiteSpace: "nowrap",
             }}
           >
             {h}
