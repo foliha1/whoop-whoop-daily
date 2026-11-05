@@ -1,8 +1,8 @@
 # Roadmap
 
 ## Admin panel refinement
-- [ ] Add Today / 7 / 14 / 30-day presets and proportional Daily funnel/trend bars; retain exact counts, exports and existing date semantics.
-- [ ] Verify preset filtering and authenticated desktop/phone charts without publishing.
+- [x] Add Today / 7 / 14 / 30-day presets and proportional Daily funnel/trend bars; retain exact counts, exports and existing date semantics.
+- [x] Verify preset filtering and authenticated desktop/phone charts at 1280/1072/390/320 widths, table toggle, 15 admin tests and clean preview; not published.
 - [x] Contain wide tables, long labels and retention figures on desktop and phones.
 - [x] Separate Solo and Together reports using mode-specific read-only aggregates.
 - [x] Verify authenticated totals and date filtering, 1280/1072/390/320 widths, phone table scrolling, signed-out gate and 20 focused tests; do not publish.
