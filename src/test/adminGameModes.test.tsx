@@ -15,6 +15,8 @@ vi.mock("@/components/AdminBackupBanner", () => ({ default: () => null }));
 vi.mock("@/lib/account", () => ({ signOut: vi.fn() }));
 import AdminPage from "@/pages/AdminPage";
 
+const emptyFunnel = { ready_viewed: 0, run_started: 0, run_finished: 0, run_abandoned: 0, shared: 0, subscribed: 0 };
+
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 
 describe("admin mode reporting", () => {
@@ -22,7 +24,7 @@ describe("admin mode reporting", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 10, 5, 17, 32));
     try {
-      rpc.mockImplementation(async (name: string) => ({ data: name === "admin_funnel" ? [{}] : [], error: null }));
+      rpc.mockImplementation(async (name: string) => ({ data: name === "admin_funnel" ? [emptyFunnel] : [], error: null }));
       render(<AdminPage />);
       await screen.findByRole("button", { name: "7 days" });
       fireEvent.click(screen.getByRole("button", { name: "7 days" }));
@@ -38,7 +40,7 @@ describe("admin mode reporting", () => {
     }
   });
   it("keeps Solo and Together counts and durations independent, using the selected date range", async () => {
-    rpc.mockImplementation(async (name: string) => ({ data: name === "admin_funnel" ? [{}] : name === "admin_game_modes" ? [
+    rpc.mockImplementation(async (name: string) => ({ data: name === "admin_funnel" ? [emptyFunnel] : name === "admin_game_modes" ? [
       { mode: "solo", games_completed: 7, median_seconds: 90, avg_players: 2, avg_correct_claims: 4.5, avg_wrong_claims: 1.2 },
       { mode: "together", games_completed: 3, median_seconds: 240, avg_players: 4, avg_correct_claims: 8.5, avg_wrong_claims: 2.1 },
     ] : [], error: null }));
@@ -61,7 +63,7 @@ describe("admin mode reporting", () => {
   });
 
   it("does not present a failed mode report as zero completed games", async () => {
-    rpc.mockImplementation(async (name: string) => ({ data: name === "admin_funnel" ? [{}] : [], error: name === "admin_game_modes" ? { message: "Unavailable" } : null }));
+    rpc.mockImplementation(async (name: string) => ({ data: name === "admin_funnel" ? [emptyFunnel] : [], error: name === "admin_game_modes" ? { message: "Unavailable" } : null }));
     render(<AdminPage />);
     await waitFor(() => expect(screen.getAllByText("Report unavailable")).toHaveLength(2));
     expect(screen.queryByText("No Solo games completed in this range.")).toBeNull();
