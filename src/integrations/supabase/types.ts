@@ -960,6 +960,17 @@ export type Database = {
           subscribed: number
         }[]
       }
+      admin_game_modes: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          avg_correct_claims: number
+          avg_players: number
+          avg_wrong_claims: number
+          games_completed: number
+          median_seconds: number
+          mode: string
+        }[]
+      }
       admin_headline: {
         Args: { p_from: string; p_to: string }
         Returns: {
