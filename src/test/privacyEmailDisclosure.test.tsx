@@ -4,7 +4,7 @@
 // both mailings and must never go back to the old "daily puzzle only" claim.
 
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { HelmetProvider } from "react-helmet-async";
 
 vi.mock("@/integrations/supabase/client", () => ({
