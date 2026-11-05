@@ -37,6 +37,7 @@ import { getSessionEmail, onAccountChange, whenAccountReady } from "@/lib/accoun
 import { trackEvent } from "@/lib/analytics";
 import HomeControl from "@/components/HomeControl";
 import HomeEmailSignup from "@/components/HomeEmailSignup";
+import SubscribeChip from "@/components/SubscribeChip";
 import { hasCompletedAnyDaily, homeSignupEligible } from "@/lib/homeSignup";
 import { useSubscriberStatus } from "@/hooks/useSubscriberStatus";
 import { useDailyStreakState } from "@/hooks/useDailyStreak";
@@ -320,7 +321,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const { subscribed: reminderSubscribed, email: historyEmail, markLocal: markSubscriberLocal, forgetLocal: forgetHistoryLocal } = useSubscriberStatus();
   const { streak: homeStreak } = useDailyStreakState(puzzleNumber, umbrella && home, historyKey);
   const [completedAnyDaily] = useState(() => hasCompletedAnyDaily());
-  const showHomeSignup = umbrella && home && homeSignupEligible(completedAnyDaily, reminderSubscribed);
+  // Lobby Subscribe chip: anyone not yet subscribed or signed in (ON only).
+  const showSubscribeChip = umbrella && !reminderSubscribed;
+  const showHomeSignup = umbrella && home && !showSubscribeChip && homeSignupEligible(completedAnyDaily, reminderSubscribed);
   const homeViewedRef = useRef(false);
   const [view, setView] = useState<View>(() => {
     // Join-by-link wins over ?mode=; the room-code effect below handles it.
@@ -1263,7 +1266,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   };
 
   const chipRow = (
-    <div style={{ display: "inline-flex", alignItems: "center", gap: SPACE[3] }}>
+    <div style={{ display: "inline-flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: SPACE[3] }}>
       <button
         type="button"
         className="ww-press daily-btn-howto"
@@ -1273,6 +1276,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         <HelpCircle size={16} aria-hidden="true" />
         How to Play
       </button>
+      {showSubscribeChip ? (
+        <SubscribeChip style={chipButtonBase} onSubscribed={(email) => markSubscriberLocal(email)} />
+      ) : null}
       {/* Umbrella-gated: this chip must not appear before launch. */}
       {umbrella && account ? (
         <button

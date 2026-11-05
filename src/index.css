@@ -1624,3 +1624,21 @@ All colors MUST be HSL.
   width: clamp(40px, 18%, 88px);
   height: clamp(40px, 18%, 88px);
 }
+
+/* ── Lobby Subscribe chip: one soft sweep every 7s (rarer than Let's Play) ── */
+.ww-sub-shine {
+  position: absolute; top: -20px; left: -40px;
+  width: 22px; height: 80px;
+  background: #F8F2E9; opacity: 0.55;
+  transform: translateX(0) rotate(30deg);
+  pointer-events: none;
+  animation: ww-sub-shine 7s linear 2s infinite;
+}
+@keyframes ww-sub-shine {
+  0%   { animation-timing-function: cubic-bezier(.89,.02,.5,1); transform: translateX(0) rotate(30deg); }
+  12%  { transform: translateX(240px) rotate(30deg); }
+  100% { transform: translateX(240px) rotate(30deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ww-sub-shine { display: none; }
+}
