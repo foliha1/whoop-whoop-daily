@@ -24,9 +24,9 @@ describe("admin mode reporting", () => {
       { mode: "together", games_completed: 3, median_seconds: 240, avg_players: 4, avg_correct_claims: 8.5, avg_wrong_claims: 2.1 },
     ] : [], error: null }));
     render(<AdminPage />);
-    await waitFor(() => expect(screen.getByRole("heading", { name: "Solo", exact: true })).toBeTruthy());
-    const solo = screen.getByRole("heading", { name: "Solo", exact: true }).closest("section");
-    const together = screen.getByRole("heading", { name: "Together", exact: true }).closest("section");
+    await screen.findByText("1:30");
+    const solo = screen.getByRole("heading", { name: "Solo" }).closest("section");
+    const together = screen.getByRole("heading", { name: "Together" }).closest("section");
     if (!solo || !together) throw new Error("Missing mode reports");
     expect(within(solo).getByText("7")).toBeTruthy();
     expect(within(solo).getByText("1:30")).toBeTruthy();
