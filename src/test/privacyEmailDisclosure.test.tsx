@@ -27,7 +27,9 @@ import PrivacyPage from "@/pages/PrivacyPage";
 const renderPrivacy = () =>
   render(
     <HelmetProvider>
-      <PrivacyPage />
+      <MemoryRouter>
+        <PrivacyPage />
+      </MemoryRouter>
     </HelmetProvider>
   );
 
