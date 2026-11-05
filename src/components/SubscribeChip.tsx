@@ -61,6 +61,7 @@ const SubscribeChip: React.FC<{ style: React.CSSProperties; onSubscribed?: (emai
           heading="Stay in the loop."
           intro={<SubscribeBenefits />}
           submitLabel="Subscribe"
+          floating
           onClose={close}
           onSubscribed={(email) => { doneRef.current = email; }}
         />

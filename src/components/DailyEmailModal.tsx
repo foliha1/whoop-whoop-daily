@@ -88,7 +88,9 @@ const DailyEmailModal: React.FC<{
   heading?: string;
   intro?: React.ReactNode;
   submitLabel?: string;
-}> = ({ mode, source = "daily_result", onClose, onSubscribed, successHoldMs = 1400, heading, intro, submitLabel }) => {
+  /** Floating card over a dimmed page; outside clicks dismiss. */
+  floating?: boolean;
+}> = ({ mode, source = "daily_result", onClose, onSubscribed, successHoldMs = 1400, heading, intro, submitLabel, floating = false }) => {
   const portalHost = usePortalHost("email-modal");
   const hostRef = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
@@ -139,6 +141,8 @@ const DailyEmailModal: React.FC<{
       data-testid="daily-email-modal"
       className="ww-ui-modal-backdrop"
       data-motion-exit={exiting ? "true" : undefined}
+      data-floating={floating ? "true" : undefined}
+      onMouseDown={floating ? (e) => { if (e.target === e.currentTarget && !choiceRequired) requestExit(); } : undefined}
       style={
         {
           position: "fixed",
@@ -149,12 +153,12 @@ const DailyEmailModal: React.FC<{
           top: vv.top,
           height: vv.height || undefined,
           zIndex: 1000,
-          background: COLORS.surface,
+          background: floating ? `color-mix(in srgb, ${COLORS.ink} 55%, transparent)` : COLORS.surface,
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "flex-start",
+          justifyContent: floating && !compact ? "center" : "flex-start",
           gap: gutter,
           padding: gutter,
           paddingBottom: `calc(${gutter}px + env(safe-area-inset-bottom))`,
@@ -165,7 +169,7 @@ const DailyEmailModal: React.FC<{
         } as React.CSSProperties
       }
     >
-      {!compact && <DailyShapeRule />}
+      {!compact && !floating && <DailyShapeRule />}
 
       <div
         data-testid="daily-email-modal-panel"
@@ -177,6 +181,7 @@ const DailyEmailModal: React.FC<{
           flex: "0 0 auto",
           background: COLORS.panel,
           borderRadius: RADIUS.sm,
+          boxShadow: floating ? `0 18px 48px color-mix(in srgb, ${COLORS.ink} 35%, transparent)` : undefined,
           boxSizing: "border-box",
           padding: `${SPACE[6]}px clamp(16px, 9%, 32px) ${SPACE[8]}px`,
           display: "flex",
@@ -215,7 +220,7 @@ const DailyEmailModal: React.FC<{
         />
       </div>
 
-      {!compact && <DailyShapeRule />}
+      {!compact && !floating && <DailyShapeRule />}
     </div>,
     portalHost
   );
