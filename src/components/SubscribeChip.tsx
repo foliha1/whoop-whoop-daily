@@ -62,7 +62,7 @@ const SubscribeChip: React.FC<{ style: React.CSSProperties; onSubscribed?: (emai
         <DailyEmailModal
           mode="subscribe"
           source="home"
-          heading="Stay in the loop."
+          heading="Stay in the loop loop."
           intro={<SubscribeBenefits />}
           submitLabel="Subscribe"
           floating
