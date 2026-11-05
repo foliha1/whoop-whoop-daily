@@ -45,6 +45,7 @@ const DailyEmailCapture: React.FC<{
   onAccentSurface?: boolean;
   /** Extra content under the body (the lobby Subscribe benefits list). */
   intro?: React.ReactNode;
+  className?: string;
 }> = ({
   source,
   onSubscribed,
@@ -57,6 +58,7 @@ const DailyEmailCapture: React.FC<{
   onChoiceRequiredChange,
   onAccentSurface = false,
   intro,
+  className,
 }) => {
   // The results box and the lobby restore are sign-in; pre-launch and the
   // landing page stay an explicit reminder signup. With sign-in off, every box
@@ -84,6 +86,7 @@ const DailyEmailCapture: React.FC<{
         successMessage,
         autoFocus,
         intro,
+        className,
       }}
     />
   );
@@ -99,7 +102,8 @@ const ReminderSignup: React.FC<{
   successMessage?: string;
   autoFocus?: boolean;
   intro?: React.ReactNode;
-}> = ({ source, onSubscribed, heading, body, note, submitLabel, successMessage, autoFocus = false, intro }) => {
+  className?: string;
+}> = ({ source, onSubscribed, heading, body, note, submitLabel, successMessage, autoFocus = false, intro, className }) => {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [restored, setRestored] = useState(false);
@@ -183,6 +187,7 @@ const ReminderSignup: React.FC<{
 
   return (
     <form
+      className={className}
       onSubmit={submit}
       noValidate
       style={{

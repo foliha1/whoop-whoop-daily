@@ -30,7 +30,7 @@ import DailyEmailCapture from "@/components/DailyEmailCapture";
 import CloseButton from "@/components/CloseButton";
 import { useDismiss } from "@/hooks/useDismiss";
 import { useMotionExit } from "@/hooks/useMotionExit";
-import { COLORS, RADIUS, SPACE } from "@/lib/tokens";
+import { COLORS, RADIUS, SPACE, panelStyle } from "@/lib/tokens";
 
 const FOCUSABLE =
   'button:not([disabled]), input:not([disabled]), [href], select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -181,9 +181,9 @@ const DailyEmailModal: React.FC<{
           flex: "0 0 auto",
           background: COLORS.panel,
           borderRadius: RADIUS.sm,
-          boxShadow: floating ? `0 18px 48px color-mix(in srgb, ${COLORS.ink} 35%, transparent)` : undefined,
+          ...(floating ? panelStyle("surface", 12) : {}),
           boxSizing: "border-box",
-          padding: `${SPACE[6]}px clamp(16px, 9%, 32px) ${SPACE[8]}px`,
+          padding: floating ? SPACE[12] : `${SPACE[6]}px clamp(16px, 9%, 32px) ${SPACE[8]}px`,
           display: "flex",
           flexDirection: "column",
           gap: SPACE[4],
@@ -204,6 +204,7 @@ const DailyEmailModal: React.FC<{
         {/* Same component, same validation, same submit path. Only the heading
             differs between modes. */}
         <DailyEmailCapture
+          className={floating ? "ww-subscribe-form" : undefined}
           source={mode === "restore" ? "restore" : source}
           autoFocus
           heading={heading ?? (mode === "restore" ? "Restore your streak." : "Get tomorrow's grid.")}
