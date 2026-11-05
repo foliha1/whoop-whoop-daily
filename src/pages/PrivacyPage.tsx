@@ -6,7 +6,7 @@ import LegalPage, {
   MailLink,
 } from "@/components/LegalPage";
 
-const UPDATED = "18 October 2026";
+const UPDATED = "5 November 2026";
 
 const PrivacyPage: React.FC = () => (
   <LegalPage
@@ -37,13 +37,19 @@ const PrivacyPage: React.FC = () => (
 
     <LegalSection heading="Your email address">
       <LegalText>
-        We collect an email address only when you type one in and submit it, and only so we can send
-        you the daily puzzle reminder. It is stored in our own database and also sent to
-        ActiveCampaign, the email provider we use to send the reminder on our behalf.
+        We collect an email address only when you type one in and submit it, and only so we can
+        email you about the game. It is stored in our own database and also sent to
+        ActiveCampaign, the email provider we use to send our emails on our behalf.
       </LegalText>
       <LegalText>
-        We do not send anything other than the daily puzzle email. You can unsubscribe at any time
-        using the link in any email we send, or by writing to <MailLink />.
+        If you subscribe, two things arrive in your inbox: the daily puzzle reminder each morning,
+        and now and then a short note when something new happens in the game — a new mode, a
+        seasonal look, or a change worth knowing about. Nothing else: no marketing drip, no offers
+        from anyone else, and your address is never sold or shared for advertising.
+      </LegalText>
+      <LegalText>
+        You can unsubscribe at any time using the link in any email we send, turn off Daily email
+        in Settings, or write to <MailLink />.
       </LegalText>
     </LegalSection>
 
