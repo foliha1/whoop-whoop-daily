@@ -1,5 +1,10 @@
 # Roadmap
 
+## Admin panel refinement
+- [ ] Contain wide tables, long labels and retention figures on desktop and phones.
+- [ ] Separate Solo and Together reports using mode-specific read-only aggregates.
+- [ ] Verify authenticated reports, date filtering, table scrolling and regressions; do not publish.
+
 ## Spook Spook: season closed early
 - [x] Close the Halloween season at 2 Nov 2026 00:00 UTC in src/lib/skin.ts, so the skin is off for everyone (including players who left it on) and the Settings switch hides itself.
 - [x] Pin the clock inside the season in src/test/skin.test.ts so the art-remap tests stay deterministic now that the real date is past the close.
