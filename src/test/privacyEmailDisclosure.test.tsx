@@ -33,8 +33,7 @@ const renderPrivacy = () =>
 describe("Privacy email disclosure", () => {
   it("discloses the daily reminder and the occasional game update", () => {
     renderPrivacy();
-    const copy = screen.getByRole("main")?.textContent ?? document.body.textContent ?? "";
-    const text = copy.replace(/\s+/g, " ");
+    const text = (document.body.textContent ?? "").replace(/\s+/g, " ");
 
     expect(text).toMatch(/daily puzzle reminder/i);
     expect(text).toMatch(/game update/i);
