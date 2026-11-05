@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Check, AlertCircle, LoaderCircle } from "lucide-react";
+import { AppButton } from "@/components/ui/AppButton";
 import { isValidEmail, subscribeDaily } from "@/lib/dailySubscribe";
 import DailySignIn from "@/components/DailySignIn";
 import { hapticError, hapticSuccess, hapticTap } from "@/lib/haptics";
@@ -46,6 +48,7 @@ const DailyEmailCapture: React.FC<{
   /** Extra content under the body (the lobby Subscribe benefits list). */
   intro?: React.ReactNode;
   className?: string;
+  onDone?: () => void;
 }> = ({
   source,
   onSubscribed,
@@ -59,6 +62,7 @@ const DailyEmailCapture: React.FC<{
   onAccentSurface = false,
   intro,
   className,
+  onDone,
 }) => {
   // The results box and the lobby restore are sign-in; pre-launch and the
   // landing page stay an explicit reminder signup. With sign-in off, every box
@@ -87,6 +91,7 @@ const DailyEmailCapture: React.FC<{
         autoFocus,
         intro,
         className,
+        onDone,
       }}
     />
   );
@@ -103,17 +108,25 @@ const ReminderSignup: React.FC<{
   autoFocus?: boolean;
   intro?: React.ReactNode;
   className?: string;
-}> = ({ source, onSubscribed, heading, body, note, submitLabel, successMessage, autoFocus = false, intro, className }) => {
+  onDone?: () => void;
+}> = ({ source, onSubscribed, heading, body, note, submitLabel, successMessage, autoFocus = false, intro, className, onDone }) => {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [restored, setRestored] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const doneRef = React.useRef<HTMLButtonElement>(null);
+  const errorId = React.useId();
+  const [invalidEmail, setInvalidEmail] = useState(false);
   const eventSource = source ?? "daily_result";
 
   React.useEffect(() => {
     if (autoFocus) inputRef.current?.focus();
   }, [autoFocus]);
+
+  React.useEffect(() => {
+    if (status === "done") doneRef.current?.focus();
+  }, [status]);
 
   // Instrumentation only — queued, never awaited, never surfaced.
   React.useEffect(() => {
@@ -125,6 +138,7 @@ const ReminderSignup: React.FC<{
   const fail = (message: string) => {
     setStatus("error");
     setErrorMessage(message);
+    setInvalidEmail(true);
     hapticError();
     inputRef.current?.focus();
   };
@@ -143,10 +157,16 @@ const ReminderSignup: React.FC<{
     }
     setStatus("sending");
     setErrorMessage(null);
+    setInvalidEmail(false);
     // Asked before the write: afterwards this address owns today's row too, so
     // "has history" would always be true.
     const returning = false;
-    const ok = await subscribeDaily(email, undefined, source);
+    let ok = false;
+    try {
+      ok = await subscribeDaily(email, undefined, source);
+    } catch {
+      // Network failures use the same retry state; never leave the form busy.
+    }
     if (ok) {
       setRestored(returning);
       setStatus("done");
@@ -158,13 +178,25 @@ const ReminderSignup: React.FC<{
     } else {
 
       setStatus("error");
-      setErrorMessage("That didn't send. Try again.");
+      setErrorMessage("We couldn't confirm your signup. Please try again.");
       hapticError();
     }
   };
 
 
   if (status === "done") {
+    if (onDone) return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[12], textAlign: "center", paddingBlock: SPACE[8] }}>
+        <span aria-hidden="true" style={{ display: "grid", placeItems: "center", width: 64, height: 64, borderRadius: "50%", background: COLORS.success, color: COLORS.ink }}><Check size={32} strokeWidth={2.5} /></span>
+        <div role="status" aria-live="polite" style={{ display: "flex", flexDirection: "column", gap: SPACE[8], width: "100%" }}>
+          <h2 style={{ margin: 0, fontFamily: FONT_FAMILY, fontSize: 28, lineHeight: 1.2, color: COLORS.ink }}>You're subscribed!</h2>
+          <p style={bodyStyle}>Daily reminders and occasional game updates will go to:</p>
+          <p style={{ ...bodyStyle, overflowWrap: "anywhere", fontWeight: 700 }}>{email.trim().toLowerCase()}</p>
+          <p style={{ ...bodyStyle, color: COLORS.inkMuted }}>See you at tomorrow's grid. You can unsubscribe from any email.</p>
+        </div>
+        <AppButton ref={doneRef} type="button" roleStyle="secondary" size="lg" fullWidth onClick={onDone}>Let's play</AppButton>
+      </div>
+    );
     return (
       <p
         style={{
@@ -190,6 +222,7 @@ const ReminderSignup: React.FC<{
       className={className}
       onSubmit={submit}
       noValidate
+      aria-busy={status === "sending"}
       style={{
         alignSelf: "stretch",
         display: "flex",
@@ -223,7 +256,9 @@ const ReminderSignup: React.FC<{
         autoComplete="email"
         maxLength={255}
         aria-label="Email address"
-        aria-invalid={status === "error" ? true : undefined}
+        aria-invalid={invalidEmail ? true : undefined}
+        aria-describedby={status === "error" ? errorId : undefined}
+        readOnly={status === "sending"}
         placeholder="you@example.com"
         value={email}
         onChange={(e) => {
@@ -231,6 +266,7 @@ const ReminderSignup: React.FC<{
           if (status === "error") {
             setStatus("idle");
             setErrorMessage(null);
+            setInvalidEmail(false);
           }
         }}
 
@@ -241,12 +277,17 @@ const ReminderSignup: React.FC<{
           boxSizing: "border-box",
           minHeight: 44,
           padding: `0 ${SPACE[8]}px`,
-          border: BORDER.heavy,
+          border: invalidEmail ? `2px solid ${COLORS.redText}` : BORDER.heavy,
           borderRadius: RADIUS.sm,
           background: COLORS.surface,
           color: COLORS.ink,
         }}
       />
+      {status === "error" && errorMessage && (
+        <p id={errorId} role="alert" style={{ ...bodyStyle, color: COLORS.redText, display: "flex", alignItems: "flex-start", gap: SPACE[4] }}>
+          <AlertCircle size={18} aria-hidden="true" style={{ flexShrink: 0 }} />{errorMessage}
+        </p>
+      )}
       <p style={{ ...bodyStyle, fontSize: 12, color: COLORS.inkMuted }}>
         The daily puzzle, plus the odd game update.{" "}
         <a
@@ -259,8 +300,11 @@ const ReminderSignup: React.FC<{
         </a>
         .
       </p>
-      <button
+      <AppButton
         type="submit"
+        roleStyle="secondary"
+        size="lg"
+        fullWidth
         className="ww-press"
         disabled={status === "sending"}
         style={{
@@ -269,13 +313,8 @@ const ReminderSignup: React.FC<{
           cursor: status === "sending" ? "default" : "pointer",
         }}
       >
-        {submitLabel}
-      </button>
-      {status === "error" && errorMessage && (
-        <p role="alert" style={{ ...bodyStyle, color: COLORS.ink, fontStyle: "italic" }}>
-          {errorMessage}
-        </p>
-      )}
+        {status === "sending" ? <span role="status" style={{ display: "inline-flex", alignItems: "center", gap: SPACE[4] }}><LoaderCircle size={18} aria-hidden="true" className="ww-progress-spinner" />Subscribing…</span> : status === "error" && !invalidEmail ? "Try again" : submitLabel}
+      </AppButton>
     </form>
   );
 };
