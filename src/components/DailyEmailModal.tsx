@@ -84,7 +84,11 @@ const DailyEmailModal: React.FC<{
   onSubscribed?: (email: string, restored: boolean) => void;
   /** Delay before the modal closes itself once the success state has shown. */
   successHoldMs?: number;
-}> = ({ mode, source = "daily_result", onClose, onSubscribed, successHoldMs = 1400 }) => {
+  /** Optional overrides for the lobby Subscribe explainer. */
+  heading?: string;
+  intro?: React.ReactNode;
+  submitLabel?: string;
+}> = ({ mode, source = "daily_result", onClose, onSubscribed, successHoldMs = 1400, heading, intro, submitLabel }) => {
   const portalHost = usePortalHost("email-modal");
   const hostRef = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
@@ -197,10 +201,11 @@ const DailyEmailModal: React.FC<{
         <DailyEmailCapture
           source={mode === "restore" ? "restore" : source}
           autoFocus
-          heading={mode === "restore" ? "Restore your streak." : "Get tomorrow's grid."}
-          body={dailyEmailModalBody(mode, source)}
+          heading={heading ?? (mode === "restore" ? "Restore your streak." : "Get tomorrow's grid.")}
+          body={intro ? "A little more joy, right in your inbox." : dailyEmailModalBody(mode, source)}
           note={null}
-          submitLabel={mode === "restore" ? "Restore" : "Sign Me Up"}
+          intro={intro}
+          submitLabel={submitLabel ?? (mode === "restore" ? "Restore" : "Sign Me Up")}
           onChoiceRequiredChange={setChoiceRequired}
           onSubscribed={(email, restored) => {
             onSubscribed?.(email, restored);

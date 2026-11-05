@@ -43,6 +43,8 @@ const DailyEmailCapture: React.FC<{
   onChoiceRequiredChange?: (required: boolean) => void;
   /** The result screen places this form directly on its fixed orange panel. */
   onAccentSurface?: boolean;
+  /** Extra content under the body (the lobby Subscribe benefits list). */
+  intro?: React.ReactNode;
 }> = ({
   source,
   onSubscribed,
@@ -54,6 +56,7 @@ const DailyEmailCapture: React.FC<{
   autoFocus = false,
   onChoiceRequiredChange,
   onAccentSurface = false,
+  intro,
 }) => {
   // The results box and the lobby restore are sign-in; pre-launch and the
   // landing page stay an explicit reminder signup. With sign-in off, every box
@@ -80,6 +83,7 @@ const DailyEmailCapture: React.FC<{
         submitLabel,
         successMessage,
         autoFocus,
+        intro,
       }}
     />
   );
@@ -94,7 +98,8 @@ const ReminderSignup: React.FC<{
   submitLabel?: string;
   successMessage?: string;
   autoFocus?: boolean;
-}> = ({ source, onSubscribed, heading, body, note, submitLabel, successMessage, autoFocus = false }) => {
+  intro?: React.ReactNode;
+}> = ({ source, onSubscribed, heading, body, note, submitLabel, successMessage, autoFocus = false, intro }) => {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [restored, setRestored] = useState(false);
@@ -199,6 +204,7 @@ const ReminderSignup: React.FC<{
         {heading}
       </h2>
       <p style={bodyStyle}>{body}</p>
+      {intro}
       {note && (
         <p style={{ ...bodyStyle, fontStyle: "italic" }}>
           {note}
@@ -237,7 +243,7 @@ const ReminderSignup: React.FC<{
         }}
       />
       <p style={{ ...bodyStyle, fontSize: 12, color: COLORS.inkMuted }}>
-        We only send the daily puzzle.{" "}
+        {intro ? "The daily puzzle, plus the odd game update." : "We only send the daily puzzle."}{" "}
         <a
           href="/privacy"
           target="_blank"
