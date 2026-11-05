@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { signOut as accountSignOut } from "@/lib/account";
 import { AppButton } from "@/components/ui/AppButton";
 import AdminBackupBanner from "@/components/AdminBackupBanner";
+import { AdminMetricBars } from "@/components/AdminMetricBars";
+import { adminDateRange } from "@/lib/adminPresentation";
 import {
 
   attributionSection,
@@ -191,18 +193,8 @@ interface DashboardData {
 // helpers
 // ---------------------------------------------------------------------------
 
-function isoDay(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
 function defaultRange(): { from: string; to: string } {
-  const to = new Date();
-  const from = new Date();
-  from.setDate(from.getDate() - 13); // last 14 days inclusive
-  return { from: isoDay(from), to: isoDay(to) };
+  return adminDateRange(14);
 }
 
 function pct(part: number, whole: number): string {
@@ -622,6 +614,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "denied" | "error">("loading");
   const [trendAll, setTrendAll] = useState(false);
+  const [trendTable, setTrendTable] = useState(false);
   const [confirmList, setConfirmList] = useState(false);
   const [listBusy, setListBusy] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
@@ -825,6 +818,18 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
 
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: SPACE[5] }}>
         <span style={labelStyle}>Range</span>
+        <div role="group" aria-label="Quick date ranges" style={{ display: "flex", flexWrap: "wrap", gap: SPACE[2] }}>
+          {[1, 7, 14, 30].map((days) => {
+            const range = adminDateRange(days);
+            const selected = from === range.from && to === range.to;
+            return (
+              <AppButton key={days} type="button" variant="secondary" size="sm" active={selected} aria-pressed={selected}
+                onClick={() => { setFrom(range.from); setTo(range.to); }}>
+                {days === 1 ? "Today" : `${days} days`}
+              </AppButton>
+            );
+          })}
+        </div>
         <input
           type="date"
           value={from}
@@ -1092,21 +1097,19 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         }}
       >
         <Card title="Funnel" action={<ExportButton onClick={() => exportSection(funnelSection)} />}>
-          <Table
-            head={["Step", "Count", "% of above"]}
-            rows={
-              f
-                ? [
-                    ["Ready viewed", f.ready_viewed, "—"],
-                    ["Run started", f.run_started, pct(f.run_started, f.ready_viewed)],
-                    ["Run finished", f.run_finished, pct(f.run_finished, f.run_started)],
-                    ["Runs abandoned", f.run_abandoned, pct(f.run_abandoned, f.run_started)],
-                    ["Shared", f.shared, pct(f.shared, f.run_finished)],
-                    ["Subscribed", f.subscribed, pct(f.subscribed, f.run_finished)],
-                  ]
-                : []
-            }
-          />
+          {f ? <>
+            <AdminMetricBars baseline={f.ready_viewed} rows={[
+              { label: "Ready viewed", count: f.ready_viewed },
+              { label: "Run started", count: f.run_started, detail: `${pct(f.run_started, f.ready_viewed)} of ready` },
+              { label: "Run finished", count: f.run_finished, detail: `${pct(f.run_finished, f.run_started)} of started` },
+            ]} />
+            <span style={{ ...labelStyle, textTransform: "none" }}>Bar scale: ready views · event counts, not a matched player cohort.</span>
+            <Table head={["After starting", "Count", "Rate"]} rows={[
+              ["Runs abandoned", f.run_abandoned, `${pct(f.run_abandoned, f.run_started)} of started`],
+              ["Shared", f.shared, `${pct(f.shared, f.run_finished)} of finished`],
+              ["Subscribed", f.subscribed, `${pct(f.subscribed, f.run_finished)} of finished`],
+            ]} />
+          </> : <span style={labelStyle}>{state === "loading" ? "Loading…" : "Report unavailable"}</span>}
         </Card>
 
         <Card
@@ -1223,7 +1226,9 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         >
           {(() => {
             const all = [...(data?.trend ?? [])].reverse(); // newest first
-            const rows = (trendAll ? all : all.slice(0, 7)).map((r) => [
+            const shown = trendAll ? all : all.slice(0, 7);
+            const peak = Math.max(0, ...all.flatMap((r) => [r.runs_started, r.runs_finished, r.results_saved]));
+            const rows = shown.map((r) => [
               r.day,
               r.runs_started,
               r.runs_finished,
@@ -1231,7 +1236,30 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
             ]);
             return (
               <>
-                <Table head={["Day", "Started", "Finished", "Results saved"]} rows={rows} />
+                {failures.includes("admin_trend") ? <span style={labelStyle}>Report unavailable</span> : shown.length === 0 ? <span style={labelStyle}>{state === "loading" ? "Loading…" : "No data in range"}</span> : <>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: SPACE[8] }}>
+                    {[["Started", COLORS.inkMuted], ["Finished", COLORS.blue], ["Results saved", COLORS.orange]].map(([label, color]) => (
+                      <span key={label} style={{ ...mono, fontSize: FONT_SIZE.xs, color: COLORS.ink, display: "inline-flex", alignItems: "center", gap: SPACE[3] }}>
+                        <span aria-hidden="true" style={{ width: SPACE[5], height: SPACE[5], background: color, borderRadius: RADIUS.sm }} />{label}
+                      </span>
+                    ))}
+                  </div>
+                  <span style={{ ...labelStyle, textTransform: "none" }}>Shared scale · peak {peak.toLocaleString()} events per day in selected range</span>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: SPACE[10] }}>
+                    {shown.map((r) => <div key={r.day} style={{ minWidth: 0 }}>
+                      <h3 style={{ ...sectionTitle, marginBottom: SPACE[5] }}>{r.day}</h3>
+                      <AdminMetricBars baseline={peak} rows={[
+                        { label: "Started", count: r.runs_started, color: COLORS.inkMuted },
+                        { label: "Finished", count: r.runs_finished, color: COLORS.blue },
+                        { label: "Results saved", count: r.results_saved, color: COLORS.orange },
+                      ]} />
+                    </div>)}
+                  </div>
+                  <AppButton type="button" onClick={() => setTrendTable((v) => !v)} aria-expanded={trendTable} style={exportButtonStyle}>
+                    {trendTable ? "Hide table" : "Show table"}
+                  </AppButton>
+                  {trendTable ? <Table head={["Day", "Started", "Finished", "Results saved"]} rows={rows} /> : null}
+                </>}
                 {all.length > 7 ? (
                   <AppButton
                     type="button"
