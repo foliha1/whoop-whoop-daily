@@ -49,7 +49,7 @@ const DailyEmailCapture: React.FC<{
   source,
   onSubscribed,
   heading = "Get tomorrow's grid.",
-  body = "A new game every morning. Nothing else.",
+  body = "A new game every morning, plus the odd game update.",
   note = "New here, or coming back? Drop in your email.",
   submitLabel = "Sign Me Up",
   successMessage,
@@ -243,7 +243,7 @@ const ReminderSignup: React.FC<{
         }}
       />
       <p style={{ ...bodyStyle, fontSize: 12, color: COLORS.inkMuted }}>
-        {intro ? "The daily puzzle, plus the odd game update." : "We only send the daily puzzle."}{" "}
+        The daily puzzle, plus the odd game update.{" "}
         <a
           href="/privacy"
           target="_blank"

@@ -41,8 +41,8 @@ export const dailyEmailModalBody = (
 ) => mode === "restore"
   ? "Enter the address you used before and your streak and history come back."
   : source === "home"
-    ? "A new game every morning. Nothing else."
-    : "A new game every morning. Nothing else.";
+    ? "A new game every morning, plus the odd game update."
+    : "A new game every morning, plus the odd game update.";
 
 /** Live visual viewport box, so the keyboard cannot push the submit off screen. */
 function useVisualViewportBox() {
