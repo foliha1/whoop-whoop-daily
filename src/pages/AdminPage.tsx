@@ -904,9 +904,6 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
           {listError ? (
             <span style={{ ...mono, fontSize: FONT_SIZE["2xs"], color: COLORS.redText }}>{listError}</span>
           ) : null}
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
           <div style={{ display: "flex", flexWrap: "wrap", gap: SPACE[5] }}>
             <AppButton
               type="button"
@@ -929,8 +926,9 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
           </div>
         </div>
       ) : null}
-
-
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <h2 style={sectionTitle}>Daily overview</h2>
       {(() => {
