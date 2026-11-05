@@ -196,7 +196,7 @@ const DailySignIn: React.FC<{
     return (
       <div data-testid="signin-reminder" style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
         <h2 style={panelHeadingStyle}>We'll send you the daily puzzle.</h2>
-        <p style={panelBodyStyle}>One email each morning. Turn it off any time in Settings.</p>
+        <p style={panelBodyStyle}>One email each morning, plus the odd game update. Turn it off any time in Settings.</p>
         <button
           type="button"
           className="ww-press"

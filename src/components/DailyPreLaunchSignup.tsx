@@ -113,7 +113,7 @@ const DailyPreLaunchSignup: React.FC<{
           source="prelaunch"
           autoFocus
           heading={`First puzzle, ${DAILY_LAUNCH_LABEL}.`}
-          body="Drop your email and we'll send it the morning it goes live. One a day after that. Nothing else."
+          body="Drop your email and we'll send it the morning it goes live. The daily puzzle after that, plus the odd game update."
           note={null}
           submitLabel="Notify Me"
           successMessage={`You're on the list. See you on the ${DAILY_LAUNCH_LABEL.replace(/^August\s+/, "")}.`}

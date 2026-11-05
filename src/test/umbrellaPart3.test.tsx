@@ -246,10 +246,10 @@ describe("Part 3 Home email signup", () => {
       "Enter the address you used before and your streak and history come back.",
     );
     expect(dailyEmailModalBody("subscribe", "daily_result")).toBe(
-      "A new game every morning. Nothing else.",
+      "A new game every morning, plus the odd game update.",
     );
     expect(dailyEmailModalBody("subscribe", "home")).toBe(
-      "A new game every morning. Nothing else.",
+      "A new game every morning, plus the odd game update.",
     );
   });
 

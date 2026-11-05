@@ -41,7 +41,7 @@ describe("sign-in switched off", () => {
     invoke.mockResolvedValue({ data: { ok: true }, error: null });
     const onSubscribed = vi.fn();
     render(<DailyEmailCapture onSubscribed={onSubscribed} />);
-    expect(screen.getByText("We only send the daily puzzle.", { exact: false })).toBeTruthy();
+    expect(screen.getByText("The daily puzzle, plus the odd game update.", { exact: false })).toBeTruthy();
     expect(screen.queryByText(/coming back/i)).toBeNull();
     fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "New@Example.com" } });
     fireEvent.click(screen.getByRole("button", { name: "Sign Me Up" }));
