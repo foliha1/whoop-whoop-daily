@@ -198,7 +198,6 @@ const DailyEmailModal: React.FC<{
 
         {/* Same component, same validation, same submit path. Only the heading
             differs between modes. */}
-        {intro ? <h2 style={{ margin: 0, fontFamily: "inherit" }} className="sr-only">{heading}</h2> : null}
         <DailyEmailCapture
           source={mode === "restore" ? "restore" : source}
           autoFocus
