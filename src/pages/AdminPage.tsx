@@ -13,6 +13,7 @@ import type { CSSProperties } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { signOut as accountSignOut } from "@/lib/account";
+import { AppButton } from "@/components/ui/AppButton";
 import AdminBackupBanner from "@/components/AdminBackupBanner";
 import {
 
@@ -144,13 +145,12 @@ interface HeadlineRow {
   runs_finished: number;
 }
 
-/** Classic (versus) games. Separate from every Daily metric above. */
-interface ClassicRow {
+/** Completed games, aggregated independently for each mode. Claims are game-wide. */
+interface GameModeRow {
+  mode: "solo" | "together";
   games_completed: number;
   median_seconds: number;
   avg_players: number;
-  solo_games: number;
-  multiplayer_games: number;
   avg_correct_claims: number;
   avg_wrong_claims: number;
 }
@@ -179,7 +179,7 @@ interface DashboardData {
   rejections: RejectionRow[];
   headline: HeadlineRow | null;
   nextDay: NextDayRow | null;
-  classic: ClassicRow | null;
+  gameModes: GameModeRow[];
   easterEggs: number | null;
   classicTiming: ClassicTimingRow[];
   retentionSplit: RetentionSplitRow[];
@@ -230,6 +230,9 @@ const mono: CSSProperties = {
 
 const cardStyle: CSSProperties = {
   boxSizing: "border-box",
+  minWidth: 0,
+  maxWidth: "100%",
+  overflowWrap: "anywhere",
   background: COLORS.surface,
   border: BORDER.standard,
   borderRadius: RADIUS.md,
@@ -248,7 +251,7 @@ const sectionTitle: CSSProperties = {
 const labelStyle: CSSProperties = {
   ...mono,
   fontSize: FONT_SIZE["2xs"],
-  letterSpacing: "0.06em",
+  letterSpacing: 0,
   textTransform: "uppercase",
   color: COLORS.inkMuted,
 };
@@ -381,15 +384,15 @@ const SignInGate: React.FC = () => {
                 {error}
               </span>
             ) : null}
-            <button
+            <AppButton
               type="button"
               onClick={() => void verify()}
               disabled={busy}
               style={buttonStyle("primary", "sm", { fullWidth: true })}
             >
               Sign In
-            </button>
-            <button
+            </AppButton>
+            <AppButton
               type="button"
               onClick={() => {
                 setSent(false);
@@ -399,7 +402,7 @@ const SignInGate: React.FC = () => {
               style={exportButtonStyle}
             >
               Use a different email
-            </button>
+            </AppButton>
           </>
         ) : (
           <>
@@ -423,14 +426,14 @@ const SignInGate: React.FC = () => {
                 {error}
               </span>
             ) : null}
-            <button
+            <AppButton
               type="button"
               onClick={() => void send()}
               disabled={busy}
               style={buttonStyle("primary", "sm", { fullWidth: true })}
             >
               Send Code
-            </button>
+            </AppButton>
           </>
         )}
       </div>
@@ -446,7 +449,7 @@ const SignInGate: React.FC = () => {
 const exportButtonStyle: CSSProperties = {
   ...mono,
   fontSize: FONT_SIZE["2xs"],
-  letterSpacing: "0.06em",
+  letterSpacing: 0,
   textTransform: "uppercase",
   cursor: "pointer",
   background: "transparent",
@@ -463,9 +466,9 @@ const ExportButton: React.FC<{ onClick: () => void; label?: string; title?: stri
   label = "CSV",
   title,
 }) => (
-  <button type="button" onClick={onClick} style={exportButtonStyle} title={title}>
+  <AppButton type="button" onClick={onClick} style={exportButtonStyle} title={title}>
     ↓ {label}
-  </button>
+  </AppButton>
 );
 
 
@@ -484,7 +487,7 @@ const Card: React.FC<{
         gap: SPACE[5],
       }}
     >
-      <h2 style={sectionTitle}>{title}</h2>
+      <h2 style={{ ...sectionTitle, minWidth: 0, overflowWrap: "anywhere" }}>{title}</h2>
       {action}
     </div>
     {children}
@@ -540,7 +543,29 @@ const Stat: React.FC<{ label: string; value: string; note?: string; muted?: bool
 
 
 
+const MetricBreakdown: React.FC<{
+  label: string;
+  rows: { label: string; value: string; detail: string }[];
+  note: string;
+}> = ({ label, rows, note }) => (
+  <div style={{ ...cardStyle, padding: SPACE[8], gap: SPACE[3] }}>
+    <span style={labelStyle}>{label}</span>
+    <dl style={{ margin: 0, display: "grid", gap: SPACE[3], minWidth: 0 }}>
+      {rows.map((r) => (
+        <div key={r.label} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", alignItems: "baseline", gap: SPACE[3] }}>
+          <dt style={{ ...mono, color: COLORS.inkMuted, fontSize: FONT_SIZE.xs }}>{r.label}</dt>
+          <dd style={{ ...mono, margin: 0, textAlign: "right", color: COLORS.ink, fontSize: 20, fontWeight: 600 }}>
+            {r.value}<span style={{ display: "block", color: COLORS.inkMuted, fontSize: FONT_SIZE["2xs"], fontWeight: FONT_WEIGHT_UI }}>{r.detail}</span>
+          </dd>
+        </div>
+      ))}
+    </dl>
+    <span style={{ ...mono, color: COLORS.inkMuted, fontSize: FONT_SIZE["2xs"] }}>{note}</span>
+  </div>
+);
+
 const Table: React.FC<{ head: string[]; rows: (string | number)[][] }> = ({ head, rows }) => (
+  <div role="region" aria-label={`${head.join(", ")} table`} tabIndex={0} style={{ minWidth: 0, maxWidth: "100%", overflowX: "auto" }}>
   <table style={{ width: "100%", borderCollapse: "collapse" }}>
     <thead>
       <tr>
@@ -586,6 +611,7 @@ const Table: React.FC<{ head: string[]; rows: (string | number)[][] }> = ({ head
       )}
     </tbody>
   </table>
+  </div>
 );
 
 const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
@@ -627,7 +653,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       }
     };
 
-    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay, classic, retentionSplit, signinFunnel, classicTiming, easterEggs] =
+    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay, gameModes, retentionSplit, signinFunnel, classicTiming, easterEggs] =
       await Promise.all([
         call<FunnelRow>("admin_funnel", args),
         call<DifficultyRow>("admin_difficulty", args),
@@ -638,7 +664,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         call<HeadlineRow>("admin_headline", args),
         call<RejectionRow>("admin_rejections", args),
         call<NextDayRow>("admin_next_day_return"),
-        call<ClassicRow>("admin_classic", args),
+        call<GameModeRow>("admin_game_modes", args),
         call<RetentionSplitRow>("admin_retention_split"),
         call<SigninFunnelRow>("admin_signin_funnel", { p_days: 30 }),
         call<ClassicTimingRow>("admin_classic_timing", args),
@@ -672,7 +698,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       rejections,
       headline: headline[0] ?? null,
       nextDay: nextDay[0] ?? null,
-      classic: classic[0] ?? null,
+      gameModes,
       easterEggs: easterEggs[0]?.found ?? null,
       classicTiming,
       retentionSplit,
@@ -759,15 +785,15 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         justifyContent: "space-between",
       }}
     >
-      <div>
+      <div style={{ minWidth: 0, overflowWrap: "anywhere" }}>
         <h1 style={{ ...textStyle("title"), color: COLORS.ink, margin: 0 }}>
-          Daily Dashboard
+          WHOOP! Dashboard
         </h1>
         <span style={labelStyle}>{session.user.email}</span>
       </div>
-      <button type="button" onClick={signOut} style={buttonStyle("ink", "sm")}>
+      <AppButton type="button" onClick={signOut} style={buttonStyle("ink", "sm")}>
         Sign Out
-      </button>
+      </AppButton>
     </header>
   );
 
@@ -812,9 +838,9 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
           aria-label="To date"
           style={inputStyle}
         />
-        <button type="button" onClick={() => void load()} style={buttonStyle("secondary", "sm")}>
+        <AppButton type="button" onClick={() => void load()} style={buttonStyle("secondary", "sm")}>
           {state === "loading" ? "Loading…" : "Refresh"}
-        </button>
+        </AppButton>
       </div>
 
       {state === "error" ? (
@@ -852,13 +878,13 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         <ExportButton onClick={exportAll} label="Everything (.csv)" />
         <ExportButton onClick={exportHeadline} label="Headline (.csv)" />
         <span style={{ flex: "1 1 0", minWidth: 0 }} />
-        <button
+        <AppButton
           type="button"
           onClick={() => setConfirmList(true)}
           style={{ ...exportButtonStyle, color: COLORS.redText, borderColor: COLORS.red }}
         >
           ↓ Subscriber List (Emails)
-        </button>
+        </AppButton>
       </div>
 
       {confirmList ? (
@@ -873,15 +899,15 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
             <span style={{ ...mono, fontSize: FONT_SIZE["2xs"], color: COLORS.redText }}>{listError}</span>
           ) : null}
           <div style={{ display: "flex", flexWrap: "wrap", gap: SPACE[5] }}>
-            <button
+            <AppButton
               type="button"
               onClick={() => void exportSubscribers()}
               disabled={listBusy}
               style={buttonStyle("primary", "sm")}
             >
               {listBusy ? "Preparing…" : "Download the List"}
-            </button>
-            <button
+            </AppButton>
+            <AppButton
               type="button"
               onClick={() => {
                 setConfirmList(false);
@@ -890,13 +916,14 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
               style={buttonStyle("secondary", "sm")}
             >
               Cancel
-            </button>
+            </AppButton>
           </div>
         </div>
       ) : null}
 
 
 
+      <h2 style={sectionTitle}>Daily overview</h2>
       {(() => {
         const h = data?.headline;
         const n = (v: number | null | undefined) =>
@@ -906,7 +933,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))",
               gap: SPACE[6],
             }}
           >
@@ -950,10 +977,13 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
                 nd.visitor_pct === null ? "—" : `${nd.visitor_pct}%`;
               const e = nd.email_pct === null ? "—" : `${nd.email_pct}%`;
               return (
-                <Stat
+                <MetricBreakdown
                   label="Next-day return"
-                  value={`${v} · ${e}`}
-                  note={`#${nd.base_puzzle} → #${nd.next_puzzle} · by device ${nd.visitor_returned}/${nd.visitor_base} · by email ${nd.email_returned}/${nd.email_base} (more reliable)`}
+                  rows={[
+                    { label: "Device", value: v, detail: `${nd.visitor_returned}/${nd.visitor_base}` },
+                    { label: "Email", value: e, detail: `${nd.email_returned}/${nd.email_base}` },
+                  ]}
+                  note={`#${nd.base_puzzle} → #${nd.next_puzzle} · fully elapsed days`}
                 />
               );
             })()}
@@ -962,11 +992,15 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
               const pct = (ret: number, base: number) =>
                 base > 0 ? `${Math.round((ret / base) * 100)}%` : "—";
               return (
-                <Stat
+                <MetricBreakdown
                   key={r.segment}
                   label={`Retention · ${r.segment === "signed_in" ? "Signed in" : "Anonymous"}`}
-                  value={`${pct(r.d1_returned, r.d1_base)} · ${pct(r.d7_returned, r.d7_base)} · ${pct(r.d30_returned, r.d30_base)}`}
-                  note={`D1 · D7 · D30 · ${r.players.toLocaleString()} players · D1 ${r.d1_returned}/${r.d1_base} · D7 ${r.d7_returned}/${r.d7_base} · D30 ${r.d30_returned}/${r.d30_base}`}
+                  rows={[
+                    { label: "Day 1", value: pct(r.d1_returned, r.d1_base), detail: `${r.d1_returned}/${r.d1_base}` },
+                    { label: "Day 7", value: pct(r.d7_returned, r.d7_base), detail: `${r.d7_returned}/${r.d7_base}` },
+                    { label: "Day 30", value: pct(r.d30_returned, r.d30_base), detail: `${r.d30_returned}/${r.d30_base}` },
+                  ]}
+                  note={`${r.players.toLocaleString()} players · all-time cohorts`}
                 />
               );
             })}
@@ -1017,10 +1051,41 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       })()}
 
 
+      <h2 style={sectionTitle}>Solo & Together · selected range</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: SPACE[8], minWidth: 0 }}>
+        {(["solo", "together"] as const).map((mode) => {
+          const report = data?.gameModes.find((r) => r.mode === mode);
+          const name = mode === "solo" ? "Solo" : "Together";
+          return (
+            <Card key={mode} title={name}>
+              {!report ? (
+                <span style={labelStyle}>{state === "loading" ? "Loading…" : "Report unavailable"}</span>
+              ) : report.games_completed === 0 ? (
+                <span style={labelStyle}>No {name} games completed in this range.</span>
+              ) : (
+                <>
+                  <Table head={["Metric", "Value"]} rows={[
+                    ["Games completed", report.games_completed.toLocaleString()],
+                    ["Median game length", mmss(report.median_seconds)],
+                    ...(mode === "together" ? [["Avg players per game", report.avg_players]] : []),
+                    ["Avg correct claims / game", report.avg_correct_claims],
+                    ["Avg wrong claims / game", report.avg_wrong_claims],
+                  ]} />
+                  <span style={{ ...labelStyle, textTransform: "none" }}>
+                    {mode === "solo" ? "Claims include the player and FELIX, not player accuracy." : "Claims include all players at the table."}
+                  </span>
+                </>
+              )}
+            </Card>
+          );
+        })}
+      </div>
+      <h2 style={sectionTitle}>Daily reports & diagnostics</h2>
+
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
           gap: SPACE[8],
           alignItems: "start",
         }}
@@ -1112,42 +1177,10 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
           </span>
         </Card>
 
-        {/* Classic (versus). Completely separate from the Daily numbers above:
-            one row per completed Classic game, written by the host. */}
-        <Card title="Classic">
-          {(() => {
-            const c = data?.classic ?? null;
-            const games = c?.games_completed ?? 0;
-            if (!c || games === 0) {
-              return <span style={labelStyle}>No Classic games completed in this range.</span>;
-            }
-            const solo = c.solo_games;
-            const mp = c.multiplayer_games;
-            const share = (v: number) => `${Math.round((v / games) * 100)}%`;
-            return (
-              <>
-                <Table
-                  head={["Metric", "Value"]}
-                  rows={[
-                    ["Games completed", games],
-                    ["Median game length", mmss(c.median_seconds)],
-                    ["Avg players per game", c.avg_players],
-                    ["Solo vs WHOOP", `${solo} · ${share(solo)}`],
-                    ["Multiplayer", `${mp} · ${share(mp)}`],
-                  ]}
-                />
-                <span style={labelStyle}>
-                  Avg claims per game — correct {c.avg_correct_claims} · wrong {c.avg_wrong_claims}
-                </span>
-              </>
-            );
-          })()}
-        </Card>
-
         {/* Sampled Classic responsiveness (about 10% of games, no personal
             data). Tap = joiner tap → host → state → joiner paint; host taps
             are local paint only. Frames = dropped frames in pulse / roll. */}
-        <Card title="Classic responsiveness">
+        <Card title="Game responsiveness" span>
           {(data?.classicTiming ?? []).length === 0 ? (
             <span style={labelStyle}>No timing samples in this range.</span>
           ) : (
@@ -1199,13 +1232,13 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
               <>
                 <Table head={["Day", "Started", "Finished", "Results saved"]} rows={rows} />
                 {all.length > 7 ? (
-                  <button
+                  <AppButton
                     type="button"
                     onClick={() => setTrendAll((v) => !v)}
                     style={buttonStyle("secondary", "sm")}
                   >
                     {trendAll ? "Show Last 7 Days" : `Show All ${all.length} Days`}
-                  </button>
+                  </AppButton>
                 ) : null}
               </>
             );
@@ -1219,6 +1252,9 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
 
 const pageStyle: CSSProperties = {
   minHeight: "var(--ww-vh, 100vh)",
+  minWidth: 0,
+  boxSizing: "border-box",
+  width: "100%",
   background: COLORS.panel,
   padding: SPACE[10],
   display: "flex",
