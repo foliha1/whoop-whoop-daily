@@ -20,12 +20,12 @@ export const SUBSCRIBE_BENEFITS: { title: string; text: string; color: string }[
 const GEIST = '"Geist", "Geist Sans", system-ui, -apple-system, "Segoe UI", sans-serif';
 
 const SubscribeBenefits: React.FC = () => (
-  <ul data-testid="subscribe-benefits" style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: SPACE[3] }}>
+  <ul data-testid="subscribe-benefits" style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: SPACE[8] }}>
     {SUBSCRIBE_BENEFITS.map((b) => (
       <li key={b.title} style={{ display: "flex", gap: SPACE[3], alignItems: "flex-start" }}>
         <span aria-hidden="true" style={{ flex: "0 0 auto", width: 10, height: 10, borderRadius: 999, background: b.color, marginTop: 6 }} />
         <span style={{ fontFamily: GEIST, fontSize: 14, lineHeight: 1.45, color: COLORS.ink }}>
-          <strong style={{ fontFamily: FONT_FAMILY, fontWeight: 700 }}>{b.title}.</strong> {b.text}
+          <strong style={{ display: "block", fontFamily: FONT_FAMILY, fontSize: 18, fontWeight: 400, lineHeight: 1.3, marginBottom: SPACE[2] }}>{b.title}.</strong> {b.text}
         </span>
       </li>
     ))}

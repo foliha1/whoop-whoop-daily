@@ -454,6 +454,10 @@ All colors MUST be HSL.
 
 .ww-ui-modal-backdrop { animation: ww-ui-revisit var(--ww-ui-enter, 250ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) both; }
 .ww-ui-modal-panel { animation: ww-ui-modal-in var(--ww-ui-enter, 250ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) both; }
+.ww-subscribe-form { gap: 16px !important; }
+.ww-subscribe-form h2 { font-size: 28px !important; }
+.ww-subscribe-form h2 + p { margin-top: -8px !important; }
+.ww-subscribe-form input { padding-inline: 16px !important; }
 .ww-ui-modal-backdrop[data-motion-exit="true"] { animation: ww-ui-revisit var(--ww-ui-exit, 150ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) reverse both; }
 .ww-ui-modal-panel[data-motion-exit="true"] { animation: ww-ui-modal-out var(--ww-ui-exit, 150ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) both; }
 
