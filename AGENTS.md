@@ -1,4 +1,5 @@
 # Architecture decisions
+- Admin downloads share one collapsed accordion using existing export handlers; subscriber email confirmation stays inside it to preserve the personal-data safeguard.
 - Admin date presets reuse inclusive local-calendar date inputs; charts scale existing read-only event counts without changing rates, RPCs or CSV exports, so visual comparisons never imply new cohort measurements.
 - Admin Solo/Together reports use an additive admin-only mode aggregate with the existing created-at date window; game-wide claims are labelled explicitly because Solo includes the bot, and wide report tables scroll within their own sections.
 - Lobby subscription success remains in the shared email dialog until dismissed; only confirmed signup triggers subscriber persistence, keeping retries and unverified addresses separate from success.

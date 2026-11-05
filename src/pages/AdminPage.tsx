@@ -14,6 +14,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { signOut as accountSignOut } from "@/lib/account";
 import { AppButton } from "@/components/ui/AppButton";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import AdminBackupBanner from "@/components/AdminBackupBanner";
 import { AdminMetricBars } from "@/components/AdminMetricBars";
 import { adminDateRange } from "@/lib/adminPresentation";
@@ -871,28 +872,27 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       ) : null}
 
 
-      {/* Export controls. The pitch snapshot leads because it is the thing a
-          publisher conversation actually needs; the subscriber list is kept
-          apart because it is personal data and asks before it downloads. */}
-      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: SPACE[5] }}>
-        <span style={labelStyle}>Export</span>
-        <ExportButton
-          onClick={exportPitch}
-          label="Pitch Snapshot (.md)"
-          title="One-page headline summary to paste into a deck or an email"
-        />
-        <ExportButton onClick={exportAll} label="Everything (.csv)" />
-        <ExportButton onClick={exportHeadline} label="Headline (.csv)" />
-        <span style={{ flex: "1 1 0", minWidth: 0 }} />
-        <AppButton
-          type="button"
-          onClick={() => setConfirmList(true)}
-          style={{ ...exportButtonStyle, color: COLORS.redText, borderColor: COLORS.red }}
-        >
-          ↓ Subscriber List (Emails)
-        </AppButton>
-      </div>
-
+      <Accordion type="single" collapsible style={{ minWidth: 0 }}>
+        <AccordionItem value="exports" style={{ borderColor: COLORS.panelMuted }}>
+          <AccordionTrigger style={{ ...sectionTitle, margin: 0, color: COLORS.ink }}>Export</AccordionTrigger>
+          <AccordionContent>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: SPACE[5] }}>
+              <ExportButton onClick={exportPitch} label="Pitch Snapshot (.md)" title="One-page headline summary to paste into a deck or an email" />
+              <ExportButton onClick={exportAll} label="Everything (.csv)" />
+              <ExportButton onClick={exportHeadline} label="Headline (.csv)" />
+              <ExportButton onClick={() => exportSection(funnelSection)} label="Funnel (.csv)" />
+              <ExportButton onClick={() => exportSection(difficultySection)} label="Difficulty (.csv)" />
+              <ExportButton onClick={() => exportSection(howtoSection)} label="How to Play (.csv)" />
+              <ExportButton onClick={() => exportSection(attributionSection)} label="Attribution (.csv)" />
+              <ExportButton onClick={() => exportSection(listSection)} label="List summary (.csv)" />
+              <ExportButton onClick={() => exportSection(trendSection)} label="Daily trend (.csv)" />
+            </div>
+            <div style={{ marginTop: SPACE[8], paddingTop: SPACE[5], borderTop: `1px solid ${COLORS.panelMuted}` }}>
+              <AppButton type="button" onClick={() => setConfirmList(true)}
+                style={{ ...exportButtonStyle, color: COLORS.redText, borderColor: COLORS.red }}>
+                ↓ Subscriber List (Emails)
+              </AppButton>
+            </div>
       {confirmList ? (
         <div style={{ ...cardStyle, gap: SPACE[6] }}>
           <h2 style={sectionTitle}>Export subscriber emails?</h2>
@@ -926,8 +926,9 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
           </div>
         </div>
       ) : null}
-
-
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <h2 style={sectionTitle}>Daily overview</h2>
       {(() => {
@@ -1096,7 +1097,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
           alignItems: "start",
         }}
       >
-        <Card title="Funnel" action={<ExportButton onClick={() => exportSection(funnelSection)} />}>
+        <Card title="Funnel">
           {f ? <>
             <AdminMetricBars baseline={f.ready_viewed} rows={[
               { label: "Ready viewed", count: f.ready_viewed },
@@ -1114,7 +1115,6 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
 
         <Card
           title="Difficulty"
-          action={<ExportButton onClick={() => exportSection(difficultySection)} />}
         >
           <Table
             head={["Round", "Solved", "Failed", "Solve rate", "Avg misses"]}
@@ -1130,7 +1130,6 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
 
         <Card
           title="How to Play"
-          action={<ExportButton onClick={() => exportSection(howtoSection)} />}
         >
           <Table
             head={["Step", "Count"]}
@@ -1154,7 +1153,6 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
 
         <Card
           title="Attribution"
-          action={<ExportButton onClick={() => exportSection(attributionSection)} />}
         >
           <Table
             head={["Referrer", "Visitors"]}
@@ -1170,7 +1168,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
           />
         </Card>
 
-        <Card title="List" action={<ExportButton onClick={() => exportSection(listSection)} />}>
+        <Card title="List">
           <Table
             head={["Source", "Subscribers", "Synced"]}
             rows={(data?.subscribers ?? []).map((r) => [r.source, r.total, r.synced])}
@@ -1222,7 +1220,6 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         <Card
           title="Daily trend"
           span
-          action={<ExportButton onClick={() => exportSection(trendSection)} />}
         >
           {(() => {
             const all = [...(data?.trend ?? [])].reverse(); // newest first
