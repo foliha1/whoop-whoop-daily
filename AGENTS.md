@@ -1,4 +1,5 @@
 # Architecture decisions
+- Lobby subscription success remains in the shared email dialog until dismissed; only confirmed signup triggers subscriber persistence, keeping retries and unverified addresses separate from success.
 - About uses the shared scrollable Daily frame and existing card artwork as an editorial page in both launch states, keeping its presentation independent of gameplay and signup flows.
 - ON Classic tutorial tips occupy a separate flow row from die/actions and are replaced per step; compact tutorials scroll instead of overlapping controls.
 - ON gameplay roll cubes render at native hero resolution and scale down into the tray; server-clock animation deadlines and the OFF rendering remain unchanged.

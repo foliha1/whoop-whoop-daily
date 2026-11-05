@@ -205,6 +205,7 @@ const DailyEmailModal: React.FC<{
             differs between modes. */}
         <DailyEmailCapture
           className={floating ? "ww-subscribe-form" : undefined}
+          onDone={floating ? requestExit : undefined}
           source={mode === "restore" ? "restore" : source}
           autoFocus
           heading={heading ?? (mode === "restore" ? "Restore your streak." : "Get tomorrow's grid.")}
@@ -216,7 +217,7 @@ const DailyEmailModal: React.FC<{
           onSubscribed={(email, restored) => {
             onSubscribed?.(email, restored);
             // The success line shows inside the modal, then it closes itself.
-            window.setTimeout(requestExit, successHoldMs);
+            if (!floating) window.setTimeout(requestExit, successHoldMs);
           }}
         />
       </div>

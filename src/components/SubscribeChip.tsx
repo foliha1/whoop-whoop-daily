@@ -34,16 +34,20 @@ const SubscribeBenefits: React.FC = () => (
 
 const SubscribeChip: React.FC<{ style: React.CSSProperties; onSubscribed?: (email: string) => void }> = ({ style, onSubscribed }) => {
   const [open, setOpen] = useState(false);
+  const [completed, setCompleted] = useState(false);
   const doneRef = React.useRef<string | null>(null);
   const close = () => {
     setOpen(false);
     const email = doneRef.current;
     doneRef.current = null;
-    if (email) onSubscribed?.(email);
+    if (email) {
+      setCompleted(true);
+      onSubscribed?.(email);
+    }
   };
   return (
     <>
-      <button
+      {!completed && <button
         type="button"
         className="ww-press daily-btn-howto"
         data-testid="lobby-subscribe"
@@ -53,7 +57,7 @@ const SubscribeChip: React.FC<{ style: React.CSSProperties; onSubscribed?: (emai
         <span aria-hidden="true" className="ww-sub-shine" />
         <Mail size={16} aria-hidden="true" />
         Subscribe
-      </button>
+      </button>}
       {open ? (
         <DailyEmailModal
           mode="subscribe"
