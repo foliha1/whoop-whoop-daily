@@ -30,8 +30,9 @@ const PrivacyPage: React.FC = () => (
         score, streak and badges follow you to any device.
       </LegalText>
       <LegalText>
-        Signing in does not add you to any mailing list. We ask separately whether you want the
-        daily puzzle by email, and store your yes or no with the time you answered.
+        Signing in does not add you to any mailing list. We ask separately whether you want our
+        emails — the daily puzzle reminder, plus the odd game update — and store your yes or no
+        with the time you answered.
       </LegalText>
     </LegalSection>
 
@@ -112,7 +113,7 @@ const PrivacyPage: React.FC = () => (
     <LegalSection heading="Who helps us run the game">
       <LegalText>
         Our hosting and database providers store and process the data above on our behalf, and
-        ActiveCampaign sends the reminder email. They may only use it to provide that service to
+        ActiveCampaign sends our emails. They may only use it to provide that service to
         us.
       </LegalText>
     </LegalSection>
