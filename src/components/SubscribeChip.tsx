@@ -14,7 +14,7 @@ import { COLORS, FONT_FAMILY, SPACE } from "@/lib/tokens";
 export const SUBSCRIBE_BENEFITS: { title: string; text: string; color: string }[] = [
   { title: "Daily reminder", text: "Tomorrow's grid in your inbox every morning.", color: COLORS.blue },
   { title: "Score keeper", text: "Your streak and stats, kept safe on any device.", color: COLORS.red },
-  { title: "Game updates", text: "The odd note when something new drops. No spam, ever.", color: COLORS.yellow },
+  { title: "Game updates", text: "The odd note when something new drops. No spam, ever.", color: COLORS.orange },
 ];
 
 const GEIST = '"Geist", "Geist Sans", system-ui, -apple-system, "Segoe UI", sans-serif';
