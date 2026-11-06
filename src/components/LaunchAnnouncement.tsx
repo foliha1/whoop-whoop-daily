@@ -9,7 +9,11 @@ export const LAUNCH_NOTE_KEY = "ww-launch-note-v1";
 export const LAUNCH_NOTE_HEADLINE = "Whoop! Whoop! just got more fun";
 
 /** Admin preview (pre-launch) shows it on every Home entry for review; after launch, once per player. */
+/** Turned off by the owner (Nov 2026); flip to true to bring the pop-up back. */
+export const LAUNCH_NOTE_ENABLED = false;
+
 export function shouldShowLaunchNote(): boolean {
+  if (!LAUNCH_NOTE_ENABLED) return false;
   return LAUNCHED ? !hasSeenAnnouncement(LAUNCH_NOTE_KEY) : true;
 }
 
