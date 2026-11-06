@@ -2083,7 +2083,7 @@ const MultiplayerGameView: React.FC<Props> = ({
                 ref={(el) => { cellRefs.current[i] = el; }}
                 style={{
                   width: cardW, height: cardH,
-                  borderRadius: R_CARD, filter: `drop-shadow(${CARD_SHADOW})`,
+                  borderRadius: R_CARD, boxShadow: CARD_SHADOW,
                 }}>
 
                 <GameCard
