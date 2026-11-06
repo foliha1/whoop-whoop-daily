@@ -48,9 +48,17 @@ describe("launch announcement", () => {
   });
 
 
-  it("shows once per player after launch: first entry yes, seen entries no", () => {
-    expect(shouldShowLaunchNote()).toBe(true); // not seen yet
+  it("is turned off: never shows, even for a player who has not seen it", () => {
+    expect(shouldShowLaunchNote()).toBe(false);
     localStorage.setItem(LAUNCH_NOTE_KEY, "1");
     expect(shouldShowLaunchNote()).toBe(false);
+  });
+});
+
+import { hasSeenScoreAnnouncement } from "@/components/WhoopScoreAnnouncement";
+describe("tiers & points announcement", () => {
+  it("is turned off: treated as already seen", () => {
+    localStorage.clear();
+    expect(hasSeenScoreAnnouncement()).toBe(true);
   });
 });

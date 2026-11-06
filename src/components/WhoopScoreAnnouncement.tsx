@@ -24,7 +24,12 @@ export const SCORE_ANNOUNCEMENT = {
   secondary: "Got it",
 } as const;
 
+/** Turned off by the owner (Nov 2026); flip to true to bring the pop-up back. */
+export const SCORE_ANNOUNCEMENT_ENABLED = false;
+
+/** Treated as "seen" while disabled so the Daily results never open it. */
 export function hasSeenScoreAnnouncement(): boolean {
+  if (!SCORE_ANNOUNCEMENT_ENABLED) return true;
   return hasSeenAnnouncement(SCORE_ANNOUNCEMENT.seenKey);
 }
 
