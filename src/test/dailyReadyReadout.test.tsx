@@ -130,7 +130,7 @@ describe("the Daily before the run starts", () => {
     await tick(50);
 
     await act(async () => {
-      screen.getByRole("button", { name: /Play Today's Daily/i }).click();
+      screen.getByTestId("daily-start").click();
     });
     await tick(700);   // DEAL → STUDY
     await tick(10000); // STUDY → HIDE
