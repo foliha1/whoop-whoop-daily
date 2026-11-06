@@ -183,6 +183,8 @@ const GameCard = ({
         outline: focusVis ? `2px solid ${COLORS.blue}` : "none",
         outlineOffset: 2,
         WebkitTapHighlightColor: tappable ? undefined : "transparent",
+        // No double-tap-zoom wait on Safari, so taps dispatch immediately.
+        touchAction: "manipulation",
       }}
       onClick={tappable ? onClick : undefined}
       onPointerDown={tappable ? onPressStart : undefined}

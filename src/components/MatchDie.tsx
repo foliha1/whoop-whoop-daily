@@ -27,6 +27,9 @@ export interface MatchDieProps {
   // Optional CSS transition applied to the cube. Only used by the overlay;
   // for static renders leave undefined to keep the die inert.
   transition?: string;
+  // Optional ref to the cube node so the overlay can write the tumble
+  // transform directly each frame without React re-renders (Safari perf).
+  cubeRef?: React.Ref<HTMLDivElement>;
 }
 
 type FaceKey = "front" | "back" | "right" | "left" | "top" | "bottom";
@@ -77,7 +80,7 @@ export const MATCH_ART_SRC: Record<RollAttribute, string> = {
 
 const FACES: FaceKey[] = ["front", "back", "right", "left", "top", "bottom"];
 
-export function MatchDie({ size, attribute, faceIndex, rotation, transition }: MatchDieProps) {
+export function MatchDie({ size, attribute, faceIndex, rotation, transition, cubeRef }: MatchDieProps) {
   const sceneStyle: CSSProperties = {
     width: size,
     height: size,
@@ -115,7 +118,7 @@ export function MatchDie({ size, attribute, faceIndex, rotation, transition }: M
 
   return (
     <div style={sceneStyle} aria-label={`Match die showing ${attribute}`}>
-      <div style={cubeStyle}>
+      <div ref={cubeRef} style={cubeStyle}>
         {FACES.map((key) => {
           const attr = FACE_ATTR[key];
           return (
