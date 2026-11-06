@@ -1,9 +1,10 @@
 import { BADGE_URLS } from "@/lib/assetUrls";
 import React from "react";
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import WhoopPointsChange from "@/components/WhoopPointsChange";
+import { RAW } from "@/lib/tokens";
 import { clearBadgeImageCache } from "@/lib/badgeImages";
 import type { WhoopPoints } from "@/lib/whoopPoints";
 
