@@ -1,4 +1,4 @@
-# WHOOP! WHOOP! — Master Game Documentation (v7.0 Race to Ten)
+# WHOOP! WHOOP! — Master Game Documentation (v7.2 Two Calls a Round)
 
 *A card game about memory, luck, and just enough competition to ruin your family dinner.*
 
@@ -303,11 +303,11 @@ Tuck box holding 50 cards, one die, and a saddle-stitched rulebook.
 
 ## Digital Editions
 
-Two digital products share this brand. Neither is a demo of the physical game.
+WHOOP! WHOOP! is one game online at whoop-whoop.com, with three ways to play. None of them is a demo of the physical game.
 
-**WHOOP! WHOOP! Daily** is a once-a-day solo puzzle at whoop-whoop.com. Nine cards flip up for ten seconds, then down. Three rounds, one die roll each, two misses ends a round. Everyone in the world gets the same puzzle on the same date. Its rules deliberately differ from this document.
+**Daily** (whoop-whoop.com/daily) is a once-a-day solo puzzle. Nine cards flip up for ten seconds, then down. Three rounds, one die roll each, two misses ends a round. Everyone in the world gets the same puzzle on the same date. Its rules deliberately differ from this document.
 
-**WHOOP! WHOOP! Classic** at whoop-whoop.com/classic is the multiplayer web game and follows these rules exactly, with two differences: the grid is always 3×3, and the solo opponent is a bot named WHOOP.
+**Solo** and **Together** follow these rules exactly, with two differences: the grid is always 3×3, and the Solo opponent is a bot named FELIX. Together is real-time multiplayer at a private Table of up to six. (Solo and Together were formerly called Classic.)
 
 ---
 
