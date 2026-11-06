@@ -24,7 +24,7 @@ export const TIER_NAMES: Record<PointsTier, string> = {
   great_eye: "Great Eye",
   match_maker: "Match Maker",
   xray_vision: "X-ray Vision",
-  legend: "Whoop Legend",
+  legend: "Whoop! Whoop! Legend",
 };
 
 export function tierName(tier: PointsTier | null | undefined): string {

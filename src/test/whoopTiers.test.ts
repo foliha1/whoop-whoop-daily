@@ -22,7 +22,7 @@ describe("Whoop Score presentation", () => {
     expect(tierName("great_eye")).toBe("Great Eye");
     expect(tierName("match_maker")).toBe("Match Maker");
     expect(tierName("xray_vision")).toBe("X-ray Vision");
-    expect(tierName("legend")).toBe("Whoop Legend");
+    expect(tierName("legend")).toBe("Whoop! Whoop! Legend");
   });
 
   it("draws the ladder lowest first, with the bands the engine uses", () => {
