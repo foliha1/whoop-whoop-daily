@@ -23,7 +23,6 @@ const WhoopPointsChange: React.FC<{
 }> = ({ points, mobile, tierUp = false, animate = true }) => {
   if (points === null) return null;
 
-  const ink = tierUp ? RAW.warmBlack : COLORS.ink;
   const tierHasArt = badgeArt(points.tier) !== null;
   const innerPanel: React.CSSProperties = {
     boxSizing: "border-box",
