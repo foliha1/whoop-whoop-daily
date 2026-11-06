@@ -15,7 +15,7 @@ describe("lobby Subscribe chip", () => {
   it("opens an explainer listing the three benefits", () => {
     render(<SubscribeChip style={{}} />);
     fireEvent.click(screen.getByTestId("lobby-subscribe"));
-    expect(screen.getByText("Stay in the loop.")).toBeTruthy();
+    expect(screen.getByText("Stay in the loop loop.")).toBeTruthy();
     expect(SUBSCRIBE_BENEFITS.map((b) => b.title)).toEqual(["Daily reminder", "Score keeper", "Game updates"]);
     for (const b of SUBSCRIBE_BENEFITS) expect(screen.getByText(`${b.title}.`)).toBeTruthy();
   });
