@@ -88,4 +88,25 @@ describe("Daily results score panel", () => {
 
     expect(screen.getByTestId("result-points")).not.toHaveClass("daily-intro");
   });
+
+  // Night mode paints the inner score tiles on a #231f20 surface, so warm
+  // black there is invisible — the bug this pins down.
+  it("never paints the today score in warm black when a tier is crossed", () => {
+    render(
+      <MemoryRouter>
+        <WhoopPointsChange points={points} mobile tierUp />
+      </MemoryRouter>
+    );
+
+    const today = screen.getByTestId("result-points-today");
+    const number = within(today).getByText("+2");
+    const caption = within(today).getByText("today");
+
+    expect(number).not.toHaveStyle({ color: RAW.warmBlack });
+    expect(caption).not.toHaveStyle({ color: RAW.warmBlack });
+
+    // The orange banner around them keeps its warm-black lettering.
+    expect(screen.getByTestId("result-tier-up")).toHaveStyle({ color: RAW.warmBlack });
+    expect(screen.getByTestId("result-points")).toHaveAttribute("data-tier-up", "1");
+  });
 });
