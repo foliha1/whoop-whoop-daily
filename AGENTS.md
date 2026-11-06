@@ -26,6 +26,7 @@
 
 - Classic in-game controls use the shared 44px header slot: launch ON orders Leave, readout, Settings; launch OFF preserves readout, Settings, Leave.
 - The launched Daily holds the engine in READY behind a non-dismissible start dialog; only its Start action enters the existing deal/study sequence, so pre-start exits never create attempts.
+- The Daily's pre-start HUD shows no round rule (src/pages/DailyPage.tsx readout returns a blank for READY), because the seeded roll is already known before Start and the memorize phase depends on it staying unseen.
 - ON-only pattern rails reserve the shared top-left 44px control plus a token gap and remeasure the remaining rail, so pattern edges always end on complete cells.
 
 - Skins remap card art at render time via skinArt; card data and network payloads always carry classic art. The Spook palette shift is frozen at page load: SPOOK_AT_LOAD (src/lib/skin.ts) drives RAW in tokens.ts and data-skin="spook" on <html> (set by initSkin next to initTheme), so colors never change mid-game; text/icons on blue and red fills use COLORS.onBlue/onRed, blue/red text on the page uses COLORS.blueText/redText. Card-face recolouring is independent of UI fill colours to preserve colour-blind distinction.
