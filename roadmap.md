@@ -1,5 +1,10 @@
 # Roadmap
 
+## Daily pre-start roll leak
+- [x] Blank the Daily HUD readout in the READY phase so the first round's rule cannot show behind the start dialog.
+- [x] Add a regression test proving no rule text is on screen before Start and exactly one appears once the run is playing.
+- [x] Verify live before/after Start at 1280×1800, full suite 751 passed / 4 skipped, build OK; not published.
+
 ## Admin panel refinement
 - [x] Add Today / 7 / 14 / 30-day presets and proportional Daily funnel/trend bars; retain exact counts, exports and existing date semantics.
 - [x] Verify preset filtering and authenticated desktop/phone charts at 1280/1072/390/320 widths, table toggle, 15 admin tests and clean preview; not published.
