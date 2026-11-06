@@ -23,7 +23,6 @@ const WhoopPointsChange: React.FC<{
 }> = ({ points, mobile, tierUp = false, animate = true }) => {
   if (points === null) return null;
 
-  const ink = tierUp ? RAW.warmBlack : COLORS.ink;
   const tierHasArt = badgeArt(points.tier) !== null;
   const innerPanel: React.CSSProperties = {
     boxSizing: "border-box",
@@ -110,10 +109,10 @@ const WhoopPointsChange: React.FC<{
             textAlign: "center",
           }}
         >
-          <span style={{ ...textStyle("resultWinner", mobile), color: ink }}>
+          <span style={{ ...textStyle("resultWinner", mobile), color: COLORS.ink }}>
             +{points.todayPoints ?? 0}
           </span>
-          <span style={{ ...textStyle("caption", mobile), color: tierUp ? RAW.warmBlack : COLORS.inkMuted }}>
+          <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
             today
           </span>
         </div>
