@@ -1740,6 +1740,10 @@ const DailyPage: React.FC = () => {
 
   const readout = (() => {
     switch (phase) {
+      case "READY":
+        // The board sits behind the start dialog: nothing may be revealed yet,
+        // not even which rule the first round will ask for.
+        return "\u00A0";
       case "DEAL":
         return "Dealing…";
       case "STUDY":

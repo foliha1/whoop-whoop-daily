@@ -132,6 +132,8 @@ describe("the Daily before the run starts", () => {
     await act(async () => {
       screen.getByTestId("daily-start").click();
     });
+    await tick(300);   // dialog hand-off
+    await tick(1600);  // board art ceiling, then the deal begins
     await tick(700);   // DEAL → STUDY
     await tick(10000); // STUDY → HIDE
     await tick(1000);  // HIDE → ROLL
