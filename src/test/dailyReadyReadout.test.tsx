@@ -118,7 +118,7 @@ describe("the Daily before the run starts", () => {
     expect(
       screen.getByRole("heading", { name: /Whoop! Whoop! Daily #/i })
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Play Today's Daily/i })).toBeInTheDocument();
+    expect(screen.getByTestId("daily-start")).toBeInTheDocument();
 
     for (const rule of RULES) {
       expect(document.body.textContent).not.toContain(rule);
