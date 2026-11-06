@@ -137,6 +137,9 @@ export const RollHeroOverlay: React.FC<Props> = ({
     initialSkip ? { x: landed.x, y: landed.y } : { x: initialX, y: initialY }
   );
   const rafRef = useRef<number | null>(null);
+  // Tumble frames write straight to the cube node; React state only holds
+  // the start/landed rotations, so WebKit never re-reconciles mid-roll.
+  const cubeRef = useRef<HTMLDivElement | null>(null);
 
   // rAF loop drives the cube tumble against serverNow(). Kicks off on mount;
   // if the joiner arrived mid-tumble, `elapsed` is already > 0 and we skip
@@ -150,14 +153,15 @@ export const RollHeroOverlay: React.FC<Props> = ({
       const elapsed = serverNow() - startAt;
       const p = Math.max(0, Math.min(1, elapsed / TUMBLE_MS));
       const e = easeOut(p);
-      setCubeRot({
-        x: initialX + (landed.x - initialX) * e,
-        y: initialY + (landed.y - initialY) * e,
-      });
+      const node = cubeRef.current;
+      if (node) {
+        node.style.transform = `rotateX(${initialX + (landed.x - initialX) * e}deg) rotateY(${initialY + (landed.y - initialY) * e}deg)`;
+      }
       if (elapsed < TUMBLE_MS) {
         rafRef.current = requestAnimationFrame(tick);
       } else {
         // Snap to exact landed rotation so downstream frames don't drift.
+        if (cubeRef.current) cubeRef.current.style.transform = `rotateX(${landed.x}deg) rotateY(${landed.y}deg)`;
         setCubeRot({ x: landed.x, y: landed.y });
       }
     };
@@ -197,6 +201,7 @@ export const RollHeroOverlay: React.FC<Props> = ({
     setSkipped(true);
     setLanding(true);
     setCubeRot({ x: landed.x, y: landed.y });
+    if (cubeRef.current) cubeRef.current.style.transform = `rotateX(${landed.x}deg) rotateY(${landed.y}deg)`;
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -257,6 +262,7 @@ export const RollHeroOverlay: React.FC<Props> = ({
           attribute={attribute}
           faceIndex={faceIndex}
           rotation={cubeRotationStr}
+          cubeRef={cubeRef}
         />
       </div>
     </div>
