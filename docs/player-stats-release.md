@@ -14,7 +14,7 @@
 - Existing account-owned completed results populate played/won counts. Older Solo rows have no trustworthy human claim or winning-claim timing data; precision tiles stay unmeasured rather than using bot-inclusive game totals.
 - Precision totals include measured completed games only. Past unmeasured claims cannot be reconstructed. Prior hosted rooms are recoverable only where a completed verified result exists; abandoned/deleted historical rooms are not reconstructed.
 - Device records update at GAME_OVER and deduplicate by game ID against remote results. Anonymous records remain device-only and are not silently merged into a signed-in account. No anonymous sign-in added.
-- Existing result recorder is still best-effort; a failed server save can leave a device-only record. This work does not introduce a Classic outbox or claim server-authoritative gameplay proof.
+- Existing result recorder is still best-effort; a failed server save can leave a device-only record. This work does not introduce a Solo/Together outbox or claim server-authoritative gameplay proof.
 
 ## Verification
 - 674 tests pass across 67 files, including player-only claims, metric arithmetic, missing historical data, deduplication, joiner wins, tied first place, rematches and OFF isolation.
