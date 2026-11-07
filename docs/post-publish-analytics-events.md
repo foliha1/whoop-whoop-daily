@@ -1,4 +1,4 @@
-# Post-publish: Classic usage events (security pass 3)
+# Post-publish: Solo & Together usage events (security pass 3)
 
 The app now writes usage events only through `log_analytics_events`
 (migration 0027). The old open insert policy stays until publish so tabs on the
@@ -21,7 +21,7 @@ old app keep logging.
    curl -s -X POST "$URL/rest/v1/analytics_events" -H "apikey: $ANON" \
      -H "Content-Type: application/json" -d '{"event_type":"room_created"}'
    ```
-   Then play one Classic game on the published site and confirm its
+   Then play one Solo or Together game on the published site and confirm its
    `room_created` / `game_started` / `game_completed` rows arrive.
 
 ## Later, not publish day

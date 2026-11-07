@@ -1,4 +1,4 @@
-# Post-publish: Classic results (security pass 2)
+# Post-publish: Solo & Together results (security pass 2)
 
 Do these on the day the app is published.
 

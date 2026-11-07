@@ -36,7 +36,7 @@ Owner: Felix. Do these in order. Nothing here is done by the build.
 ## 7. Smoke after launch
 - [ ] Home events appear in admin (home_viewed, home_daily_tapped, home_solo_tapped, home_peeps_tapped — "peeps" is the internal name for Together).
 - [ ] Leave a Daily mid-run in a test account: result saved as first attempt, streak kept, tile shows "See Today's Results".
-- [ ] Classic room create/join from Together; invite links join straight in.
+- [ ] Together room create/join from the lobby; invite links join straight in.
 
 ## Rollback
 - [ ] Set `LAUNCHED = false`, publish. The database changes are additive and safe to leave.
