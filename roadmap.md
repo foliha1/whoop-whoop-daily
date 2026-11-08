@@ -1,8 +1,8 @@
 # Roadmap
 
 ## ActiveCampaign Daily numbering rollback
-- [ ] Remove the paused daily-number job and deployed sync function, retaining ActiveCampaign's local-midnight +1 automation and existing signup pipeline.
-- [ ] Remove unused sync code/tests, update documentation, and verify no schedule or endpoint remains; do not publish or change subscriber enrollment.
+- [x] Remove the paused daily-number job and deployed sync function, retaining ActiveCampaign's local-midnight +1 automation and existing signup pipeline.
+- [x] Remove unused sync code/tests and update documentation; job read-back is empty, endpoint returns 404, 753 tests passed / 4 skipped, preview build OK. Nothing published; subscriber enrollment and ActiveCampaign automation unchanged.
 
 ## Daily pre-start roll leak
 - [x] Blank the Daily HUD readout in the READY phase so the first round's rule cannot show behind the start dialog.

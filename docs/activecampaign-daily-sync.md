@@ -8,7 +8,9 @@ Keep the automation's +1 action and local-time wait. Do not replace them with a 
 
 ## Rollback scope
 
-Remove the paused `activecampaign-daily-number` scheduled job, deployed `ac-daily-sync` endpoint, and its unused source and tests. Keep the signup function, connector credentials, shared scheduled-job secret, other jobs, gameplay and subscription consent behavior unchanged.
+Removed the paused `activecampaign-daily-number` scheduled job, deployed `ac-daily-sync` endpoint, and its unused source and tests. The signup function, connector credentials, shared scheduled-job secret, other jobs, gameplay and subscription consent behavior remain unchanged.
+
+Verified: no matching scheduled job remains, the removed endpoint returns 404, and the full suite passes (753 passed, four skipped).
 
 This cleanup does not re-enroll exited contacts, resubscribe opted-out contacts, alter contact numbers, or modify ActiveCampaign's automation. An active list subscription does not by itself mean a contact is currently in the delivery automation.
 
