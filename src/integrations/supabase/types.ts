@@ -832,6 +832,42 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriber_activity: {
+        Row: {
+          ac_status: string
+          completed_at: string | null
+          created_at: string
+          email_hint: string
+          id: string
+          puzzle_number: number | null
+          seed_status: string
+          seeded_at: string | null
+          source: string
+        }
+        Insert: {
+          ac_status: string
+          completed_at?: string | null
+          created_at?: string
+          email_hint: string
+          id?: string
+          puzzle_number?: number | null
+          seed_status: string
+          seeded_at?: string | null
+          source: string
+        }
+        Update: {
+          ac_status?: string
+          completed_at?: string | null
+          created_at?: string
+          email_hint?: string
+          id?: string
+          puzzle_number?: number | null
+          seed_status?: string
+          seeded_at?: string | null
+          source?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -1038,6 +1074,26 @@ export type Database = {
           total: number
           visitors: number
         }[]
+      }
+      admin_subscriber_activity: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          ac_status: string
+          completed_at: string | null
+          created_at: string
+          email_hint: string
+          id: string
+          puzzle_number: number | null
+          seed_status: string
+          seeded_at: string | null
+          source: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "subscriber_activity"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       admin_subscribers: {
         Args: never
