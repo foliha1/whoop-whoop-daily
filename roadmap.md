@@ -1,8 +1,8 @@
 # Roadmap
 
 ## Admin subscriber activity log
-- [ ] Record signup and WWD_NUMBER seed outcomes without changing signup success or local-midnight numbering.
-- [ ] Add an admin-only, date-filtered activity report; verify permissions, outcomes and the live admin view; do not publish.
+- [x] Record signup and WWD_NUMBER seed outcomes without changing signup success or local-midnight numbering; masked addresses only, independent pending/succeeded/failed/skipped states and seed timestamps.
+- [x] Add an admin-only date-filtered activity report; 762 tests passed / 4 skipped, permissions checked, authenticated safe signup reads back in desktop/phone admin UI, build OK. Test addresses explicitly skip AC; real provider success/failure covered by tests, not a new real enrollment. Backend logging live; admin UI not published.
 
 ## ActiveCampaign Daily numbering rollback
 - [x] Remove the paused daily-number job and deployed sync function, retaining ActiveCampaign's local-midnight +1 automation and existing signup pipeline.
