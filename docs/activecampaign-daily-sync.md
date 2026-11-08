@@ -25,5 +25,5 @@ The new sync does not repair automation exits or re-enroll contacts, and does no
 - Full suite: 762 passed, 4 skipped.
 - Live unauthorized request: rejected with 401.
 - Live dry run on Nov 8: 63 active contacts, 57 correct values, six needing correction, no writes.
-- Live execution returned HTTP 200: six values corrected to #90, 57 already correct. A follow-up dry run reads provider values again to confirm idempotence.
+- Live execution returned HTTP 200: six values corrected to #90, 57 already correct. Follow-up provider read-back returned HTTP 200: all 63 correct, zero further updates needed.
 - Schedule created and paused pending the automation handoff; no app publication performed.
