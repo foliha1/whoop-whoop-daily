@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
 import { ProviderError, puzzleNumberAt, syncDailyNumber } from "../../supabase/functions/ac-daily-sync/sync";
 
