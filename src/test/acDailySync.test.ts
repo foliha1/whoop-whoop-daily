@@ -1,6 +1,8 @@
-// @vitest-environment node
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeAll, afterAll } from "vitest";
 import { ProviderError, puzzleNumberAt, syncDailyNumber } from "../../supabase/functions/ac-daily-sync/sync";
+
+beforeAll(() => vi.stubGlobal("AbortSignal", { timeout: () => new AbortController().signal }));
+afterAll(() => vi.unstubAllGlobals());
 
 const now = new Date("2026-11-08T22:49:00Z");
 function fixture(respond?: (url: string, method: string) => Response | undefined) {
