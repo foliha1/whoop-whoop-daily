@@ -1,5 +1,5 @@
 # Architecture decisions
-- ActiveCampaign Daily numbers are absolute UTC-date values synced only to active configured-list contacts by a server-secret-protected daily job; the existing automation increment must be removed before enabling the schedule to avoid competing writers.
+- ActiveCampaign Daily numbering is seeded by the existing signup pipeline and advanced by its delivery automation, not a backend daily sync, to preserve subscriber-local rollover and avoid competing writers.
 - Admin downloads share one collapsed accordion using existing export handlers; subscriber email confirmation stays inside it to preserve the personal-data safeguard.
 - Admin date presets reuse inclusive local-calendar date inputs; charts scale existing read-only event counts without changing rates, RPCs or CSV exports, so visual comparisons never imply new cohort measurements.
 - Admin Solo/Together reports use an additive admin-only mode aggregate with the existing created-at date window; game-wide claims are labelled explicitly because Solo includes the bot, and wide report tables scroll within their own sections.
