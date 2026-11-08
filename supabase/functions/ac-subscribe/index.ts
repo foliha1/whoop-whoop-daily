@@ -10,6 +10,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { trackSignup } from "./activity.ts";
 
 const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
@@ -265,32 +266,22 @@ Deno.serve(async (req) => {
     return json({ ok: false, error: "Could not save subscription" }, 500);
   }
 
-  // Disposable test addresses never reach ActiveCampaign.
-  if (email.endsWith("@whoop-test.invalid") || /^[^@]+\+deltest@/.test(email)) {
-    console.log("ac-subscribe: AC sync mocked for test address");
-    return json({ ok: true, syncedToAc: false, test: true });
-  }
-
-  // 2. Best effort from here on: the address is already safe.
-  let syncedToAc = false;
-  let numberSynced = false;
-  let contactId: string | null = null;
-  try {
-    const result = await syncToActiveCampaign(email);
-    syncedToAc = result.ok;
-    contactId = result.contactId;
-  } catch (err) {
-    console.error("ac-subscribe: ActiveCampaign threw", err);
-  }
-
-  // 3. Seed WWD_NUMBER. Best effort only — never changes the outcome above.
-  if (syncedToAc && contactId && puzzleNumber !== null) {
-    try {
-      numberSynced = await writePuzzleNumber(contactId, puzzleNumber);
-    } catch (err) {
-      console.error("ac-subscribe: WWD_NUMBER write threw", err);
-    }
-  }
+  // Record each saved signup attempt; test addresses never reach ActiveCampaign.
+  const test = email.endsWith("@whoop-test.invalid") || /^[^@]+\+deltest@/.test(email);
+  const { syncedToAc, numberSynced } = await trackSignup({
+    email, source, puzzleNumber, skip: test,
+    record: async (row) => {
+      const { data, error } = await supabase.from("subscriber_activity").insert(row).select("id").single();
+      if (error) throw error;
+      return data?.id ?? null;
+    },
+    finish: async (id, row) => {
+      const { error } = await supabase.from("subscriber_activity").update(row).eq("id", id);
+      if (error) throw error;
+    },
+    sync: () => syncToActiveCampaign(email),
+    seed: writePuzzleNumber,
+  });
 
   if (syncedToAc) {
     const { error: markError } = await supabase
@@ -302,5 +293,5 @@ Deno.serve(async (req) => {
     }
   }
 
-  return json({ ok: true, syncedToAc, numberSynced });
+  return json({ ok: true, syncedToAc, numberSynced, ...(test ? { test: true } : {}) });
 });

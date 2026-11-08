@@ -1,4 +1,5 @@
 # Architecture decisions
+- Subscriber activity is written server-side after a saved signup, with masked addresses and independent AC/seed outcomes; admin-only date-filtered reads never change signup success or numbering.
 - ActiveCampaign Daily numbering is seeded by the existing signup pipeline and advanced by its delivery automation, not a backend daily sync, to preserve subscriber-local rollover and avoid competing writers.
 - Admin downloads share one collapsed accordion using existing export handlers; subscriber email confirmation stays inside it to preserve the personal-data safeguard.
 - Admin date presets reuse inclusive local-calendar date inputs; charts scale existing read-only event counts without changing rates, RPCs or CSV exports, so visual comparisons never imply new cohort measurements.

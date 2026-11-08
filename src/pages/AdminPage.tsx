@@ -92,6 +92,17 @@ interface SubscriberRow {
   total: number;
   synced: number;
 }
+interface SubscriberActivityRow {
+  id: string;
+  created_at: string;
+  email_hint: string;
+  source: string;
+  puzzle_number: number | null;
+  ac_status: "pending" | "succeeded" | "failed" | "skipped";
+  seed_status: "pending" | "succeeded" | "failed" | "skipped";
+  seeded_at: string | null;
+  completed_at: string | null;
+}
 /** Temporary diagnostic: why a finished run was refused by the server. */
 interface RejectionRow {
   reason: string;
@@ -179,6 +190,7 @@ interface DashboardData {
   attribution: AttributionRow[];
   trend: TrendRow[];
   subscribers: SubscriberRow[];
+  subscriberActivity: SubscriberActivityRow[];
   rejections: RejectionRow[];
   headline: HeadlineRow | null;
   nextDay: NextDayRow | null;
@@ -648,7 +660,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       }
     };
 
-    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay, gameModes, retentionSplit, signinFunnel, classicTiming, easterEggs] =
+    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay, gameModes, retentionSplit, signinFunnel, classicTiming, easterEggs, subscriberActivity] =
       await Promise.all([
         call<FunnelRow>("admin_funnel", args),
         call<DifficultyRow>("admin_difficulty", args),
@@ -664,12 +676,13 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         call<SigninFunnelRow>("admin_signin_funnel", { p_days: 30 }),
         call<ClassicTimingRow>("admin_classic_timing", args),
         call<{ found: number }>("admin_easter_eggs"),
+        call<SubscriberActivityRow>("admin_subscriber_activity", args),
       ]);
 
     setFailures(failed);
 
     // Every report failing means the fetch itself is broken, not an empty range.
-    if (failed.length === 14) {
+    if (failed.length === 15) {
       setState("error");
       return;
     }
@@ -690,6 +703,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       attribution,
       trend,
       subscribers,
+      subscriberActivity,
       rejections,
       headline: headline[0] ?? null,
       nextDay: nextDay[0] ?? null,
@@ -1177,6 +1191,28 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
             Total {(data?.subscribers ?? []).reduce((n, r) => n + r.total, 0)} · synced{" "}
             {(data?.subscribers ?? []).reduce((n, r) => n + r.synced, 0)}
           </span>
+        </Card>
+
+        <Card title="Subscriber activity" span>
+          <span style={labelStyle}>Latest 200 saved signup attempts in range · times in UTC · recorded from November 8, 2026</span>
+          {failures.includes("admin_subscriber_activity") ? (
+            <span role="status" style={labelStyle}>Activity log unavailable</span>
+          ) : state === "loading" ? (
+            <span role="status" style={labelStyle}>Loading activity…</span>
+          ) : (data?.subscriberActivity ?? []).length === 0 ? (
+            <span style={labelStyle}>No signup activity in this range.</span>
+          ) : (
+            <Table
+              head={["Requested at (UTC)", "Subscriber (masked)", "Source", "WWD_NUMBER", "ActiveCampaign signup", "Number seed", "Seeded at (UTC)"]}
+              rows={(data?.subscriberActivity ?? []).map((r) => [
+                new Date(r.created_at).toISOString().replace("T", " ").slice(0, 19),
+                r.email_hint, r.source, r.puzzle_number === null ? "Not supplied" : `#${r.puzzle_number}`,
+                r.ac_status === "pending" ? "Pending / incomplete" : r.ac_status,
+                r.seed_status === "pending" ? "Pending / incomplete" : r.seed_status,
+                r.seeded_at ? new Date(r.seeded_at).toISOString().replace("T", " ").slice(0, 19) : "—",
+              ])}
+            />
+          )}
         </Card>
 
         {/* Sampled Classic responsiveness (about 10% of games, no personal
