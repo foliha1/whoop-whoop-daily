@@ -1,9 +1,9 @@
 # Roadmap
 
 ## ActiveCampaign Daily number sync
-- [ ] Add a server-only, idempotent midnight-UTC puzzle-number sync for active Daily list subscribers.
-- [ ] Test dates, pagination, field updates, unsubscribe safety and provider failures; deploy and verify live read-back.
-- [ ] Enable the daily schedule and document the existing ActiveCampaign increment-step handoff.
+- [x] Add and deploy a server-only, idempotent midnight-UTC puzzle-number sync for active Daily list subscribers.
+- [x] Test dates, pagination, field updates, unsubscribe safety and provider failures; 762 tests passed / 4 skipped; live run corrected six of 63 active subscribers to #90.
+- [ ] Enable the prepared, paused daily schedule after Felix confirms the existing ActiveCampaign +1 increment step has been removed (blocker: no accessible ActiveCampaign connector for automation changes).
 
 ## Daily pre-start roll leak
 - [x] Blank the Daily HUD readout in the READY phase so the first round's rule cannot show behind the start dialog.
