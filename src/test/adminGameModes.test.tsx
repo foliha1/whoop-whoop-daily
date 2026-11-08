@@ -29,7 +29,7 @@ describe("admin mode reporting", () => {
       await screen.findByRole("button", { name: "7 days" });
       fireEvent.click(screen.getByRole("button", { name: "7 days" }));
       await waitFor(() => {
-        for (const name of ["admin_funnel", "admin_difficulty", "admin_howto", "admin_attribution", "admin_trend", "admin_headline", "admin_rejections", "admin_game_modes", "admin_classic_timing"]) {
+        for (const name of ["admin_funnel", "admin_difficulty", "admin_howto", "admin_attribution", "admin_trend", "admin_headline", "admin_rejections", "admin_game_modes", "admin_classic_timing", "admin_subscriber_activity"]) {
           expect(rpc).toHaveBeenCalledWith(name, { p_from: "2026-10-30", p_to: "2026-11-05" });
         }
       });
