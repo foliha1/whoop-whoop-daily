@@ -1,29 +1,21 @@
-# ActiveCampaign Daily number sync
+# ActiveCampaign Daily numbering
 
-`ac-daily-sync` sets `WWD_NUMBER` to an absolute puzzle number, with #1 on August 11, 2026. The scheduled email numbering policy is midnight UTC; gameplay continues to roll over on each player's local calendar date. Around midnight, the email number can therefore differ from a player's local Daily.
+## Current policy
 
-## Required handoff before enabling
+The existing `ac-subscribe` signup pipeline seeds `WWD_NUMBER`. ActiveCampaign's **WWD: Delivery** automation then advances that value by **+1**, retaining its subscriber-local midnight wait and email-delivery steps. There is no backend daily resync.
 
-In ActiveCampaign's **WWD: Delivery** automation, remove the action that adds **+1** to `WWD_NUMBER`. Preserve the email and wait steps. The new job must not run alongside that increment action: it would create two competing writers. The job is initially paused until this handoff is confirmed.
+Keep the automation's +1 action and local-time wait. Do not replace them with a global midnight-UTC update: that can advance the number before a subscriber's local Daily changes.
 
-The new sync does not repair automation exits or re-enroll contacts, and does not send email. A contact outside the delivery automation can have a corrected number without receiving a reminder.
+## Rollback scope
 
-## Operation
+Removed the paused `activecampaign-daily-number` scheduled job, deployed `ac-daily-sync` endpoint, and its unused source and tests. The signup function, connector credentials, shared scheduled-job secret, other jobs, gameplay and subscription consent behavior remain unchanged.
 
-- Job: `activecampaign-daily-number`, daily at 00:00 UTC (one run per day, low recurring Cloud activity). Provider processing adds seconds; failures wait for the next day's run unless manually retried.
-- Only active members of `AC_LIST_ID` are queried; no contact creation, subscription changes, or writes to other custom fields.
-- Resolve the field by `WWD_NUMBER`, paginate contacts and field values, skip correct values and update stale ones (create missing values).
-- Use existing server-only `AC_API_URL`, `AC_API_KEY`, and `AC_LIST_ID`. Authenticate scheduled/manual requests with the existing `BACKUP_CRON_SECRET` header; no credentials are copied into application source or returned by the endpoint.
-- Sequential requests respect ActiveCampaign's account rate limit and `Retry-After`; reads have bounded retries. Ambiguous failed writes are not blindly replayed; a later invocation reads the actual field first.
-- POST `{ "dryRun": true }` previews counts without writes. POST `{}` executes using the server's current UTC date; caller-supplied dates/numbers are not accepted.
-- Responses/logs include totals, UTC date and puzzle number, never subscriber email addresses. Provider failures preserve status/details.
-- Inspect `cron.job`, `cron.job_run_details`, HTTP callback responses and function logs to troubleshoot; a successful cron dispatch alone does not prove the provider update succeeded.
+Verified: no matching scheduled job remains, the removed endpoint returns 404, and the full suite passes (753 passed, four skipped).
 
-## Verification
+This cleanup does not re-enroll exited contacts, resubscribe opted-out contacts, alter contact numbers, or modify ActiveCampaign's automation. An active list subscription does not by itself mean a contact is currently in the delivery automation.
 
-- Nine sync tests cover launch date, Nov 8 #90, UTC rollover #91, stale-value repair, missing values, pagination, active-list selection, dry runs, throttling and failed writes.
-- Full suite: 762 passed, 4 skipped.
-- Live unauthorized request: rejected with 401.
-- Live dry run on Nov 8: 63 active contacts, 57 correct values, six needing correction, no writes.
-- Live execution returned HTTP 200: six values corrected to #90, 57 already correct. Follow-up provider read-back returned HTTP 200: all 63 correct, zero further updates needed.
-- Schedule created and paused pending the automation handoff; no app publication performed.
+## Historical one-off correction
+
+On November 8, 2026, the manual UTC sync corrected six of 63 active list contacts to #90; 57 were already #90. Read-back confirmed all 63 at #90 at that moment. This was not a timezone-aware baseline and is not a guarantee that each subscriber's local date matched November 8.
+
+The automatic schedule was created paused and was never enabled. No app publication is required to remove the live job and function.
