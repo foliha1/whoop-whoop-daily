@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Minus, Plus } from "lucide-react";
+import { Check, Minus, Plus, TriangleAlert, X } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { BORDER, COLORS, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
@@ -29,6 +29,10 @@ const TIPS = [
   ["Don't guess early.", "A wrong call shows everyone two cards and costs you one."],
 ] as const;
 
+function Icon({ bg, fg, children }: { bg: string; fg: string; children: React.ReactNode }) {
+  return <span aria-hidden="true" style={{ flexShrink: 0, width: 36, height: 36, borderRadius: 999, background: bg, color: fg, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{children}</span>;
+}
+
 export function PhysicalRoundOutcomes({ mobile }: { mobile: boolean }) {
   const { body, subhead, minor, list, read } = rulesType(mobile);
   const card: React.CSSProperties = { boxSizing: "border-box", borderRadius: RADIUS.md, padding: mobile ? SPACE[12] : SPACE[16], display: "flex", flexDirection: "column", gap: SPACE[8], minWidth: 0, height: "100%" };
@@ -37,16 +41,16 @@ export function PhysicalRoundOutcomes({ mobile }: { mobile: boolean }) {
       <section aria-labelledby="outcomes-title" style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8], minWidth: 0 }}>
         <h3 id="outcomes-title" style={{ ...subhead, width: "100%", maxWidth: 600, alignSelf: "center" }}>Right or Wrong</h3>
         <div style={{ display: "grid", gridTemplateColumns: mobile ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))", gap: SPACE[8], alignItems: "stretch" }}>
-          <section aria-labelledby="right-title" style={{ ...card, background: RAW.blue, color: COLORS.onBlue }}>
-            <h4 id="right-title" style={{ ...minor, ...textStyle("title", mobile), color: "inherit" }}>You're right</h4>
-            <ul style={{ ...list, color: "inherit" }}>
+          <section aria-labelledby="right-title" style={{ ...card, background: `color-mix(in srgb, ${RAW.blue} 14%, transparent)`, border: `2px solid ${RAW.blue}` }}>
+            <h4 id="right-title" style={{ ...minor, ...textStyle("title", mobile), color: COLORS.blueText, display: "flex", alignItems: "center", gap: SPACE[4] }}><Icon bg={RAW.blue} fg={COLORS.onBlue}><Check size={22} strokeWidth={3} /></Icon>You're right</h4>
+            <ul style={list}>
               <li>Take both cards. They're yours.</li>
               <li>Fill the two empty spots from the draw pile, face down.</li>
               <li>The round ends. <strong>You roll next.</strong></li>
             </ul>
           </section>
-          <section aria-labelledby="wrong-title" style={{ ...card, border: `2px solid ${COLORS.red}` }}>
-            <h4 id="wrong-title" style={{ ...minor, ...textStyle("title", mobile), color: COLORS.redText }}>You're wrong</h4>
+          <section aria-labelledby="wrong-title" style={{ ...card, background: `color-mix(in srgb, ${RAW.red} 12%, transparent)`, border: `2px solid ${RAW.red}` }}>
+            <h4 id="wrong-title" style={{ ...minor, ...textStyle("title", mobile), color: COLORS.redText, display: "flex", alignItems: "center", gap: SPACE[4] }}><Icon bg={RAW.red} fg={COLORS.onRed}><X size={22} strokeWidth={3} /></Icon>You're wrong</h4>
             <ul style={list}>
               <li><strong>Put one card back.</strong> Take one from your pile and put it in the draw pile. No cards yet? Nothing to give back.</li>
               <li><strong>Leave both cards face up.</strong> Everyone can see them for the rest of the round.</li>
@@ -62,7 +66,7 @@ export function PhysicalRoundOutcomes({ mobile }: { mobile: boolean }) {
       </section>
       <Subsection id="round-end-title" title="When the Round Ends" mobile={mobile}>
         <p style={body}>A round ends one of two ways:</p>
-        <Steps mobile={mobile} items={[
+        <Steps mobile={mobile} dividers items={[
           <><strong>Someone makes a right call.</strong> They roll the next rule.</>,
           <><strong>Everyone has taken their turn and nobody got it.</strong> The die passes to the left.</>,
         ]} />
@@ -83,8 +87,8 @@ export function PhysicalWinning({ mobile }: { mobile: boolean }) {
         <p style={{ ...body, maxWidth: 440 }}>The game ends right then.</p>
         <p style={{ ...body, maxWidth: 440, color: COLORS.inkMuted }}>Every card in your pile counts as one. That's six right calls. Keep your pile where everyone can see it, so everyone knows who's close.</p>
       </section>
-      <section aria-labelledby="harder-title" style={read}>
-        <h3 id="harder-title" style={subhead}>Make It Harder</h3>
+      <section aria-labelledby="harder-title" style={{ ...read, marginTop: SPACE[12], padding: mobile ? SPACE[10] : SPACE[12], borderRadius: RADIUS.md, border: `3px solid ${RAW.red}`, background: `repeating-linear-gradient(-45deg, color-mix(in srgb, ${RAW.red} 10%, transparent) 0 14px, color-mix(in srgb, ${RAW.red} 4%, transparent) 14px 28px)` }}>
+        <h3 id="harder-title" style={{ ...subhead, color: COLORS.redText, display: "flex", alignItems: "center", justifyContent: "center", gap: SPACE[4], textTransform: "uppercase" }}><TriangleAlert size={mobile ? 28 : 34} strokeWidth={2.5} aria-hidden="true" />Make It Harder<TriangleAlert size={mobile ? 28 : 34} strokeWidth={2.5} aria-hidden="true" /></h3>
         <p style={body}>Deal <strong>12 cards in a 4 by 3 grid</strong> instead of 9. Nothing else changes.</p>
         <p style={body}>More spots to remember. More matches hiding. Great for tables that have played a lot.</p>
         <p style={body}>It also evens things out. Playing kids against grown-ups, or casual players against the family shark? Go 4 by 3. When nobody can remember everything, luck gets a louder voice.</p>

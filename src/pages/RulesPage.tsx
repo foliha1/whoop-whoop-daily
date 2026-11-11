@@ -1,6 +1,6 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { Dices } from "lucide-react";
+import { ArrowDown, Dices } from "lucide-react";
 import DailyFrame from "@/components/DailyFrame";
 import HomeControl from "@/components/HomeControl";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
@@ -75,7 +75,7 @@ const RulesPage: React.FC = () => {
           }}
         >
           <ScrollReveal index={0}>
-            <header style={{ display: "flex", flexDirection: "column", gap: SPACE[12], textAlign: "center", width: "100%", maxWidth: READ_W, alignSelf: "center" }}>
+            <header style={{ display: "flex", flexDirection: "column", gap: SPACE[12], textAlign: "center", width: "100%", maxWidth: READ_W, margin: "0 auto", alignItems: "center" }}>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[6] }}>
                 <p style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, margin: 0 }}>At the Table</p>
                 <h1 style={{ ...textStyle("resultHero", mobile), fontSize: HEADLINE, lineHeight: 1.05, color: COLORS.ink, margin: 0, letterSpacing: 0 }}>
@@ -111,10 +111,10 @@ const RulesPage: React.FC = () => {
                 )}
               </div>
 
-              <nav aria-label="On this page" style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: `${SPACE[3]}px ${SPACE[8]}px` }}>
+              <nav aria-label="On this page" style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: `${SPACE[1]}px ${SPACE[8]}px` }}>
                 {JUMP_LINKS.map((link) => (
-                  <a key={link.href} href={link.href} style={{ ...textStyle("chip", mobile), color: COLORS.ink, textUnderlineOffset: SPACE[2], minHeight: 44, display: "inline-flex", alignItems: "center" }}>
-                    {link.label}
+                  <a key={link.href} href={link.href} className="hover:opacity-80" style={{ ...textStyle("chip", mobile), color: COLORS.blueText, textDecoration: "underline", textUnderlineOffset: SPACE[2], textDecorationThickness: 2, minHeight: 44, display: "inline-flex", alignItems: "center", gap: SPACE[2] }}>
+                    {link.label}<ArrowDown size={16} strokeWidth={2.5} aria-hidden="true" />
                   </a>
                 ))}
               </nav>
@@ -142,13 +142,13 @@ const RulesPage: React.FC = () => {
               }}
             >
               <header style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[3], textAlign: "center" }}>
-                <h2 id="quick-start-title" style={{ ...textStyle("hero", mobile), color: "inherit", margin: 0, letterSpacing: 0 }}>Quick Start</h2>
+                <h2 id="quick-start-title" style={{ ...textStyle("resultHero", mobile), fontSize: mobile ? TEXT.resultHero.mobileSize : TEXT.resultHero.size, lineHeight: 1.05, color: "inherit", margin: 0, letterSpacing: 0 }}>Quick Start</h2>
                 <p style={{ ...textStyle("subhead", mobile), fontStyle: "italic", color: "inherit", opacity: 0.8, margin: 0, letterSpacing: 0 }}>Play in 60 seconds</p>
               </header>
-              <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: SPACE[10] }}>
+              <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 0 }}>
                 {QUICK_STEPS.map((step, i) => (
-                  <li key={i} style={{ display: "grid", gridTemplateColumns: `${mobile ? 44 : 64}px minmax(0, 1fr)`, columnGap: SPACE[6], alignItems: "center" }}>
-                    <span aria-hidden="true" style={{ ...textStyle("resultHero", mobile), fontSize: mobile ? 44 : 60, lineHeight: 1, textAlign: "center", color: GAME_COLORS[i % 3] }}>{i + 1}</span>
+                  <li key={i} style={{ display: "grid", gridTemplateColumns: `${mobile ? 44 : 64}px minmax(0, 1fr)`, columnGap: SPACE[6], alignItems: "center", padding: `${SPACE[6]}px 0`, borderTop: i === 0 ? 0 : "1.5px solid color-mix(in srgb, var(--ww-surface) 25%, transparent)" }}>
+                    <span aria-hidden="true" style={{ ...textStyle("resultHero", mobile), fontSize: mobile ? 44 : 60, lineHeight: 1, textAlign: "center", color: GAME_COLORS[i % 3], paddingTop: 0 }}>{i + 1}</span>
                     <p style={{ ...body, color: "inherit" }}>{step}</p>
                   </li>
                 ))}

@@ -22,7 +22,7 @@ export function ChapterDivider({ mobile }: { mobile: boolean }) {
     <div aria-hidden="true" style={{ width: "100%", padding: `${mobile ? SPACE[20] + SPACE[8] : SPACE[20] * 2}px 0` }}>
       <div style={{ display: "flex", alignItems: "center", gap: SPACE[6], width: "100%", maxWidth: READ_W, margin: "0 auto" }}>
         <span style={{ flex: 1, height: 0, borderTop: `1.5px solid ${COLORS.ink}`, opacity: 0.25 }} />
-        <span style={{ display: "flex", gap: SPACE[3] }}>{[0, 1, 2].map((i) => <ShapeMark key={i} index={i} />)}</span>
+        <span style={{ display: "flex", gap: SPACE[3] }}>{[0, 1, 2, 3].map((i) => <ShapeMark key={i} index={i} />)}</span>
         <span style={{ flex: 1, height: 0, borderTop: `1.5px solid ${COLORS.ink}`, opacity: 0.25 }} />
       </div>
     </div>
@@ -49,7 +49,7 @@ export function Steps({ items, mobile, start = 0, dividers = false }: { items: R
   return (
     <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: dividers ? 0 : SPACE[6] }}>
       {items.map((item, i) => (
-        <li key={i} style={{ display: "grid", gridTemplateColumns: `${mobile ? 40 : 56}px minmax(0, 1fr)`, columnGap: SPACE[4], alignItems: dividers ? "center" : "baseline", ...(dividers ? { padding: `${SPACE[5]}px 0`, borderTop: i === 0 ? 0 : BORDER.standard } : {}) }}>
+        <li key={i} style={{ display: "grid", gridTemplateColumns: `${mobile ? 40 : 56}px minmax(0, 1fr)`, columnGap: SPACE[4], alignItems: "center", ...(dividers ? { padding: `${SPACE[5]}px 0`, borderTop: i === 0 ? 0 : BORDER.standard } : {}) }}>
           <span aria-hidden="true" style={{ ...textStyle("hero", mobile), lineHeight: 1, color: GAME_COLORS[(i + start) % 3] }}>{i + 1}</span>
           <p style={body}>{item}</p>
         </li>
