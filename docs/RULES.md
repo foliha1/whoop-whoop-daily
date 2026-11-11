@@ -43,20 +43,19 @@ A single six-sided die. Three faces, each printed twice:
 | NUMBER | ×2 | Same number counts as a match |
 | COLOR | ×2 | Same color counts as a match |
 
-### Reference Cards — 2 Cards
+### QR Cards — 2 Cards
 
-Player aids summarizing the round and the claim procedure.
+Each QR card links to the full rules at **whoop-whoop.com/rules**. There is no printed rulebook. Two cards so two people can read along.
 
 ### Component Totals
 
 | Component | Quantity |
 |-----------|----------|
 | Main deck cards | 48 |
-| Reference cards | 2 |
+| QR cards | 2 |
 | **Total cards** | **50** |
 | Match Die | 1 |
-| Rulebook | 1 |
-| Tuck box | 1 |
+| Canvas drawstring bag | 1 |
 
 ---
 
@@ -295,9 +294,9 @@ Bold, graphic, type-forward. High-contrast warm black on cream with the three ga
 
 ### Packaging
 
-Tuck box holding 50 cards, one die, and a saddle-stitched rulebook.
+A small canvas drawstring bag with a printed logo, holding 50 cards (48 game cards and 2 QR cards) and one die. No box and no printed rulebook. The rules live at **whoop-whoop.com/rules**.
 
-> **Open item:** The old 66 × 91 × 23 mm box was specified for 65 cards. Current contents are 50 cards plus one 16mm die. The die needs a well, a tray, or a change in box depth. Unresolved.
+The tuck box and its die-well problem are retired.
 
 ---
 
@@ -333,6 +332,8 @@ WHOOP! WHOOP! is one game online at whoop-whoop.com, with three ways to play. No
 - **v7.1 — Target Twelve.** The win target moves from 10 cards to 12. A measured sweep of targets 10 through 18 across solo and two- to six-player tables (500 games per cell) showed 10 ending too quickly, while 12 runs about 40% longer and still completes 99.8% of the time at every table size. 14 and above were rejected: they buy little extra time and leave roughly one in twenty-six six-player games unable to finish, because the 48-card deck runs out before that many cards can be banked. Note that the 15–20 minute play time in the header describes the physical game, including shuffling, dealing and table talk; the digital build is a short, replayable game and is not measured against that figure.
 
 - **v7.2 (Current) — Two Calls a Round.** Each player now gets **two wrong claims per round**; after the second miss, claiming is closed to that player until the round ends. This closes an exploit found in live testing on the digital build: because a wrong claim leaves its two cards face up and nothing limited how often you could claim, a player could call repeatedly and turn almost the whole board face up. It was free at the start of a round, when an empty pile returns no card. At a physical table shouting WHOOP! WHOOP! eight times in a row is socially expensive and self-corrects; on a screen it costs one tap. The count is per player, per round, and resets for everyone when the round ends by either route. Correct claims never count against it. Nothing else changes: the returned card, the face-up pair, the lock and the free-of-flips claim all stand.
+
+- **Packaging update (Nov 2026).** No rule changes. The tuck box, printed rulebook and 2 reference cards are replaced by a canvas drawstring bag and 2 QR cards that link to whoop-whoop.com/rules.
 
 ---
 
