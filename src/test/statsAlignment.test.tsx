@@ -41,6 +41,6 @@ describe("Your Stats vertical alignment", () => {
     const optedIn = readdirSync(resolve(process.cwd(), "src/pages"), { recursive: true })
       .filter((f) => typeof f === "string" && f.endsWith(".tsx"))
       .filter((f) => src(`src/pages/${f}`).includes('align="top"') || src(`src/pages/${f}`).includes("align={umbrella"));
-    expect(optedIn).toEqual(["SupportPage.tsx", "YouPage.tsx"]);
+    expect(optedIn).toEqual(["RulesPage.tsx", "SupportPage.tsx", "YouPage.tsx"]);
   });
 });

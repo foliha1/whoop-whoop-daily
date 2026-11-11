@@ -152,6 +152,7 @@ const AnimatedRoutes: React.FC = () => {
           {/* The player's long-term self. Not indexed, same as groups. */}
           <Route path="/you" element={<Suspense fallback={<CardFlipLoader label="Loading Your Stats" layout="page" />}><YouPage /></Suspense>} />
           <Route path="/about" element={<SupportPage />} />
+          <Route path="/rules" element={<RulesPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/faq" element={<FaqPage />} />
