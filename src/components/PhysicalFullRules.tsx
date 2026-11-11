@@ -1,6 +1,6 @@
 import React from "react";
 import { CARD_BACK_URL, DIE_ART, cardArt } from "@/lib/assetUrls";
-import { BORDER, COLORS, RADIUS, SPACE, textStyle } from "@/lib/tokens";
+import { BORDER, COLORS, RADIUS, RAW, SPACE, textStyle } from "@/lib/tokens";
 
 // This printed-game rulebook intentionally shows the physical deck, not seasonal art.
 const RED_CIRCLE_3 = { id: "3-circle-red", label: "Red Circle 3" };
@@ -16,7 +16,7 @@ function CardFace({ id, label }: { id: string; label: string }) {
 }
 
 function DieFace({ rule }: { rule: keyof typeof DIE_ART }) {
-  return <img src={DIE_ART[rule]} alt={`Match Die: ${rule}`} loading="lazy" width={64} height={64} style={{ display: "block", width: "100%", height: "auto", aspectRatio: "1", objectFit: "contain" }} />;
+  return <img src={DIE_ART[rule]} alt={`Match Die: ${rule}`} loading="lazy" width={64} height={64} style={{ display: "block", width: "100%", height: "auto", aspectRatio: "1", objectFit: "contain", boxSizing: "border-box", padding: SPACE[2], background: RAW.cream, border: `2px solid ${RAW.warmBlack}`, borderRadius: RADIUS.md }} />;
 }
 
 export default function PhysicalFullRules({ mobile }: { mobile: boolean }) {
@@ -31,13 +31,13 @@ export default function PhysicalFullRules({ mobile }: { mobile: boolean }) {
     <section id="full-rules" aria-label="Full Rules" style={{ ...flow, gap: SPACE[20], scrollMarginTop: SPACE[12] }}>
       <section aria-labelledby="bag-title" style={panel}>
         <h2 id="bag-title" style={heading}>What's in the Bag</h2>
-        <ul style={list}>
+        <ul style={{ ...list, listStyleType: "disc" }}>
           <li><strong>48 cards.</strong> Every card has a shape, a number, and a color. No two are the same.</li>
           <li><strong>1 Match Die.</strong> It has three rules on it, each one twice: SHAPE, NUMBER, COLOR.</li>
           <li><strong>2 QR cards.</strong> They brought you here. Keep them in the bag for next time. Two cards means two people can read along.</li>
         </ul>
         <h3 style={subhead}>The cards</h3>
-        <ul style={list}>
+        <ul style={{ ...list, listStyleType: "disc" }}>
           <li><strong>Shapes:</strong> circle, square, triangle, star</li>
           <li><strong>Numbers:</strong> 1, 2, 3, 4</li>
           <li><strong>Colors:</strong> red, blue, orange</li>
@@ -52,7 +52,7 @@ export default function PhysicalFullRules({ mobile }: { mobile: boolean }) {
 
       <section aria-labelledby="setup-title" style={panel}>
         <h2 id="setup-title" style={heading}>Set Up</h2>
-        <ol style={list}>
+        <ol style={{ ...list, listStyleType: "decimal" }}>
           <li><strong>Shuffle</strong> all 48 cards.</li>
           <li><strong>Deal 9 cards face down</strong> in a 3 by 3 grid in the middle of the table.</li>
           <li><strong>Put the rest face down</strong> next to the grid. This is the draw pile.</li>
@@ -94,7 +94,7 @@ export default function PhysicalFullRules({ mobile }: { mobile: boolean }) {
           <h3 id="flip-title" style={subhead}>Flip</h3>
           <p style={body}>The Roller goes first. Then play moves to the left.</p>
           <p style={body}>On your turn, <strong>flip two cards, one at a time.</strong> For each one:</p>
-          <ol style={list}>
+          <ol style={{ ...list, listStyleType: "decimal" }}>
             <li>Pick a face-down card.</li>
             <li>Turn it face up so everyone can see.</li>
             <li>Count to three.</li>
@@ -106,7 +106,7 @@ export default function PhysicalFullRules({ mobile }: { mobile: boolean }) {
         <section aria-labelledby="call-title" style={flow}>
           <h3 id="call-title" style={subhead}>WHOOP! WHOOP!</h3>
           <p style={body}>You can call at any moment. On your turn, on someone else's turn, mid-flip. There is no wrong time.</p>
-          <ol style={list}>
+          <ol style={{ ...list, listStyleType: "decimal" }}>
             <li><strong>Shout "WHOOP! WHOOP!"</strong> Everyone freezes.</li>
             <li><strong>Touch two cards, one at a time.</strong> When your finger lands on the second card, you're locked in. No switching.</li>
             <li><strong>Flip both cards</strong> to check.</li>
