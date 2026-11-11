@@ -1,8 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { Minus, Plus } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { BORDER, COLORS, RADIUS, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
+import { BORDER, COLORS, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
+import { Chapter, ChapterDivider, PullQuote, ShapeMark, Steps, Subsection, rulesType } from "@/components/rulesLayout";
 
 const STICKY = [
   ["Two people call at the same time for different pairs?", "Check them in the order you heard them. Both can score."],
@@ -20,33 +22,31 @@ const STICKY = [
   ["You're locked out of every card?", "Your turn passes."],
 ] as const;
 
-function styles(mobile: boolean) {
-  const body: React.CSSProperties = { ...textStyle("body", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 };
-  const heading: React.CSSProperties = { ...textStyle("title", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 };
-  const subhead: React.CSSProperties = { ...textStyle("subhead", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 };
-  const flow: React.CSSProperties = { display: "flex", flexDirection: "column", gap: SPACE[6], minWidth: 0 };
-  const panel: React.CSSProperties = { ...flow, boxSizing: "border-box", width: "100%", border: BORDER.heavy, borderRadius: RADIUS.md, background: COLORS.surface, padding: mobile ? SPACE[6] : SPACE[8], gap: SPACE[8] };
-  const list: React.CSSProperties = { ...body, paddingLeft: SPACE[6], display: "flex", flexDirection: "column", gap: SPACE[4], listStyleType: "disc" };
-  return { body, heading, subhead, flow, panel, list };
-}
+const TIPS = [
+  ["What you saw still counts.", "A red circle in the corner is still a red circle when the rule switches to color. Don't start over. Re-sort what you know."],
+  ["Flip two in a row on purpose.", "Two cards seen back to back are easy to compare."],
+  ["The Roller knows the least.", "They flip first, with the least info. Winning the die is good. It's not a free pass."],
+  ["Don't guess early.", "A wrong call shows everyone two cards and costs you one."],
+] as const;
 
 export function PhysicalRoundOutcomes({ mobile }: { mobile: boolean }) {
-  const { body, heading, subhead, flow, panel, list } = styles(mobile);
+  const { body, subhead, minor, list, read } = rulesType(mobile);
+  const card: React.CSSProperties = { boxSizing: "border-box", borderRadius: RADIUS.md, padding: mobile ? SPACE[12] : SPACE[16], display: "flex", flexDirection: "column", gap: SPACE[8], minWidth: 0, height: "100%" };
   return (
     <>
-      <section aria-labelledby="outcomes-title" style={{ ...flow, gap: SPACE[8] }}>
-        <h2 id="outcomes-title" style={heading}>Right or Wrong</h2>
-        <div style={{ display: "grid", gridTemplateColumns: mobile ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))", gap: SPACE[6], alignItems: "start" }}>
-          <section aria-labelledby="right-title" style={panel}>
-            <h3 id="right-title" style={subhead}>You're right</h3>
-            <ul style={list}>
+      <section aria-labelledby="outcomes-title" style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8], minWidth: 0 }}>
+        <h3 id="outcomes-title" style={{ ...subhead, width: "100%", maxWidth: 600, alignSelf: "center" }}>Right or Wrong</h3>
+        <div style={{ display: "grid", gridTemplateColumns: mobile ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))", gap: SPACE[8], alignItems: "stretch" }}>
+          <section aria-labelledby="right-title" style={{ ...card, background: RAW.blue, color: COLORS.onBlue }}>
+            <h4 id="right-title" style={{ ...minor, ...textStyle("title", mobile), color: "inherit" }}>You're right</h4>
+            <ul style={{ ...list, color: "inherit" }}>
               <li>Take both cards. They're yours.</li>
               <li>Fill the two empty spots from the draw pile, face down.</li>
               <li>The round ends. <strong>You roll next.</strong></li>
             </ul>
           </section>
-          <section aria-labelledby="wrong-title" style={panel}>
-            <h3 id="wrong-title" style={subhead}>You're wrong</h3>
+          <section aria-labelledby="wrong-title" style={{ ...card, border: `2px solid ${COLORS.red}` }}>
+            <h4 id="wrong-title" style={{ ...minor, ...textStyle("title", mobile), color: COLORS.redText }}>You're wrong</h4>
             <ul style={list}>
               <li><strong>Put one card back.</strong> Take one from your pile and put it in the draw pile. No cards yet? Nothing to give back.</li>
               <li><strong>Leave both cards face up.</strong> Everyone can see them for the rest of the round.</li>
@@ -55,26 +55,36 @@ export function PhysicalRoundOutcomes({ mobile }: { mobile: boolean }) {
             </ul>
           </section>
         </div>
-        <p style={body}>The round keeps going.</p>
-        <p style={body}>A wrong call helps everyone else. Call late, not early.</p>
+        <div style={read}>
+          <p style={body}>The round keeps going.</p>
+          <PullQuote mobile={mobile} color={COLORS.red}>A wrong call helps everyone else. Call late, not early.</PullQuote>
+        </div>
       </section>
-      <section aria-labelledby="round-end-title" style={panel}>
-        <h2 id="round-end-title" style={heading}>When the Round Ends</h2>
+      <Subsection id="round-end-title" title="When the Round Ends" mobile={mobile}>
         <p style={body}>A round ends one of two ways:</p>
-        <ol style={{ ...list, listStyleType: "decimal" }}>
-          <li><strong>Someone makes a right call.</strong> They roll the next rule.</li>
-          <li><strong>Everyone has taken their turn and nobody got it.</strong> The die passes to the left.</li>
-        </ol>
+        <Steps mobile={mobile} items={[
+          <><strong>Someone makes a right call.</strong> They roll the next rule.</>,
+          <><strong>Everyone has taken their turn and nobody got it.</strong> The die passes to the left.</>,
+        ]} />
         <p style={body}>Then flip any face-up cards back down, forget who's locked out, and roll a new rule.</p>
         <p style={body}>The cards didn't move. But what matters about them just changed. That's the whole game.</p>
+      </Subsection>
+    </>
+  );
+}
+
+export function PhysicalWinning({ mobile }: { mobile: boolean }) {
+  const { hero, body, subhead, read } = rulesType(mobile);
+  return (
+    <>
+      <section aria-labelledby="win-title" style={{ ...read, alignItems: "center", textAlign: "center", gap: SPACE[8] }}>
+        <h3 id="win-title" style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, margin: 0 }}>How to Win</h3>
+        <p style={{ ...textStyle("resultHero", mobile), fontSize: Math.round(hero * 1.12), lineHeight: 1.02, color: COLORS.ink, margin: 0, letterSpacing: 0 }}>First to 12 cards wins.</p>
+        <p style={{ ...body, maxWidth: 440 }}>The game ends right then.</p>
+        <p style={{ ...body, maxWidth: 440, color: COLORS.inkMuted }}>Every card in your pile counts as one. That's six right calls. Keep your pile where everyone can see it, so everyone knows who's close.</p>
       </section>
-      <section aria-labelledby="win-title" style={panel}>
-        <h2 id="win-title" style={heading}>How to Win</h2>
-        <p style={body}><strong>First to 12 cards wins.</strong> The game ends right then.</p>
-        <p style={body}>Every card in your pile counts as one. That's six right calls. Keep your pile where everyone can see it, so everyone knows who's close.</p>
-      </section>
-      <section aria-labelledby="harder-title" style={panel}>
-        <h2 id="harder-title" style={heading}>Make It Harder</h2>
+      <section aria-labelledby="harder-title" style={read}>
+        <h3 id="harder-title" style={subhead}>Make It Harder</h3>
         <p style={body}>Deal <strong>12 cards in a 4 by 3 grid</strong> instead of 9. Nothing else changes.</p>
         <p style={body}>More spots to remember. More matches hiding. Great for tables that have played a lot.</p>
         <p style={body}>It also evens things out. Playing kids against grown-ups, or casual players against the family shark? Go 4 by 3. When nobody can remember everything, luck gets a louder voice.</p>
@@ -84,38 +94,53 @@ export function PhysicalRoundOutcomes({ mobile }: { mobile: boolean }) {
 }
 
 export function PhysicalRulesClosing({ mobile }: { mobile: boolean }) {
-  const { body, heading, flow, panel, list } = styles(mobile);
+  const { body, subhead, minor, read } = rulesType(mobile);
   return (
     <>
-      <section id="sticky" aria-labelledby="sticky-title" style={{ ...flow, gap: SPACE[8], scrollMarginTop: SPACE[12] }}>
-        <h2 id="sticky-title" style={heading}>Sticky Situations</h2>
-        <Accordion type="multiple" style={{ ...panel, display: "block" }}>
+      <ChapterDivider mobile={mobile} />
+      <Chapter id="sticky" number={4} title="Sticky Situations" mobile={mobile}>
+        <Accordion type="multiple" style={{ ...read, display: "block", borderTop: BORDER.standard }}>
           {STICKY.map(([question, answer], index) => (
-            <AccordionItem key={question} value={`sticky-${index}`} style={{ borderBottom: index === STICKY.length - 1 ? 0 : BORDER.standard }}>
-              <AccordionTrigger className="text-left gap-4" style={{ ...body, minHeight: 44, paddingTop: SPACE[5], paddingBottom: SPACE[5] }}>{question}</AccordionTrigger>
-              <AccordionContent style={body}><p style={body}>{answer}</p></AccordionContent>
+            <AccordionItem key={question} value={`sticky-${index}`} style={{ borderBottom: BORDER.standard }}>
+              <AccordionTrigger className="group text-left gap-4 hover:no-underline [&>svg]:hidden" style={{ ...minor, minHeight: 44, paddingTop: SPACE[8], paddingBottom: SPACE[8] }}>
+                {question}
+                <span aria-hidden="true" style={{ flexShrink: 0, display: "inline-flex", color: COLORS.ink }}>
+                  <Plus size={22} className="group-data-[state=open]:hidden" />
+                  <Minus size={22} className="hidden group-data-[state=open]:block" />
+                </span>
+              </AccordionTrigger>
+              <AccordionContent style={{ paddingBottom: SPACE[8] }}><p style={body}>{answer}</p></AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
-      </section>
-      <section aria-labelledby="tips-title" style={panel}>
-        <h2 id="tips-title" style={heading}>Tips from the Table</h2>
-        <ul style={list}>
-          <li><strong>What you saw still counts.</strong> A red circle in the corner is still a red circle when the rule switches to color. Don't start over. Re-sort what you know.</li>
-          <li><strong>Flip two in a row on purpose.</strong> Two cards seen back to back are easy to compare.</li>
-          <li><strong>The Roller knows the least.</strong> They flip first, with the least info. Winning the die is good. It's not a free pass.</li>
-          <li><strong>Don't guess early.</strong> A wrong call shows everyone two cards and costs you one.</li>
+      </Chapter>
+
+      <ChapterDivider mobile={mobile} />
+
+      <section aria-labelledby="tips-title" style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[16], minWidth: 0 }}>
+        <h2 id="tips-title" style={{ ...textStyle("hero", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0, width: "100%", maxWidth: 600, alignSelf: "center" }}>Tips from the Table</h2>
+        <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gridTemplateColumns: mobile ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))", gap: mobile ? SPACE[12] : `${SPACE[16]}px ${SPACE[20]}px` }}>
+          {TIPS.map(([lead, rest], i) => (
+            <li key={lead} style={{ display: "flex", flexDirection: "column", gap: SPACE[4], minWidth: 0 }}>
+              <ShapeMark index={i} />
+              <p style={{ ...subhead, ...textStyle("subhead", mobile) }}><strong style={{ fontWeight: "inherit" }}>{lead}</strong></p>
+              <p style={body}>{rest}</p>
+            </li>
+          ))}
         </ul>
       </section>
-      <section aria-labelledby="online-title" style={{ ...flow, gap: SPACE[8] }}>
-        <h2 id="online-title" style={heading}>Keep Playing Online</h2>
+
+      <ChapterDivider mobile={mobile} />
+
+      <section aria-labelledby="online-title" style={{ ...read, alignItems: "center", textAlign: "center", gap: SPACE[10], paddingBottom: SPACE[16] }}>
+        <h2 id="online-title" style={{ ...textStyle("hero", mobile), fontStyle: "italic", color: COLORS.ink, margin: 0, letterSpacing: 0 }}>Keep Playing Online</h2>
         <p style={body}>No deck handy? Play WHOOP! WHOOP! on any phone.</p>
-        <ul style={list}>
+        <ul style={{ ...body, listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: SPACE[4] }}>
           <li><strong>Daily:</strong> one puzzle a day, the same for everyone.</li>
           <li><strong>Solo:</strong> the full game against FELIX, our bot.</li>
           <li><strong>Together:</strong> the full game with friends, each on their own phone.</li>
         </ul>
-        <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: SPACE[4] }}>
+        <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: SPACE[4], justifyContent: "center", width: mobile ? "100%" : "auto" }}>
           <Button asChild style={buttonStyle("primary", "lg", { mobile })}><Link to="/">Play Now</Link></Button>
           <Button asChild variant="secondary" style={buttonStyle("secondary", "lg", { mobile })}><Link to="/about">Read Our Story</Link></Button>
         </div>
