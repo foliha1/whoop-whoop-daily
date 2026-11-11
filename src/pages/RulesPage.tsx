@@ -6,11 +6,12 @@ import HomeControl from "@/components/HomeControl";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
 import PhysicalFullRules from "@/components/PhysicalFullRules";
 import { PhysicalRulesClosing } from "@/components/PhysicalRulesEnding";
+import { ChapterDivider, GAME_COLORS, READ_W } from "@/components/rulesLayout";
 import { ScrollReveal } from "@/components/MotionReveal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUmbrella } from "@/lib/launch";
 import { useSkin } from "@/lib/skin";
-import { BORDER, COLORS, RADIUS, SPACE, textStyle } from "@/lib/tokens";
+import { BORDER, COLORS, RADIUS, SPACE, TEXT, textStyle } from "@/lib/tokens";
 
 // Add a direct video file URL here to replace the poster with a video player.
 export const RULES_VIDEO_URL: string | null = null;
@@ -20,6 +21,15 @@ const JUMP_LINKS = [
   { href: "#quick-start", label: "Quick Start" },
   { href: "#full-rules", label: "Full Rules" },
   { href: "#sticky", label: "Sticky Situations" },
+];
+
+const QUICK_STEPS: React.ReactNode[] = [
+  <><strong>Deal 9 cards face down</strong> in a 3 by 3 grid. The rest is the draw pile.</>,
+  <><strong>Roll the die.</strong> It says what counts as a match this round: same shape, same number, or same color.</>,
+  <><strong>Take turns flipping two cards.</strong> Show each one, then turn it back down.</>,
+  <><strong>Spot a match? Shout WHOOP! WHOOP!</strong> Touch the two cards and flip them.</>,
+  <><strong>Right? Keep the pair</strong> and roll the next rule. <strong>Wrong?</strong> Put one of your cards back.</>,
+  <><strong>First to 12 cards wins.</strong></>,
 ];
 
 const RulesPage: React.FC = () => {
@@ -35,6 +45,7 @@ const RulesPage: React.FC = () => {
     margin: 0,
     letterSpacing: 0,
   };
+  const HEADLINE = Math.round((mobile ? TEXT.resultHero.mobileSize : TEXT.resultHero.size) * 1.2);
   const anchorTarget: React.CSSProperties = { scrollMarginTop: SPACE[12] };
 
   return (
@@ -55,31 +66,24 @@ const RulesPage: React.FC = () => {
           id="rules"
           style={{
             width: "100%",
-            maxWidth: 600,
+            maxWidth: 804,
             paddingTop: SPACE[6],
             paddingBottom: SPACE[12],
             display: "flex",
             flexDirection: "column",
-            gap: SPACE[20],
+            gap: 0,
           }}
         >
           <ScrollReveal index={0}>
-            <header style={{ display: "flex", flexDirection: "column", gap: SPACE[8], textAlign: "center" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
+            <header style={{ display: "flex", flexDirection: "column", gap: SPACE[12], textAlign: "center", width: "100%", maxWidth: READ_W, alignSelf: "center" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: SPACE[6] }}>
                 <p style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, margin: 0 }}>At the Table</p>
-                <h1 style={{ ...textStyle("resultHero", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 }}>
+                <h1 style={{ ...textStyle("resultHero", mobile), fontSize: HEADLINE, lineHeight: 1.05, color: COLORS.ink, margin: 0, letterSpacing: 0 }}>
                   How to Play WHOOP! WHOOP!
                 </h1>
                 <p style={body}>The memory game where the rules keep changing.</p>
+                <p aria-label="Game details" style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>{CHIPS.join(" · ")}</p>
               </div>
-
-              <ul aria-label="Game details" style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: SPACE[2], listStyle: "none", margin: 0, padding: 0 }}>
-                {CHIPS.map((chip) => (
-                  <li key={chip} style={{ ...textStyle("pill", mobile), color: COLORS.ink, background: COLORS.panel, border: BORDER.standard, borderRadius: RADIUS.lg, padding: `${SPACE[2]}px ${SPACE[4]}px` }}>
-                    {chip}
-                  </li>
-                ))}
-              </ul>
 
               <div style={{ position: "relative", width: "100%", aspectRatio: "16 / 9", overflow: "hidden", borderRadius: RADIUS.md, border: BORDER.heavy, background: COLORS.surface }}>
                 {RULES_VIDEO_URL ? (
@@ -99,9 +103,9 @@ const RulesPage: React.FC = () => {
                 )}
               </div>
 
-              <nav aria-label="On this page" style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: `${SPACE[3]}px ${SPACE[6]}px` }}>
+              <nav aria-label="On this page" style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: `${SPACE[3]}px ${SPACE[8]}px` }}>
                 {JUMP_LINKS.map((link) => (
-                  <a key={link.href} href={link.href} style={{ ...textStyle("chip", mobile), color: COLORS.ink, textUnderlineOffset: SPACE[1] }}>
+                  <a key={link.href} href={link.href} style={{ ...textStyle("chip", mobile), color: COLORS.ink, textUnderlineOffset: SPACE[2], minHeight: 44, display: "inline-flex", alignItems: "center" }}>
                     {link.label}
                   </a>
                 ))}
@@ -117,47 +121,32 @@ const RulesPage: React.FC = () => {
                 ...anchorTarget,
                 boxSizing: "border-box",
                 width: "100%",
+                maxWidth: 680,
+                margin: `${SPACE[20]}px auto 0`,
                 minWidth: 0,
-                border: BORDER.heavy,
                 borderRadius: RADIUS.md,
-                background: COLORS.surface,
-                padding: mobile ? SPACE[6] : SPACE[8],
+                background: COLORS.ink,
+                color: COLORS.surface,
+                padding: mobile ? `${SPACE[16]}px ${SPACE[10]}px` : `${SPACE[20] + SPACE[8]}px ${SPACE[20]}px`,
                 display: "flex",
                 flexDirection: "column",
-                gap: SPACE[8],
+                gap: SPACE[16],
               }}
             >
-              <h2 id="quick-start-title" style={{ ...textStyle("title", mobile), color: COLORS.ink, margin: 0 }}>Play in 60 seconds</h2>
-              <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: SPACE[6] }}>
-                <li style={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", gap: SPACE[4] }}>
-                  <span aria-hidden="true" style={{ ...textStyle("subhead", mobile), color: COLORS.ink }}>1.</span>
-                  <p style={body}><strong>Deal 9 cards face down</strong> in a 3 by 3 grid. The rest is the draw pile.</p>
-                </li>
-                <li style={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", gap: SPACE[4] }}>
-                  <span aria-hidden="true" style={{ ...textStyle("subhead", mobile), color: COLORS.ink }}>2.</span>
-                  <p style={body}><strong>Roll the die.</strong> It says what counts as a match this round: same shape, same number, or same color.</p>
-                </li>
-                <li style={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", gap: SPACE[4] }}>
-                  <span aria-hidden="true" style={{ ...textStyle("subhead", mobile), color: COLORS.ink }}>3.</span>
-                  <p style={body}><strong>Take turns flipping two cards.</strong> Show each one, then turn it back down.</p>
-                </li>
-                <li style={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", gap: SPACE[4] }}>
-                  <span aria-hidden="true" style={{ ...textStyle("subhead", mobile), color: COLORS.ink }}>4.</span>
-                  <p style={body}><strong>Spot a match? Shout WHOOP! WHOOP!</strong> Touch the two cards and flip them.</p>
-                </li>
-                <li style={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", gap: SPACE[4] }}>
-                  <span aria-hidden="true" style={{ ...textStyle("subhead", mobile), color: COLORS.ink }}>5.</span>
-                  <p style={body}><strong>Right? Keep the pair</strong> and roll the next rule. <strong>Wrong?</strong> Put one of your cards back.</p>
-                </li>
-                <li style={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", gap: SPACE[4] }}>
-                  <span aria-hidden="true" style={{ ...textStyle("subhead", mobile), color: COLORS.ink }}>6.</span>
-                  <p style={body}><strong>First to 12 cards wins.</strong></p>
-                </li>
+              <h2 id="quick-start-title" style={{ ...textStyle("hero", mobile), color: "inherit", margin: 0, letterSpacing: 0 }}>Play in 60 seconds</h2>
+              <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: SPACE[10] }}>
+                {QUICK_STEPS.map((step, i) => (
+                  <li key={i} style={{ display: "grid", gridTemplateColumns: `${mobile ? 44 : 64}px minmax(0, 1fr)`, columnGap: SPACE[6], alignItems: "baseline" }}>
+                    <span aria-hidden="true" style={{ ...textStyle("resultHero", mobile), fontSize: mobile ? 44 : 60, lineHeight: 1, color: GAME_COLORS[i % 3] }}>{i + 1}</span>
+                    <p style={{ ...body, color: "inherit" }}>{step}</p>
+                  </li>
+                ))}
               </ol>
-              <p style={body}>That&apos;s it. The rest of this page is for when someone at the table starts arguing.</p>
+              <p style={{ ...textStyle("subhead", mobile), fontStyle: "italic", color: "inherit", margin: 0, letterSpacing: 0 }}>That&apos;s it. The rest of this page is for when someone at the table starts arguing.</p>
             </section>
           </ScrollReveal>
 
+          <ChapterDivider mobile={mobile} />
           <PhysicalFullRules mobile={mobile} />
           <PhysicalRulesClosing mobile={mobile} />
           <DailyLegalFooter />
