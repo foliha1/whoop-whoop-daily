@@ -19,7 +19,10 @@ export type AnalyticsEventType =
   | "home_solo_tapped"
   | "home_peeps_tapped"
   // About card-waterfall Easter egg; the server keeps one per player.
-  | "easter_egg_found";
+  | "easter_egg_found"
+  // /rules loads; qr marks a scan of the printed bag card.
+  | "rules_view"
+  | "rules_qr_scan";
 
 interface TrackOpts {
   roomCode?: string;
