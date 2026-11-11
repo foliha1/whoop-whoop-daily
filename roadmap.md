@@ -2,7 +2,7 @@
 
 ## Physical rulebook part 2
 - [x] Fill Full Rules with bag contents, setup, and round instructions using the supplied copy and original game artwork; preserve the existing frame and Quick Start panel style.
-- [ ] Verify artwork, jump navigation, phone/desktop layouts and both themes; run existing rulebook tests; do not publish.
+- [x] Verified all artwork loads, Full Rules jump navigation, no overflow at 1280/390/360 widths in light/night, numbered steps and contrasting die faces; all 3 existing rulebook tests pass and preview build OK. Not published.
 
 ## Admin subscriber activity log
 - [x] Record signup and WWD_NUMBER seed outcomes without changing signup success or local-midnight numbering; masked addresses only, independent pending/succeeded/failed/skipped states and seed timestamps.
