@@ -35,12 +35,12 @@ describe("Your Stats vertical alignment", () => {
 
   it("gates the top alignment on Your Stats behind the launch switch", () => {
     expect(src("src/pages/YouPage.tsx")).toContain('align={umbrella ? "top" : "center"}');
-    // Only two screens sit at the top of the frame: Your Stats (switch-gated) and
-    // About, an editorial page that is top-aligned in both launch states. The
-    // live app's ready/play/result pages stay centred.
+    // Your Stats is switch-gated. About and Rules are editorial pages that are
+    // top-aligned in both launch states. The live app's ready/play/result pages
+    // stay centred.
     const optedIn = readdirSync(resolve(process.cwd(), "src/pages"), { recursive: true })
       .filter((f) => typeof f === "string" && f.endsWith(".tsx"))
       .filter((f) => src(`src/pages/${f}`).includes('align="top"') || src(`src/pages/${f}`).includes("align={umbrella"));
-    expect(optedIn).toEqual(["SupportPage.tsx", "YouPage.tsx"]);
+    expect(optedIn).toEqual(["RulesPage.tsx", "SupportPage.tsx", "YouPage.tsx"]);
   });
 });
