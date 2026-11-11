@@ -11,6 +11,7 @@ import { ScrollReveal } from "@/components/MotionReveal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUmbrella } from "@/lib/launch";
 import { useSkin } from "@/lib/skin";
+import { trackEvent } from "@/lib/analytics";
 import { BORDER, COLORS, RADIUS, SPACE, TEXT, textStyle } from "@/lib/tokens";
 
 // Add a direct video file URL here to replace the poster with a video player.
@@ -35,6 +36,15 @@ const QUICK_STEPS: React.ReactNode[] = [
 const RulesPage: React.FC = () => {
   useSkin();
   const umbrella = useUmbrella();
+  React.useEffect(() => {
+    trackEvent("rules_view");
+    const u = new URL(window.location.href);
+    if (u.searchParams.has("qr")) {
+      trackEvent("rules_qr_scan");
+      u.searchParams.delete("qr");
+      window.history.replaceState(window.history.state, "", u.pathname + u.search + u.hash);
+    }
+  }, []);
   const mobile = useIsMobile();
   const title = "How to Play WHOOP! WHOOP! | Rules";
   const description = "Set up and play the physical WHOOP! WHOOP! card game in 60 seconds. For 2 to 6 players, ages 7 and up.";
