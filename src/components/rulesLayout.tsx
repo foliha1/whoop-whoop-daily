@@ -82,7 +82,9 @@ export function ShapeMark({ index }: { index: number }) {
     <circle key="c" cx="8" cy="8" r="7" fill={color} />,
     <rect key="s" x="1" y="1" width="14" height="14" fill={color} />,
     <polygon key="t" points="8,1 15,15 1,15" fill={color} />,
-    <polygon key="r" points="8,0.5 10.2,5.6 15.6,6 11.5,9.6 12.8,15 8,12.1 3.2,15 4.5,9.6 0.4,6 5.8,5.6" fill={color} />,
+    // The deck's own star: eight points, outer radius 7 and inner radius 3.9,
+    // measured from the card artwork and symmetrised.
+    <polygon key="r" points="8,1 9.49,4.4 12.95,3.05 11.6,6.5 15,8 11.6,9.49 12.95,12.95 9.49,11.6 8,15 6.5,11.6 3.05,12.95 4.4,9.49 1,8 4.4,6.5 3.05,3.05 6.5,4.4" fill={color} />,
   ];
   return <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" style={{ display: "block", flexShrink: 0 }}>{shapes[index % 4]}</svg>;
 }
