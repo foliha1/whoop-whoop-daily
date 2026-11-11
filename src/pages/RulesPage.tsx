@@ -77,7 +77,7 @@ const RulesPage: React.FC = () => {
           <ScrollReveal index={0}>
             <header style={{ display: "flex", flexDirection: "column", gap: SPACE[12], textAlign: "center", width: "100%", maxWidth: READ_W, margin: "0 auto", alignItems: "center" }}>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[6] }}>
-                <p style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, margin: 0 }}>At the Table</p>
+                <p style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, margin: 0 }}>{"\n"}</p>
                 <h1 style={{ ...textStyle("resultHero", mobile), fontSize: HEADLINE, lineHeight: 1.05, color: COLORS.ink, margin: 0, letterSpacing: 0 }}>
                   How to Play<br />
                   <span style={{ whiteSpace: "nowrap" }}>
