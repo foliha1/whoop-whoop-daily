@@ -76,13 +76,21 @@ const RulesPage: React.FC = () => {
         >
           <ScrollReveal index={0}>
             <header style={{ display: "flex", flexDirection: "column", gap: SPACE[12], textAlign: "center", width: "100%", maxWidth: READ_W, alignSelf: "center" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: SPACE[6] }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[6] }}>
                 <p style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, margin: 0 }}>At the Table</p>
                 <h1 style={{ ...textStyle("resultHero", mobile), fontSize: HEADLINE, lineHeight: 1.05, color: COLORS.ink, margin: 0, letterSpacing: 0 }}>
-                  How to Play WHOOP! WHOOP!
+                  How to Play<br />
+                  <span style={{ whiteSpace: "nowrap" }}>
+                    <span>WH</span><span style={{ color: COLORS.orange }}>OO</span><span style={{ color: COLORS.blue }}>P</span><span style={{ color: COLORS.red }}>!</span>{" "}
+                    <span>WH</span><span style={{ color: COLORS.orange }}>OO</span><span style={{ color: COLORS.blue }}>P</span><span style={{ color: COLORS.red }}>!</span>
+                  </span>
                 </h1>
                 <p style={body}>The memory game where the rules keep changing.</p>
-                <p aria-label="Game details" style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, margin: 0 }}>{CHIPS.join(" · ")}</p>
+                <ul aria-label="Game details" style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: SPACE[3] }}>
+                  {CHIPS.map((chip) => (
+                    <li key={chip} style={{ ...textStyle("caption", mobile), color: COLORS.ink, margin: 0, border: BORDER.standard, borderRadius: 999, padding: `${SPACE[2]}px ${SPACE[5]}px`, whiteSpace: "nowrap" }}>{chip}</li>
+                  ))}
+                </ul>
               </div>
 
               <div style={{ position: "relative", width: "100%", aspectRatio: "16 / 9", overflow: "hidden", borderRadius: RADIUS.md, border: BORDER.heavy, background: COLORS.surface }}>
@@ -133,16 +141,19 @@ const RulesPage: React.FC = () => {
                 gap: SPACE[16],
               }}
             >
-              <h2 id="quick-start-title" style={{ ...textStyle("hero", mobile), color: "inherit", margin: 0, letterSpacing: 0 }}>Play in 60 seconds</h2>
+              <header style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[3], textAlign: "center" }}>
+                <h2 id="quick-start-title" style={{ ...textStyle("hero", mobile), color: "inherit", margin: 0, letterSpacing: 0 }}>Quick Start</h2>
+                <p style={{ ...textStyle("subhead", mobile), fontStyle: "italic", color: "inherit", opacity: 0.8, margin: 0, letterSpacing: 0 }}>Play in 60 seconds</p>
+              </header>
               <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: SPACE[10] }}>
                 {QUICK_STEPS.map((step, i) => (
-                  <li key={i} style={{ display: "grid", gridTemplateColumns: `${mobile ? 44 : 64}px minmax(0, 1fr)`, columnGap: SPACE[6], alignItems: "baseline" }}>
-                    <span aria-hidden="true" style={{ ...textStyle("resultHero", mobile), fontSize: mobile ? 44 : 60, lineHeight: 1, color: GAME_COLORS[i % 3] }}>{i + 1}</span>
+                  <li key={i} style={{ display: "grid", gridTemplateColumns: `${mobile ? 44 : 64}px minmax(0, 1fr)`, columnGap: SPACE[6], alignItems: "center" }}>
+                    <span aria-hidden="true" style={{ ...textStyle("resultHero", mobile), fontSize: mobile ? 44 : 60, lineHeight: 1, textAlign: "center", color: GAME_COLORS[i % 3] }}>{i + 1}</span>
                     <p style={{ ...body, color: "inherit" }}>{step}</p>
                   </li>
                 ))}
               </ol>
-              <p style={{ ...textStyle("subhead", mobile), fontStyle: "italic", color: "inherit", margin: 0, letterSpacing: 0 }}>That&apos;s it. The rest of this page is for when someone at the table starts arguing.</p>
+              <p style={{ ...textStyle("title", mobile), fontStyle: "italic", textAlign: "center", color: "inherit", margin: 0, letterSpacing: 0, borderTop: `2px solid ${COLORS.orange}`, paddingTop: SPACE[12] }}>That&apos;s it. The rest of this page is for when someone at the table starts arguing.</p>
             </section>
           </ScrollReveal>
 
