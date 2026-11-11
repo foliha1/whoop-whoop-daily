@@ -42,9 +42,9 @@ export default function PhysicalFullRules({ mobile }: { mobile: boolean }) {
         <Subsection id="bag-title" title="What's in the Bag" mobile={mobile} style={{ maxWidth: 804 }}>
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gridTemplateColumns: mobile ? "minmax(0, 1fr)" : "repeat(3, minmax(0, 1fr))", gap: SPACE[6] }}>
             {[
-              <><strong>48 cards.</strong> Every card has a shape, a number, and a color. No two are the same.</>,
-              <><strong>1 Match Die.</strong> It has three rules on it, each one twice: SHAPE, NUMBER, COLOR.</>,
-              <><strong>2 QR cards.</strong> They brought you here. Keep them in the bag for next time. Two cards means two people can read along.</>,
+              <><strong>48 cards.</strong>{"\u00a0\n"}Every card has a shape, a number, and a color. No two are the same.</>,
+              <><strong>1 Match Die.</strong>{"\u00a0\n"}It has three rules on it, each one twice: SHAPE, NUMBER, COLOR.</>,
+              <><strong>2 QR cards.</strong>{"\u00a0\n"}They brought you here. Keep them in the bag for next time.</>,
             ].map((item, i) => (
               <li key={i} style={{ boxSizing: "border-box", minWidth: 0, borderTop: `4px solid ${GAME_COLORS[i]}`, background: COLORS.panel, borderRadius: RADIUS.md, padding: SPACE[8] }}><p style={body}>{item}</p></li>
             ))}
