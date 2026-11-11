@@ -1,5 +1,9 @@
 # Roadmap
 
+## Physical rulebook part 3
+- [x] Add right/wrong outcomes, round endings, winning, harder play, 13 Sticky Situations accordion rows, tips, and online closing links using exact supplied copy.
+- [x] Verified all 13 accordion rows by tap and keyboard, both closing links, side-by-side desktop/stacked phone outcomes at 1280/390/360 widths in light/night, and no overflow or em dashes; full suite 765 passed / 4 skipped, preview build OK. Not published.
+
 ## Physical rulebook part 2
 - [x] Fill Full Rules with bag contents, setup, and round instructions using the supplied copy and original game artwork; preserve the existing frame and Quick Start panel style.
 - [x] Verified all artwork loads, Full Rules jump navigation, no overflow at 1280/390/360 widths in light/night, numbered steps and contrasting die faces; all 3 existing rulebook tests pass and preview build OK. Not published.

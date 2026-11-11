@@ -1,6 +1,7 @@
 import React from "react";
 import { CARD_BACK_URL, DIE_ART, cardArt } from "@/lib/assetUrls";
 import { BORDER, COLORS, RADIUS, RAW, SPACE, textStyle } from "@/lib/tokens";
+import { PhysicalRoundOutcomes } from "@/components/PhysicalRulesEnding";
 
 // This printed-game rulebook intentionally shows the physical deck, not seasonal art.
 const RED_CIRCLE_3 = { id: "3-circle-red", label: "Red Circle 3" };
@@ -114,6 +115,7 @@ export default function PhysicalFullRules({ mobile }: { mobile: boolean }) {
           <p style={body}>Calling never costs you a flip. If you had flips left, you still have them.</p>
         </section>
       </section>
+      <PhysicalRoundOutcomes mobile={mobile} />
     </section>
   );
 }
