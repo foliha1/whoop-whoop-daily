@@ -77,7 +77,7 @@ export function Subsection({ id, title, mobile, children, style }: { id: string;
 }
 
 export function ShapeMark({ index }: { index: number }) {
-  const color = GAME_COLORS[index % 3];
+  const color = index % 4 === 3 ? COLORS.ink : GAME_COLORS[index % 3];
   const shapes = [
     <circle key="c" cx="8" cy="8" r="7" fill={color} />,
     <rect key="s" x="1" y="1" width="14" height="14" fill={color} />,

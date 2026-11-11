@@ -122,7 +122,7 @@ export function PhysicalRulesClosing({ mobile }: { mobile: boolean }) {
       <ChapterDivider mobile={mobile} />
 
       <section aria-labelledby="tips-title" style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[16], minWidth: 0 }}>
-        <h2 id="tips-title" style={{ ...textStyle("hero", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0, width: "100%", maxWidth: 600, alignSelf: "center" }}>Tips from the Table</h2>
+        <h2 id="tips-title" style={{ ...textStyle("hero", mobile), textAlign: "center", color: COLORS.ink, margin: 0, letterSpacing: 0, width: "100%", maxWidth: 600, alignSelf: "center" }}>Tips from the Table</h2>
         <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gridTemplateColumns: mobile ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))", gap: mobile ? SPACE[12] : `${SPACE[16]}px ${SPACE[20]}px` }}>
           {TIPS.map(([lead, rest], i) => (
             <li key={lead} style={{ display: "flex", flexDirection: "column", gap: SPACE[4], minWidth: 0 }}>
