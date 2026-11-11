@@ -20,7 +20,7 @@ export function rulesType(mobile: boolean) {
 /** Pattern rail used between chapters, as on the Daily and About frame. */
 export function ChapterDivider({ mobile }: { mobile: boolean }) {
   return (
-    <div aria-hidden="true" style={{ width: "100%", padding: `${mobile ? SPACE[16] : SPACE[24]}px 0` }}>
+    <div aria-hidden="true" style={{ width: "100%", padding: `${mobile ? SPACE[20] + SPACE[8] : SPACE[20] * 2}px 0` }}>
       <DailyShapeRule />
     </div>
   );
