@@ -1,4 +1,5 @@
 # Architecture decisions
+- The physical rulebook uses a presentation-only full-rules section and original card/die assets, not seasonal substitutions, so bag QR readers see the printed deck without touching gameplay.
 - Subscriber activity is written server-side after a saved signup, with masked addresses and independent AC/seed outcomes; admin-only date-filtered reads never change signup success or numbering.
 - ActiveCampaign Daily numbering is seeded by the existing signup pipeline and advanced by its delivery automation, not a backend daily sync, to preserve subscriber-local rollover and avoid competing writers.
 - Admin downloads share one collapsed accordion using existing export handlers; subscriber email confirmation stays inside it to preserve the personal-data safeguard.

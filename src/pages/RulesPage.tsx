@@ -4,6 +4,7 @@ import { Dices } from "lucide-react";
 import DailyFrame from "@/components/DailyFrame";
 import HomeControl from "@/components/HomeControl";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
+import PhysicalFullRules from "@/components/PhysicalFullRules";
 import { ScrollReveal } from "@/components/MotionReveal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUmbrella } from "@/lib/launch";
@@ -156,7 +157,7 @@ const RulesPage: React.FC = () => {
             </section>
           </ScrollReveal>
 
-          <section id="full-rules" aria-label="Full Rules" style={anchorTarget} />
+          <PhysicalFullRules mobile={mobile} />
           <section id="sticky" aria-label="Sticky Situations" style={anchorTarget} />
           <DailyLegalFooter />
         </article>
