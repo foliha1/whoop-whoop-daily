@@ -39,7 +39,7 @@ export function PhysicalRoundOutcomes({ mobile }: { mobile: boolean }) {
   return (
     <>
       <section aria-labelledby="outcomes-title" style={{ width: "100%", display: "flex", flexDirection: "column", gap: SPACE[8], minWidth: 0 }}>
-        <h3 id="outcomes-title" style={{ ...subhead, width: "100%", maxWidth: 600, alignSelf: "center" }}>Right or Wrong</h3>
+        <h3 id="outcomes-title" style={{ ...subhead, textAlign: "center", width: "100%", maxWidth: 600, alignSelf: "center" }}>Right or Wrong</h3>
         <div style={{ display: "grid", gridTemplateColumns: mobile ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))", gap: SPACE[8], alignItems: "stretch" }}>
           <section aria-labelledby="right-title" style={{ ...card, background: `color-mix(in srgb, ${RAW.blue} 14%, transparent)`, border: `2px solid ${RAW.blue}` }}>
             <h4 id="right-title" style={{ ...minor, ...textStyle("title", mobile), color: COLORS.blueText, display: "flex", alignItems: "center", gap: SPACE[4] }}><Icon bg={RAW.blue} fg={COLORS.onBlue}><Check size={22} strokeWidth={3} /></Icon>You're right</h4>
