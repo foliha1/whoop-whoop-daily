@@ -55,6 +55,7 @@ function lazyPage<T extends React.ComponentType<any>>(load: () => Promise<{ defa
 const MultiplayerPage = lazyPage(() => import("./pages/MultiplayerPage.tsx"));
 const DailyPage = lazyPage(() => import("./pages/DailyPage.tsx"));
 const SupportPage = lazyPage(() => import("./pages/SupportPage.tsx"));
+const RulesPage = lazyPage(() => import("./pages/RulesPage.tsx"));
 const AdminPage = lazyPage(() => import("./pages/AdminPage.tsx"));
 const GroupsPage = lazyPage(() => import("./pages/GroupsPage.tsx"));
 const YouPage = lazyPage(() => import("./pages/YouPage.tsx"));
