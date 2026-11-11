@@ -19,7 +19,7 @@ const MATCHES = [
 ] as const;
 
 function CardFace({ id, label, style }: { id: string; label: string; style?: React.CSSProperties }) {
-  return <img src={cardArt(id)} alt={label} loading="lazy" width={100} height={100} style={{ display: "block", width: "100%", height: "auto", aspectRatio: "1", objectFit: "contain", ...style }} />;
+  return <img src={cardArt(id)} alt={label} loading="lazy" width={107} height={150} style={{ display: "block", width: "100%", height: "auto", aspectRatio: "107 / 150", objectFit: "contain", ...style }} />;
 }
 
 function DieFace({ rule }: { rule: keyof typeof DIE_ART }) {
@@ -36,7 +36,7 @@ export default function PhysicalFullRules({ mobile }: { mobile: boolean }) {
       <Chapter id="full-rules" number={1} title="Get Set Up" mobile={mobile}>
         <div aria-label="Three example cards" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: mobile ? SPACE[4] : SPACE[10], width: "100%", maxWidth: 520, alignSelf: "center", padding: `${SPACE[4]}px ${SPACE[4]}px 0`, boxSizing: "border-box" }}>
           {BAG_CARDS.map(({ rotation, ...card }) => (
-            <CardFace key={card.id} {...card} style={{ borderRadius: RADIUS.md, boxShadow: lift, transform: `rotate(${rotation}deg)${rotation === 0 ? ` translateY(-${SPACE[4]}px)` : ""}` }} />
+            <CardFace key={card.id} {...card} style={{ borderRadius: RADIUS.sm, boxShadow: lift, transform: `rotate(${rotation}deg)${rotation === 0 ? ` translateY(-${SPACE[4]}px)` : ""}` }} />
           ))}
         </div>
         <Subsection id="bag-title" title="What's in the Bag" mobile={mobile}>
@@ -51,13 +51,13 @@ export default function PhysicalFullRules({ mobile }: { mobile: boolean }) {
             <li><strong>Numbers:</strong> 1, 2, 3, 4</li>
             <li><strong>Colors:</strong> red, blue, orange</li>
           </ul>
-          <div aria-label="The three Match Die faces" style={{ display: "grid", gridTemplateColumns: "repeat(3, 48px)", gap: SPACE[6] }}>
+          <div aria-label="The three Match Die faces" style={{ display: "grid", gridTemplateColumns: "repeat(3, 72px)", gap: SPACE[6], justifyContent: "center" }}>
             {MATCHES.map(({ rule }) => <DieFace key={rule} rule={rule} />)}
           </div>
         </Subsection>
 
         <Subsection id="setup-title" title="Set Up" mobile={mobile}>
-          <Steps mobile={mobile} items={[
+          <Steps mobile={mobile} dividers items={[
             <><strong>Shuffle</strong> all 48 cards.</>,
             <><strong>Deal 9 cards face down</strong> in a 3 by 3 grid in the middle of the table.</>,
             <><strong>Put the rest face down</strong> next to the grid. This is the draw pile.</>,
@@ -66,15 +66,18 @@ export default function PhysicalFullRules({ mobile }: { mobile: boolean }) {
           ]} />
           <p style={body}>The spots in the grid don't have numbers. You just point. Your finger knows the way.</p>
         </Subsection>
-        <div role="img" aria-label="Nine face-down cards in a 3 by 3 grid, with a draw pile and Match Die beside them" style={{ display: "grid", gridTemplateColumns: "minmax(0, 3fr) minmax(0, 1fr)", gap: SPACE[8], width: "100%", maxWidth: 440, alignSelf: "center", alignItems: "center" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: SPACE[3] }}>
-            {Array.from({ length: 9 }, (_, i) => <img key={i} src={CARD_BACK_URL} alt="" loading="lazy" width={80} height={80} style={{ display: "block", width: "100%", height: "auto", aspectRatio: "1" }} />)}
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: SPACE[8] }}>
-            <div style={{ position: "relative", aspectRatio: "1", marginRight: SPACE[2] }}>
-              {[2, 1, 0].map(layer => <img key={layer} src={CARD_BACK_URL} alt="" loading="lazy" width={80} height={80} style={{ position: "absolute", width: "100%", height: "100%", transform: `translate(${layer * SPACE[1]}px, ${layer * SPACE[1]}px)` }} />)}
+        <div role="img" aria-label="Nine face-down cards in a 3 by 3 grid, with a draw pile and Match Die beside them" style={{ width: "100%", maxWidth: 560, alignSelf: "center", boxSizing: "border-box", padding: mobile ? SPACE[8] : SPACE[12], borderRadius: RADIUS.md * 2, background: `radial-gradient(ellipse at 40% 30%, ${RAW.warmGrey}, ${RAW.warmBlack})`, boxShadow: "inset 0 2px 18px rgba(0,0,0,0.45)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 3fr) minmax(0, 1fr)", gap: mobile ? SPACE[6] : SPACE[10], alignItems: "center" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: mobile ? SPACE[3] : SPACE[4] }}>
+              {Array.from({ length: 9 }, (_, i) => <img key={i} src={CARD_BACK_URL} alt="" loading="lazy" width={180} height={252} style={{ display: "block", width: "100%", height: "auto", aspectRatio: "180 / 252", borderRadius: RADIUS.sm, boxShadow: SHADOW.card }} />)}
             </div>
-            <DieFace rule="SHAPE" />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: mobile ? SPACE[8] : SPACE[12] }}>
+              <div style={{ position: "relative", width: "100%", aspectRatio: "180 / 252" }}>
+                {[3, 2, 1, 0].map(layer => <img key={layer} src={CARD_BACK_URL} alt="" loading="lazy" width={180} height={252} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", borderRadius: RADIUS.sm, boxShadow: SHADOW.card, transform: `translate(${layer * -2}px, ${layer * -2}px)` }} />)}
+              </div>
+              {/* The Match Die is about half a card wide (twice a standard die). */}
+              <div style={{ width: "50%", transform: "rotate(-8deg)", filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.45))" }}><DieFace rule="SHAPE" /></div>
+            </div>
           </div>
         </div>
       </Chapter>
@@ -88,13 +91,13 @@ export default function PhysicalFullRules({ mobile }: { mobile: boolean }) {
         </Subsection>
         <div aria-label="Matching rules and example pairs" style={{ width: "100%", maxWidth: 720, alignSelf: "center", display: "flex", flexDirection: "column", marginTop: -SPACE[12] }}>
           {MATCHES.map(({ rule, description, example }, i) => (
-            <div key={rule} style={{ display: "grid", gridTemplateColumns: mobile ? "64px minmax(0, 1fr)" : "88px minmax(0, 1fr) 216px", columnGap: mobile ? SPACE[6] : SPACE[10], rowGap: SPACE[6], padding: `${mobile ? SPACE[10] : SPACE[12]}px 0`, borderTop: i === 0 ? 0 : BORDER.standard, alignItems: "center" }}>
+            <div key={rule} style={{ display: "grid", gridTemplateColumns: mobile ? "80px minmax(0, 1fr)" : "112px minmax(0, 1fr) 160px", columnGap: mobile ? SPACE[6] : SPACE[10], rowGap: SPACE[6], padding: `${mobile ? SPACE[10] : SPACE[12]}px 0`, borderTop: i === 0 ? 0 : BORDER.standard, alignItems: "center" }}>
               <DieFace rule={rule} />
               <div style={{ display: "flex", flexDirection: "column", gap: SPACE[2], minWidth: 0 }}>
-                <p style={{ ...textStyle("title", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 }}>{rule}:</p>
+                <p style={{ ...textStyle("title", mobile), color: [COLORS.redText, COLORS.blueText, COLORS.orangeStat][i], margin: 0, letterSpacing: 0 }}>{rule}:</p>
                 <p style={body}>{description}</p>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[4], width: "100%", maxWidth: 216, ...(mobile ? { gridColumn: "1 / -1", justifySelf: "center" } : {}) }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[4], width: "100%", maxWidth: mobile ? 180 : 160, ...(mobile ? { gridColumn: "1 / -1", justifySelf: "center" } : {}) }}>
                 <CardFace {...RED_CIRCLE_3} /><CardFace {...example} />
               </div>
             </div>
