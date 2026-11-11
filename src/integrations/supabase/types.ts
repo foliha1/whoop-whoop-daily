@@ -1067,6 +1067,13 @@ export type Database = {
           segment: string
         }[]
       }
+      admin_rulebook: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          qr_scans: number
+          views: number
+        }[]
+      }
       admin_signin_funnel: {
         Args: { p_days?: number }
         Returns: {

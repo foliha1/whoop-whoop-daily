@@ -295,6 +295,13 @@
       "when": 1794179739997,
       "tag": "0041_restrict_subscriber_activity_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1794430709455,
+      "tag": "0042_migration",
+      "breakpoints": true
     }
   ]
 }
