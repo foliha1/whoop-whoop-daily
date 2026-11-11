@@ -1,5 +1,9 @@
 # Roadmap
 
+## Physical rulebook part 2
+- [x] Fill Full Rules with bag contents, setup, and round instructions using the supplied copy and original game artwork; preserve the existing frame and Quick Start panel style.
+- [ ] Verify artwork, jump navigation, phone/desktop layouts and both themes; run existing rulebook tests; do not publish.
+
 ## Admin subscriber activity log
 - [x] Record signup and WWD_NUMBER seed outcomes without changing signup success or local-midnight numbering; masked addresses only, independent pending/succeeded/failed/skipped states and seed timestamps.
 - [x] Add an admin-only date-filtered activity report; 762 tests passed / 4 skipped, permissions checked, authenticated safe signup reads back in desktop/phone admin UI, build OK. Test addresses explicitly skip AC; real provider success/failure covered by tests, not a new real enrollment. Backend logging live; admin UI not published.
