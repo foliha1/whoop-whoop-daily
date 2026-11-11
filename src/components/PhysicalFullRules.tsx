@@ -73,13 +73,13 @@ export default function PhysicalFullRules({ mobile }: { mobile: boolean }) {
         </div>
       </section>
 
-      <section aria-labelledby="round-title" style={panel}>
+      <section aria-labelledby="round-title" style={{ ...flow, gap: SPACE[8] }}>
         <h2 id="round-title" style={heading}>Every Round: Roll, Flip, WHOOP! WHOOP!</h2>
         <section aria-labelledby="roll-title" style={flow}>
           <h3 id="roll-title" style={subhead}>Roll</h3>
           <p style={body}>The Roller rolls the die. Whatever lands face up is the rule for the whole round. Say it out loud.</p>
         </section>
-        <div aria-label="Matching rules and example pairs" style={{ ...flow, gap: SPACE[8] }}>
+        <div aria-label="Matching rules and example pairs" style={panel}>
           {MATCHES.map(({ rule, description, example }) => (
             <div key={rule} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 2fr)", columnGap: SPACE[4], rowGap: SPACE[3], paddingTop: SPACE[6], borderTop: BORDER.standard, alignItems: "center" }}>
               <div style={{ maxWidth: 64 }}><DieFace rule={rule} /></div>
