@@ -1,9 +1,9 @@
 # Roadmap
 
 ## AI discoverability part 2
-- [ ] Remove About's noindex/nofollow directive.
-- [ ] Add shared FAQ-driven semantic content and FAQ JSON-LD to every emitted HTML document.
-- [ ] Test built-document content and confirm React replaces it without visible residue; do not publish.
+- [x] Remove About's noindex/nofollow directive.
+- [x] Add shared FAQ-driven semantic content and FAQ JSON-LD to every emitted HTML document.
+- [x] Verify generated Home/Daily/Classic HTML, mounted Home/FAQ/About pages, one FAQ dataset and no browser errors; full suite 772 passed / 4 skipped, build OK. Not published.
 
 ## Physical rulebook part 3
 - [x] Add right/wrong outcomes, round endings, winning, harder play, 13 Sticky Situations accordion rows, tips, and online closing links using exact supplied copy.
