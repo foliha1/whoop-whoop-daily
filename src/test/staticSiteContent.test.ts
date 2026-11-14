@@ -6,6 +6,11 @@ import { toClassicHtml } from "../../scripts/classicHead.mjs";
 import { toDailyHtml, toHomeHtml } from "../../scripts/umbrellaHead.mjs";
 
 const template = readFileSync(resolve(process.cwd(), "index.html"), "utf8");
+const RULES_SUMMARY = "Roll the Match Die to set the rule: shape, number or color. On your turn, flip two cards. Anyone can shout WHOOP! WHOOP! at any time and touch two cards that match. A correct claim takes the pair. First to 12 cards wins. The Daily is a separate three-round memory puzzle.";
+const templateDocument = new DOMParser().parseFromString(template, "text/html");
+const siteGraph = [...templateDocument.querySelectorAll('head script[type="application/ld+json"]')]
+  .map((script) => JSON.parse(script.textContent ?? "null"))
+  .find((data) => Array.isArray(data?.["@graph"]))?.["@graph"];
 const builtDocuments = {
   "index.html": toHomeHtml(template),
   "daily.html": toDailyHtml(toHomeHtml(template)),

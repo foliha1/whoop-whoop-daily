@@ -1,5 +1,10 @@
 # Roadmap
 
+## AI discoverability part 3
+- [ ] Expand online-game JSON-LD to cover Daily, Solo and Together without inventing social URLs.
+- [ ] Add physical card-game JSON-LD and correct the crawler-only rules summary.
+- [ ] Extend structured-data/content tests and run the full suite; do not publish.
+
 ## AI discoverability part 2
 - [x] Remove About's noindex/nofollow directive.
 - [x] Add shared FAQ-driven semantic content and FAQ JSON-LD to every emitted HTML document.
