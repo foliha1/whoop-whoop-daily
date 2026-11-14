@@ -3,7 +3,6 @@ Allow: /
 Disallow: /admin
 Disallow: /play
 Disallow: /classic
-Disallow: /about
 Disallow: /typography
 
 User-agent: Bingbot
@@ -11,7 +10,6 @@ Allow: /
 Disallow: /admin
 Disallow: /play
 Disallow: /classic
-Disallow: /about
 Disallow: /typography
 
 User-agent: Twitterbot
@@ -20,12 +18,51 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /typography
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /typography
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /typography
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /typography
+
+User-agent: Claude-User
+Allow: /
+Disallow: /admin
+Disallow: /typography
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /typography
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /typography
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin
+Disallow: /typography
+
 User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /play
 Disallow: /classic
-Disallow: /about
 Disallow: /typography
 
 Sitemap: https://whoop-whoop.com/sitemap.xml

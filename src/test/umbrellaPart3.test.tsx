@@ -63,7 +63,10 @@ describe("Part 3 destinations", () => {
     expect(src("src/pages/GroupsPage.tsx")).toContain('to={umbrella ? "/daily" : "/"}');
     expect(src("src/pages/YouPage.tsx")).toContain('to={umbrella ? "/daily" : "/"}');
     expect(src("scripts/umbrellaHead.mjs")).toContain("${ORIGIN}/daily</loc>");
-    expect(src("public/sitemap.xml")).not.toContain("/daily");
+    // Launched: the static sitemap already lists /daily, so the build script's
+    // insert-if-missing guard must not add a second entry.
+    expect(src("public/sitemap.xml")).toContain("https://whoop-whoop.com/daily");
+    expect(src("public/sitemap.xml")).not.toContain("<loc>https://whoop-whoop.com/daily</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>\n  <url>\n    <loc>https://whoop-whoop.com/daily</loc>");
   });
 
   it("shows the Classic lobby Your Stats chip only while ON (OFF build renders today's site)", () => {
