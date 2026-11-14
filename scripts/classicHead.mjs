@@ -19,6 +19,7 @@
 const ORIGIN = "https://whoop-whoop.com";
 const INSTALL_ASSET_VERSION = "20260925";
 import { UMBRELLA_LAUNCHED, toDailyHtml } from "./umbrellaHead.mjs";
+import { withStaticContent } from "./staticContent.mjs";
 const versioned = (path) => `${path}?v=${INSTALL_ASSET_VERSION}`;
 
 /** The URL that actually serves the Classic document (real file, not fallback). */

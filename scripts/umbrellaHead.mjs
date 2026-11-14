@@ -1,5 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { withStaticContent } from "./staticContent.mjs";
 
 const ORIGIN = "https://whoop-whoop.com";
 const CONFIG = readFileSync(resolve(process.cwd(), "src/launch.config.ts"), "utf8");
