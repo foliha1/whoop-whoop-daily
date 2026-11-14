@@ -1,5 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { withStaticContent } from "./staticContent.mjs";
 
 const ORIGIN = "https://whoop-whoop.com";
 const CONFIG = readFileSync(resolve(process.cwd(), "src/launch.config.ts"), "utf8");
@@ -35,11 +36,11 @@ export function toHomeHtml(dailyHtml) {
   html = setMeta(html, "name", "twitter:image", HOME_META.image);
   html = setMeta(html, "name", "apple-mobile-web-app-title", HOME_META.installName);
   html = setLink(html, "canonical", HOME_META.url);
-  return html
+  return withStaticContent(html
     .replace("/daily.webmanifest?v=20260925", "/home.webmanifest?v=20260929")
     .replace("/icons/daily/apple-touch-icon.png?v=20260925", "/icons/home/apple-touch-icon.png?v=20260929")
     .replace("/icons/daily/favicon-32.png?v=20260925", "/icons/home/favicon-32.png?v=20260929")
-    .replace("/icons/daily/favicon-16.png?v=20260925", "/icons/home/favicon-16.png?v=20260929");
+    .replace("/icons/daily/favicon-16.png?v=20260925", "/icons/home/favicon-16.png?v=20260929"));
 }
 
 export function toDailyHtml(homeHtml) {
@@ -56,11 +57,11 @@ export function toDailyHtml(homeHtml) {
   html = setMeta(html, "name", "twitter:image", `${ORIGIN}/og-daily.png`);
   html = setMeta(html, "name", "apple-mobile-web-app-title", "WHOOP! WHOOP! Daily");
   html = setLink(html, "canonical", `${ORIGIN}/daily`);
-  return html
+  return withStaticContent(html
     .replace("/home.webmanifest?v=20260929", "/daily.webmanifest?v=20260927")
     .replace("/icons/home/apple-touch-icon.png?v=20260929", "/icons/daily/apple-touch-icon.png?v=20260925")
     .replace("/icons/home/favicon-32.png?v=20260929", "/icons/daily/favicon-32.png?v=20260925")
-    .replace("/icons/home/favicon-16.png?v=20260929", "/icons/daily/favicon-16.png?v=20260925");
+    .replace("/icons/home/favicon-16.png?v=20260929", "/icons/daily/favicon-16.png?v=20260925"));
 }
 
 export function umbrellaHead() {
@@ -69,7 +70,7 @@ export function umbrellaHead() {
     name: "ww-umbrella-head",
     enforce: "pre",
     transformIndexHtml(html, context) {
-      if (!UMBRELLA_LAUNCHED) return html;
+      if (!UMBRELLA_LAUNCHED) return withStaticContent(html);
       dailyShell = html;
       const path = context.originalUrl?.split("?", 1)[0];
       return path === "/daily" || path === "/daily.html" ? toDailyHtml(toHomeHtml(html)) : toHomeHtml(html);

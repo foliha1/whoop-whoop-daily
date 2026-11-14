@@ -19,6 +19,7 @@
 const ORIGIN = "https://whoop-whoop.com";
 const INSTALL_ASSET_VERSION = "20260925";
 import { UMBRELLA_LAUNCHED, toDailyHtml } from "./umbrellaHead.mjs";
+import { withStaticContent } from "./staticContent.mjs";
 const versioned = (path) => `${path}?v=${INSTALL_ASSET_VERSION}`;
 
 /** The URL that actually serves the Classic document (real file, not fallback). */
@@ -95,7 +96,7 @@ export function toClassicHtml(dailyHtml) {
     `<link rel="canonical" href="${m.url}" />\n    <meta name="robots" content="noindex, nofollow" />`,
   );
 
-  return html;
+  return withStaticContent(html);
 }
 
 /** Vite plugin: emit the Classic document alongside the SPA shell. */
