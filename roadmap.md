@@ -1,5 +1,10 @@
 # Roadmap
 
+## AI discoverability part 2
+- [ ] Remove About's noindex/nofollow directive.
+- [ ] Add shared FAQ-driven semantic content and FAQ JSON-LD to every emitted HTML document.
+- [ ] Test built-document content and confirm React replaces it without visible residue; do not publish.
+
 ## Physical rulebook part 3
 - [x] Add right/wrong outcomes, round endings, winning, harder play, 13 Sticky Situations accordion rows, tips, and online closing links using exact supplied copy.
 - [x] Verified all 13 accordion rows by tap and keyboard, both closing links, side-by-side desktop/stacked phone outcomes at 1280/390/360 widths in light/night, and no overflow or em dashes; full suite 765 passed / 4 skipped, preview build OK. Not published.
