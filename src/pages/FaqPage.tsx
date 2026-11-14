@@ -25,7 +25,6 @@ const FaqPage: React.FC = () => (
         </LegalText>
       </LegalSection>
     </LegalPage>
-  </>
 );
 
 export default FaqPage;
