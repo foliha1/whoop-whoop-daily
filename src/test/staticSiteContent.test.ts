@@ -22,6 +22,7 @@ describe("build-time readable site content", () => {
     const document = new DOMParser().parseFromString(html, "text/html");
     const root = document.querySelector("#root");
     expect(root?.querySelector("#ww-static-content h1")?.textContent).toBe("WHOOP! WHOOP!");
+    expect(root?.textContent).toContain(RULES_SUMMARY);
 
     for (const item of FAQ_ITEMS) {
       expect(root?.textContent).toContain(item.q);
@@ -37,6 +38,31 @@ describe("build-time readable site content", () => {
     const document = new DOMParser().parseFromString(html, "text/html");
     const script = document.querySelector("head script#ww-faq-jsonld");
     expect(JSON.parse(script?.textContent ?? "null")).toEqual(FAQ_JSON_LD);
+  });
+
+  it("describes the complete online product and the physical card game", () => {
+    const online = siteGraph.find((node) => Array.isArray(node["@type"]) && node["@type"].includes("VideoGame"));
+    expect(online).toMatchObject({
+      name: "WHOOP! WHOOP!",
+      description: "A free online memory card game with three ways to play: a new Daily puzzle every day, Solo against the bot FELIX, and Together live multiplayer for up 6 players.",
+      author: { "@type": "Person", name: "Felix Oliha" },
+      numberOfPlayers: { "@type": "QuantitativeValue", minValue: 1, maxValue: 6 },
+      gamePlatform: "Web browser",
+      inLanguage: "en",
+      publisher: { "@id": "https://whoop-whoop.com/#org" },
+    });
+    expect(online).not.toHaveProperty("sameAs");
+
+    const physical = siteGraph.find((node) => node["@type"] === "Game");
+    expect(physical).toMatchObject({
+      name: "WHOOP! WHOOP! card game",
+      url: "https://whoop-whoop.com/rules",
+      description: "The physical WHOOP! WHOOP! card game has 48 cards and is for 2 to 6 players, ages 7 and up.",
+      numberOfPlayers: { "@type": "QuantitativeValue", minValue: 2, maxValue: 6 },
+      suggestedMinAge: 7,
+      publisher: { "@id": "https://whoop-whoop.com/#org" },
+      author: { "@type": "Person", name: "Felix Oliha" },
+    });
   });
 
   it("leaves About indexable", () => {
