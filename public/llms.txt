@@ -1,8 +1,14 @@
 # WHOOP! WHOOP!
 
-> WHOOP! WHOOP! is a free online memory card game by Oleeha & Co where the matching rules change every round. It runs in any modern web browser on phones, tablets and computers — no download, no account and no payment required.
+> WHOOP! WHOOP! is a free online memory card game where the matching rules change every round. It runs in any modern web browser on phones, tablets and computers, with no download, no account and no payment required.
 
 WHOOP! WHOOP! is an independent card game. It is not affiliated with WHOOP, Inc. or the WHOOP fitness tracker.
+
+The home page at https://whoop-whoop.com/ offers three ways to play:
+
+- Daily: a new puzzle every day.
+- Solo: play alone against the bot, FELIX.
+- Together: live multiplayer for up to 6 players, joined by table code.
 
 ## The Daily
 
@@ -12,10 +18,22 @@ WHOOP! WHOOP! is an independent card game. It is not affiliated with WHOOP, Inc.
 - 2 misses allowed per round.
 - Results can be shared, and streaks are tracked.
 
-## Also available
+## The physical game
 
-- WHOOP! WHOOP! is also a physical tabletop game for 2–6 players, ages 7+, with 15–20 minute play time.
+- 48 cards, plus one die that decides the matching rule.
+- For 2 to 6 players, ages 7 and up.
+- Race to be first to collect 12 cards.
+- Full rules are online at https://whoop-whoop.com/rules.
 
 ## Pages
 
-- [Home](https://whoop-whoop.com/): Play today's Daily memory game in the browser.
+- [Home](https://whoop-whoop.com/): Start playing: Daily, Solo, or Together.
+- [Daily](https://whoop-whoop.com/daily): Today's puzzle, a new one every day.
+- [Rules](https://whoop-whoop.com/rules): How to play, online and with the physical cards.
+- [FAQ](https://whoop-whoop.com/faq): Common questions about the game.
+- [About](https://whoop-whoop.com/about): Who makes WHOOP! WHOOP! and why.
+
+## Optional
+
+- [Privacy](https://whoop-whoop.com/privacy): What the site collects and why.
+- [Terms](https://whoop-whoop.com/terms): Terms of use.
