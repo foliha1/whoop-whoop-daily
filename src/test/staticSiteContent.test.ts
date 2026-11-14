@@ -44,7 +44,7 @@ describe("build-time readable site content", () => {
     const online = siteGraph.find((node) => Array.isArray(node["@type"]) && node["@type"].includes("VideoGame"));
     expect(online).toMatchObject({
       name: "WHOOP! WHOOP!",
-      description: "A free online memory card game with three ways to play: a new Daily puzzle every day, Solo against the bot FELIX, and Together live multiplayer for up 6 players.",
+      description: "A free online memory card game with three ways to play: a new Daily puzzle every day, Solo against the bot FELIX, and Together live multiplayer for up to 6 players.",
       author: { "@type": "Person", name: "Felix Oliha" },
       numberOfPlayers: { "@type": "QuantitativeValue", minValue: 1, maxValue: 6 },
       gamePlatform: "Web browser",
