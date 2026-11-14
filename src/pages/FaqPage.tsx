@@ -1,16 +1,11 @@
 import React from "react";
-import { Helmet } from "react-helmet-async";
 import LegalPage, { LegalSection, LegalText, LegalList, MailLink } from "@/components/LegalPage";
-import { FAQ_ITEMS, FAQ_JSON_LD } from "@/content/faq.mjs";
+import { FAQ_ITEMS } from "@/content/faq.mjs";
 
 export { FAQ_ITEMS } from "@/content/faq.mjs";
 
 const FaqPage: React.FC = () => (
-  <>
-    <Helmet>
-      <script type="application/ld+json">{JSON.stringify(FAQ_JSON_LD)}</script>
-    </Helmet>
-    <LegalPage
+  <LegalPage
       title="Frequently Asked Questions"
       metaTitle="FAQ — WHOOP! WHOOP! Memory Game"
       metaDescription="How the free WHOOP! WHOOP! Daily memory game works, whether you need an account, and how it relates to the WHOOP fitness tracker (it doesn't)."
