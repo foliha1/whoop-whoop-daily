@@ -96,7 +96,7 @@ export function toClassicHtml(dailyHtml) {
     `<link rel="canonical" href="${m.url}" />\n    <meta name="robots" content="noindex, nofollow" />`,
   );
 
-  return html;
+  return withStaticContent(html);
 }
 
 /** Vite plugin: emit the Classic document alongside the SPA shell. */
