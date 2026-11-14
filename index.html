@@ -58,13 +58,27 @@
             "@type": ["VideoGame", "WebApplication"],
             "name": "WHOOP! WHOOP!",
             "url": "https://whoop-whoop.com/",
-            "description": "A free online memory card game where the matching rules change every round. A new Daily puzzle every day: nine cards, ten seconds to study, three rounds, two misses a round.",
+            "description": "A free online memory card game with three ways to play: a new Daily puzzle every day, Solo against the bot FELIX, and Together live multiplayer for up to 6 players.",
             "genre": ["Memory game", "Card game", "Daily puzzle", "Brain training"],
             "applicationCategory": "GameApplication",
             "operatingSystem": "Any (web browser)",
+            "gamePlatform": "Web browser",
+            "inLanguage": "en",
             "isAccessibleForFree": true,
+            "numberOfPlayers": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 6 },
             "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-            "publisher": { "@id": "https://whoop-whoop.com/#org" }
+            "publisher": { "@id": "https://whoop-whoop.com/#org" },
+            "author": { "@type": "Person", "name": "Felix Oliha" }
+          },
+          {
+            "@type": "Game",
+            "name": "WHOOP! WHOOP! card game",
+            "url": "https://whoop-whoop.com/rules",
+            "description": "The physical WHOOP! WHOOP! card game has 48 cards and is for 2 to 6 players, ages 7 and up.",
+            "numberOfPlayers": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 6 },
+            "suggestedMinAge": 7,
+            "publisher": { "@id": "https://whoop-whoop.com/#org" },
+            "author": { "@type": "Person", "name": "Felix Oliha" }
           }
         ]
       }

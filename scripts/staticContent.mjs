@@ -29,7 +29,7 @@ const STATIC_CONTENT = `<main id="ww-static-content" style="box-sizing:border-bo
     </section>
     <section>
       <h2>How to play</h2>
-      <p>Roll the Match Die to set the rule: shape, number, or color. Flip two cards one at a time and look for a pair that matches under that rule. In the physical and live table game, the first player to collect 12 cards wins. The Daily is a separate three-round memory puzzle.</p>
+      <p>Roll the Match Die to set the rule: shape, number or color. On your turn, flip two cards. Anyone can shout WHOOP! WHOOP! at any time and touch two cards that match. A correct claim takes the pair. First to 12 cards wins. The Daily is a separate three-round memory puzzle.</p>
     </section>
     <section>
       <h2>Frequently asked questions</h2>${faqHtml}
