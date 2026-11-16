@@ -30,3 +30,25 @@ export async function createPreorderCheckout(quantity: number): Promise<string> 
  url.searchParams.set('discount', PREORDER_DISCOUNT_CODE);
  return url.toString();
 }
+export const SUPPORT_TIERS = [
+ { amount: 5, variant: 'gid://shopify/ProductVariant/51643489059033' },
+ { amount: 10, variant: 'gid://shopify/ProductVariant/51643489091801' },
+ { amount: 25, variant: 'gid://shopify/ProductVariant/51643489124569' },
+] as const;
+export const SUPPORT_UNIT_VARIANT = 'gid://shopify/ProductVariant/51643489026265';
+export function supportLine(amount: number): { merchandiseId: string; quantity: number } | null {
+ if (!Number.isInteger(amount) || amount < 1 || amount > 500) return null;
+ const tier = SUPPORT_TIERS.find(t => t.amount === amount);
+ return tier ? { merchandiseId: tier.variant, quantity: 1 } : { merchandiseId: SUPPORT_UNIT_VARIANT, quantity: amount };
+}
+export async function createSupportCheckout(amount: number): Promise<string> {
+ const line = supportLine(amount);
+ if (!line) throw new Error('Invalid support amount');
+ const data = await request(`mutation($input: CartInput!) { cartCreate(input: $input) { cart { checkoutUrl } userErrors { message } } }`, { input: { lines: [line] } });
+ const result = data?.cartCreate;
+ if (result?.userErrors?.length || !result?.cart?.checkoutUrl) throw new Error('Shopify cart creation failed');
+ const url = new URL(result.cart.checkoutUrl);
+ if (url.protocol !== 'https:') throw new Error('Invalid checkout URL');
+ url.searchParams.set('channel', 'online_store');
+ return url.toString();
+}
