@@ -1647,3 +1647,19 @@ All colors MUST be HSL.
 @media (prefers-reduced-motion: reduce) {
   .ww-sub-shine { display: none; }
 }
+
+/* ── Support block "Other" amount field ──
+   Readable placeholder (ink-muted meets AA on the neutral panel), no browser
+   autofill yellow, themed text-selection and a visible focus ring. */
+.ww-support-input::placeholder { color: var(--ww-ink-muted); opacity: 1; }
+.ww-support-input::selection { background: var(--ww-ink); color: var(--ww-surface); }
+.ww-support-input:-webkit-autofill,
+.ww-support-input:-webkit-autofill:hover,
+.ww-support-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 100px var(--ww-panel) inset;
+  box-shadow: 0 0 0 100px var(--ww-panel) inset;
+  -webkit-text-fill-color: var(--ww-ink);
+  caret-color: var(--ww-ink);
+  transition: background-color 99999s ease-in-out 0s;
+}
+.ww-support-input:focus-visible { outline: 2px solid var(--ww-blue-text); outline-offset: 2px; }
