@@ -23,7 +23,8 @@ export default function SupportBlock({ mobile, body }: { mobile: boolean; body: 
   <p style={{ ...body, margin: 0 }}>Chip in to keep WHOOP! WHOOP! free to play online.</p>
   <div role="group" aria-label="Support amount" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: SPACE[2], width: '100%' }}>
    {SUPPORT_TIERS.map(t => <button key={t.amount} type="button" aria-pressed={!custom && amount === t.amount} onClick={() => { setAmount(t.amount); setCustom(''); }} style={pill(!custom && amount === t.amount)}>{money(t.amount)}</button>)}
-   <input aria-label="Other amount in dollars" inputMode="numeric" placeholder="Other" value={custom} onChange={e => setCustom(e.target.value.replace(/\D/g, '').slice(0, 3))} style={{ ...pill(!!custom), background: 'transparent', color: COLORS.ink, textAlign: 'center', width: '100%', minWidth: 0, boxSizing: 'border-box' }} />  </div>
+   <input aria-label="Other amount in dollars" inputMode="numeric" placeholder="Other" value={custom} onChange={e => setCustom(e.target.value.replace(/\D/g, '').slice(0, 3))} style={{ ...pill(!!custom), background: 'transparent', color: COLORS.ink, textAlign: 'center', width: '100%', minWidth: 0, boxSizing: 'border-box' }} />
+  </div>
   <Button variant="outline" disabled={busy || !valid} onClick={() => void give()} style={{ ...textStyle('chip', mobile), width: '100%', minHeight: 52, borderColor: COLORS.blue, color: COLORS.onBlue, background: COLORS.blue }}>{busy ? <Loader2 className="animate-spin" aria-label="Loading" /> : null}{valid ? `Support with ${money(chosen)}` : 'Enter $1 to $500'}</Button>
   {error && <p role="alert" style={{ ...body, margin: 0 }}>Something went wrong. Try again.</p>}
  </div>;
