@@ -11,11 +11,11 @@ import headshotAsset from '@/assets/felix-headshot.jpg.asset.json';
 import { Button } from '@/components/ui/button';
 import { rulesType, GAME_COLORS, ChapterDivider } from '@/components/rulesLayout';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { COLORS, RAW, SPACE, RADIUS, SHADOW, textStyle } from '@/lib/tokens';
+import { BORDER, COLORS, RAW, SPACE, RADIUS, SHADOW, textStyle } from '@/lib/tokens';
 import { cardArt } from '@/lib/assetUrls';
 import { supabase } from '@/integrations/supabase/client';
 import { trackEvent } from '@/lib/analytics';
-import { clampQuantity, createPreorderCheckout, loadPreorderPrice, money, PREORDER_FALLBACK_PRICE, proofLabel } from '@/lib/preorder';
+import { clampQuantity, createPreorderCheckout, gamesLabel, loadPreorderPrice, money, PREORDER_FALLBACK_PRICE, proofLabel } from '@/lib/preorder';
 
 const FAQ = [
  ['When does it ship?', "Early December 2026. All pre-orders will arrive by the holidays. We'll email you as soon as your order is on its way."],
@@ -33,13 +33,13 @@ export default function PreorderPage() {
  const [price, setPrice] = React.useState(PREORDER_FALLBACK_PRICE);
  const [busy, setBusy] = React.useState(false);
  const [error, setError] = React.useState(false);
- const [count, setCount] = React.useState<number>(0);
+ const [proof, setProof] = React.useState({ players: 0, games: 0, dailies: 0 });
  const pending = React.useRef(false);
  React.useEffect(() => {
   trackEvent('preorder_view');
   let active = true;
   void loadPreorderPrice().then(p => { if (active) setPrice(p); }).catch(() => console.warn('[preorder] live price unavailable; using fallback'));
-  void supabase.rpc('public_daily_player_count').then(({ data }) => { if (active && data !== null) setCount(Number(data)); });
+  void supabase.rpc('public_preorder_proof').then(({ data }) => { const row = Array.isArray(data) ? data[0] : undefined; if (active && row) setProof({ players: Number(row.players), games: Number(row.games), dailies: Number(row.dailies) }); });
   return () => { active = false; };
  }, []);
  async function checkout() {
