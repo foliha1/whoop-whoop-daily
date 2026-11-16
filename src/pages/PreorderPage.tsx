@@ -3,13 +3,12 @@ import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, Loader2 } from 'lucide-react';
 import DailyFrame from '@/components/DailyFrame';
-import DailyShapeRule from '@/components/DailyShapeRule';
 import DailyLegalFooter from '@/components/DailyLegalFooter';
 import HomeControl from '@/components/HomeControl';
 import FelixSignature from '@/components/FelixSignature';
 import SupportBlock from '@/components/SupportBlock';
 import { Button } from '@/components/ui/button';
-import { rulesType, GAME_COLORS } from '@/components/rulesLayout';
+import { rulesType, GAME_COLORS, ChapterDivider } from '@/components/rulesLayout';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { COLORS, RAW, SPACE, RADIUS, SHADOW, textStyle } from '@/lib/tokens';
 import { cardArt } from '@/lib/assetUrls';
@@ -52,7 +51,7 @@ export default function PreorderPage() {
  const heading: React.CSSProperties = { ...textStyle('resultHero', mobile), color: COLORS.ink, margin: 0, lineHeight: 1.05, textAlign: 'center', letterSpacing: 0 };
  const link: React.CSSProperties = { ...body, color: COLORS.blueText, textDecoration: 'underline', textUnderlineOffset: 5, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' };
  const section: React.CSSProperties = { ...read, maxWidth: 720, textAlign: 'center', gap: SPACE[10] };
- const divider = () => <div aria-hidden="true" style={{ padding: `${mobile ? SPACE[20] : SPACE[20] * 1.5}px 0` }}><DailyShapeRule /></div>;
+ const divider = () => <ChapterDivider mobile={mobile} />;
  const panel: React.CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: SPACE[5], padding: SPACE[8], borderRadius: RADIUS.md, background: RAW.warmBlack, color: RAW.cream, width: '100%', maxWidth: 540, margin: '0 auto', boxSizing: 'border-box' };
  const controls = <><div role="group" aria-label="Quantity" style={{ display: 'grid', gridTemplateColumns: '44px 52px 44px', alignItems: 'center', border: '1.5px solid currentColor', borderRadius: RADIUS.sm }}>
    <Button variant="ghost" size="icon" aria-label="Decrease quantity" disabled={quantity === 1 || busy} onClick={() => setQuantity(clampQuantity(quantity - 1))} style={{ color: 'inherit', width: 44, height: 44 }}><Minus /></Button>
