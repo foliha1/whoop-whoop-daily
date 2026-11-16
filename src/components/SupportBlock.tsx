@@ -21,7 +21,7 @@ export default function SupportBlock({ mobile, body }: { mobile: boolean; body: 
  return <div style={{ ...panelStyle('panel', mobile ? 12 : 16), display: 'flex', flexDirection: 'column', alignItems: 'center', gap: SPACE[8], width: '100%', maxWidth: 540, margin: '0 auto', color: COLORS.ink, textAlign: 'center' }}>
   <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE[4], maxWidth: 400 }}>
   <p style={{ ...textStyle('title', mobile), margin: 0, color: 'inherit' }}>Not ready to buy? You can still support us!</p>
-  <p style={{ ...body, margin: 0 }}>Chip in to keep WHOOP! WHOOP! free to play online.</p>
+  <p style={{ ...body, margin: 0 }}>Chip in to keep Whoop! Whoop! free to play online.</p>
   </div>
   <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE[5], width: '100%' }}>
   <div role="group" aria-label="Support amount" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: SPACE[3], width: '100%' }}>
