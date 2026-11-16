@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { clampQuantity, proofLabel, createPreorderCheckout, PREORDER_VARIANT, PREORDER_FALLBACK_PRICE, loadPreorderPrice } from '@/lib/preorder';
+import { clampQuantity, money, proofLabel, createPreorderCheckout, PREORDER_VARIANT, PREORDER_FALLBACK_PRICE, loadPreorderPrice } from '@/lib/preorder';
 afterEach(() => vi.unstubAllGlobals());
 describe('pre-order rules', () => {
  it('limits quantities to 1 through 10', () => { expect(clampQuantity(0)).toBe(1); expect(clampQuantity(11)).toBe(10); expect(clampQuantity(1)).toBe(1); });
