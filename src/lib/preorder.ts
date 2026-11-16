@@ -5,6 +5,7 @@ const ENDPOINT = 'https://nx0wa1-zs.myshopify.com/api/2026-10/graphql.json';
 const TOKEN = '67cb170cac5b04b9fa53055ceadf1f32';
 export function clampQuantity(quantity: number) { return Math.min(10, Math.max(1, Math.trunc(quantity) || 1)); }
 export function proofLabel(count: number): string | null { return Number.isFinite(count) && count >= 100 ? `${(Math.round(count / 100) * 100).toLocaleString('en-US')}+` : null; }
+export function gamesLabel(count: number): string | null { return Number.isFinite(count) && count >= 100 ? `${(Math.floor(count / 100) * 100).toLocaleString('en-US')}+` : null; }
 export function money(price: number) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: price % 1 ? 2 : 0 }).format(price); }
 async function request(query: string, variables: Record<string, unknown> = {}) {
  const response = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Shopify-Storefront-Access-Token': TOKEN }, body: JSON.stringify({ query, variables }) });

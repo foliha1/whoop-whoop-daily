@@ -1422,6 +1422,14 @@ export type Database = {
       }
       normalized_display_name: { Args: { p_name: string }; Returns: string }
       public_daily_player_count: { Args: never; Returns: number }
+      public_preorder_proof: {
+        Args: never
+        Returns: {
+          dailies: number
+          games: number
+          players: number
+        }[]
+      }
       register_room_seats: {
         Args: {
           p_game_id: string

@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { clampQuantity, money, proofLabel, createPreorderCheckout, PREORDER_VARIANT, PREORDER_FALLBACK_PRICE, loadPreorderPrice } from '@/lib/preorder';
+import { clampQuantity, gamesLabel, money, proofLabel, createPreorderCheckout, PREORDER_VARIANT, PREORDER_FALLBACK_PRICE, loadPreorderPrice } from '@/lib/preorder';
 afterEach(() => vi.unstubAllGlobals());
 describe('pre-order rules', () => {
  it('limits quantities to 1 through 10', () => { expect(clampQuantity(0)).toBe(1); expect(clampQuantity(11)).toBe(10); expect(clampQuantity(1)).toBe(1); });
  it('hides proof below 100 and rounds to the nearest hundred', () => { expect(proofLabel(99)).toBe(null); expect(proofLabel(2499)).toBe('2,500+'); expect(proofLabel(100)).toBe('100+'); expect(proofLabel(987)).toBe('1,000+'); });
+ it('rounds games played down so the plus is never an overstatement', () => { expect(gamesLabel(99)).toBe(null); expect(gamesLabel(100)).toBe('100+'); expect(gamesLabel(2683)).toBe('2,600+'); });
  it('shows the $35 pre-order price when Shopify cannot be reached', () => { expect(PREORDER_FALLBACK_PRICE).toBe(35); expect(money(PREORDER_FALLBACK_PRICE)).toBe('$35'); });
  it('creates the specified real variant with selected quantity', async () => {
  const fetcher = vi.fn().mockResolvedValue({ok:true,json:async()=>({data:{cartCreate:{cart:{checkoutUrl:'https://example.myshopify.com/checkout/test'},userErrors:[]}}})}); vi.stubGlobal('fetch',fetcher);
