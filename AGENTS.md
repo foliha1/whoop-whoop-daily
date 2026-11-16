@@ -1,4 +1,5 @@
 # Architecture decisions
+- Pre-order usage events are emitted only on production builds at the three public site hosts; development and preview are excluded so conversion reports stay free of testing traffic.
 - Pre-order checkout creates a fresh Storefront API cart and navigates in the same tab; public proof exposes only a device-linked aggregate, while conversion counts reuse the capped usage logger and admin-only date reports.
 - The physical rulebook uses a presentation-only full-rules section and original card/die assets, not seasonal substitutions, so bag QR readers see the printed deck without touching gameplay.
 - Subscriber activity is written server-side after a saved signup, with masked addresses and independent AC/seed outcomes; admin-only date-filtered reads never change signup success or numbering.
