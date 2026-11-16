@@ -1,7 +1,7 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { COLORS, SPACE, RADIUS, textStyle } from '@/lib/tokens';
+import { COLORS, RAW, SPACE, RADIUS, textStyle } from '@/lib/tokens';
 import { createSupportCheckout, money, SUPPORT_TIERS, supportLine } from '@/lib/preorder';
 
 export default function SupportBlock({ mobile, body }: { mobile: boolean; body: React.CSSProperties }) {
@@ -18,7 +18,7 @@ export default function SupportBlock({ mobile, body }: { mobile: boolean; body: 
   catch { setError(true); setBusy(false); }
  }
  const pill = (active: boolean): React.CSSProperties => ({ ...textStyle('chip', mobile), minHeight: 44, borderRadius: RADIUS.sm, border: '1.5px solid currentColor', background: active ? COLORS.ink : 'transparent', color: active ? COLORS.surface : COLORS.ink });
- return <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: SPACE[4], width: '100%', maxWidth: 540, margin: `${SPACE[8]}px auto 0`, color: COLORS.ink }}>
+ return <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: SPACE[4], width: '100%', maxWidth: 540, margin: '0 auto', boxSizing: 'border-box', padding: mobile ? SPACE[8] : SPACE[12], borderRadius: RADIUS.md, background: `color-mix(in srgb, ${RAW.blue} 14%, transparent)`, border: `2px solid ${RAW.blue}`, color: COLORS.ink }}>
   <p style={{ ...textStyle('title', mobile), margin: 0, color: 'inherit' }}>Not ready to buy? You can still support us!</p>
   <p style={{ ...body, margin: 0 }}>Chip in to keep WHOOP! WHOOP! free to play online.</p>
   <div role="group" aria-label="Support amount" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: SPACE[2], width: '100%' }}>
