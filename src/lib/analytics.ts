@@ -32,6 +32,12 @@ interface TrackOpts {
 }
 
 export function trackEvent(eventType: AnalyticsEventType, opts: TrackOpts = {}): void {
+  // Pre-order conversion reports count only the public site, never development
+  // or preview loads. Other established usage reports retain their behavior.
+  if (eventType === "preorder_view" || eventType === "preorder_click") {
+    const publicHosts = ["whoop-whoop.com", "www.whoop-whoop.com", "whoop-whoop.lovable.app"];
+    if (import.meta.env.DEV || !publicHosts.includes(window.location.hostname)) return;
+  }
   // Fire and forget — never block, never throw.
   try {
     const event = {

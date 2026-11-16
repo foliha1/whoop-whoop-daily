@@ -1,5 +1,9 @@
 # Roadmap
 
+## Pre-order test traffic cleanup
+- [x] Exclude development and preview pre-order views/clicks while retaining public-site counting and other reports.
+- [ ] Remove the confirmed November 16 pre-order test events and verify zero counts plus focused regressions.
+
 ## Pre-order page
 - [x] Build unlinked /preorder with exact copy, Shopify live price, same-tab checkout and quantity 1 to 10.
 - [x] Add aggregate-only Daily proof and rate-capped pre-order events with selected-range Admin counts.

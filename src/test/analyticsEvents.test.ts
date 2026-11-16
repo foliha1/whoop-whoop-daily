@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 
@@ -18,6 +18,11 @@ vi.mock("@/lib/visitor", () => ({ getVisitorId: () => "visitor-test" }));
 import { trackEvent } from "@/lib/analytics";
 
 describe("trackEvent", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
   beforeEach(() => {
     rpc.mockClear();
     from.mockClear();
@@ -32,6 +37,37 @@ describe("trackEvent", () => {
       p_visitor_id: "visitor-test",
       p_events: [{ event_type: "room_joined", room_code: "ABC123", metadata: { seat: 1 } }],
     });
+  });
+
+  it.each(["localhost", "127.0.0.1", "id-preview--a1be2228-be40-4dcc-be73-f902253a9f30.lovable.app", "preview--whoop-whoop.lovable.app"])(
+    "excludes pre-order views and clicks on %s", (hostname) => {
+      vi.stubEnv("DEV", false);
+      vi.stubGlobal("window", { location: { hostname } });
+      trackEvent("preorder_view");
+      trackEvent("preorder_click", { metadata: { quantity: 2 } });
+      expect(rpc).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["whoop-whoop.com", "www.whoop-whoop.com", "whoop-whoop.lovable.app"])(
+    "counts public pre-order views and clicks on %s", (hostname) => {
+      vi.stubEnv("DEV", false);
+      vi.stubGlobal("window", { location: { hostname } });
+      trackEvent("preorder_view");
+      trackEvent("preorder_click", { metadata: { quantity: 2 } });
+      expect(rpc).toHaveBeenCalledTimes(2);
+      expect(rpc.mock.calls[1][1].p_events).toEqual([
+        { event_type: "preorder_click", room_code: null, metadata: { quantity: 2 } },
+      ]);
+    },
+  );
+
+  it("excludes development pre-order events even with a public hostname", () => {
+    vi.stubEnv("DEV", true);
+    vi.stubGlobal("window", { location: { hostname: "whoop-whoop.com" } });
+    trackEvent("preorder_view");
+    trackEvent("preorder_click");
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it("never inserts into the table directly", () => {
