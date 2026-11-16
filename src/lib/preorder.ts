@@ -1,5 +1,6 @@
 export const PREORDER_VARIANT = 'gid://shopify/ProductVariant/51641877758169';
 export const PREORDER_FALLBACK_PRICE = 35;
+export const PREORDER_DISCOUNT_CODE = 'FREESHIPPING';
 const ENDPOINT = 'https://nx0wa1-zs.myshopify.com/api/2026-10/graphql.json';
 const TOKEN = '67cb170cac5b04b9fa53055ceadf1f32';
 export function clampQuantity(quantity: number) { return Math.min(10, Math.max(1, Math.trunc(quantity) || 1)); }
@@ -26,5 +27,6 @@ export async function createPreorderCheckout(quantity: number): Promise<string> 
  const url = new URL(result.cart.checkoutUrl);
  if (url.protocol !== 'https:') throw new Error('Invalid checkout URL');
  url.searchParams.set('channel', 'online_store');
+ url.searchParams.set('discount', PREORDER_DISCOUNT_CODE);
  return url.toString();
 }
