@@ -8,6 +8,7 @@ describe('pre-order rules', () => {
  it('creates the specified real variant with selected quantity', async () => {
  const fetcher = vi.fn().mockResolvedValue({ok:true,json:async()=>({data:{cartCreate:{cart:{checkoutUrl:'https://example.myshopify.com/checkout/test'},userErrors:[]}}})}); vi.stubGlobal('fetch',fetcher);
  expect(await createPreorderCheckout(3)).toContain('channel=online_store');
+ expect(await createPreorderCheckout(3)).toContain('discount=FREESHIPPING');
  expect(JSON.parse(fetcher.mock.calls[0][1].body).variables.input.lines).toEqual([{merchandiseId:PREORDER_VARIANT,quantity:3}]);
  });
  it('reads price from the exact variant in USD', async () => { vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({data:{product:{variants:{nodes:[{id:PREORDER_VARIANT,price:{amount:'27.50',currencyCode:'USD'}}]}}}})})); expect(await loadPreorderPrice()).toBe(27.5); });
