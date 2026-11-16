@@ -15,7 +15,7 @@ const faqHtml = FAQ_ITEMS.map((item) => `
         ${item.list ? `<ul>${item.list.map((entry) => `<li>${escapeHtml(entry)}</li>`).join("")}</ul>` : ""}
       </article>`).join("");
 
-/** Readable without JavaScript; React replaces this block when the app mounts. */
+/** Readable without JavaScript; hidden before paint in JavaScript-enabled browsers. */
 const STATIC_CONTENT = `<main id="ww-static-content" style="box-sizing:border-box;max-width:760px;min-height:100vh;margin:0 auto;padding:40px 24px;background:#F8F2E9;color:#231F20;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.6">
     <h1>WHOOP! WHOOP!</h1>
     <p>WHOOP! WHOOP! is a free online memory card game where a die changes whether cards match by shape, number, or color.</p>
@@ -49,10 +49,16 @@ const STATIC_CONTENT = `<main id="ww-static-content" style="box-sizing:border-bo
   </main>`;
 
 const FAQ_SCRIPT = `<script id="ww-faq-jsonld" type="application/ld+json">${JSON.stringify(FAQ_JSON_LD).replace(/</g, "\\u003c")}</script>`;
+// Run synchronously in the head, independently of the deferred application bundle.
+const STATIC_VISIBILITY = `<style>.ww-js #ww-static-content{display:none!important}</style>
+    <script id="ww-static-visibility">document.documentElement.classList.add("ww-js");</script>`;
 
 /** Add crawler-readable content and FAQ structured data exactly once. */
 export function withStaticContent(html) {
   let output = html;
+  if (!output.includes('id="ww-static-visibility"')) {
+    output = output.replace("</head>", `    ${STATIC_VISIBILITY}\n</head>`);
+  }
   if (!output.includes('id="ww-static-content"')) {
     output = output.replace('<div id="root"></div>', `<div id="root">${STATIC_CONTENT}</div>`);
   }
