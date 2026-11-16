@@ -1046,6 +1046,13 @@ export type Database = {
           visitor_returned: number
         }[]
       }
+      admin_preorder: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          clicks: number
+          views: number
+        }[]
+      }
       admin_rejections: {
         Args: { p_from: string; p_to: string }
         Returns: {
@@ -1414,6 +1421,7 @@ export type Database = {
         Returns: number
       }
       normalized_display_name: { Args: { p_name: string }; Returns: string }
+      public_daily_player_count: { Args: never; Returns: number }
       register_room_seats: {
         Args: {
           p_game_id: string

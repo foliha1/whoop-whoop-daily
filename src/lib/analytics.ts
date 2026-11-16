@@ -22,7 +22,9 @@ export type AnalyticsEventType =
   | "easter_egg_found"
   // /rules loads; qr marks a scan of the printed bag card.
   | "rules_view"
-  | "rules_qr_scan";
+  | "rules_qr_scan"
+  | "preorder_view"
+  | "preorder_click";
 
 interface TrackOpts {
   roomCode?: string;
