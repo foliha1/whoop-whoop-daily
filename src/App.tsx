@@ -56,6 +56,7 @@ const MultiplayerPage = lazyPage(() => import("./pages/MultiplayerPage.tsx"));
 const DailyPage = lazyPage(() => import("./pages/DailyPage.tsx"));
 const SupportPage = lazyPage(() => import("./pages/SupportPage.tsx"));
 const RulesPage = lazyPage(() => import("./pages/RulesPage.tsx"));
+const PreorderPage = lazyPage(() => import("./pages/PreorderPage.tsx"));
 const AdminPage = lazyPage(() => import("./pages/AdminPage.tsx"));
 const GroupsPage = lazyPage(() => import("./pages/GroupsPage.tsx"));
 const YouPage = lazyPage(() => import("./pages/YouPage.tsx"));
@@ -153,6 +154,7 @@ const AnimatedRoutes: React.FC = () => {
           <Route path="/you" element={<Suspense fallback={<CardFlipLoader label="Loading Your Stats" layout="page" />}><YouPage /></Suspense>} />
           <Route path="/about" element={<SupportPage />} />
           <Route path="/rules" element={<RulesPage />} />
+          <Route path="/preorder" element={<PreorderPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/faq" element={<FaqPage />} />

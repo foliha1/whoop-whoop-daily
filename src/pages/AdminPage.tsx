@@ -197,6 +197,7 @@ interface DashboardData {
   gameModes: GameModeRow[];
   easterEggs: number | null;
   rulebook: { qr_scans: number; views: number } | null;
+  preorder: { views: number; clicks: number } | null;
   classicTiming: ClassicTimingRow[];
   retentionSplit: RetentionSplitRow[];
   signinFunnel: SigninFunnelRow[];
@@ -661,7 +662,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       }
     };
 
-    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay, gameModes, retentionSplit, signinFunnel, classicTiming, easterEggs, subscriberActivity, rulebook] =
+    const [funnel, difficulty, howto, attribution, trend, subscribers, headline, rejections, nextDay, gameModes, retentionSplit, signinFunnel, classicTiming, easterEggs, subscriberActivity, rulebook, preorder] =
       await Promise.all([
         call<FunnelRow>("admin_funnel", args),
         call<DifficultyRow>("admin_difficulty", args),
@@ -679,12 +680,13 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         call<{ found: number }>("admin_easter_eggs"),
         call<SubscriberActivityRow>("admin_subscriber_activity", args),
         call<{ qr_scans: number; views: number }>("admin_rulebook", args),
+        call<{ views: number; clicks: number }>("admin_preorder", args),
       ]);
 
     setFailures(failed);
 
     // Every report failing means the fetch itself is broken, not an empty range.
-    if (failed.length === 16) {
+    if (failed.length === 17) {
       setState("error");
       return;
     }
@@ -712,6 +714,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
       gameModes,
       easterEggs: easterEggs[0]?.found ?? null,
       rulebook: rulebook[0] ?? null,
+      preorder: preorder[0] ?? null,
       classicTiming,
       retentionSplit,
       signinFunnel,
@@ -1062,6 +1065,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
             <Stat label="Email list" value={n(h?.subscribers)} note="Total subscribers" />
             <Stat label="Easter egg" value={n(data?.easterEggs ?? null)} note="Players who found the card waterfall · all time" />
             <Stat label="Rulebook" value={n(data?.rulebook?.qr_scans ?? null)} note={`QR scans · ${data?.rulebook ? Number(data.rulebook.views).toLocaleString() : "–"} total views · selected range`} />
+            <Stat label="Pre-order" value={n(data?.preorder?.views ?? null)} note={`Views · ${data?.preorder ? Number(data.preorder.clicks).toLocaleString() : "–"} clicks · selected range`} />
             {h && h.share_rate !== null ? (
               <Stat
                 label="Share rate"

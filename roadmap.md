@@ -1,5 +1,10 @@
 # Roadmap
 
+## Pre-order page
+- [x] Build unlinked /preorder with exact copy, Shopify live price, same-tab checkout and quantity 1 to 10.
+- [x] Add aggregate-only Daily proof and rate-capped pre-order events with selected-range Admin counts.
+- [ ] Verify phone/desktop light/night, real checkout and event readback; do not publish.
+
 ## AI discoverability part 3
 - [x] Expand online-game JSON-LD to cover Daily, Solo and Together; no social URL exists, so sameAs is omitted.
 - [x] Add physical card-game JSON-LD and correct the crawler-only rules summary.
