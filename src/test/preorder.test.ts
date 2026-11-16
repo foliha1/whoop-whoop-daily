@@ -14,3 +14,11 @@ describe('pre-order rules', () => {
  it('reads price from the exact variant in USD', async () => { vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({data:{product:{variants:{nodes:[{id:PREORDER_VARIANT,price:{amount:'27.50',currencyCode:'USD'}}]}}}})})); expect(await loadPreorderPrice()).toBe(27.5); });
  it('rejects cart errors rather than navigating', async () => { vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({data:{cartCreate:{cart:null,userErrors:[{message:'Unavailable'}]}}})})); await expect(createPreorderCheckout(1)).rejects.toThrow(); });
 });
+import { supportLine } from '@/lib/preorder';
+describe('support amounts', () => {
+ it('maps preset tiers to one unit and custom amounts to $1 units, $1 to $500', () => {
+  expect(supportLine(10)).toEqual({ merchandiseId: 'gid://shopify/ProductVariant/51643489091801', quantity: 1 });
+  expect(supportLine(18)).toEqual({ merchandiseId: 'gid://shopify/ProductVariant/51643489026265', quantity: 18 });
+  expect(supportLine(0)).toBeNull(); expect(supportLine(501)).toBeNull();
+ });
+});

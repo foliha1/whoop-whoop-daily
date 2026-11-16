@@ -17,7 +17,7 @@ export default function SupportBlock({ mobile, body }: { mobile: boolean; body: 
   try { window.location.assign(await createSupportCheckout(chosen)); }
   catch { setError(true); setBusy(false); }
  }
- const pill = (active: boolean): React.CSSProperties => ({ ...textStyle('chip', mobile), minHeight: 44, borderRadius: RADIUS.sm, border: '1.5px solid currentColor', background: active ? COLORS.ink : 'transparent', color: active ? COLORS.bg : COLORS.ink });
+ const pill = (active: boolean): React.CSSProperties => ({ ...textStyle('chip', mobile), minHeight: 44, borderRadius: RADIUS.sm, border: '1.5px solid currentColor', background: active ? COLORS.ink : 'transparent', color: active ? COLORS.surface : COLORS.ink });
  return <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: SPACE[4], width: '100%', maxWidth: 540, margin: `${SPACE[8]}px auto 0`, color: COLORS.ink }}>
   <p style={{ ...textStyle('title', mobile), margin: 0, color: 'inherit' }}>Not buying? Back the game.</p>
   <p style={{ ...body, margin: 0 }}>Chip in to keep WHOOP! WHOOP! free to play online.</p>
