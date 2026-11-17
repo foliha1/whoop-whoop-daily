@@ -178,11 +178,16 @@ export async function verifySignInCode(
     if (sessionUserId === null) sessionUserId = data.session.user.id ?? null;
     publish(data.session.user.email ?? null);
     const merge = await linkDeviceAndMerge();
+    window.__lovableEvents?.track?.("project.progress_signin", { first_signin: merge?.firstSignIn ?? false });
     // Every signed-in player joins "WW: Updates"; best effort, never blocks.
     try {
       void Promise.resolve(
         supabase.functions.invoke("ac-subscribe", { body: { email: email.trim().toLowerCase(), list: "updates" } })
-      ).catch(() => {});
+      ).then((r) => {
+        if ((r as { data?: { syncedToAc?: boolean } } | undefined)?.data?.syncedToAc === true) {
+          window.__lovableEvents?.track?.("project.updates_list_added", { via: "signin" });
+        }
+      }).catch(() => {});
     } catch { /* never blocks sign-in */ }
     trackDaily("signin_verified", {
       props: { first_signin: merge?.firstSignIn ?? null, games: merge?.games ?? null },
@@ -295,9 +300,13 @@ export async function setReminder(
       props: { choice: consented ? "sounds_good" : "no_thanks", source },
     });
     if (consented) {
-      await supabase.functions.invoke("ac-subscribe", {
+      window.__lovableEvents?.track?.("project.daily_reminder_opt_in", { source });
+      const r = await supabase.functions.invoke("ac-subscribe", {
         body: { email, visitorId: getVisitorId(), source: "daily_result" },
       });
+      if ((r as { data?: { syncedToAc?: boolean } } | undefined)?.data?.syncedToAc === true) {
+        window.__lovableEvents?.track?.("project.daily_subscribers_added", { source });
+      }
     } else if (source === "settings") {
       await supabase.functions.invoke("delete-account", { body: { action: "reminder_off" } });
     }

@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "events": {
+    "project.daily_reminder_opt_in": {
+      "event_schema_version": 1,
+      "description": "A player said yes to Daily reminder emails.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source"
+        ],
+        "properties": {
+          "source": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "project.daily_subscribers_added": {
+      "event_schema_version": 1,
+      "description": "A player was confirmed added to the WWD: Subscribers list.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source"
+        ],
+        "properties": {
+          "source": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "project.progress_signin": {
+      "event_schema_version": 1,
+      "description": "A player verified their email code to save progress.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "first_signin"
+        ],
+        "properties": {
+          "first_signin": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "project.updates_list_added": {
+      "event_schema_version": 1,
+      "description": "A signed-in player was confirmed added to the WW: Updates list.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "via"
+        ],
+        "properties": {
+          "via": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

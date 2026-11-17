@@ -153,6 +153,10 @@ export async function subscribeDaily(
 
     if (error || (data as { ok?: boolean } | null)?.ok !== true) return false;
     markSubscribed(email);
+    window.__lovableEvents?.track?.("project.daily_reminder_opt_in", { source: source ?? "daily_result" });
+    if ((data as { syncedToAc?: boolean }).syncedToAc === true) {
+      window.__lovableEvents?.track?.("project.daily_subscribers_added", { source: source ?? "daily_result" });
+    }
     return true;
   } catch {
     return false;
