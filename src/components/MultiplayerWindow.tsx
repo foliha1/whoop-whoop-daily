@@ -1,4 +1,5 @@
 import LaunchAnnouncement, { shouldShowLaunchNote } from "@/components/LaunchAnnouncement";
+import { dailyTitle } from "@/lib/daily100";
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
@@ -1881,7 +1882,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                 style={{ ...playModeTileStyle(RAW.orange), color: RAW.warmBlack }}
                 aria-label={dailyPlayed
                   ? `See today's results. ${nextDaily.spoken}`
-                  : `Whoop! Whoop! Daily #${puzzleNumber}`}
+                  : dailyTitle(puzzleNumber)}
                 data-testid="home-daily"
                 data-icon={isDaytime(now) ? "sun" : "moon"}
               >
@@ -1896,7 +1897,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                   </svg>
                 )}
                 <div style={playModeLabelStyle(RAW.warmBlack)}>
-                  {dailyPlayed ? "See Today's Results" : `Whoop! Whoop! Daily #${puzzleNumber}`}
+                  {dailyPlayed ? "See Today's Results" : dailyTitle(puzzleNumber)}
                 </div>
                 {dailyPlayed ? (
                   <div style={{ ...textStyle("captionItalic", entryMobile), color: RAW.warmBlack, textAlign: "center" }}>

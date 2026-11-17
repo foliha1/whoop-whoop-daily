@@ -9,6 +9,7 @@ import { COLORS } from "@/lib/tokens";
 import { UI_EASE, UI_ENTER_MS, UI_EXIT_MS } from "@/lib/animationTiming";
 import CardFlipLoader from "@/components/CardFlipLoader";
 import SpookGhost from "@/components/SpookGhost";
+import Holo100Splash from "@/components/Holo100Splash";
 import { useUmbrella } from "@/lib/launch";
 import { enterThemeZone, leaveThemeZone, CLASSIC_THEME_FILE } from "@/lib/sounds";
 
@@ -193,6 +194,7 @@ const App = () => (
           <ProductInstallHead />
           <AnimatedRoutes />
           <SpookGhost />
+          <Holo100Splash />
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>

@@ -10,6 +10,7 @@ import CurrentTierBadge from "@/components/CurrentTierBadge";
 import MotionReveal from "@/components/MotionReveal";
 import CardFlipLoader from "@/components/CardFlipLoader";
 import YouBadgeShelf from "@/components/YouBadgeShelf";
+import { withKeepsake } from "@/lib/daily100";
 import YouScoreTiles from "@/components/YouScoreTiles";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePointsPopulationState, useWhoopPointsState } from "@/hooks/useWhoopPoints";
@@ -190,10 +191,10 @@ const YouPage: React.FC = () => {
               </p>
             </MotionReveal>
 
-            {points.badges.length > 0 && (
+            {withKeepsake(points.badges).length > 0 && (
               <MotionReveal index={6} style={section}>
                 {sectionLabel("Your Badges", mobile)}
-                <YouBadgeShelf badges={points.badges} mobile={mobile} />
+                <YouBadgeShelf badges={withKeepsake(points.badges)} mobile={mobile} />
               </MotionReveal>
             )}
           </div>

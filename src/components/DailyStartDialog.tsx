@@ -1,4 +1,5 @@
 import React from "react";
+import { dailyTitle } from "@/lib/daily100";
 import { createPortal } from "react-dom";
 import { DAILY_SCREEN_FADE_MS } from "@/lib/animationTiming";
 import { COLORS, SPACE, buttonStyle, panelStyle, textStyle } from "@/lib/tokens";
@@ -107,7 +108,7 @@ const DailyStartDialog: React.FC<{
         }}
       >
         <h1 id="daily-start-title" style={{ ...textStyle("title", mobile), color: COLORS.ink, margin: 0 }}>
-          Whoop! Whoop! Daily #{puzzleNumber}
+          {dailyTitle(puzzleNumber)}
         </h1>
         <p id="daily-start-body" style={{ ...textStyle("body", mobile), color: COLORS.ink, margin: 0 }}>
           {dailyWelcomeLine(puzzleNumber)[0]}<br />{dailyWelcomeLine(puzzleNumber)[1]}

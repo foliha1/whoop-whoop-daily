@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { dailyTitle } from "@/lib/daily100";
 import { useLocation, useNavigate } from "react-router-dom";
 import HomeControl from "@/components/HomeControl";
 import DailyLeaveDialog from "@/components/DailyLeaveDialog";
@@ -753,7 +754,7 @@ const DailyResultCard: React.FC<{
         className={resultClass}
         style={{ ...textStyle("title", mobile), color: COLORS.ink, textAlign: "center", margin: 0, ...resultMotion("heading") }}
       >
-        WHOOP! WHOOP! Daily #{puzzleNumber}
+        {dailyTitle(puzzleNumber, "WHOOP! WHOOP!")}
       </h1>
       {/* No subhead on a completed run: the title carries it. The failed and
           revisit endings still say their one thing. */}

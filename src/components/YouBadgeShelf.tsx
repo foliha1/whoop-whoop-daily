@@ -2,12 +2,18 @@ import React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { AppButton } from "@/components/ui/AppButton";
 import CurrentTierBadge from "@/components/CurrentTierBadge";
+import Daily100Badge from "@/components/Daily100Badge";
+import { KEEPSAKE_CRITERIA, KEEPSAKE_NAME, isKeepsakeBadge } from "@/lib/daily100";
 import type { EarnedBadge, PointsTier } from "@/lib/whoopPoints";
 import { POINTS_TIER_FLOORS } from "@/lib/whoopPoints";
 import { badgeArt, formatBadgeDate, tierName } from "@/lib/whoopTiers";
 import { BORDER, COLORS, FONT_SIZE, RADIUS, SPACE, TOUCH_MIN, textStyle } from "@/lib/tokens";
 
+const badgeName = (key: string): string =>
+  isKeepsakeBadge(key) ? KEEPSAKE_NAME : tierName(key as PointsTier) || key;
+
 const unlockCriteria = (key: string): string => {
+  if (isKeepsakeBadge(key)) return KEEPSAKE_CRITERIA;
   const tier = POINTS_TIER_FLOORS.find((row) => row.tier === key);
   if (!tier) return "Earned through Daily play.";
   return tier.floor === 0 ? "Play your first Daily game." : `Reach ${tier.floor} total points.`;
@@ -109,13 +115,15 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
                  <AppButton
                    type="button"
                     roleStyle="quiet"
-                   aria-label={`View ${tierName(badge.key as PointsTier) || badge.key} badge details, earned ${formatBadgeDate(badge.earnedOn)}`}
+                   aria-label={`View ${badgeName(badge.key)} badge details, earned ${formatBadgeDate(badge.earnedOn)}`}
                    className="ww-you-badge-trigger"
                     hoverBackground={COLORS.badgeHover}
                     style={{ boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minHeight: TOUCH_MIN, minWidth: 0, padding: SPACE[2], border: 0, borderRadius: RADIUS.sm, background: "transparent", color: COLORS.inkMuted, fontStyle: "normal", whiteSpace: "normal" }}
                  >
                    <span aria-hidden="true" style={{ width: "100%", maxWidth: FONT_SIZE["7xl"], aspectRatio: "1", display: "grid", placeItems: "center" }}>
-                     {badgeArt(badge.key) ? (
+                     {isKeepsakeBadge(badge.key) ? (
+                       <Daily100Badge size={FONT_SIZE["7xl"]} fluid />
+                     ) : badgeArt(badge.key) ? (
                        <CurrentTierBadge tier={badge.key as PointsTier} size={FONT_SIZE["7xl"]} fluid />
                      ) : (
                        <span style={{ width: "75%", aspectRatio: "1", borderRadius: "50%", background: COLORS.inkMuted }} />
@@ -130,9 +138,9 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
                     className="ww-ui-revisit ww-you-badge-detail"
                    style={{ position: "fixed", zIndex: 1001, top: "50%", left: "50%", transform: "translate(-50%, -50%)", boxSizing: "border-box", width: `calc(100% - ${SPACE[12] * 2}px)`, maxWidth: FONT_SIZE["8xl"] * 3, maxHeight: "calc(100dvh - 48px)", overflowY: "auto", background: COLORS.surface, color: COLORS.ink, border: BORDER.heavy, borderRadius: RADIUS.md, padding: SPACE[8], display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[8], textAlign: "center" }}
                  >
-                   <DialogPrimitive.Title style={{ ...textStyle("title", mobile), margin: 0 }}>{tierName(badge.key as PointsTier) || badge.key}</DialogPrimitive.Title>
+                   <DialogPrimitive.Title style={{ ...textStyle("title", mobile), margin: 0 }}>{badgeName(badge.key)}</DialogPrimitive.Title>
                     <span aria-hidden="true" className="ww-you-badge-flip-host" style={{ width: "100%", maxWidth: FONT_SIZE["7xl"] * 1.5, aspectRatio: "1", display: "grid", placeItems: "center" }}>
-                      {badgeArt(badge.key) ? <CurrentTierBadge tier={badge.key as PointsTier} size={FONT_SIZE["7xl"] * 1.5} fluid /> : <span className="ww-ui-small-in" style={{ width: "75%", aspectRatio: "1", borderRadius: "50%", background: COLORS.inkMuted }} />}
+                      {isKeepsakeBadge(badge.key) ? <Daily100Badge size={FONT_SIZE["7xl"] * 1.5} fluid /> : badgeArt(badge.key) ? <CurrentTierBadge tier={badge.key as PointsTier} size={FONT_SIZE["7xl"] * 1.5} fluid /> : <span className="ww-ui-small-in" style={{ width: "75%", aspectRatio: "1", borderRadius: "50%", background: COLORS.inkMuted }} />}
                    </span>
                    <DialogPrimitive.Description asChild>
                      <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4], ...textStyle("body", mobile), color: COLORS.ink }}>
