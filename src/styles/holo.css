@@ -144,9 +144,15 @@ html[data-skin="holo"] :is(
 /* The big Home tiles get a chunkier rim. */
 html[data-skin="holo"] button[style*="min-height: 96px"] { --ho-bw: 3px; }
 
+/* Seamless loops: the conic rim turns a full 360deg (start = end), and the
+   film glides across and back (alternate), so neither ever snaps. */
 @keyframes ho-spin {
-  from { --ho-a: 0deg; background-position: 0 0, 0% 0, 0 0, 0 0; }
-  to   { --ho-a: 360deg; background-position: 0 0, 100% 0, 0 0, 0 0; }
+  from { --ho-a: 0deg; }
+  to   { --ho-a: 360deg; }
+}
+@keyframes ho-film {
+  from { background-position: 0 0, 0% 0, 0 0, 0 0; }
+  to   { background-position: 0 0, 100% 0, 0 0, 0 0; }
 }
 
 /* ── Khaki board and panels: the same foil sheet over the khaki ── */
@@ -184,11 +190,11 @@ html[data-skin="holo"] :has(> img[src*="WhoopWhoop_"])::after {
   -webkit-mask: var(--ho-logo-src) center / contain no-repeat;
   mask: var(--ho-logo-src) center / contain no-repeat;
   background-image: linear-gradient(110deg,
-    transparent 30%, var(--ho-pink) 40%, var(--ho-butter) 45%, var(--ho-mint) 50%,
-    var(--ho-sky) 55%, var(--ho-lilac) 60%, transparent 70%);
-  background-size: 300% 100%;
+    transparent 38%, var(--ho-pink) 42%, var(--ho-butter) 46%, var(--ho-mint) 50%,
+    var(--ho-sky) 54%, var(--ho-lilac) 58%, transparent 62%);
+  background-size: 400% 100%;
   background-repeat: no-repeat;
-  background-position: 120% 0;
+  background-position: 100% 0;
   mix-blend-mode: screen;
   opacity: 0.85;
   animation: var(--ho-logo-anim, none);
@@ -204,10 +210,12 @@ html[data-skin="holo"] svg path[fill="rgb(247,241,232)"] { fill: url(#hoFoilPain
 html[data-skin="holo"] img[src*="WhoopWhoop_Stacked_Logo"] { content: url("../assets/holo/stacked-logo-foil.svg"); }
 html[data-skin="holo"] img[src*="WhoopWhoop_Classic_Lockup_Cream"] { content: url("../assets/holo/classic-lockup-cream-foil.svg"); }
 
+/* At 100% and 0% the band sits fully outside the logo (400% wide strip,
+   band in its middle fifth), so the jump back to the start is never seen. */
 @keyframes ho-logo-sweep {
-  0%   { background-position: 120% 0; }
-  40%  { background-position: -20% 0; }
-  100% { background-position: -20% 0; }
+  0%   { background-position: 100% 0; }
+  40%  { background-position: 0% 0; }
+  100% { background-position: 0% 0; }
 }
 
 /* ── Cards: rare trading-card foil ──
@@ -277,7 +285,7 @@ html[data-skin="holo"] .ww-game-card::after {
 /* Motion only for players who have not asked for less of it. */
 @media (prefers-reduced-motion: no-preference) {
   html[data-skin="holo"] {
-    --ho-spin-anim: ho-spin 6s linear infinite;
+    --ho-spin-anim: ho-spin 6s linear infinite, ho-film 9s ease-in-out infinite alternate;
     --ho-logo-anim: ho-logo-sweep 5s ease-in-out 800ms infinite;
     --ho-card-anim: ho-card-drift 10s ease-in-out infinite;
     --ho-face-anim: ho-card-face 10s ease-in-out infinite;
