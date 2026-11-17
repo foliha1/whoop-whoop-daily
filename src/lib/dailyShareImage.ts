@@ -8,6 +8,7 @@
 import { DAILY_ROUNDS } from "@/lib/dailyEngine";
 import type { DailyResult } from "@/lib/daily";
 import { RAW, FONT_FAMILY } from "@/lib/tokens";
+import { DAILY_100_NUMBER } from "@/lib/daily100";
 import { SPOOK_AT_LOAD } from "@/lib/skin";
 import patternAsset from "@/assets/WhoopWhoop_Daily_Pattern_Seamless.svg.asset.json";
 import lockupAsset from "@/assets/WhoopWhoop_Daily_Lockup.svg.asset.json";
@@ -172,6 +173,99 @@ function drawScoreLine(
  * Render the day's result as a shareable PNG. Rejects if the canvas or the
  * artwork is unavailable — callers fall back to the text-only share path.
  */
+/**
+ * Daily #100: the holographic "DAY 100" sticker from the Home logo, drawn in
+ * place of the orange #N badge. Same build as the CSS sticker: tilted, foil
+ * face with a white sheen, bottom-right edge folded back (fold line u+v = 0.6D
+ * in centred coords; the flap is the cut cap mirrored across it). Words are
+ * solid warm black: DAY in Geist caps, 100 in the display face.
+ */
+function drawDay100Sticker(ctx: CanvasRenderingContext2D, cx: number, cy: number, d: number) {
+  const r = d / 2;
+  const k = 0.6 * d; // fold line: u + v = k
+  const foilStops = ["#FF9AD5", "#C6A4FF", "#8FD8FF", "#A8FFD8", "#FFE59A", "#FFB8A0", "#FF9AD5"];
+  const halfPlane = () => {
+    // Everything on the near side of the fold line (u + v < k), as a big polygon.
+    ctx.beginPath();
+    ctx.moveTo(-d * 2, -d * 2);
+    ctx.lineTo(k + d * 2, -d * 2);
+    ctx.lineTo(-d * 2, k + d * 2);
+    ctx.closePath();
+  };
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((-9 * Math.PI) / 180);
+
+  // --- face -------------------------------------------------------------
+  ctx.save();
+  halfPlane();
+  ctx.clip();
+  ctx.shadowColor = "rgba(35, 31, 32, 0.25)";
+  ctx.shadowBlur = d * 0.06;
+  ctx.shadowOffsetY = d * 0.025;
+  let foil: CanvasGradient;
+  if (typeof (ctx as CanvasRenderingContext2D & { createConicGradient?: unknown }).createConicGradient === "function") {
+    foil = ctx.createConicGradient(-Math.PI / 2, 0, 0);
+  } else {
+    foil = ctx.createLinearGradient(-r, -r, r, r);
+  }
+  foilStops.forEach((c, i) => foil.addColorStop(i / (foilStops.length - 1), c));
+  ctx.fillStyle = foil;
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowColor = "transparent";
+  const sheen = ctx.createRadialGradient(-r * 0.4, -r * 0.56, 0, -r * 0.4, -r * 0.56, r * 0.84);
+  sheen.addColorStop(0, "rgba(255, 255, 255, 0.9)");
+  sheen.addColorStop(1, "rgba(255, 255, 255, 0)");
+  ctx.fillStyle = sheen;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+  ctx.lineWidth = d * 0.03;
+  ctx.beginPath();
+  ctx.arc(0, 0, r - ctx.lineWidth / 2, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // words, nudged up-left away from the fold
+  const ox = -d * 0.02;
+  ctx.fillStyle = RAW.warmBlack;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.font = `600 ${Math.round(d * 0.12)}px Geist, system-ui, sans-serif`;
+  if ("letterSpacing" in ctx) (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = `${Math.round(d * 0.01)}px`;
+  ctx.fillText("DAY", ox, -d * 0.14);
+  if ("letterSpacing" in ctx) (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = `${-Math.round(d * 0.02)}px`;
+  ctx.font = `${Math.round(d * 0.5)}px ${FONT_FAMILY}`;
+  ctx.fillText("100", ox, d * 0.26);
+  if ("letterSpacing" in ctx) (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "0px";
+  ctx.restore();
+
+  // --- folded flap: the paper back, casting a little shadow onto the foil -
+  ctx.save();
+  halfPlane();
+  ctx.clip();
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.shadowColor = "rgba(35, 31, 32, 0.3)";
+  ctx.shadowBlur = d * 0.04;
+  ctx.shadowOffsetX = -d * 0.012;
+  ctx.shadowOffsetY = -d * 0.012;
+  const fx = k; // the sticker centre mirrored across u + v = k
+  const paper = ctx.createLinearGradient(k / 2, k / 2, k / 2 - d * 0.15, k / 2 - d * 0.15);
+  paper.addColorStop(0, "#EDE9F3");
+  paper.addColorStop(0.3, "#FFFFFF");
+  paper.addColorStop(1, "#DCD6E6");
+  ctx.fillStyle = paper;
+  ctx.beginPath();
+  ctx.arc(fx, fx, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.restore();
+}
+
 export async function renderDailyShareImage(
   result: DailyResult,
   streak?: number | null,
@@ -242,6 +336,9 @@ export async function renderDailyShareImage(
 
   const badgeCx = rowX + LOCKUP_W + HEADER_GAP + BADGE_D / 2;
   const badgeCy = headerTop + HEADER_H / 2;
+  if (result.puzzleNumber === DAILY_100_NUMBER) {
+    drawDay100Sticker(ctx, badgeCx, badgeCy, BADGE_D);
+  } else {
   ctx.save();
   ctx.translate(badgeCx, badgeCy);
   ctx.rotate((15.06 * Math.PI) / 180);
@@ -255,6 +352,7 @@ export async function renderDailyShareImage(
   ctx.textBaseline = "middle";
   ctx.fillText(`#${result.puzzleNumber}`, 0, 0);
   ctx.restore();
+  }
 
 
   // --- 3. Rounds panel ------------------------------------------------------
