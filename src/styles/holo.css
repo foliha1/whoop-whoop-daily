@@ -19,6 +19,8 @@ html[data-skin="holo"] {
   --ho-mint: #A8FFD8;
   --ho-sky: #8FD8FF;
   --ho-lilac: #C6A4FF;
+  --ho-star: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M10 0 C11 7 13 9 20 10 C13 11 11 13 10 20 C9 13 7 11 0 10 C7 9 9 7 10 0Z' fill='white'/></svg>");
+  --ho-star-glow: drop-shadow(0 0 3px rgba(198, 164, 255, 0.9)) drop-shadow(0 0 1px rgba(143, 216, 255, 1));
   --ho-sticker-shadow: drop-shadow(0 2px 2px rgba(35, 31, 32, 0.24))
     drop-shadow(0 5px 5px rgba(35, 31, 32, 0.12));
   /* The foil: a full spectrum loop that can spin. */
@@ -96,13 +98,12 @@ html[data-skin="holo"] body::after {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  --ho-star: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M10 0 C11 7 13 9 20 10 C13 11 11 13 10 20 C9 13 7 11 0 10 C7 9 9 7 10 0Z' fill='white'/></svg>");
   background-image: var(--ho-star), var(--ho-star), var(--ho-star), var(--ho-star), var(--ho-star), var(--ho-star);
   background-repeat: no-repeat;
   background-size: 18px, 11px, 14px, 9px, 16px, 10px;
   /* Edges only, so a sparkle never sits on words. */
   background-position: 3% 9%, 97% 13%, 97% 45%, 3% 60%, 97% 79%, 3% 93%;
-  filter: drop-shadow(0 0 3px rgba(198, 164, 255, 0.9)) drop-shadow(0 0 1px rgba(143, 216, 255, 1));
+  filter: var(--ho-star-glow);
   animation: var(--ho-twinkle-anim, none);
   will-change: opacity, transform;
 }
@@ -397,16 +398,8 @@ html[data-skin="holo"] .ww-home-daily-tile.ww-home-daily-tile[data-testid="home-
   background-blend-mode: normal !important;
 }
 
-/* A foil starburst attached to the upper-left corner, never covering the
-   Daily label or intercepting taps. Both layers share the same geometry. */
-html[data-skin="holo"] .ww-home-daily-tile {
-  --ho-burst-shape: polygon(50% 0%, 58% 27%, 75% 7%, 73% 32%,
-    93% 25%, 80% 45%, 100% 50%, 80% 58%, 93% 75%, 70% 72%,
-    75% 93%, 57% 79%, 50% 100%, 42% 79%, 25% 93%, 29% 70%,
-    7% 75%, 21% 57%, 0% 50%, 22% 42%, 7% 25%, 30% 29%,
-    25% 7%, 43% 26%);
-}
-html[data-skin="holo"] .ww-home-daily-tile::before,
+/* Reuse the background sparkle's exact white shape, glow and pulse at the
+   upper-left corner without covering the Daily label or intercepting taps. */
 html[data-skin="holo"] .ww-home-daily-tile::after {
   content: "";
   position: absolute;
@@ -415,12 +408,9 @@ html[data-skin="holo"] .ww-home-daily-tile::after {
   width: 46px;
   height: 46px;
   pointer-events: none;
-  clip-path: var(--ho-burst-shape);
-  transform: rotate(-12deg);
-  background: var(--ww-ink);
+  background: var(--ho-star) center / contain no-repeat;
+  filter: var(--ho-star-glow);
+  animation: var(--ho-twinkle-anim, none);
+  will-change: opacity, transform;
   z-index: 1;
-}
-html[data-skin="holo"] .ww-home-daily-tile::after {
-  background: var(--ho-foil);
-  transform: rotate(-12deg) scale(0.88);
 }
