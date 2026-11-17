@@ -178,6 +178,12 @@ export async function verifySignInCode(
     if (sessionUserId === null) sessionUserId = data.session.user.id ?? null;
     publish(data.session.user.email ?? null);
     const merge = await linkDeviceAndMerge();
+    // Every signed-in player joins "WW: Updates"; best effort, never blocks.
+    try {
+      void Promise.resolve(
+        supabase.functions.invoke("ac-subscribe", { body: { email: email.trim().toLowerCase(), list: "updates" } })
+      ).catch(() => {});
+    } catch { /* never blocks sign-in */ }
     trackDaily("signin_verified", {
       props: { first_signin: merge?.firstSignIn ?? null, games: merge?.games ?? null },
     });

@@ -2,7 +2,7 @@
 // DailySignIn — optional sign-in by a 6-digit email code.
 //
 // Steps: email → code → (first time, not already on the list) a separate
-// affirmative reminder choice → done. Signing in never subscribes anyone.
+// affirmative reminder choice → done. Signing in joins the updates list only; reminders need a yes.
 // ============================================================================
 
 import React, { useEffect, useState } from "react";
@@ -311,7 +311,7 @@ const DailySignIn: React.FC<{
         </div>
       )}
       <p style={{ ...panelBodyStyle, fontSize: 12, color: onAccentSurface ? RAW.warmBlack : COLORS.inkMuted }}>
-        Signing in doesn't add you to any mailing list.{" "}
+        Signing in adds you to our updates list. You'll only get general game updates.{" "}
         <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: onAccentSurface ? RAW.warmBlack : COLORS.inkMuted, textDecoration: "underline" }}>
           Privacy
         </a>

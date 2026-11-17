@@ -62,12 +62,16 @@ async function rateLimited(
  * Returns ok=true only when the contact is on the list, plus the contact id so
  * the caller can seed custom fields.
  */
+// "WW: Updates" — general updates list every signed-in player joins.
+const UPDATES_LIST_ID = "6";
+
 async function syncToActiveCampaign(
   email: string,
+  listOverride?: string,
 ): Promise<{ ok: boolean; contactId: string | null }> {
   const base = (Deno.env.get("AC_API_URL") ?? "").replace(/\/+$/, "");
   const key = Deno.env.get("AC_API_KEY") ?? "";
-  const listId = Deno.env.get("AC_LIST_ID") ?? "";
+  const listId = listOverride ?? Deno.env.get("AC_LIST_ID") ?? "";
   if (!base || !key || !listId) {
     console.error("ac-subscribe: ActiveCampaign env vars missing");
     return { ok: false, contactId: null };
@@ -253,6 +257,18 @@ Deno.serve(async (req) => {
   }
 
 
+
+  // Updates list: only for the signed-in owner of the address. No reminder row.
+  if (body.list === "updates") {
+    const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+    const { data: who } = await supabase.auth.getUser(token);
+    if ((who?.user?.email ?? "").toLowerCase() !== email) {
+      return json({ error: "Sign in first" }, 401);
+    }
+    const test = email.endsWith("@whoop-test.invalid") || /^[^@]+\+deltest@/.test(email);
+    const { ok } = test ? { ok: false } : await syncToActiveCampaign(email, UPDATES_LIST_ID);
+    return json({ ok: true, syncedToAc: ok });
+  }
 
   // 1. Our database is the source of truth and decides the outcome.
   const { data: saved, error: saveError } = await supabase.rpc("subscribe_daily", {

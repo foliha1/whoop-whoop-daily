@@ -51,7 +51,7 @@ describe("optional sign-in", () => {
     render(<DailySignIn onAccentSurface />);
     expect(screen.getByRole("heading", { name: "Save your score." })).toHaveStyle({ color: "#231f20" });
     expect(screen.getByText(/Sign in with your email/)).toHaveStyle({ color: "#231f20" });
-    expect(screen.getByText(/Signing in doesn't add/)).toHaveStyle({ color: "#231f20" });
+    expect(screen.getByText(/Signing in adds you to our updates list/)).toHaveStyle({ color: "#231f20" });
     expect(screen.getByRole("link", { name: "Privacy" })).toHaveStyle({ color: "#231f20" });
   });
 
@@ -157,13 +157,14 @@ describe("optional sign-in", () => {
     await screen.findByText("We'll send you the daily puzzle.");
     expect(onSignedIn).not.toHaveBeenCalled();
     expect(onChoiceRequiredChange).toHaveBeenCalledWith(true);
-    expect(invoke).not.toHaveBeenCalled();
+    // Sign-in joins "WW: Updates" only; the reminder list waits for a yes.
+    expect(invoke.mock.calls.map((c) => c[1].body)).toEqual([{ email: "a@b.co", list: "updates" }]);
     fireEvent.click(screen.getByRole("button", { name: "No thanks." }));
     await screen.findByTestId("signin-done");
     expect(rpc).toHaveBeenCalledWith("set_reminder_consent", { p_consented: false, p_source: "post_signin" });
     expect(onChoiceRequiredChange).toHaveBeenLastCalledWith(false);
     expect(onSignedIn).toHaveBeenCalledWith("a@b.co", false);
-    expect(invoke).not.toHaveBeenCalled();
+    expect(invoke.mock.calls.map((c) => c[1].body)).toEqual([{ email: "a@b.co", list: "updates" }]);
   });
 
   it("records the affirmative action before completing sign-in", async () => {

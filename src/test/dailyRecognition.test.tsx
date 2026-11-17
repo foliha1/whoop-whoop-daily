@@ -166,7 +166,7 @@ describe("not-recognized state opens sign-in", () => {
     expect(rpc.mock.calls.map(([n]) => n)).toEqual(["link_device_and_merge"]);
     expect(signInWithOtp).toHaveBeenCalledWith(expect.objectContaining({ email: "player@example.com" }));
     expect(onRestored).toHaveBeenCalledWith("player@example.com", true);
-    expect(invoke).not.toHaveBeenCalled();
+    expect(invoke.mock.calls.map((c) => c[1].body)).toEqual([{ email: "player@example.com", list: "updates" }]);
   });
 
   it("keeps the first-time choice open and blocks unrelated dialog dismissal", async () => {
@@ -178,7 +178,7 @@ describe("not-recognized state opens sign-in", () => {
     expect(screen.getByTestId("daily-email-modal")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "No thanks." }));
     await waitFor(() => expect(onRestored).toHaveBeenCalledWith("player@example.com", false));
-    expect(invoke).not.toHaveBeenCalled();
+    expect(invoke.mock.calls.map((c) => c[1].body)).toEqual([{ email: "player@example.com", list: "updates" }]);
   });
 });
 
