@@ -53,3 +53,19 @@ export async function createSupportCheckout(amount: number): Promise<string> {
  url.searchParams.set('channel', 'online_store');
  return url.toString();
 }
+
+export type CheckoutWindow = { newTab: boolean; navigate: (url: string) => void; cancel: () => void };
+
+// Checkout always opens in a new tab. The tab has to be created while the click
+// is still a live user gesture, so it is opened blank here and filled in once the
+// cart exists. If the browser blocks it, this tab navigates instead.
+export function openCheckoutWindow(): CheckoutWindow {
+ const tab = window.open('', '_blank');
+ if (!tab) return { newTab: false, navigate: (url) => { window.location.assign(url); }, cancel: () => {} };
+ try { tab.opener = null; } catch { /* the blank tab may already be gone */ }
+ return {
+  newTab: true,
+  navigate: (url) => { tab.location.href = url; },
+  cancel: () => { try { tab.close(); } catch { /* the tab may already be closed */ } },
+ };
+}

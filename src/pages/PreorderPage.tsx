@@ -15,7 +15,7 @@ import { BORDER, COLORS, RAW, SPACE, RADIUS, SHADOW, textStyle } from '@/lib/tok
 import { cardArt } from '@/lib/assetUrls';
 import { supabase } from '@/integrations/supabase/client';
 import { trackEvent } from '@/lib/analytics';
-import { clampQuantity, createPreorderCheckout, gamesLabel, loadPreorderPrice, money, PREORDER_FALLBACK_PRICE, proofLabel } from '@/lib/preorder';
+import { clampQuantity, createPreorderCheckout, gamesLabel, loadPreorderPrice, money, openCheckoutWindow, PREORDER_FALLBACK_PRICE, proofLabel } from '@/lib/preorder';
 
 const FAQ = [
  ['When does it ship?', "Early December 2026. All pre-orders will arrive by the holidays. We'll email you as soon as your order is on its way."],
@@ -46,8 +46,9 @@ export default function PreorderPage() {
   if (pending.current) return;
   pending.current = true; setBusy(true); setError(false);
   trackEvent('preorder_click', { metadata: { quantity } });
-  try { window.location.assign(await createPreorderCheckout(quantity)); }
-  catch { console.error('[preorder] checkout cart request failed'); setError(true); pending.current = false; setBusy(false); }
+  const tab = openCheckoutWindow();
+  try { tab.navigate(await createPreorderCheckout(quantity)); pending.current = false; setBusy(false); }
+  catch { console.error('[preorder] checkout cart request failed'); tab.cancel(); setError(true); pending.current = false; setBusy(false); }
  }
  const heading: React.CSSProperties = { ...textStyle('resultHero', mobile), color: COLORS.ink, margin: 0, lineHeight: 1.05, textAlign: 'center', letterSpacing: 0 };
  const link: React.CSSProperties = { ...body, color: COLORS.blueText, textDecoration: 'underline', textUnderlineOffset: 5, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' };

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { clampQuantity, gamesLabel, money, proofLabel, createPreorderCheckout, PREORDER_VARIANT, PREORDER_FALLBACK_PRICE, loadPreorderPrice } from '@/lib/preorder';
-afterEach(() => vi.unstubAllGlobals());
+import { clampQuantity, gamesLabel, money, proofLabel, createPreorderCheckout, PREORDER_VARIANT, PREORDER_FALLBACK_PRICE, loadPreorderPrice, openCheckoutWindow } from '@/lib/preorder';
+afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 describe('pre-order rules', () => {
  it('limits quantities to 1 through 10', () => { expect(clampQuantity(0)).toBe(1); expect(clampQuantity(11)).toBe(10); expect(clampQuantity(1)).toBe(1); });
  it('hides proof below 100 and rounds to the nearest hundred', () => { expect(proofLabel(99)).toBe(null); expect(proofLabel(2499)).toBe('2,500+'); expect(proofLabel(100)).toBe('100+'); expect(proofLabel(987)).toBe('1,000+'); });
@@ -21,5 +21,28 @@ describe('support amounts', () => {
   expect(supportLine(10)).toEqual({ merchandiseId: 'gid://shopify/ProductVariant/51643489091801', quantity: 1 });
   expect(supportLine(18)).toEqual({ merchandiseId: 'gid://shopify/ProductVariant/51643489026265', quantity: 18 });
   expect(supportLine(0)).toBeNull(); expect(supportLine(501)).toBeNull();
+ });
+});
+
+describe('checkout opens in a new tab', () => {
+ it('sends the cart URL to the tab opened at click time, detached from this page', () => {
+  const tab = { opener: {}, location: { href: '' }, close: vi.fn() } as unknown as Window & { location: { href: string } };
+  const opened = vi.spyOn(window, 'open').mockReturnValue(tab as unknown as Window & typeof globalThis.Window);
+  const checkout = openCheckoutWindow();
+  expect(opened).toHaveBeenCalledWith('', '_blank');
+  expect(checkout.newTab).toBe(true);
+  checkout.navigate('https://example.myshopify.com/checkout/test');
+  expect(tab.location.href).toBe('https://example.myshopify.com/checkout/test');
+  expect(tab.opener).toBeNull();
+ });
+ it('closes the blank tab when the cart cannot be created', () => {
+  const tab = { opener: {}, location: { href: '' }, close: vi.fn() } as unknown as Window & { location: { href: string } };
+  vi.spyOn(window, 'open').mockReturnValue(tab as unknown as Window & typeof globalThis.Window);
+  openCheckoutWindow().cancel();
+  expect(tab.close).toHaveBeenCalled();
+ });
+ it('falls back to this tab when the browser blocks the new one', () => {
+  vi.spyOn(window, 'open').mockReturnValue(null);
+  expect(openCheckoutWindow().newTab).toBe(false);
  });
 });

@@ -2,7 +2,7 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { COLORS, SPACE, RADIUS, panelStyle, textStyle } from '@/lib/tokens';
-import { createSupportCheckout, money, SUPPORT_TIERS, supportLine } from '@/lib/preorder';
+import { createSupportCheckout, money, openCheckoutWindow, SUPPORT_TIERS, supportLine } from '@/lib/preorder';
 
 export default function SupportBlock({ mobile, body }: { mobile: boolean; body: React.CSSProperties }) {
  const [amount, setAmount] = React.useState<number>(10);
@@ -14,8 +14,9 @@ export default function SupportBlock({ mobile, body }: { mobile: boolean; body: 
  async function give() {
   if (busy || !valid) return;
   setBusy(true); setError(false);
-  try { window.location.assign(await createSupportCheckout(chosen)); }
-  catch { setError(true); setBusy(false); }
+  const tab = openCheckoutWindow();
+  try { tab.navigate(await createSupportCheckout(chosen)); setBusy(false); }
+  catch { tab.cancel(); setError(true); setBusy(false); }
  }
  const pill = (active: boolean): React.CSSProperties => ({ ...textStyle('chip', mobile), minHeight: 44, borderRadius: RADIUS.sm, border: `1.5px solid ${COLORS.ink}`, background: active ? COLORS.ink : 'transparent', color: active ? COLORS.surface : COLORS.ink });
  return <div style={{ ...panelStyle('panel', mobile ? 12 : 16), display: 'flex', flexDirection: 'column', alignItems: 'center', gap: SPACE[8], width: '100%', maxWidth: 540, margin: '0 auto', color: COLORS.ink, textAlign: 'center' }}>
