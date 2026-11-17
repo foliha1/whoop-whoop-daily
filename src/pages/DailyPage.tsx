@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { dailyTitle } from "@/lib/daily100";
+import { DAILY_100_NUMBER, dailyTitle, hasDaily100Keepsake } from "@/lib/daily100";
 import { useLocation, useNavigate } from "react-router-dom";
 import HomeControl from "@/components/HomeControl";
 import DailyLeaveDialog from "@/components/DailyLeaveDialog";
@@ -651,7 +651,9 @@ const DailyResultCard: React.FC<{
     whoop.badges.some(
       (b) => b.earnedOn === new Date().toISOString().slice(0, 10) && badgeArt(b.key) !== null
     );
-  const tierUp = (scoreChange?.tierUp ?? false) || badgeToday;
+  // Daily #100 keepsake: same orange block + same burst, with a New Badge! row.
+  const keepsakeToday = puzzleNumber === DAILY_100_NUMBER && hasDaily100Keepsake();
+  const tierUp = (scoreChange?.tierUp ?? false) || badgeToday || keepsakeToday;
   const tierBurst = tierUp && !reducedMotion && !burst && !revisit;
 
   const resultClass = revisit ? undefined : "ww-res-in";
@@ -876,7 +878,7 @@ const DailyResultCard: React.FC<{
           opacity: whoop ? 1 : 0,
           transition: scoreSlotMotion ? "opacity 300ms ease-out 150ms" : "none",
         }}>
-          <WhoopPointsChange points={whoop} mobile={mobile} tierUp={tierUp} animate={false} />
+          <WhoopPointsChange points={whoop} mobile={mobile} tierUp={tierUp} newBadge={keepsakeToday} animate={false} />
         </div>
       </div>
 
@@ -1684,7 +1686,8 @@ const DailyPage: React.FC = () => {
     !daily.alreadyPlayed && !reducedResultMotion;
   const scoreMilestone = whoop !== null && (
     formatPointsChange(whoop.todayPoints, whoop.totalBeforeToday, whoop.total).tierUp ||
-    whoop.badges.some((badge) => badge.earnedOn === new Date().toISOString().slice(0, 10) && badgeArt(badge.key) !== null)
+    whoop.badges.some((badge) => badge.earnedOn === new Date().toISOString().slice(0, 10) && badgeArt(badge.key) !== null) ||
+    (daily.puzzleNumber === DAILY_100_NUMBER && hasDaily100Keepsake())
   );
   const scoreBurst = scoreMilestone && !daily.alreadyPlayed && !reducedResultMotion;
   useEffect(() => {

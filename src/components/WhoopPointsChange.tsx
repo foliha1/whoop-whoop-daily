@@ -8,6 +8,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import CurrentTierBadge from "@/components/CurrentTierBadge";
+import Daily100Badge from "@/components/Daily100Badge";
+import { KEEPSAKE_NAME } from "@/lib/daily100";
 import MaterialIcon from "@/components/MaterialIcon";
 import type { WhoopPoints } from "@/lib/whoopPoints";
 import { SCORE_LABEL, badgeArt, tierName } from "@/lib/whoopTiers";
@@ -18,9 +20,11 @@ const WhoopPointsChange: React.FC<{
   mobile: boolean;
   /** True when today crossed into a higher tier: the block says so. */
   tierUp?: boolean;
+  /** True when today's game earned the 100 Days of Daily keepsake. */
+  newBadge?: boolean;
   /** The Daily results slot already owns its staggered entrance. */
   animate?: boolean;
-}> = ({ points, mobile, tierUp = false, animate = true }) => {
+}> = ({ points, mobile, tierUp = false, newBadge = false, animate = true }) => {
   if (points === null) return null;
 
   const tierHasArt = badgeArt(points.tier) !== null;
@@ -138,6 +142,29 @@ const WhoopPointsChange: React.FC<{
           </span>
         </div>
       </div>
+      {newBadge && (
+        <div
+          data-testid="result-new-badge"
+          style={{
+            ...innerPanel,
+            display: "flex",
+            alignItems: "center",
+            gap: SPACE[4],
+            padding: `${SPACE[3]}px ${SPACE[4]}px`,
+            textAlign: "left",
+          }}
+        >
+          <div style={{ width: FONT_SIZE["6xl"], flex: "0 0 auto" }}>
+            <Daily100Badge size={FONT_SIZE["6xl"]} fluid />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+            <span style={{ ...textStyle("control", mobile), color: COLORS.ink }}>New Badge!</span>
+            <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
+              {KEEPSAKE_NAME}. Only for players of Daily #100.
+            </span>
+          </div>
+        </div>
+      )}
       <div
         style={{
           display: "grid",
@@ -157,7 +184,7 @@ const WhoopPointsChange: React.FC<{
           Your Stats
         </Link>
       </div>
-      {tierUp && (
+      {tierUp && !newBadge && (
         <span
           data-testid="result-tier-up"
           style={{ ...textStyle("captionItalic", mobile), color: RAW.warmBlack, textAlign: "center" }}
