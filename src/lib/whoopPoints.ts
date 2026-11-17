@@ -14,6 +14,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getVisitorId } from "@/lib/visitor";
 import { getSubscribedEmail } from "@/lib/dailySubscribe";
+import { getDailyDateKey } from "@/lib/daily";
 
 // ----------------------------------------------------------------- constants --
 
@@ -258,13 +259,13 @@ export async function fetchWhoopPoints(
   visitorId: string = getVisitorId(),
   email: string | null = getSubscribedEmail(),
   /** The player's local puzzle date, so "today" matches the game just played. */
-  puzzleDate?: string
+  puzzleDate: string = getDailyDateKey()
 ): Promise<WhoopPoints | null> {
   try {
     const { data, error } = await supabase.rpc("get_whoop_points", {
       p_visitor_id: visitorId,
-      ...(puzzleDate ? { p_puzzle_date: puzzleDate } : {}),
-    } as { p_visitor_id: string });
+      p_puzzle_date: puzzleDate,
+    });
     if (error) return null;
     const row = Array.isArray(data) ? data[0] : data;
     if (!row) return null;
