@@ -79,7 +79,6 @@ html[data-skin="holo"] :is(
 ) {
   background-image: var(--ho-bg) !important;
   background-size: var(--ho-bg-size) !important;
-  background-attachment: fixed !important;
   background-position: 0 0, 0 0, 0% 0%;
   animation: var(--ho-bg-anim, none);
 }
@@ -103,6 +102,7 @@ html[data-skin="holo"] body::after {
   background-position: 3% 9%, 97% 13%, 97% 45%, 3% 60%, 97% 79%, 3% 93%;
   filter: drop-shadow(0 0 3px rgba(198, 164, 255, 0.9)) drop-shadow(0 0 1px rgba(143, 216, 255, 1));
   animation: var(--ho-twinkle-anim, none);
+  will-change: opacity, transform;
 }
 @keyframes ho-twinkle {
   0%, 100% { opacity: 0.35; transform: scale(0.96); }
@@ -162,7 +162,6 @@ html[data-skin="holo"] :is(
 ):not(.ww-game-card *):not(.daily-btn-howto) {
   background-image: var(--ho-bg) !important;
   background-size: var(--ho-bg-size) !important;
-  background-attachment: fixed !important;
   animation: var(--ho-bg-anim, none);
 }
 
@@ -195,8 +194,7 @@ html[data-skin="holo"] :has(> img[src*="WhoopWhoop_"])::after {
   background-size: 400% 100%;
   background-repeat: no-repeat;
   background-position: 100% 0;
-  mix-blend-mode: screen;
-  opacity: 0.85;
+  opacity: 0.75;
   animation: var(--ho-logo-anim, none);
 }
 html[data-skin="holo"] :has(> img[src*="WhoopWhoop_Dark_Logo"]) { --ho-logo-src: url("/WhoopWhoop_Dark_Logo.svg"); }
@@ -261,8 +259,9 @@ html[data-skin="holo"] .ww-game-card::after {
       var(--ho-sky) 24%, var(--ho-lilac) 32%, var(--ho-pink) 40%);
   background-size: 60px 60px, 100% 100%, 100% 100%, 300% 300%;
   background-position: 0 0, 0 0, 0 0, 0% 0%;
-  mix-blend-mode: overlay;
-  opacity: 0.5;
+  /* Normal blending, low alpha: Safari flickers mix-blend-mode next to the
+     3D card flip, and a static layer costs nothing after first paint. */
+  opacity: 0.22;
   box-shadow:
     0 0 0 1.5px rgba(255, 255, 255, 0.85),
     0 0 8px rgba(198, 164, 255, 0.6),
@@ -285,10 +284,7 @@ html[data-skin="holo"] .ww-game-card::after {
 /* Motion only for players who have not asked for less of it. */
 @media (prefers-reduced-motion: no-preference) {
   html[data-skin="holo"] {
-    --ho-spin-anim: ho-spin 6s linear infinite, ho-film 9s ease-in-out infinite alternate;
-    --ho-logo-anim: ho-logo-sweep 5s ease-in-out 800ms infinite;
-    --ho-card-anim: ho-card-drift 10s ease-in-out infinite;
-    --ho-face-anim: ho-card-face 10s ease-in-out infinite;
+    --ho-logo-anim: ho-logo-sweep 7s ease-in-out 800ms infinite;
     /* Background stays still: calmer behind play. (ho-bg-drift kept, unused.) */
     --ho-twinkle-anim: ho-twinkle 2.6s ease-in-out infinite;
   }
@@ -311,7 +307,16 @@ html[data-skin="holo"] .ww-game-card::after {
   container-type: inline-size;
   pointer-events: none;
   transform: rotate(-9deg);
-  filter: drop-shadow(0 3px 4px rgba(35, 31, 32, 0.22)) drop-shadow(0 1px 1px rgba(35, 31, 32, 0.18));
+}
+/* Static soft shadow under the sticker (cheaper than a filter on a parent
+   whose content moves). */
+.ww-day100-sticker::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 3px 6px rgba(35, 31, 32, 0.22), 0 1px 1px rgba(35, 31, 32, 0.16);
+  clip-path: polygon(-20% -20%, 120% -20%, 120% 60%, 60% 120%, -20% 120%);
 }
 .ww-day100-sticker__face {
   position: absolute;
@@ -325,12 +330,31 @@ html[data-skin="holo"] .ww-game-card::after {
   box-sizing: border-box;
   color: #231F20;
   clip-path: polygon(0 0, 100% 0, 100% 60%, 60% 100%, 0 100%);
-  background:
-    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 42%),
-    conic-gradient(from var(--ho-a, 0deg),
-      #FF9AD5, #C6A4FF, #8FD8FF, #A8FFD8, #FFE59A, #FFB8A0, #FF9AD5);
+  isolation: isolate;
+  overflow: hidden;
   box-shadow: inset 0 0 0 1.5cqw rgba(255, 255, 255, 0.7);
+}
+/* The turning foil: a static conic disc spun with transform (compositor
+   only, no repaint per frame). */
+.ww-day100-sticker__face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  border-radius: 50%;
+  background: conic-gradient(#FF9AD5, #C6A4FF, #8FD8FF, #A8FFD8, #FFE59A, #FFB8A0, #FF9AD5);
   animation: var(--ho-sticker-anim, none);
+  will-change: transform;
+}
+/* Fixed white sheen on top of the foil, under the words. */
+.ww-day100-sticker__face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 42%);
+  box-shadow: inset 0 0 0 1.5cqw rgba(255, 255, 255, 0.7);
 }
 .ww-day100-sticker__day {
   font-family: "Geist", system-ui, sans-serif;
@@ -354,19 +378,33 @@ html[data-skin="holo"] .ww-game-card::after {
   top: 60%;
   width: 100%;
   height: 100%;
-  filter: drop-shadow(-1.2cqw -1.2cqw 1.4cqw rgba(35, 31, 32, 0.28));
 }
 .ww-day100-sticker__paper {
   width: 100%;
   height: 100%;
   border-radius: 50%;
   clip-path: polygon(0 0, 40% 0, 0 40%);
-  background: linear-gradient(135deg, #DCD6E6 0%, #F4F1F8 22%, #FFFFFF 34%, #EDE9F3 40%);
+  background: linear-gradient(135deg, #CFC8DA 0%, #F4F1F8 22%, #FFFFFF 34%, #EDE9F3 40%);
 }
 @keyframes ho-sticker-turn {
-  from { --ho-a: 0deg; }
-  to   { --ho-a: 360deg; }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 @media (prefers-reduced-motion: no-preference) {
   html[data-skin="holo"] { --ho-sticker-anim: ho-sticker-turn 10s linear infinite; }
+}
+
+/* ── Home Daily tile: fully holographic on Holo Day ──
+   The whole fill becomes bright pastel foil (static), with the foil rim and
+   candy gloss. Its words and icon keep the tile's warm-black ink. */
+html[data-skin="holo"] .ww-home-daily-tile.ww-home-daily-tile[data-testid="home-daily"] {
+  background-image:
+    var(--ho-gloss),
+    repeating-linear-gradient(115deg,
+      rgba(255, 255, 255, 0) 0px, rgba(255, 255, 255, 0.35) 1.5px, rgba(255, 255, 255, 0) 4px, rgba(255, 255, 255, 0) 9px),
+    linear-gradient(115deg, #FFB8E2 0%, #FFF0B8 22%, #C2FFE6 44%, #B0E4FF 66%, #DCC6FF 88%, #FFB8E2 100%),
+    var(--ho-foil) !important;
+  background-clip: padding-box, padding-box, padding-box, border-box !important;
+  background-size: 100% 100% !important;
+  background-blend-mode: normal !important;
 }

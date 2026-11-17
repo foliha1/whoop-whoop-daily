@@ -30,7 +30,6 @@
       <stop offset="0.6" stop-color="#B0E4FF"/>
       <stop offset="0.8" stop-color="#DCC6FF"/>
       <stop offset="1" stop-color="#FFB8E2"/>
-      <animateTransform attributeName="gradientTransform" type="translate" values="0 0; 160 80" dur="6s" repeatCount="indefinite"/>
     </linearGradient>
     <linearGradient id="hoGlare" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="200" y2="60">
       <stop offset="0" stop-color="#fff" stop-opacity="0"/>
@@ -38,7 +37,6 @@
       <stop offset="0.5" stop-color="#fff" stop-opacity="0.9"/>
       <stop offset="0.55" stop-color="#fff" stop-opacity="0"/>
       <stop offset="1" stop-color="#fff" stop-opacity="0"/>
-      <animateTransform attributeName="gradientTransform" type="translate" values="-220 0; 220 0; 220 0" keyTimes="0;0.4;1" dur="5s" repeatCount="indefinite"/>
     </linearGradient>
 <clipPath id="clip0_280_1402">
 <rect width="251" height="199" fill="white"/>
