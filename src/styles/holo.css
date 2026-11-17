@@ -293,3 +293,80 @@ html[data-skin="holo"] .ww-game-card::after {
     --ho-twinkle-anim: ho-twinkle 2.6s ease-in-out infinite;
   }
 }
+
+/* ── Home logo: "DAY 100" holographic sticker (DailyLogoLockup, plain) ──
+   A round foil sticker over the bottom right of the wordmark, tilted like
+   it was stuck on by hand, with its bottom-right edge folded back.
+   Geometry (sticker box = 0..100): the fold line is x + y = 160. The face is
+   clipped along it; the flap is the cut-off cap mirrored across that line,
+   i.e. a same-size circle centred at (110, 110) clipped to x + y < 160.
+   Words are solid warm black: DAY in Geist caps, 100 in Friend. */
+.ww-day100-sticker {
+  position: absolute;
+  right: 0%;
+  bottom: -3%;
+  width: 31%;
+  aspect-ratio: 1;
+  z-index: 2;
+  container-type: inline-size;
+  pointer-events: none;
+  transform: rotate(-9deg);
+  filter: drop-shadow(0 3px 4px rgba(35, 31, 32, 0.22)) drop-shadow(0 1px 1px rgba(35, 31, 32, 0.18));
+}
+.ww-day100-sticker__face {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4cqw 4cqw 0; /* nudge words away from the fold */
+  box-sizing: border-box;
+  color: #231F20;
+  clip-path: polygon(0 0, 100% 0, 100% 60%, 60% 100%, 0 100%);
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 42%),
+    conic-gradient(from var(--ho-a, 0deg),
+      #FF9AD5, #C6A4FF, #8FD8FF, #A8FFD8, #FFE59A, #FFB8A0, #FF9AD5);
+  box-shadow: inset 0 0 0 1.5cqw rgba(255, 255, 255, 0.7);
+  animation: var(--ho-sticker-anim, none);
+}
+.ww-day100-sticker__day {
+  font-family: "Geist", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 12cqw;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  margin-bottom: 0.5cqw;
+}
+.ww-day100-sticker__num {
+  font-family: "Friend", Georgia, serif;
+  font-size: 50cqw;
+  letter-spacing: -0.05em;
+  line-height: 0.85;
+}
+/* The folded-back flap: the sticker's pale paper back, lit from the fold,
+   casting a small shadow onto the foil. */
+.ww-day100-sticker__flap {
+  position: absolute;
+  left: 60%;
+  top: 60%;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(-1.2cqw -1.2cqw 1.4cqw rgba(35, 31, 32, 0.28));
+}
+.ww-day100-sticker__paper {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  clip-path: polygon(0 0, 40% 0, 0 40%);
+  background: linear-gradient(135deg, #DCD6E6 0%, #F4F1F8 22%, #FFFFFF 34%, #EDE9F3 40%);
+}
+@keyframes ho-sticker-turn {
+  from { --ho-a: 0deg; }
+  to   { --ho-a: 360deg; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html[data-skin="holo"] { --ho-sticker-anim: ho-sticker-turn 10s linear infinite; }
+}

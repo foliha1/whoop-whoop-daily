@@ -5,6 +5,7 @@ import lockupCreamAsset from "@/assets/WhoopWhoop_Daily_Lockup_Cream.svg.asset.j
 import animationAsset from "@/assets/whoop-daily-logo.json.asset.json";
 import { useThemeMode } from "@/lib/nightMode";
 import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
+import { HOLO_AT_LOAD } from "@/lib/holoSkin";
 
 // A failed chunk fetch (stale build, flaky network) must never blank the page:
 // resolve to a no-op so the static lockup stays on screen.
@@ -179,6 +180,19 @@ const DailyLogoLockup: React.FC<{ style?: React.CSSProperties; variant?: LockupV
             />
           </div>
         </React.Suspense>
+      )}
+
+      {/* Holo Day (Daily #100): a "DAY 100" holographic sticker, Home logo only. */}
+      {HOLO_AT_LOAD && variant === "plain" && (
+        <div className="ww-day100-sticker" aria-hidden="true">
+          <div className="ww-day100-sticker__face">
+            <span className="ww-day100-sticker__day">DAY</span>
+            <span className="ww-day100-sticker__num">100</span>
+          </div>
+          <div className="ww-day100-sticker__flap">
+            <div className="ww-day100-sticker__paper" />
+          </div>
+        </div>
       )}
     </div>
   );

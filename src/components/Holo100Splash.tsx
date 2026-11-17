@@ -18,7 +18,7 @@ import { CARD_FLIP_MS } from "@/lib/animationTiming";
 import { RAW } from "@/lib/tokens";
 
 const GLYPHS = ["D", "A", "Y", "1", "0", "0", "!", "!", "!"] as const;
-/** Columns run red, orange, blue: the brand order after black. */
+/** Each row is one colour: DAY red, 100 orange, !!! blue (brand order after black). */
 const FILLS = [RAW.red, RAW.orange, RAW.blue] as const;
 /** Cream on red and blue, warm black on orange (brand rule). */
 const INKS = [RAW.cream, RAW.warmBlack, RAW.cream] as const;
@@ -127,7 +127,7 @@ const Holo100Splash: React.FC = () => {
         }}
       >
         {GLYPHS.map((glyph, i) => {
-          const col = i % 3;
+          const row = Math.floor(i / 3);
           return (
             <div
               key={i}
@@ -183,10 +183,10 @@ const Holo100Splash: React.FC = () => {
                       width: "100%",
                       height: "100%",
                       borderRadius: 4,
-                      background: FILLS[col],
+                      background: FILLS[row],
                       display: "grid",
                       placeItems: "center",
-                      color: INKS[col],
+                      color: INKS[row],
                       fontFamily: "Friend, Georgia, serif",
                       fontSize: "clamp(48px, 17vw, 84px)",
                       lineHeight: 1,
