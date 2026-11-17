@@ -311,7 +311,7 @@ const DailySignIn: React.FC<{
         </div>
       )}
       <p style={{ ...panelBodyStyle, fontSize: 12, color: onAccentSurface ? RAW.warmBlack : COLORS.inkMuted }}>
-        Signing in adds you to our updates list. You'll only get general game updates.{" "}
+        By adding your email address, you agree to receive occasional updates from the Whoop! Whoop! team. Opt-out at any time (and still track your scores).{" "}
         <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: onAccentSurface ? RAW.warmBlack : COLORS.inkMuted, textDecoration: "underline" }}>
           Privacy
         </a>
