@@ -51,7 +51,7 @@ describe("optional sign-in", () => {
     render(<DailySignIn onAccentSurface />);
     expect(screen.getByRole("heading", { name: "Save your score." })).toHaveStyle({ color: "#231f20" });
     expect(screen.getByText(/Sign in with your email/)).toHaveStyle({ color: "#231f20" });
-    expect(screen.getByText(/Signing in adds you to our updates list/)).toHaveStyle({ color: "#231f20" });
+    expect(screen.getByText(/By adding your email address/)).toHaveStyle({ color: "#231f20" });
     expect(screen.getByRole("link", { name: "Privacy" })).toHaveStyle({ color: "#231f20" });
   });
 
@@ -154,7 +154,7 @@ describe("optional sign-in", () => {
     await screen.findByLabelText("6-digit code");
     fireEvent.change(screen.getByLabelText("6-digit code"), { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
-    await screen.findByText("We'll send you the daily puzzle.");
+    await screen.findByText("Want to get a daily reminder?");
     expect(onSignedIn).not.toHaveBeenCalled();
     expect(onChoiceRequiredChange).toHaveBeenCalledWith(true);
     // Sign-in joins "WW: Updates" only; the reminder list waits for a yes.
@@ -180,7 +180,7 @@ describe("optional sign-in", () => {
     fireEvent.click(screen.getByRole("button", { name: "Send Code" }));
     fireEvent.change(await screen.findByLabelText("6-digit code"), { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Sounds good" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Sounds good!" }));
     await waitFor(() => expect(onSignedIn).toHaveBeenCalledWith("a@b.co", false));
     expect(rpc).toHaveBeenCalledWith("set_reminder_consent", { p_consented: true, p_source: "post_signin" });
     expect(invoke).toHaveBeenCalledWith("ac-subscribe", expect.objectContaining({ body: expect.objectContaining({ email: "a@b.co" }) }));
@@ -205,6 +205,6 @@ describe("optional sign-in", () => {
     fireEvent.change(screen.getByLabelText("6-digit code"), { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
     await screen.findByTestId("signin-done");
-    expect(screen.queryByText("We'll send you the daily puzzle.")).toBeNull();
+    expect(screen.queryByText("Want to get a daily reminder?")).toBeNull();
   });
 });

@@ -171,7 +171,7 @@ describe("not-recognized state opens sign-in", () => {
 
   it("keeps the first-time choice open and blocks unrelated dialog dismissal", async () => {
     const onRestored = await signIn({ first_signin: true, games: 0, was_subscriber: false, reminder_answered: false });
-    await screen.findByText("We'll send you the daily puzzle.");
+    await screen.findByText("Want to get a daily reminder?");
     expect(onRestored).not.toHaveBeenCalled();
     expect(screen.queryByTestId("daily-restore-close")).toBeNull();
     fireEvent.keyDown(window, { key: "Escape" });

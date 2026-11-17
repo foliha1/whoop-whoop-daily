@@ -195,16 +195,16 @@ const DailySignIn: React.FC<{
   if (step === "reminder") {
     return (
       <div data-testid="signin-reminder" style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-        <h2 style={panelHeadingStyle}>We'll send you the daily puzzle.</h2>
-        <p style={panelBodyStyle}>One email each morning, plus the odd game update. Turn it off any time in Settings.</p>
+        <h2 style={panelHeadingStyle}>Want to get a daily reminder?</h2>
+        <p style={panelBodyStyle}>One email each morning to help you keep your Daily streak going. Unsubscribe any time.</p>
         <button
           type="button"
           className="ww-press"
           disabled={busy}
           onClick={() => void answer(true)}
-          style={{ ...buttonStyle("primary", "lg", { fullWidth: true }), width: "100%" }}
+          style={{ ...buttonStyle("secondary", "lg", { fullWidth: true }), width: "100%" }}
         >
-          Sounds good
+          Sounds good!
         </button>
         <button
           type="button"
