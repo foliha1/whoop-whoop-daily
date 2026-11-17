@@ -1,5 +1,9 @@
 # Roadmap
 
+## DAY 100 finishing touches
+- [x] Make the sticker shadow follow its peeled silhouette and add a Holo-only starburst at the Daily button's upper-left corner.
+- [x] Check desktop/phone rendering in Chromium and WebKit, light/dark surfaces, and navigation to Daily; no page errors. Not published.
+
 ## Pre-order test traffic cleanup
 - [x] Exclude development and preview pre-order views/clicks while retaining public-site counting and other reports.
 - [x] Removed 147 test views and 8 test clicks; readback confirms zero. All 20 focused tests pass, local opening/refresh sends no analytics, and preview build is clean. Not published.

@@ -19,6 +19,8 @@ html[data-skin="holo"] {
   --ho-mint: #A8FFD8;
   --ho-sky: #8FD8FF;
   --ho-lilac: #C6A4FF;
+  --ho-sticker-shadow: drop-shadow(0 2px 2px rgba(35, 31, 32, 0.24))
+    drop-shadow(0 5px 5px rgba(35, 31, 32, 0.12));
   /* The foil: a full spectrum loop that can spin. */
   --ho-foil: conic-gradient(from var(--ho-a),
     var(--ho-pink), var(--ho-butter), var(--ho-mint), var(--ho-sky), var(--ho-lilac), var(--ho-pink));
@@ -295,18 +297,9 @@ html[data-skin="holo"] .ww-game-card::after {
   container-type: inline-size;
   pointer-events: none;
   transform: rotate(-9deg);
-}
-/* Static soft shadow under the sticker (cheaper than a filter on a parent
-   whose content moves). */
-.ww-day100-sticker::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  box-shadow: 0 3px 6px rgba(35, 31, 32, 0.22), 0 1px 1px rgba(35, 31, 32, 0.16);
-  /* Match the face's x + y = 160 fold, including the extended shadow box.
-     The old 180 cut left a ghost of the unpeeled circle below the flap. */
-  clip-path: polygon(-20% -20%, 120% -20%, 120% 40%, 40% 120%, -20% 120%);
+  /* Shadow the final silhouette, not a full circle clipped after blurring:
+     this follows both the round rim and the exposed diagonal peel. */
+  filter: var(--ho-sticker-shadow);
 }
 .ww-day100-sticker__face {
   position: absolute;
@@ -391,6 +384,8 @@ html[data-skin="holo"] .ww-game-card::after {
    The whole fill becomes bright pastel foil (static), with the foil rim and
    candy gloss. Its words and icon keep the tile's warm-black ink. */
 html[data-skin="holo"] .ww-home-daily-tile.ww-home-daily-tile[data-testid="home-daily"] {
+  position: relative;
+  overflow: visible;
   background-image:
     var(--ho-gloss),
     repeating-linear-gradient(115deg,
@@ -400,4 +395,32 @@ html[data-skin="holo"] .ww-home-daily-tile.ww-home-daily-tile[data-testid="home-
   background-clip: padding-box, padding-box, padding-box, border-box !important;
   background-size: 100% 100% !important;
   background-blend-mode: normal !important;
+}
+
+/* A foil starburst attached to the upper-left corner, never covering the
+   Daily label or intercepting taps. Both layers share the same geometry. */
+html[data-skin="holo"] .ww-home-daily-tile {
+  --ho-burst-shape: polygon(50% 0%, 58% 27%, 75% 7%, 73% 32%,
+    93% 25%, 80% 45%, 100% 50%, 80% 58%, 93% 75%, 70% 72%,
+    75% 93%, 57% 79%, 50% 100%, 42% 79%, 25% 93%, 29% 70%,
+    7% 75%, 21% 57%, 0% 50%, 22% 42%, 7% 25%, 30% 29%,
+    25% 7%, 43% 26%);
+}
+html[data-skin="holo"] .ww-home-daily-tile::before,
+html[data-skin="holo"] .ww-home-daily-tile::after {
+  content: "";
+  position: absolute;
+  top: -16px;
+  left: -16px;
+  width: 46px;
+  height: 46px;
+  pointer-events: none;
+  clip-path: var(--ho-burst-shape);
+  transform: rotate(-12deg);
+  background: var(--ww-ink);
+  z-index: 1;
+}
+html[data-skin="holo"] .ww-home-daily-tile::after {
+  background: var(--ho-foil);
+  transform: rotate(-12deg) scale(0.88);
 }
