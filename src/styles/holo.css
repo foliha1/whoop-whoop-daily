@@ -304,7 +304,9 @@ html[data-skin="holo"] .ww-game-card::after {
   inset: 0;
   border-radius: 50%;
   box-shadow: 0 3px 6px rgba(35, 31, 32, 0.22), 0 1px 1px rgba(35, 31, 32, 0.16);
-  clip-path: polygon(-20% -20%, 120% -20%, 120% 60%, 60% 120%, -20% 120%);
+  /* Match the face's x + y = 160 fold, including the extended shadow box.
+     The old 180 cut left a ghost of the unpeeled circle below the flap. */
+  clip-path: polygon(-20% -20%, 120% -20%, 120% 40%, 40% 120%, -20% 120%);
 }
 .ww-day100-sticker__face {
   position: absolute;
@@ -362,12 +364,15 @@ html[data-skin="holo"] .ww-game-card::after {
    casting a small shadow onto the foil. */
 .ww-day100-sticker__flap {
   position: absolute;
-  left: 60%;
-  top: 60%;
-  width: 100%;
-  height: 100%;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  clip-path: polygon(0 0, 100% 0, 100% 60%, 60% 100%, 0 100%);
 }
 .ww-day100-sticker__paper {
+  position: absolute;
+  left: 60%;
+  top: 60%;
   width: 100%;
   height: 100%;
   border-radius: 50%;
