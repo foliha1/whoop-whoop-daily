@@ -11,7 +11,7 @@
 // ============================================================================
 
 import React from "react";
-import { HOLO_AT_LOAD } from "@/lib/holoSkin";
+import { HOLO_AT_LOAD, holoDayOpen } from "@/lib/holoSkin";
 import { isSplashPreview, markSplashSeen, splashSeen } from "@/lib/daily100";
 import { CARD_BACK_URL } from "@/lib/assetUrls";
 import { CARD_FLIP_MS } from "@/lib/animationTiming";
@@ -54,7 +54,9 @@ const Holo100Splash: React.FC = () => {
 
   React.useEffect(() => {
     if (!show) return;
-    if (!isSplashPreview()) markSplashSeen();
+    // Only the real day counts as "seen": a ?skin=holo preview the day before
+    // must not use up the player's one splash.
+    if (!isSplashPreview() && holoDayOpen()) markSplashSeen();
     const t = timers.current;
     if (reducedMotion()) {
       setFlipped(GLYPHS.map(() => true));
