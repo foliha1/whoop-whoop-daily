@@ -87,6 +87,20 @@
 </head>
 
   <body>
+    <!-- Holo Day skin (src/lib/holoSkin.ts): shared foil paint for the animated logo. Unused unless data-skin="holo". -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="hoFoilPaint" x1="0" y1="0" x2="0.5" y2="0.3" spreadMethod="reflect">
+          <stop offset="0" stop-color="#FFB8E2"/>
+          <stop offset="0.2" stop-color="#FFF0B8"/>
+          <stop offset="0.4" stop-color="#C2FFE6"/>
+          <stop offset="0.6" stop-color="#B0E4FF"/>
+          <stop offset="0.8" stop-color="#DCC6FF"/>
+          <stop offset="1" stop-color="#FFB8E2"/>
+          <animateTransform attributeName="gradientTransform" type="translate" values="0 0; 1 0.6" dur="6s" repeatCount="indefinite"/>
+        </linearGradient>
+      </defs>
+    </svg>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

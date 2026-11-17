@@ -17,6 +17,7 @@ import { usePortalHost } from "@/hooks/usePortalHost";
 import { BORDER, COLORS, FONT_FAMILY, MOTION, RADIUS, buttonStyle, textStyle } from "@/lib/tokens";
 import { useThemeMode, type ThemeMode } from "@/lib/nightMode";
 import { setSkinEnabled, skinSeasonOpen, useSkin } from "@/lib/skin";
+import { holoDayOpen, setHoloSkinEnabled, useHoloSkin } from "@/lib/holoSkin";
 import {
   getSfxEnabled,
   setSfxEnabled,
@@ -157,6 +158,7 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
   const umbrella = useUmbrella();
   const { mode, setMode } = useThemeMode();
   const skin = useSkin();
+  const holo = useHoloSkin();
   const portalHost = usePortalHost("settings-sheet");
   const [sfx, setSfx] = useState(() => getSfxEnabled());
   const [music, setMusic] = useState(() => getMusicEnabled());
@@ -289,6 +291,20 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
             />
             <p style={{ ...textStyle("caption"), color: COLORS.inkMuted, margin: 0 }}>
               Colors update next time you open WHOOP! WHOOP!
+            </p>
+          </div>
+        )}
+
+        {/* Holo Day: the Daily #100 skin, only on 18 Nov (player's local day) */}
+        {holoDayOpen() && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Toggle
+              label="Holo Day"
+              checked={holo}
+              onChange={(next) => setHoloSkinEnabled(next)}
+            />
+            <p style={{ ...textStyle("caption"), color: COLORS.inkMuted, margin: 0 }}>
+              Look updates next time you open WHOOP! WHOOP!
             </p>
           </div>
         )}
