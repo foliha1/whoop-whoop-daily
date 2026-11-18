@@ -2,19 +2,20 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import ReleaseAnnouncement, { hasSeenAnnouncement } from "@/components/ReleaseAnnouncement";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { COLORS, SPACE, textStyle } from "@/lib/tokens";
+import { BORDER, COLORS, RADIUS, SPACE, textStyle } from "@/lib/tokens";
 import PreorderCardsPhoto from "@/components/PreorderCardsPhoto";
+import { isValidEmail } from "@/lib/dailySubscribe";
+import { subscribeToUpdates } from "@/lib/updatesSubscribe";
 
 export const PREORDER_ANNOUNCEMENT = {
-  seenKey: "ww-preorder-announcement-v1",
-  headline: "Whoop! Whoop! is coming to the table.",
-  intro: "The memory game where the rules keep changing, now as a real card game. 48 cards, a Match Die, and a canvas drawstring bag.",
-  offer: "Pre-order for $35 with free shipping.\nShips early December 2026.",
-  primary: "Pre-order now",
+  seenKey: "ww-preorder-announcement-v2",
+  headline: "Play Whoop! Whoop! IRL",
+  intro: "Preorders are now live exclusively for the Whoop! Whoop! community. Enter your email to get the details.",
+  primary: "Get the details",
   secondary: "Not now",
 } as const;
 
-/** One announcement per device; dismissing or following the link marks it seen. */
+/** One announcement per device; dismissing or completing signup marks it seen. */
 export function shouldShowPreorderNote(): boolean {
   return !hasSeenAnnouncement(PREORDER_ANNOUNCEMENT.seenKey);
 }
@@ -26,21 +27,55 @@ export function introAllowsPreorderAnnouncement(
   return introStatus !== "running";
 }
 
+/** Never flash the signed-out popup while a stored account is being restored. */
+export function accountAllowsPreorderAnnouncement(accountReady: boolean, account: string | null): boolean {
+  return accountReady && account === null;
+}
+
 const PreorderAnnouncement: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const mobile = useIsMobile();
   const navigate = useNavigate();
+  const [email, setEmail] = React.useState("");
+  const [busy, setBusy] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  const subscribe = async (): Promise<boolean> => {
+    if (busy) return false;
+    if (!isValidEmail(email)) {
+      setError("That doesn't look like an email.");
+      inputRef.current?.focus();
+      return false;
+    }
+    setBusy(true);
+    setError(null);
+    const subscribed = await subscribeToUpdates(email, "preorder");
+    setBusy(false);
+    if (!subscribed) {
+      setError("We couldn't add you. Try again.");
+      inputRef.current?.focus();
+      return false;
+    }
+    return true;
+  };
+
+  const completeSignup = () => {
+    try { localStorage.setItem(PREORDER_ANNOUNCEMENT.seenKey, "1"); } catch { /* storage unavailable */ }
+    onClose();
+    navigate("/preorder");
+  };
 
   return (
     <ReleaseAnnouncement
       seenKey={PREORDER_ANNOUNCEMENT.seenKey}
       title={PREORDER_ANNOUNCEMENT.headline}
-      primaryLabel={PREORDER_ANNOUNCEMENT.primary}
+      primaryLabel={busy ? "Joining..." : PREORDER_ANNOUNCEMENT.primary}
+      primaryDisabled={busy}
+      onPrimaryBeforeClose={subscribe}
       secondaryLabel={PREORDER_ANNOUNCEMENT.secondary}
-      onPrimary={() => {
-        onClose();
-        navigate("/preorder");
-      }}
+      onPrimary={completeSignup}
       onDismiss={onClose}
+      initialFocusSelector="#preorder-announcement-email"
       testId="preorder-announcement"
     >
       <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
@@ -51,10 +86,62 @@ const PreorderAnnouncement: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         <p style={{ ...textStyle("body", mobile), margin: 0, color: COLORS.ink }}>
           {PREORDER_ANNOUNCEMENT.intro}
         </p>
+        <form
+          data-testid="preorder-updates-form"
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            void subscribe().then((subscribed) => {
+              if (subscribed) completeSignup();
+            });
+          }}
+          style={{ display: "flex", flexDirection: "column", gap: SPACE[3] }}
+        >
+          <label htmlFor="preorder-announcement-email" style={{ ...textStyle("caption", mobile), color: COLORS.ink }}>
+            Email address
+          </label>
+          <input
+            ref={inputRef}
+            id="preorder-announcement-email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            maxLength={255}
+            placeholder="you@example.com"
+            value={email}
+            disabled={busy}
+            aria-describedby={error ? "preorder-announcement-error" : undefined}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              setError(null);
+            }}
+            style={{
+              ...textStyle("body", mobile),
+              width: "100%",
+              minHeight: 48,
+              boxSizing: "border-box",
+              padding: `0 ${SPACE[4]}px`,
+              border: BORDER.heavy,
+              borderRadius: RADIUS.sm,
+              background: COLORS.surface,
+              color: COLORS.ink,
+              fontSize: 16,
+            }}
+          />
+          <p style={{ ...textStyle("caption", mobile), margin: 0, color: COLORS.inkMuted }}>
+            By signing up, you agree to receive occasional Whoop! Whoop! updates. Unsubscribe any time.{" "}
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: COLORS.inkMuted }}>
+              Privacy
+            </a>
+            .
+          </p>
+          {error ? (
+            <p id="preorder-announcement-error" role="alert" style={{ ...textStyle("caption", mobile), margin: 0, color: COLORS.ink }}>
+              {error}
+            </p>
+          ) : null}
+        </form>
       </div>
-      <p style={{ ...textStyle("subhead", mobile), margin: 0, color: COLORS.ink, whiteSpace: "pre-line" }}>
-        {PREORDER_ANNOUNCEMENT.offer}
-      </p>
     </ReleaseAnnouncement>
   );
 };

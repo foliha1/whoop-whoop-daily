@@ -1,5 +1,5 @@
 import LaunchAnnouncement, { shouldShowLaunchNote } from "@/components/LaunchAnnouncement";
-import PreorderAnnouncement, { introAllowsPreorderAnnouncement, shouldShowPreorderNote } from "@/components/PreorderAnnouncement";
+import PreorderAnnouncement, { accountAllowsPreorderAnnouncement, introAllowsPreorderAnnouncement, shouldShowPreorderNote } from "@/components/PreorderAnnouncement";
 import { dailyTitle } from "@/lib/daily100";
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -311,6 +311,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [account, setAccount] = useState<string | null>(() => getSessionEmail());
+  const [accountReady, setAccountReady] = useState(false);
   const [now, setNow] = useState(() => new Date());
   const [launchNoteOpen, setLaunchNoteOpen] = useState(() => shouldShowLaunchNote());
   const [preorderNoteOpen, setPreorderNoteOpen] = useState(() => shouldShowPreorderNote());
@@ -373,6 +374,14 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const codeFlashTimerRef = useRef<number | null>(null);
 
   useEffect(() => onAccountChange(setAccount), []);
+
+  useEffect(() => {
+    let live = true;
+    void whenAccountReady().then(() => {
+      if (live) setAccountReady(true);
+    });
+    return () => { live = false; };
+  }, []);
 
   useEffect(() => {
     if (!home || !umbrella) return;
@@ -1335,7 +1344,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     <>
       {umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null}
       {umbrella && home && view.kind === "idle" && launchNoteOpen ? <LaunchAnnouncement onClose={() => setLaunchNoteOpen(false)} /> : null}
-      {umbrella && home && view.kind === "idle" && !launchNoteOpen && preorderNoteOpen && introAllowsPreorderAnnouncement(introStatus) ? <PreorderAnnouncement onClose={() => setPreorderNoteOpen(false)} /> : null}
+      {umbrella && home && view.kind === "idle" && !launchNoteOpen && preorderNoteOpen && accountAllowsPreorderAnnouncement(accountReady, account) && introAllowsPreorderAnnouncement(introStatus) ? <PreorderAnnouncement onClose={() => setPreorderNoteOpen(false)} /> : null}
       <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill={!(umbrella && home)} scroll={umbrella && home} noRails={umbrella && home && isMobile} topControl={umbrella && !home && opts.homeControl !== false}>
         <FitColumn disableScale={umbrella && home}>
         <div

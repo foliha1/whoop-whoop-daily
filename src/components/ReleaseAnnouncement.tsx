@@ -13,7 +13,7 @@ export function hasSeenAnnouncement(seenKey: string): boolean {
   try { return localStorage.getItem(seenKey) === "1"; } catch { return false; }
 }
 
-const FOCUSABLE = 'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
+const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
 
 const ReleaseAnnouncement: React.FC<{
   seenKey: string;
@@ -22,10 +22,14 @@ const ReleaseAnnouncement: React.FC<{
   secondaryLabel?: string;
   children: React.ReactNode;
   onPrimary: () => void;
+  /** Optional async gate: the primary action closes only when this returns true. */
+  onPrimaryBeforeClose?: () => Promise<boolean> | boolean;
+  primaryDisabled?: boolean;
   onDismiss: () => void;
   returnFocusSelector?: string;
+  initialFocusSelector?: string;
   testId?: string;
-}> = ({ seenKey, title, primaryLabel, secondaryLabel, children, onPrimary, onDismiss, returnFocusSelector, testId = "release-announcement" }) => {
+}> = ({ seenKey, title, primaryLabel, secondaryLabel, children, onPrimary, onPrimaryBeforeClose, primaryDisabled = false, onDismiss, returnFocusSelector, initialFocusSelector, testId = "release-announcement" }) => {
   const host = usePortalHost("release-announcement");
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
@@ -36,6 +40,7 @@ const ReleaseAnnouncement: React.FC<{
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
   const [moreBelow, setMoreBelow] = React.useState(false);
+  const [primaryBusy, setPrimaryBusy] = React.useState(false);
 
   /** Show the fade/chevron only while content still hides below the fold. */
   const updateScrollHint = React.useCallback(() => {
@@ -67,7 +72,23 @@ const ReleaseAnnouncement: React.FC<{
     try { localStorage.setItem(seenKey, "1"); } catch { /* storage unavailable */ }
     requestExit();
   }, [seenKey, requestExit]);
-  const dismiss = React.useCallback(() => close("dismissed"), [close]);
+  const dismiss = React.useCallback(() => {
+    if (!primaryBusy) close("dismissed");
+  }, [close, primaryBusy]);
+  const runPrimary = React.useCallback(() => {
+    if (primaryBusy || primaryDisabled) return;
+    if (!onPrimaryBeforeClose) {
+      close("primary");
+      return;
+    }
+    setPrimaryBusy(true);
+    void Promise.resolve(onPrimaryBeforeClose())
+      .then((proceed) => {
+        if (proceed) close("primary");
+        else setPrimaryBusy(false);
+      })
+      .catch(() => setPrimaryBusy(false));
+  }, [close, onPrimaryBeforeClose, primaryBusy, primaryDisabled]);
   const { onBackdropClick } = useDismiss(dismiss, { escape: true, backdrop: true });
 
   React.useEffect(() => {
@@ -75,12 +96,15 @@ const ReleaseAnnouncement: React.FC<{
     const active = document.activeElement as HTMLElement | null;
     openerRef.current = active && active !== document.body && !host.contains(active)
       ? active : returnFocusSelector ? document.querySelector<HTMLElement>(returnFocusSelector) : null;
-    buttonRef.current?.focus();
+    const initial = initialFocusSelector
+      ? dialogRef.current?.querySelector<HTMLElement>(initialFocusSelector)
+      : buttonRef.current;
+    initial?.focus();
     return () => {
       const opener = openerRef.current;
       if (actionRef.current !== "primary" && opener?.isConnected) window.setTimeout(() => opener.focus(), 0);
     };
-  }, [host, returnFocusSelector]);
+  }, [host, returnFocusSelector, initialFocusSelector]);
 
   React.useEffect(() => {
     const trap = (event: KeyboardEvent) => {
@@ -142,8 +166,8 @@ const ReleaseAnnouncement: React.FC<{
           </div>
         </div>
         <div style={{ flex: "0 0 auto", padding: SPACE[10], display: "grid", gridTemplateColumns: secondaryLabel ? "repeat(2, minmax(0, 1fr))" : "minmax(0, 1fr)", gap: SPACE[3], background: COLORS.surface }}>
-          <AppButton ref={buttonRef} fullWidth roleStyle="primary" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={() => close("primary")}>{primaryLabel}</AppButton>
-          {secondaryLabel ? <AppButton fullWidth roleStyle="quiet" style={{ minWidth: 0, whiteSpace: "normal" }} onClick={dismiss}>{secondaryLabel}</AppButton> : null}
+          <AppButton ref={buttonRef} fullWidth roleStyle="primary" disabled={primaryBusy || primaryDisabled} style={{ minWidth: 0, whiteSpace: "normal" }} onClick={runPrimary}>{primaryLabel}</AppButton>
+          {secondaryLabel ? <AppButton fullWidth roleStyle="quiet" disabled={primaryBusy} style={{ minWidth: 0, whiteSpace: "normal" }} onClick={dismiss}>{secondaryLabel}</AppButton> : null}
         </div>
       </div>
     </div>, host

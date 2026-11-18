@@ -1,5 +1,10 @@
 # Roadmap
 
+## Signed-out pre-order announcement
+- [x] Show the new announcement only to signed-out visitors after account restoration and the Home intro.
+- [x] Replace its copy, add email signup for WW: Updates only, and continue to /preorder after success.
+- [x] 33 focused tests pass; safe live function test returns success with zero Daily reminder rows; signed-out signup and signed-in exclusion verified on phone, layouts checked on phone/desktop in day/night. Build clean. Not published.
+
 ## Mobile badges and Daily 100 info
 - [x] Remove mobile badge arrows and their reserved space, retaining touch scrolling and desktop controls.
 - [x] Shorten the Daily 100 badge info to “Play Daily #100”; 11 focused tests pass, actual-account shelf checked, five-badge finger swipe verified, preview clean. Not published.

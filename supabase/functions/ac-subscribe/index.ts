@@ -258,16 +258,24 @@ Deno.serve(async (req) => {
 
 
 
-  // Updates list: only for the signed-in owner of the address. No reminder row.
+  // Updates list: account sign-in requires the signed-in owner of the address.
+  // The public pre-order popup may subscribe directly, rate-limited above; it
+  // never writes a Daily reminder row or seeds the Daily puzzle-number field.
   if (body.list === "updates") {
-    const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
-    const { data: who } = await supabase.auth.getUser(token);
-    if ((who?.user?.email ?? "").toLowerCase() !== email) {
-      return json({ error: "Sign in first" }, 401);
+    const preorderSignup = body.source === "preorder";
+    if (!preorderSignup) {
+      const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+      const { data: who } = await supabase.auth.getUser(token);
+      if ((who?.user?.email ?? "").toLowerCase() !== email) {
+        return json({ error: "Sign in first" }, 401);
+      }
     }
     const test = email.endsWith("@whoop-test.invalid") || /^[^@]+\+deltest@/.test(email);
-    const { ok } = test ? { ok: false } : await syncToActiveCampaign(email, UPDATES_LIST_ID);
-    return json({ ok: true, syncedToAc: ok });
+    const { ok } = test ? { ok: true } : await syncToActiveCampaign(email, UPDATES_LIST_ID);
+    if (preorderSignup && !ok) {
+      return json({ ok: false, error: "Could not save subscription" }, 502);
+    }
+    return json({ ok: true, syncedToAc: test ? false : ok, ...(test ? { test: true } : {}) });
   }
 
   // 1. Our database is the source of truth and decides the outcome.
