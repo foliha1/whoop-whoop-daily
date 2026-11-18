@@ -15,10 +15,10 @@ const NotFound = () => {
         <title>Page not found — WHOOP! WHOOP!</title>
         <meta name="description" content="The page you're looking for doesn't exist. Head back to the WHOOP! WHOOP! homepage." />
         <meta name="robots" content="noindex" />
-        <link rel="canonical" href={`https://whoop-whoop.lovable.app${location.pathname}`} />
+        <link rel="canonical" href={`https://whoop-whoop.com${location.pathname}`} />
         <meta property="og:title" content="Page not found — WHOOP! WHOOP!" />
         <meta property="og:description" content="The page you're looking for doesn't exist." />
-        <meta property="og:url" content={`https://whoop-whoop.lovable.app${location.pathname}`} />
+        <meta property="og:url" content={`https://whoop-whoop.com${location.pathname}`} />
         <meta property="og:type" content="website" />
       </Helmet>
       <div className="text-center">

@@ -96,6 +96,7 @@ const ProductInstallHead: React.FC = () => {
       <link rel="manifest" href={`/${product}.webmanifest?v=${home ? "20260929" : INSTALL_ASSET_VERSION}`} />
       <meta name="apple-mobile-web-app-title" content={title} />
       <meta name="theme-color" content={themeColor} />
+      <meta property="og:url" content={`https://whoop-whoop.com${pathname === "/" ? "/" : pathname.replace(/\/$/, "")}`} />
     </Helmet>
   );
 };
