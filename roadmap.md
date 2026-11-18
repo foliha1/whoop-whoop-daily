@@ -1,5 +1,9 @@
 # Roadmap
 
+## Mobile badges and Daily 100 info
+- [x] Remove mobile badge arrows and their reserved space, retaining touch scrolling and desktop controls.
+- [x] Shorten the Daily 100 badge info to “Play Daily #100”; 11 focused tests pass, actual-account shelf checked, five-badge finger swipe verified, preview clean. Not published.
+
 ## DAY 100 finishing touches
 - [x] Make the sticker shadow follow its peeled silhouette and add a Holo-only starburst at the Daily button's upper-left corner.
 - [x] Check desktop/phone rendering in Chromium and WebKit, light/dark surfaces, and navigation to Daily; no page errors. Not published.

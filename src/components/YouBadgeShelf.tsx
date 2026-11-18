@@ -19,7 +19,7 @@ const unlockCriteria = (key: string): string => {
   return tier.floor === 0 ? "Play your first Daily game." : `Reach ${tier.floor} total points.`;
 };
 
-/** Native horizontal scrolling supports touch swipes; arrows are just a second way to page. */
+/** Native touch scrolling on mobile; desktop also offers paging arrows. */
 const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ badges, mobile }) => {
   const track = React.useRef<HTMLDivElement>(null);
   const previousArrow = React.useRef<HTMLButtonElement>(null);
@@ -88,16 +88,16 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
 
   return (
     <div data-testid="you-badges" style={{ position: "relative", minWidth: 0, background: COLORS.panel, border: BORDER.heavy, borderRadius: RADIUS.md }}>
-      {edges.left && arrow(-1)}
+      {!mobile && edges.left && arrow(-1)}
       <div
         ref={track}
         onScroll={measure}
-        aria-label={canPage ? "Earned badges, use Left and Right Arrow keys to page" : "Earned badges"}
+        aria-label={canPage && !mobile ? "Earned badges, use Left and Right Arrow keys to page" : "Earned badges"}
         role="region"
         tabIndex={0}
         onKeyDown={onTrackKeyDown}
         className="ww-you-badge-track"
-        style={{ display: "flex", justifyContent: "safe center", overflowX: canPage ? "auto" : "hidden", overscrollBehaviorInline: "contain", scrollSnapType: canPage ? "x mandatory" : "none", scrollPaddingInline: canPage ? TOUCH_MIN + SPACE[4] : SPACE[8], padding: `${SPACE[8]}px ${canPage ? TOUCH_MIN + SPACE[4] : SPACE[8]}px`, minWidth: 0 }}
+        style={{ display: "flex", justifyContent: "safe center", overflowX: canPage ? "auto" : "hidden", overscrollBehaviorInline: "contain", scrollSnapType: canPage ? "x mandatory" : "none", scrollPaddingInline: canPage && !mobile ? TOUCH_MIN + SPACE[4] : SPACE[8], padding: `${SPACE[8]}px ${canPage && !mobile ? TOUCH_MIN + SPACE[4] : SPACE[8]}px`, minWidth: 0 }}
       >
         {badges.map((badge, i) => (
           <div
@@ -144,7 +144,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
                    </span>
                    <DialogPrimitive.Description asChild>
                      <div style={{ display: "flex", flexDirection: "column", gap: SPACE[4], ...textStyle("body", mobile), color: COLORS.ink }}>
-                       <span>Earned {formatBadgeDate(badge.earnedOn)}</span>
+                       {!isKeepsakeBadge(badge.key) && <span>Earned {formatBadgeDate(badge.earnedOn)}</span>}
                        <span>{unlockCriteria(badge.key)}</span>
                      </div>
                    </DialogPrimitive.Description>
@@ -157,7 +157,7 @@ const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ b
           </div>
         ))}
       </div>
-      {edges.right && arrow(1)}
+      {!mobile && edges.right && arrow(1)}
     </div>
   );
 };

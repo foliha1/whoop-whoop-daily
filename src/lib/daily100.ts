@@ -19,7 +19,7 @@ export const DAILY_100_TITLE = "100 Days of Daily";
 
 export const KEEPSAKE_KEY = "daily-100";
 export const KEEPSAKE_NAME = "100 Days of Daily";
-export const KEEPSAKE_CRITERIA = "Played Daily #100 on 18 Nov 2026. Only that day.";
+export const KEEPSAKE_CRITERIA = "Play Daily #100";
 
 /** The Daily's display title: the milestone name on #100, the usual one otherwise. */
 export function dailyTitle(puzzleNumber: number, prefix = "Whoop! Whoop!"): string {
