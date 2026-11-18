@@ -15,7 +15,14 @@ const PreorderCardsPhoto: React.FC<{
   priority?: boolean;
   sizes?: string;
   style?: React.CSSProperties;
-}> = ({ maxWidth = 560, priority = false, sizes = "(max-width: 640px) 92vw, 560px", style }) => (
+}> = ({ maxWidth = 560, priority = false, sizes = "(max-width: 640px) 92vw, 560px", style }) => {
+  // Fade the photo in once decoded (its space is already reserved), so it
+  // never pops in after the rest of the page. Cached images show at once.
+  const [shown, setShown] = React.useState(false);
+  const imgRef = React.useCallback((el: HTMLImageElement | null) => {
+    if (el?.complete && el.naturalWidth > 0) setShown(true);
+  }, []);
+  return (
   <picture style={{ display: "block", width: "100%", maxWidth, margin: "0 auto", ...style }}>
     <source type="image/webp" srcSet={`${cards800} 800w, ${cards1600} 1600w`} sizes={sizes} />
     <img
@@ -26,10 +33,21 @@ const PreorderCardsPhoto: React.FC<{
       loading={priority ? "eager" : "lazy"}
       decoding="async"
       {...(priority ? { fetchpriority: "high" } : {})}
+      ref={imgRef}
+      onLoad={() => setShown(true)}
+      onError={() => setShown(true)}
       className="ww-cards-photo"
-      style={{ display: "block", width: "100%", height: "auto" }}
+      style={{
+        display: "block",
+        width: "100%",
+        height: "auto",
+        opacity: shown ? 1 : 0,
+        transform: shown ? "none" : "translateY(6px)",
+        transition: "opacity 320ms ease-out, transform 320ms ease-out",
+      }}
     />
   </picture>
-);
+  );
+};
 
 export default PreorderCardsPhoto;

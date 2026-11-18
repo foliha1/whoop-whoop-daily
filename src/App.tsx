@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
 import { Helmet } from "react-helmet-async";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -55,16 +56,34 @@ function lazyPage<T extends React.ComponentType<any>>(load: () => Promise<{ defa
 
 const MultiplayerPage = lazyPage(() => import("./pages/MultiplayerPage.tsx"));
 const DailyPage = lazyPage(() => import("./pages/DailyPage.tsx"));
-const SupportPage = lazyPage(() => import("./pages/SupportPage.tsx"));
-const RulesPage = lazyPage(() => import("./pages/RulesPage.tsx"));
-const PreorderPage = lazyPage(() => import("./pages/PreorderPage.tsx"));
+const loadSupportPage = () => import("./pages/SupportPage.tsx");
+const SupportPage = lazyPage(loadSupportPage);
+const loadRulesPage = () => import("./pages/RulesPage.tsx");
+const RulesPage = lazyPage(loadRulesPage);
+const loadPreorderPage = () => import("./pages/PreorderPage.tsx");
+const PreorderPage = lazyPage(loadPreorderPage);
 const AdminPage = lazyPage(() => import("./pages/AdminPage.tsx"));
 const GroupsPage = lazyPage(() => import("./pages/GroupsPage.tsx"));
 const YouPage = lazyPage(() => import("./pages/YouPage.tsx"));
 const TypographyPage = lazyPage(() => import("./pages/TypographyPage.tsx"));
 const PrivacyPage = lazyPage(() => import("./pages/PrivacyPage.tsx"));
 const TermsPage = lazyPage(() => import("./pages/TermsPage.tsx"));
-const FaqPage = lazyPage(() => import("./pages/FaqPage.tsx"));
+const loadFaqPage = () => import("./pages/FaqPage.tsx");
+const FaqPage = lazyPage(loadFaqPage);
+
+/**
+ * Editorial pages reached by in-app links. During a route change their code
+ * is fetched while the old page fades out, so the new page fades in already
+ * built instead of flashing a blank fallback and then popping in.
+ */
+const ROUTE_PRELOAD: Record<string, () => Promise<unknown>> = {
+  "/preorder": loadPreorderPage,
+  "/rules": loadRulesPage,
+  "/about": loadSupportPage,
+  "/faq": loadFaqPage,
+};
+/** Longest a route change waits for page code before showing the fallback. */
+const ROUTE_PRELOAD_MAX_MS = 900;
 const NotFound = lazyPage(() => import("./pages/NotFound.tsx"));
 
 
@@ -154,12 +173,26 @@ const AnimatedRoutes: React.FC = () => {
   useEffect(() => {
     if (location.key === displayLocation.key) return;
     setStage("fadeOut");
-    const id = window.setTimeout(() => {
+    let cancelled = false;
+    const load = ROUTE_PRELOAD[location.pathname.replace(/\/$/, "") || "/"];
+    const ready = load
+      ? Promise.race([
+          load().catch(() => undefined),
+          new Promise((r) => window.setTimeout(r, ROUTE_PRELOAD_MAX_MS)),
+        ])
+      : Promise.resolve();
+    const exited = new Promise((r) => window.setTimeout(r, UI_EXIT_MS));
+    void Promise.all([ready, exited]).then(() => {
+      if (cancelled) return;
       setDisplayLocation(location);
       setStage("fadeIn");
-    }, UI_EXIT_MS);
-    return () => window.clearTimeout(id);
+    });
+    return () => { cancelled = true; };
   }, [location, displayLocation]);
+
+  // The pre-order page is one tap from Home (IRL, the pre-order note): fetch
+  // its code once the current page has painted and gone idle.
+  useEffect(() => afterPaintIdleOrInteraction(() => { void loadPreorderPage().catch(() => undefined); }), []);
 
   return (
     <div
