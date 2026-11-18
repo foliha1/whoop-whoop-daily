@@ -8,10 +8,12 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 import { subscribeToUpdates } from "@/lib/updatesSubscribe";
+import { hasUpdatesSubscription } from "@/lib/updatesSubscriptionStatus";
 
 beforeEach(() => {
   invoke.mockReset().mockResolvedValue({ data: { ok: true, syncedToAc: true }, error: null });
   track.mockReset();
+  localStorage.clear();
   window.__lovableEvents = { track } as typeof window.__lovableEvents;
 });
 
@@ -22,6 +24,7 @@ describe("WW: Updates signup", () => {
       body: { email: "player@example.com", list: "updates", source: "preorder" },
     });
     expect(track).toHaveBeenCalledWith("project.updates_list_added", { via: "preorder" });
+    expect(hasUpdatesSubscription()).toBe(true);
   });
 
   it("rejects invalid addresses without calling the email service", async () => {
@@ -35,5 +38,6 @@ describe("WW: Updates signup", () => {
     invoke.mockResolvedValueOnce({ data: null, error: { message: "offline" } });
     await expect(subscribeToUpdates("player@example.com", "preorder")).resolves.toBe(false);
     expect(track).not.toHaveBeenCalled();
+    expect(hasUpdatesSubscription()).toBe(false);
   });
 });

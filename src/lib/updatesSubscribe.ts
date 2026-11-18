@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { isValidEmail } from "@/lib/dailySubscribe";
+import { markUpdatesSubscription } from "@/lib/updatesSubscriptionStatus";
 
 /** Joins the general Whoop! Whoop! updates list, never the Daily reminder list. */
 export async function subscribeToUpdates(
@@ -13,6 +14,7 @@ export async function subscribeToUpdates(
       body: { email: clean, list: "updates", source },
     });
     if (error || (data as { ok?: boolean } | null)?.ok !== true) return false;
+    markUpdatesSubscription();
     if ((data as { syncedToAc?: boolean }).syncedToAc === true) {
       window.__lovableEvents?.track?.("project.updates_list_added", { via: source });
     }

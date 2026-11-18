@@ -12,6 +12,7 @@ import { trackDaily } from "@/lib/dailyEvents";
 import { isAccountOwnedRecord, type DailyResultOwner } from "@/lib/daily";
 import { resolveDisplayName } from "@/lib/profile";
 import { umbrellaOn } from "@/lib/launch";
+import { markUpdatesSubscription, UPDATES_SUBSCRIBED_KEY } from "@/lib/updatesSubscriptionStatus";
 
 let sessionEmail: string | null = null;
 let sessionUserId: string | null = null;
@@ -26,6 +27,7 @@ function publish(next: string | null) {
   const clean = next ? next.trim().toLowerCase() : null;
   const changed = clean !== sessionEmail;
   sessionEmail = clean;
+  if (clean) markUpdatesSubscription();
   if (!resolved) {
     resolved = true;
     readyResolve(clean);
@@ -177,6 +179,9 @@ export async function verifySignInCode(
     }
     if (sessionUserId === null) sessionUserId = data.session.user.id ?? null;
     publish(data.session.user.email ?? null);
+    // This account is on the general updates list; remember it on this device
+    // so later signed-out opens still receive the subscriber announcement.
+    markUpdatesSubscription();
     const merge = await linkDeviceAndMerge();
     window.__lovableEvents?.track?.("project.progress_signin", { first_signin: merge?.firstSignIn ?? false });
     // Every signed-in player joins "WW: Updates"; best effort, never blocks.
@@ -218,6 +223,7 @@ function setDeviceLinkedHint(on: boolean): void {
 
 const KEEP_ON_SIGN_OUT = new Set([
   DEVICE_LINKED_KEY,
+  UPDATES_SUBSCRIBED_KEY,
   "ww_music_enabled",
   "ww_sfx_enabled",
   "ww_intro_seen",

@@ -209,4 +209,12 @@ describe("played-today state belongs to the current identity", () => {
     expect(await deleteAccount()).toBe(true);
     expect(localStorage.getItem(KEY)).toBeNull();
   });
+
+  it("keeps updates-list recognition when account identity clears", async () => {
+    const { clearLocalPlayerData } = await import("@/lib/account");
+    const { hasUpdatesSubscription, markUpdatesSubscription } = await import("@/lib/updatesSubscriptionStatus");
+    markUpdatesSubscription();
+    clearLocalPlayerData();
+    expect(hasUpdatesSubscription()).toBe(true);
+  });
 });

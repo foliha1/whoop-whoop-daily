@@ -1,5 +1,5 @@
 import LaunchAnnouncement, { shouldShowLaunchNote } from "@/components/LaunchAnnouncement";
-import PreorderAnnouncement, { accountAllowsPreorderAnnouncement, introAllowsPreorderAnnouncement, shouldShowPreorderNote } from "@/components/PreorderAnnouncement";
+import PreorderAnnouncement, { introAllowsPreorderAnnouncement, preorderAnnouncementVariant, shouldShowSubscriberPreorderNote } from "@/components/PreorderAnnouncement";
 import { dailyTitle } from "@/lib/daily100";
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -36,6 +36,7 @@ import { umbrellaOn, useUmbrella } from "@/lib/launch";
 import { getDailyNumber, getDailySeed, loadDailyResult } from "@/lib/daily";
 import { fetchFirstAttempt } from "@/lib/dailyResults";
 import { getSessionEmail, onAccountChange, whenAccountReady } from "@/lib/account";
+import { hasUpdatesSubscription } from "@/lib/updatesSubscriptionStatus";
 import { trackEvent } from "@/lib/analytics";
 import HomeControl from "@/components/HomeControl";
 import HomeEmailSignup from "@/components/HomeEmailSignup";
@@ -314,7 +315,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const [accountReady, setAccountReady] = useState(false);
   const [now, setNow] = useState(() => new Date());
   const [launchNoteOpen, setLaunchNoteOpen] = useState(() => shouldShowLaunchNote());
-  const [preorderNoteOpen, setPreorderNoteOpen] = useState(() => shouldShowPreorderNote());
+  // Signup version resets on every open; subscriber version checks its own seen key.
+  const [preorderNoteOpen, setPreorderNoteOpen] = useState(true);
+  const [updatesSubscribed] = useState(() => hasUpdatesSubscription());
+  const preorderVariant = preorderAnnouncementVariant(accountReady, account, updatesSubscribed);
   const puzzleNumber = getDailyNumber(now);
   const locallyPlayed = useMemo(() => loadDailyResult(getDailySeed(now)) !== null, [now]);
   const [dailyPlayed, setDailyPlayed] = useState(locallyPlayed);
@@ -377,8 +381,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
 
   useEffect(() => {
     let live = true;
-    void whenAccountReady().then(() => {
-      if (live) setAccountReady(true);
+    void whenAccountReady().then((email) => {
+      if (!live) return;
+      setAccount(email);
+      setAccountReady(true);
     });
     return () => { live = false; };
   }, []);
@@ -1344,7 +1350,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     <>
       {umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null}
       {umbrella && home && view.kind === "idle" && launchNoteOpen ? <LaunchAnnouncement onClose={() => setLaunchNoteOpen(false)} /> : null}
-      {umbrella && home && view.kind === "idle" && !launchNoteOpen && preorderNoteOpen && accountAllowsPreorderAnnouncement(accountReady, account) && introAllowsPreorderAnnouncement(introStatus) ? <PreorderAnnouncement onClose={() => setPreorderNoteOpen(false)} /> : null}
+      {umbrella && home && view.kind === "idle" && !launchNoteOpen && preorderNoteOpen && preorderVariant && (preorderVariant === "signup" || shouldShowSubscriberPreorderNote()) && introAllowsPreorderAnnouncement(introStatus) ? <PreorderAnnouncement variant={preorderVariant} onClose={() => setPreorderNoteOpen(false)} /> : null}
       <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill={!(umbrella && home)} scroll={umbrella && home} noRails={umbrella && home && isMobile} topControl={umbrella && !home && opts.homeControl !== false}>
         <FitColumn disableScale={umbrella && home}>
         <div

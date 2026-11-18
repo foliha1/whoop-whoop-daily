@@ -24,6 +24,7 @@ vi.mock("@/lib/dailyEvents", () => ({ trackDaily: (...a: unknown[]) => trackDail
 import DailySignIn from "@/components/DailySignIn";
 import { getSubscribedEmail, emailHasHistory } from "@/lib/dailySubscribe";
 import { isValidSignInCode, verifySignInCode } from "@/lib/account";
+import { hasUpdatesSubscription } from "@/lib/updatesSubscriptionStatus";
 
 beforeEach(() => {
   signInWithOtp.mockReset().mockResolvedValue({ error: null });
@@ -159,6 +160,7 @@ describe("optional sign-in", () => {
     expect(onChoiceRequiredChange).toHaveBeenCalledWith(true);
     // Sign-in joins "WW: Updates" only; the reminder list waits for a yes.
     expect(invoke.mock.calls.map((c) => c[1].body)).toEqual([{ email: "a@b.co", list: "updates" }]);
+    expect(hasUpdatesSubscription()).toBe(true);
     fireEvent.click(screen.getByRole("button", { name: "No thanks." }));
     await screen.findByTestId("signin-done");
     expect(rpc).toHaveBeenCalledWith("set_reminder_consent", { p_consented: false, p_source: "post_signin" });

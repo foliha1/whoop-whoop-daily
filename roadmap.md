@@ -1,5 +1,10 @@
 # Roadmap
 
+## Subscription-targeted pre-order announcements
+- [x] Show the email signup popup on every app open until this device joins WW: Updates; dismissal no longer suppresses later opens.
+- [x] Restore the original pre-order popup for updates-list members and signed-in players, shown once per device.
+- [x] 79 focused tests pass; browser verified repeat signup, subscription transition, one-time subscriber delivery and registered targeting on phone/desktop in day/night. Fixed account restoration race. Build clean. Not published.
+
 ## Signed-out pre-order announcement
 - [x] Show the new announcement only to signed-out visitors after account restoration and the Home intro.
 - [x] Replace its copy, add email signup for WW: Updates only, and continue to /preorder after success.
