@@ -7,6 +7,7 @@
 ## DAY 100 finishing touches
 - [x] Make the sticker shadow follow its peeled silhouette and add a Holo-only starburst at the Daily button's upper-left corner.
 - [x] Check desktop/phone rendering in Chromium and WebKit, light/dark surfaces, and navigation to Daily; no page errors. Not published.
+- [x] Apply the sticker drop shadow at phone size: the shadow now scales with the lockup (container units) in day and night; phone, small phone and desktop checked, 18 skin tests pass, build OK. Not published.
 
 ## Pre-order test traffic cleanup
 - [x] Exclude development and preview pre-order views/clicks while retaining public-site counting and other reports.
