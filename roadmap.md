@@ -1,5 +1,9 @@
 # Roadmap
 
+## Project monitoring fixes
+- [x] Restore table and Daily group invite-code generation with the correctly scoped cryptographic random function; both generators and real browser table creation verified, with test tables removed.
+- [x] Show the unsubscribed pre-order signup once per app visit, not after every return Home; later visits and the one-time subscriber announcement retain their behavior. Fourteen focused tests and browser navigation checks pass; build clean. Not published.
+
 ## Subscription-targeted pre-order announcements
 - [x] Show the email signup popup on every app open until this device joins WW: Updates; dismissal no longer suppresses later opens.
 - [x] Restore the original pre-order popup for updates-list members and signed-in players, shown once per device.

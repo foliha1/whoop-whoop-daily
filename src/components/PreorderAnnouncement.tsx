@@ -26,6 +26,13 @@ export const PREORDER_SIGNUP_ANNOUNCEMENT = {
 
 export type PreorderAnnouncementVariant = "signup" | "subscriber";
 
+export const PREORDER_SIGNUP_SESSION_KEY = "ww-preorder-signup-announcement-v1";
+
+/** Show the signup once per browser visit, not after every return to Home. */
+export function shouldShowSignupPreorderNote(): boolean {
+  try { return sessionStorage.getItem(PREORDER_SIGNUP_SESSION_KEY) !== "1"; } catch { return true; }
+}
+
 /** The original announcement remains a one-time message for updates-list members. */
 export function shouldShowSubscriberPreorderNote(): boolean {
   return !hasSeenAnnouncement(PREORDER_SUBSCRIBER_ANNOUNCEMENT.seenKey);
@@ -80,8 +87,15 @@ const PreorderAnnouncement: React.FC<{
     return true;
   };
 
-  const openPreorder = () => {
+  const close = () => {
+    if (signup) {
+      try { sessionStorage.setItem(PREORDER_SIGNUP_SESSION_KEY, "1"); } catch { /* storage unavailable */ }
+    }
     onClose();
+  };
+
+  const openPreorder = () => {
+    close();
     navigate("/preorder");
   };
 
@@ -94,7 +108,7 @@ const PreorderAnnouncement: React.FC<{
       onPrimaryBeforeClose={signup ? subscribe : undefined}
       secondaryLabel={content.secondary}
       onPrimary={openPreorder}
-      onDismiss={onClose}
+      onDismiss={close}
       initialFocusSelector={signup ? "#preorder-announcement-email" : undefined}
       testId="preorder-announcement"
     >

@@ -4,9 +4,11 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import PreorderAnnouncement, {
   PREORDER_SIGNUP_ANNOUNCEMENT,
+  PREORDER_SIGNUP_SESSION_KEY,
   PREORDER_SUBSCRIBER_ANNOUNCEMENT,
   introAllowsPreorderAnnouncement,
   preorderAnnouncementVariant,
+  shouldShowSignupPreorderNote,
   shouldShowSubscriberPreorderNote,
   type PreorderAnnouncementVariant,
 } from "@/components/PreorderAnnouncement";
@@ -27,6 +29,7 @@ const mount = (onClose = vi.fn(), variant: PreorderAnnouncementVariant = "signup
 describe("pre-order announcements", () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     subscribe.mockReset().mockResolvedValue(true);
   });
 
@@ -60,14 +63,19 @@ describe("pre-order announcements", () => {
     expect(screen.getByRole("button", { name: "Not now" })).toBeInTheDocument();
   });
 
-  it("shows the signup version again on the next open even after dismissal", async () => {
+  it("shows the signup once per app visit, not after every return Home", async () => {
+    expect(shouldShowSignupPreorderNote()).toBe(true);
     const close = vi.fn();
     const first = mount(close);
     fireEvent.click(await screen.findByRole("button", { name: "Not now" }));
     await waitFor(() => expect(close).toHaveBeenCalledOnce());
-    expect(localStorage.getItem(PREORDER_SIGNUP_ANNOUNCEMENT.seenKey)).toBe("1");
+    expect(sessionStorage.getItem(PREORDER_SIGNUP_SESSION_KEY)).toBe("1");
+    expect(shouldShowSignupPreorderNote()).toBe(false);
     first.unmount();
+    expect(shouldShowSignupPreorderNote()).toBe(false);
 
+    sessionStorage.clear();
+    expect(shouldShowSignupPreorderNote()).toBe(true);
     mount();
     expect(await screen.findByRole("dialog", { name: "Play Whoop! Whoop! IRL" })).toBeInTheDocument();
   });
