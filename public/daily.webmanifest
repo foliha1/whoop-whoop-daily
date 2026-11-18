@@ -1,5 +1,5 @@
 {
-  "name": "WHOOP! WHOOP! Daily",
+  "name": "Whoop! Whoop! Daily",
   "short_name": "Daily",
   "start_url": "__DAILY_START_URL__",
   "display": "standalone",

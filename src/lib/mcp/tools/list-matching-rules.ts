@@ -4,7 +4,7 @@ export default defineTool({
   name: "list_matching_rules",
   title: "List matching rules",
   description:
-    "List the six matching rules used in WHOOP! WHOOP! Each roll of the dice selects one of these rules for the round.",
+    "List the six matching rules used in Whoop! Whoop! Each roll of the dice selects one of these rules for the round.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: () => {

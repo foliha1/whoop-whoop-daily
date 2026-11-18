@@ -1,8 +1,8 @@
-# WHOOP! WHOOP!
+# Whoop! Whoop!
 
-> WHOOP! WHOOP! is a free online memory card game where the matching rules change every round. It runs in any modern web browser on phones, tablets and computers, with no download, no account and no payment required.
+> Whoop! Whoop! is a free online memory card game where the matching rules change every round. It runs in any modern web browser on phones, tablets and computers, with no download, no account and no payment required.
 
-WHOOP! WHOOP! is an independent card game. It is not affiliated with WHOOP, Inc. or the WHOOP fitness tracker.
+Whoop! Whoop! is an independent card game. It is not affiliated with WHOOP, Inc. or the WHOOP fitness tracker.
 
 The home page at https://whoop-whoop.com/ offers three ways to play:
 
@@ -31,7 +31,7 @@ The home page at https://whoop-whoop.com/ offers three ways to play:
 - [Daily](https://whoop-whoop.com/daily): Today's puzzle, a new one every day.
 - [Rules](https://whoop-whoop.com/rules): How to play, online and with the physical cards.
 - [FAQ](https://whoop-whoop.com/faq): Common questions about the game.
-- [About](https://whoop-whoop.com/about): Who makes WHOOP! WHOOP! and why.
+- [About](https://whoop-whoop.com/about): Who makes Whoop! Whoop! and why.
 
 ## Optional
 

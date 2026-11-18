@@ -138,7 +138,7 @@ export function PhysicalRulesClosing({ mobile }: { mobile: boolean }) {
 
       <section aria-labelledby="online-title" style={{ ...read, alignItems: "center", textAlign: "center", gap: SPACE[10], paddingBottom: SPACE[16] }}>
         <h2 id="online-title" style={{ ...textStyle("hero", mobile), fontStyle: "italic", color: COLORS.ink, margin: 0, letterSpacing: 0 }}>Keep Playing Online</h2>
-        <p style={body}>No deck handy? Play WHOOP! WHOOP! on any phone.</p>
+        <p style={body}>No deck handy? Play Whoop! Whoop! on any phone.</p>
         <ul style={{ ...body, listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: SPACE[4] }}>
           <li><strong>Daily:</strong> one puzzle a day, the same for everyone.</li>
           <li><strong>Solo:</strong> the full game against FELIX, our bot.</li>

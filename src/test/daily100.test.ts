@@ -11,7 +11,7 @@ describe("dailyTitle", () => {
   it("names #100 '100 Days of Daily' and leaves other days alone", () => {
     expect(dailyTitle(100)).toBe("100 Days of Daily");
     expect(dailyTitle(99)).toBe("Whoop! Whoop! Daily #99");
-    expect(dailyTitle(101, "WHOOP! WHOOP!")).toBe("WHOOP! WHOOP! Daily #101");
+    expect(dailyTitle(101, "Whoop! Whoop!")).toBe("Whoop! Whoop! Daily #101");
   });
 });
 

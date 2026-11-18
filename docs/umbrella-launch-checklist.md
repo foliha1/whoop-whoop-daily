@@ -19,15 +19,15 @@ Owner: Felix. Do these in order. Nothing here is done by the build.
 - [ ] Confirm new contacts tagged with source `home` land in the right list.
 
 ## 4. Share previews
-- [ ] Paste `https://whoop-whoop.com/` into iMessage, WhatsApp, Slack, X, LinkedIn: title WHOOP! WHOOP!, Home description, `og-home.png`.
+- [ ] Paste `https://whoop-whoop.com/` into iMessage, WhatsApp, Slack, X, LinkedIn: title Whoop! Whoop!, Home description, `og-home.png`.
 - [ ] Paste `https://whoop-whoop.com/daily`: Daily title/description/image as today.
 - [ ] Force re-scrape where stale (Facebook Sharing Debugger, LinkedIn Post Inspector).
 - [ ] Share a Daily result: link ends in `/daily`.
 - [ ] Share a Daily invite: `/daily?i=…` opens the Daily.
 
 ## 5. Install
-- [ ] iPhone "Add to Home Screen" from `/`: name "Whoop Whoop", new 180 icon, opens Home.
-- [ ] Android install from `/`: name "Whoop Whoop", whole (non-maskable) icon.
+- [ ] iPhone "Add to Home Screen" from `/`: name "Whoop! Whoop!", new 180 icon, opens Home.
+- [ ] Android install from `/`: name "Whoop! Whoop!", whole (non-maskable) icon.
 - [ ] Existing Daily installs still open the Daily.
 
 ## 6. Search

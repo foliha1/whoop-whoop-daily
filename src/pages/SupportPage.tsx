@@ -61,8 +61,8 @@ const SupportPage: React.FC = () => {
   };
   // The story opens one notch above the system's largest heading role.
   const HEADLINE = Math.round((mobile ? TEXT.resultHero.mobileSize : TEXT.resultHero.size) * 1.2);
-  const title = "About WHOOP! WHOOP! — A game by Felix Oliha";
-  const description = "The story behind WHOOP! WHOOP!: Felix Oliha, a graphic designer exploring world building through games, under Oleeha & Co.";
+  const title = "About Whoop! Whoop! — A game by Felix Oliha";
+  const description = "The story behind Whoop! Whoop!: Felix Oliha, a graphic designer exploring world building through games, under Oleeha & Co.";
   const url = "https://whoop-whoop.com/about";
   const body: React.CSSProperties = { ...textStyle("body", mobile), color: COLORS.ink, margin: 0, letterSpacing: 0 };
   const stack: React.CSSProperties = { display: "flex", flexDirection: "column", gap: SPACE[8] };
@@ -99,13 +99,13 @@ const SupportPage: React.FC = () => {
             <section aria-label="My story" style={stack}>
               <p style={body}>Hi, I’m Felix. A graphic designer, and now, somewhat accidentally, an indie game builder.</p>
               <p style={body}>My work has lived in brand identities, layouts, and visual systems. But I wanted to see what happened beyond the logo. Less designing how something looks. More building a world people can step into.</p>
-              <p style={body}>WHOOP! WHOOP! is my way of following that curiosity. Colors, numbers, shapes — familiar design ingredients, turned into something you can play with.</p>
+              <p style={body}>Whoop! Whoop! is my way of following that curiosity. Colors, numbers, shapes — familiar design ingredients, turned into something you can play with.</p>
               <p style={body}>It turns out a few simple cards can make people surprisingly competitive. Myself included.</p>
             </section>
           </ScrollReveal>
 
           <ScrollReveal index={2}>
-                <button type="button" onClick={() => { setCascade(true); try { if (!localStorage.getItem("ww_egg_found")) { localStorage.setItem("ww_egg_found", "1"); trackEvent("easter_egg_found"); } } catch { trackEvent("easter_egg_found"); } }} aria-label="WHOOP! WHOOP! card designs" data-testid="card-waterfall-trigger" style={{ margin: 0, padding: `${SPACE[12]}px ${SPACE[6]}px`, width: "100%", background: "transparent", border: 0, cursor: "pointer", display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: SPACE[6], alignItems: "center" }}>
+                <button type="button" onClick={() => { setCascade(true); try { if (!localStorage.getItem("ww_egg_found")) { localStorage.setItem("ww_egg_found", "1"); trackEvent("easter_egg_found"); } } catch { trackEvent("easter_egg_found"); } }} aria-label="Whoop! Whoop! card designs" data-testid="card-waterfall-trigger" style={{ margin: 0, padding: `${SPACE[12]}px ${SPACE[6]}px`, width: "100%", background: "transparent", border: 0, cursor: "pointer", display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: SPACE[6], alignItems: "center" }}>
                   {ART.map((card) => (
                     <img key={card.name} src={skinArt(cardArt(card.name))} alt="" loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "5 / 7", objectFit: "contain", borderRadius: RADIUS.md, boxShadow: cardShadow, transform: `rotate(${card.rotation})` }} />
                   ))}

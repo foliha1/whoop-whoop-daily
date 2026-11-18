@@ -19,20 +19,20 @@ describe("product install metadata", () => {
   it("keeps Daily and Classic head links isolated", () => {
     expect(dailyHtml).toContain('href="/daily.webmanifest?v=20260925"');
     expect(dailyHtml).toContain('href="/icons/daily/apple-touch-icon.png?v=20260925"');
-    expect(dailyHtml).toContain('name="apple-mobile-web-app-title" content="WHOOP! WHOOP! Daily"');
+    expect(dailyHtml).toContain('name="apple-mobile-web-app-title" content="Whoop! Whoop! Daily"');
     expect(dailyHtml).not.toContain("/icons/classic/");
     expect(dailyHtml).not.toContain("/classic.webmanifest");
 
     expect(classicHtml).toContain('href="/classic.webmanifest?v=20260925"');
     expect(classicHtml).toContain('href="/icons/classic/apple-touch-icon.png?v=20260925"');
-    expect(classicHtml).toContain('name="apple-mobile-web-app-title" content="WHOOP! WHOOP! Classic"');
+    expect(classicHtml).toContain('name="apple-mobile-web-app-title" content="Whoop! Whoop! Classic"');
     expect(classicHtml).not.toContain("/icons/daily/");
     expect(classicHtml).not.toContain("/daily.webmanifest");
   });
 
   it("defines each manifest with its own product identity", () => {
     expect(readJson("public/daily.webmanifest")).toMatchObject({
-      name: "WHOOP! WHOOP! Daily",
+      name: "Whoop! Whoop! Daily",
       short_name: "Daily",
       start_url: "__DAILY_START_URL__", // substituted at build time (umbrellaHead closeBundle)
       display: "standalone",
@@ -40,13 +40,13 @@ describe("product install metadata", () => {
       background_color: "#F8F2E9",
     });
     expect(readJson("public/home.webmanifest")).toMatchObject({
-      name: "Whoop Whoop",
-      short_name: "Whoop Whoop",
+      name: "Whoop! Whoop!",
+      short_name: "Whoop! Whoop!",
       start_url: "/",
       display: "standalone",
     });
     expect(readJson("public/classic.webmanifest")).toMatchObject({
-      name: "WHOOP! WHOOP! Classic",
+      name: "Whoop! Whoop! Classic",
       short_name: "Classic",
       start_url: "/classic.html",
       display: "standalone",

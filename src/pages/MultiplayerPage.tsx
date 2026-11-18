@@ -110,7 +110,7 @@ const MultiplayerPage: React.FC<MultiplayerPageProps> = ({ home = false }) => {
   // mounts — a visible flash.
   const lobbyVisible = introStatus !== "pending";
 
-  const title = home ? "WHOOP! WHOOP!" : "WHOOP! WHOOP! Classic";
+  const title = home ? "Whoop! Whoop!" : "Whoop! Whoop! Classic";
 
   // Set the tab title by mutating the existing <title> element in place —
   // a Helmet <title> would append a second tag alongside index.html's.
@@ -138,7 +138,7 @@ const MultiplayerPage: React.FC<MultiplayerPageProps> = ({ home = false }) => {
           <>
             <meta name="description" content="The memory game where the rules keep changing. Play the Daily, go Solo, or play Together." />
             <link rel="canonical" href="https://whoop-whoop.com/" />
-            <meta property="og:title" content="WHOOP! WHOOP!" />
+            <meta property="og:title" content="Whoop! Whoop!" />
             <meta property="og:description" content="The memory game where the rules keep changing. Play the Daily, go Solo, or play Together." />
             <meta property="og:url" content="https://whoop-whoop.com/" />
           </>
@@ -147,7 +147,7 @@ const MultiplayerPage: React.FC<MultiplayerPageProps> = ({ home = false }) => {
       <div
         className="mp-page-root"
         role="main"
-        aria-label="WHOOP! WHOOP! Classic"
+        aria-label="Whoop! Whoop! Classic"
         style={{
           height: "var(--ww-vh)",
           width: "100%",

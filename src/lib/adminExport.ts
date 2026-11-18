@@ -238,7 +238,7 @@ export function combinedCsv(d: ExportInput, from: string, to: string, generated 
     (s) => `${csvField(`# ${s.label}`)}\r\n${sectionCsv(s)}`,
   );
   const header = [
-    toCsv(["WHOOP! WHOOP! Daily — dashboard export"], []),
+    toCsv(["Whoop! Whoop! Daily — dashboard export"], []),
     toCsv(["Range", `${from} to ${to}`], []),
     toCsv(["Generated", generated], []),
   ].join("\r\n");
@@ -257,7 +257,7 @@ export function pitchSnapshot(d: ExportInput, from: string, to: string, generate
       ? `${value}% (of ${eligible.toLocaleString()} players)`
       : `Not enough data yet (${eligible.toLocaleString()} of ${MIN_SAMPLE} players needed)`;
   return [
-    "# WHOOP! WHOOP! Daily — snapshot",
+    "# Whoop! Whoop! Daily — snapshot",
     "",
     `Range: ${from} to ${to}`,
     `Generated: ${generated}`,

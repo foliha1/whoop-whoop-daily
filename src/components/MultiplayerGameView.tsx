@@ -342,7 +342,7 @@ const CallerSignal: React.FC<{ name: string }> = ({ name }) => (
       minScale={0.72}
       style={{ ...textStyle("control"), width: "100%", minWidth: 0, textAlign: "center", fontStyle: "italic" }}
     >
-      {name} CALLED WHOOP! WHOOP!
+      {name} called Whoop! Whoop!
     </AutoFitText>
   </div>
 );
@@ -661,7 +661,7 @@ const ScoreRow: React.FC<{
 /** Exported so the scripted How to Play demo can show the real call button. */
 export type ButtonKind = "WHOOP" | "YOUR_ROLL" | "SELECT_MATCH" | "DISABLED";
 const ButtonStyles: Record<ButtonKind, { bg: string; text: string; label: string }> = {
-  WHOOP:        { bg: RED,    text: COLORS.onRed,     label: "WHOOP! WHOOP!" },
+  WHOOP:        { bg: RED,    text: COLORS.onRed,     label: "Whoop! Whoop!" },
   YOUR_ROLL:    { bg: ORANGE, text: RAW.warmBlack, label: "Your Roll!" },
   SELECT_MATCH: { bg: BLUE,   text: COLORS.onBlue,     label: "Select Match" },
   DISABLED:     { bg: PANEL,  text: MUTED,   label: "Wait" },
@@ -734,7 +734,7 @@ export const ActionButton: React.FC<{
   };
   // Text starts at the action role and AutoFitText only gives up a modest
   // amount of scale. Its explicit flexible width leaves room for italic glyph
-  // overhang, so every state fits without making WHOOP! WHOOP! timid.
+  // overhang, so every state fits without making Whoop! Whoop! timid.
   const text = label ?? s.label;
   return (
     <button
@@ -998,7 +998,7 @@ const MultiplayerGameView: React.FC<Props> = ({
   }, [rollCommit]);
   const heroActive = activeCommit !== null;
   // Last-flip claim window: no timer is ever shown. The host's server-clock
-  // end only decides the exact moment the WHOOP! WHOOP! button stops being
+  // end only decides the exact moment the Whoop! Whoop! button stops being
   // live, so a late or returning client never offers a dead claim.
   const [windowLive, setWindowLive] = React.useState(true);
   React.useEffect(() => {

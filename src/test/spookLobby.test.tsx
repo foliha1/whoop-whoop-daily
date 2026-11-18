@@ -26,7 +26,7 @@ describe("Spook lobby isolation", () => {
     await loadSkin(skin);
     const { default: MultiplayerWindow } = await import("@/components/MultiplayerWindow");
     render(<MemoryRouter><MultiplayerWindow home /></MemoryRouter>);
-    expect(screen.getByRole("img", { name: skin === "on" ? "Spook Spook!" : "WHOOP! WHOOP!" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: skin === "on" ? "Spook Spook!" : "Whoop! Whoop!" })).toBeInTheDocument();
     expect(screen.getByTestId("home-byline")).toHaveTextContent(skin === "on" ? "A haunt by Oleeha & Co." : "A game by Oleeha & Co.");
   });
 

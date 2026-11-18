@@ -12,7 +12,7 @@ describe("authentication email template", () => {
     expect(template).toContain("https://www.whoop-whoop.com/WhoopWhoop_Stacked_Logo.svg");
     expect(template).toContain("https://www.whoop-whoop.com/WhoopWhoop_Dark_Logo.svg");
     expect(template).toContain('.logo-dark { display: block !important; }');
-    expect(template).not.toContain('style={brand}>WHOOP! WHOOP!</Text>');
+    expect(template).not.toContain('style={brand}>Whoop! Whoop!</Text>');
     expect(template).not.toContain('APP_ICON_URL');
   });
 

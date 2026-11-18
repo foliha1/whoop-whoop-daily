@@ -17,7 +17,7 @@ import {
 
 describe("Whoop Score presentation", () => {
   it("names every tier exactly as the brand does", () => {
-    expect(SCORE_LABEL).toBe("YOUR WHOOP! WHOOP! SCORE");
+    expect(SCORE_LABEL).toBe("Your Whoop! Whoop! Score");
     expect(tierName("rookie")).toBe("Rookie");
     expect(tierName("great_eye")).toBe("Great Eye");
     expect(tierName("match_maker")).toBe("Match Maker");

@@ -326,7 +326,7 @@ const DailySharePreview: React.FC<{
               {imageUrl ? (
                 <img
                   src={imageUrl}
-                  alt={`Your WHOOP! WHOOP! Daily #${puzzleNumber} share card`}
+                  alt={`Your Whoop! Whoop! Daily #${puzzleNumber} share card`}
                   style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
                 />
               ) : (

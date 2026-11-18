@@ -12,11 +12,11 @@ const NotFound = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted">
       <Helmet>
-        <title>Page not found — WHOOP! WHOOP!</title>
-        <meta name="description" content="The page you're looking for doesn't exist. Head back to the WHOOP! WHOOP! homepage." />
+        <title>Page not found — Whoop! Whoop!</title>
+        <meta name="description" content="The page you're looking for doesn't exist. Head back to the Whoop! Whoop! homepage." />
         <meta name="robots" content="noindex" />
         <link rel="canonical" href={`https://whoop-whoop.com${location.pathname}`} />
-        <meta property="og:title" content="Page not found — WHOOP! WHOOP!" />
+        <meta property="og:title" content="Page not found — Whoop! Whoop!" />
         <meta property="og:description" content="The page you're looking for doesn't exist." />
         <meta property="og:url" content={`https://whoop-whoop.com${location.pathname}`} />
         <meta property="og:type" content="website" />

@@ -291,7 +291,7 @@ export function formatDailyShareCaption(puzzleNumber: number): string {
 
 /**
  * The share text:
- *   WHOOP! WHOOP! #14
+ *   Whoop! Whoop! #14
  *   R1 🔵 · R2 👀🔴🔵 · R3 🔴🔵
  *   3 of 3 · 3 misses
  *
@@ -332,7 +332,7 @@ export function formatDailyShare(
     percentileTag;
 
   return [
-    `WHOOP! WHOOP! #${result.puzzleNumber}`,
+    `Whoop! Whoop! #${result.puzzleNumber}`,
     rounds.join(" · "),
     line3,
     "",

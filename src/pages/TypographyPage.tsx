@@ -13,7 +13,7 @@ import {
   type TextRole,
 } from "@/lib/tokens";
 
-const SAMPLE = "WHOOP! WHOOP! deals a fast hand.";
+const SAMPLE = "Whoop! Whoop! deals a fast hand.";
 
 const roleOrder: TextRole[] = [
   "display",
@@ -29,8 +29,8 @@ const TypographyPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Typography – WHOOP! WHOOP!</title>
-        <meta name="description" content="Preview of every text role in the WHOOP! WHOOP! design system." />
+        <title>Typography – Whoop! Whoop!</title>
+        <meta name="description" content="Preview of every text role in the Whoop! Whoop! design system." />
       </Helmet>
       <div
         style={{

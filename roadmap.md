@@ -139,11 +139,11 @@
 - [x] Add product-specific Daily and Classic home-screen icon sets, manifests, raw head wiring, and verification.
 
 - [x] Save the user-supplied Daily and Classic source marks exactly as provided.
-- [x] Replace the written email brand line with light/dark full WHOOP! WHOOP! logos.
+- [x] Replace the written email brand line with light/dark full Whoop! Whoop! logos.
 - [ ] Use the Daily web-app icon as the inbox avatar (blocked: managed sender has no avatar field; inbox avatars are provider/DNS controlled).
 
 ## Final pre-launch batch
-- [x] Convert user-facing UK spelling and expand only actual product-title references to “WHOOP! WHOOP!”, including install names; preserve gameplay terms and code identifiers.
+- [x] Convert user-facing UK spelling and expand only actual product-title references to “Whoop! Whoop!”, including install names; preserve gameplay terms and code identifiers.
 - [x] Add a 60-second OTP resend cooldown with existing rate-limit handling.
 - [x] Hide Your Stats in Daily Settings while signed out and preserve signed-in direct access.
 - [x] Version Daily and Classic install metadata and icon URLs per build.
@@ -199,7 +199,7 @@
 - [x] App switch, tests, live checks, post-publish doc (incl. "Later" items)
 - [ ] Publish day: drop old insert policy (waits on Felix's publish)
 
-## One WHOOP! WHOOP! home
+## One Whoop! Whoop! home
 - [x] Move the ON-only Classic in-game exit to the shared top-left control slot and pin all Daily email modal copy variants; verify screenshots and OFF parity
 - [x] Refine the gated Home: fixed phone layout/sizing, played-Daily copy, Stats icon, plain lockup, and refreshed state grid
 - [x] Change ON-only player-facing Peeps copy to Together while preserving OFF copy and internal analytics names

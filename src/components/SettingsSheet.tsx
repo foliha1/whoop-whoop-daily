@@ -290,7 +290,7 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
               onChange={(next) => setSkinEnabled(next)}
             />
             <p style={{ ...textStyle("caption"), color: COLORS.inkMuted, margin: 0 }}>
-              Colors update next time you open WHOOP! WHOOP!
+              Colors update next time you open Whoop! Whoop!
             </p>
           </div>
         )}
@@ -304,7 +304,7 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ onClose, product, onHowTo
               onChange={(next) => setHoloSkinEnabled(next)}
             />
             <p style={{ ...textStyle("caption"), color: COLORS.inkMuted, margin: 0 }}>
-              Look updates next time you open WHOOP! WHOOP!
+              Look updates next time you open Whoop! Whoop!
             </p>
           </div>
         )}

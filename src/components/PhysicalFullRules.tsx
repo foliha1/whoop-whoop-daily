@@ -104,10 +104,10 @@ export default function PhysicalFullRules({ mobile }: { mobile: boolean }) {
           <p style={body}>Then do it again. Two flips and your turn is done. You can't flip the same card twice in one turn.</p>
           <PullQuote mobile={mobile} color={COLORS.orange}>Someone flipping too fast? Say <strong style={{ fontWeight: "inherit" }}>"slow down"</strong> and they have to show it again.</PullQuote>
         </Subsection>
-        <Subsection id="call-title" title="WHOOP! WHOOP!" mobile={mobile}>
+        <Subsection id="call-title" title="Whoop! Whoop!" mobile={mobile}>
           <p style={body}>You can call at any moment. On your turn, on someone else's turn, mid-flip. There is no wrong time.</p>
           <Steps mobile={mobile} dividers items={[
-            <><strong>Shout "WHOOP! WHOOP!"</strong> Everyone freezes.</>,
+            <><strong>Shout "Whoop! Whoop!"</strong> Everyone freezes.</>,
             <><strong>Touch two cards, one at a time.</strong> When your finger lands on the second card, you're locked in. No switching.</>,
             <><strong>Flip both cards</strong> to check.</>,
           ]} />

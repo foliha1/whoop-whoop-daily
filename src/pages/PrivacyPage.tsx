@@ -11,13 +11,13 @@ const UPDATED = "5 November 2026";
 const PrivacyPage: React.FC = () => (
   <LegalPage
     title="Privacy"
-    metaTitle="Privacy Policy — WHOOP! WHOOP! Daily and Together"
-    metaDescription="What WHOOP! WHOOP! Daily and Together collect: an email only if you give it, a random visitor ID, your Together display name, and anonymous gameplay events. No ads, no cross-site tracking."
+    metaTitle="Privacy Policy — Whoop! Whoop! Daily and Together"
+    metaDescription="What Whoop! Whoop! Daily and Together collect: an email only if you give it, a random visitor ID, your Together display name, and anonymous gameplay events. No ads, no cross-site tracking."
     path="/privacy"
     updated={UPDATED}
   >
     <LegalText>
-      WHOOP! WHOOP! is a free memory game made by Oleeha &amp; Co. This
+      Whoop! Whoop! is a free memory game made by Oleeha &amp; Co. This
       page describes exactly what they collect and why. You never need an account, and you can
       play without giving us anything.
     </LegalText>
@@ -69,7 +69,7 @@ const PrivacyPage: React.FC = () => (
 
     <LegalSection heading="Display names in Together">
       <LegalText>
-        WHOOP! WHOOP! Together asks for a display name so other players at your table know who is
+        Whoop! Whoop! Together asks for a display name so other players at your table know who is
         who. It is up to six characters and you choose it. It is shown to everyone at your table
         while you play, so do not use your full name or anything you would not want a stranger to
         see.

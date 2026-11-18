@@ -5,9 +5,9 @@ import listCardsTool from "./tools/list-cards";
 
 export default defineMcp({
   name: "whoop-whoop-mcp",
-  title: "WHOOP! WHOOP! MCP",
+  title: "Whoop! Whoop! MCP",
   version: "0.1.0",
   instructions:
-    "Public read-only tools for the WHOOP! WHOOP! memory card game by Oleeha & Co. Use `about_whoop_whoop` for an overview, `list_matching_rules` for the six round rules, and `list_cards` for the full card catalog.",
+    "Public read-only tools for the Whoop! Whoop! memory card game by Oleeha & Co. Use `about_whoop_whoop` for an overview, `list_matching_rules` for the six round rules, and `list_cards` for the full card catalog.",
   tools: [aboutTool, listMatchingRulesTool, listCardsTool],
 });

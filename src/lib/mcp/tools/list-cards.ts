@@ -8,7 +8,7 @@ export default defineTool({
   name: "list_cards",
   title: "List cards",
   description:
-    "List every card in the WHOOP! WHOOP! deck. Each card has a shape, number, and color; the deck is the full cartesian product (48 cards).",
+    "List every card in the Whoop! Whoop! deck. Each card has a shape, number, and color; the deck is the full cartesian product (48 cards).",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: () => {

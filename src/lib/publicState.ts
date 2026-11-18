@@ -81,7 +81,7 @@ export interface PublicState {
   // Server-clock end of the current settle / last-flip claim window, null when
   // not active. Clients derive remaining presentation time from serverNow().
   // The claim window has NO visible countdown — this only decides when the
-  // live WHOOP! WHOOP! button stops being live.
+  // live Whoop! Whoop! button stops being live.
   settleEndsAt?: number | null;
   claimWindowEndsAt?: number | null;
 }

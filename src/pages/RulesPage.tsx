@@ -28,7 +28,7 @@ const QUICK_STEPS: React.ReactNode[] = [
   <><strong>Deal 9 cards face down</strong> in a 3 by 3 grid. The rest is the draw pile.</>,
   <><strong>Roll the die.</strong> It says what counts as a match this round: same shape, same number, or same color.</>,
   <><strong>Take turns flipping two cards.</strong> Show each one, then turn it back down.</>,
-  <><strong>Spot a match? Shout WHOOP! WHOOP!</strong> Touch the two cards and flip them.</>,
+  <><strong>Spot a match? Shout Whoop! Whoop!</strong> Touch the two cards and flip them.</>,
   <><strong>Right? Keep the pair</strong> and roll the next rule. <strong>Wrong?</strong> Put one of your cards back.</>,
   <><strong>First to 12 cards wins.</strong></>,
 ];
@@ -46,8 +46,8 @@ const RulesPage: React.FC = () => {
     }
   }, []);
   const mobile = useIsMobile();
-  const title = "How to Play WHOOP! WHOOP! | Rules";
-  const description = "Set up and play the physical WHOOP! WHOOP! card game in 60 seconds. For 2 to 6 players, ages 7 and up.";
+  const title = "How to Play Whoop! Whoop! | Rules";
+  const description = "Set up and play the physical Whoop! Whoop! card game in 60 seconds. For 2 to 6 players, ages 7 and up.";
   const url = "https://whoop-whoop.com/rules";
   const body: React.CSSProperties = {
     ...textStyle("body", mobile),
@@ -91,8 +91,8 @@ const RulesPage: React.FC = () => {
                 <h1 style={{ ...textStyle("resultHero", mobile), fontSize: HEADLINE, lineHeight: 1.05, color: COLORS.ink, margin: 0, letterSpacing: 0 }}>
                   How to Play<br />
                   <span style={{ whiteSpace: "nowrap" }}>
-                    <span>WH</span><span style={{ color: COLORS.orange }}>OO</span><span style={{ color: COLORS.blue }}>P</span><span style={{ color: COLORS.red }}>!</span>{" "}
-                    <span>WH</span><span style={{ color: COLORS.orange }}>OO</span><span style={{ color: COLORS.blue }}>P</span><span style={{ color: COLORS.red }}>!</span>
+                    <span>Wh</span><span style={{ color: COLORS.orange }}>oo</span><span style={{ color: COLORS.blue }}>p</span><span style={{ color: COLORS.red }}>!</span>{" "}
+                    <span>Wh</span><span style={{ color: COLORS.orange }}>oo</span><span style={{ color: COLORS.blue }}>p</span><span style={{ color: COLORS.red }}>!</span>
                   </span>
                 </h1>
                 <p style={body}>The memory game where the rules keep changing.</p>
@@ -106,7 +106,7 @@ const RulesPage: React.FC = () => {
               <div style={{ position: "relative", width: "100%", aspectRatio: "16 / 9", overflow: "hidden", borderRadius: RADIUS.md, border: BORDER.heavy, background: COLORS.surface }}>
                 {RULES_VIDEO_URL ? (
                   <video
-                    aria-label="How to play WHOOP! WHOOP!"
+                    aria-label="How to play Whoop! Whoop!"
                     controls
                     playsInline
                     preload="metadata"

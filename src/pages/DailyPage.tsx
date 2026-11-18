@@ -756,7 +756,7 @@ const DailyResultCard: React.FC<{
         className={resultClass}
         style={{ ...textStyle("title", mobile), color: COLORS.ink, textAlign: "center", margin: 0, ...resultMotion("heading") }}
       >
-        {dailyTitle(puzzleNumber, "WHOOP! WHOOP!")}
+        {dailyTitle(puzzleNumber, "Whoop! Whoop!")}
       </h1>
       {/* No subhead on a completed run: the title carries it. The failed and
           revisit endings still say their one thing. */}
@@ -1827,15 +1827,15 @@ const DailyPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>{daily.preLaunch ? `WHOOP! WHOOP! — Daily Memory Game` : `Daily Game #${daily.puzzleNumber} | WHOOP! WHOOP! — Daily Memory Game`}</title>
+        <title>{daily.preLaunch ? `Whoop! Whoop! — Daily Memory Game` : `Daily Game #${daily.puzzleNumber} | Whoop! Whoop! — Daily Memory Game`}</title>
         <meta
           name="description"
-          content="Play the free WHOOP! WHOOP! daily memory game. Nine cards, ten seconds, three rounds, two misses a round. A new memory challenge every day—no signup needed."
+          content="Play the free Whoop! Whoop! daily memory game. Nine cards, ten seconds, three rounds, two misses a round. A new memory challenge every day—no signup needed."
         />
-        <meta property="og:title" content={daily.preLaunch ? "WHOOP! WHOOP! — Daily Memory Game" : `WHOOP! WHOOP! — Daily Memory Game | Daily Game #${daily.puzzleNumber}`} />
+        <meta property="og:title" content={daily.preLaunch ? "Whoop! Whoop! — Daily Memory Game" : `Whoop! Whoop! — Daily Memory Game | Daily Game #${daily.puzzleNumber}`} />
         <meta
           property="og:description"
-          content="Play the free WHOOP! WHOOP! daily memory game. Nine cards, ten seconds, three rounds, two misses a round. A new memory challenge every day—no signup needed."
+          content="Play the free Whoop! Whoop! daily memory game. Nine cards, ten seconds, three rounds, two misses a round. A new memory challenge every day—no signup needed."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={umbrella ? "https://whoop-whoop.com/daily" : "https://whoop-whoop.com/"} />
@@ -1845,7 +1845,7 @@ const DailyPage: React.FC = () => {
         <meta property="og:image:height" content="630" />
         <meta
           property="og:image:alt"
-          content="WHOOP! WHOOP! — Nine cards. Ten seconds. Then the rules change."
+          content="Whoop! Whoop! — Nine cards. Ten seconds. Then the rules change."
         />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:image" content="https://whoop-whoop.com/og-daily.png" />

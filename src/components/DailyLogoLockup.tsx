@@ -31,19 +31,19 @@ const VARIANTS = {
     animation: animationAsset.url,
     still: lockupAsset.url,
     stillCream: lockupCreamAsset.url,
-    alt: "WHOOP! WHOOP! Daily",
+    alt: "Whoop! Whoop! Daily",
   },
   classic: {
     animation: "/whoop-classic-logo.json",
     still: "/WhoopWhoop_Classic_Lockup.svg",
     stillCream: "/WhoopWhoop_Classic_Lockup_Cream.svg",
-    alt: "WHOOP! WHOOP! Classic",
+    alt: "Whoop! Whoop! Classic",
   },
   plain: {
     animation: "/whoop-plain-logo.json",
     still: "/WhoopWhoop_Dark_Logo.svg",
     stillCream: "/WhoopWhoop_Stacked_Logo.svg",
-    alt: "WHOOP! WHOOP!",
+    alt: "Whoop! Whoop!",
   },
 } as const;
 

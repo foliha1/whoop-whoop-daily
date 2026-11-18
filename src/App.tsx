@@ -85,7 +85,7 @@ const ProductInstallHead: React.FC = () => {
   const classic = pathname === "/classic.html" || pathname === "/classic" || pathname.startsWith("/classic/");
   const home = umbrella && pathname === "/";
   const product = classic ? "classic" : home ? "home" : "daily";
-  const title = classic ? "WHOOP! WHOOP! Classic" : home ? "WHOOP! WHOOP!" : "WHOOP! WHOOP! Daily";
+  const title = classic ? "Whoop! Whoop! Classic" : home ? "Whoop! Whoop!" : "Whoop! Whoop! Daily";
   const themeColor = classic ? "#231F20" : "#F8F2E9";
 
   // Keep exactly one canonical and one og:url per page: a page's own tag

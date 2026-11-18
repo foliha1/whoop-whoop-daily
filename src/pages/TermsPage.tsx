@@ -6,14 +6,14 @@ const UPDATED = "18 October 2026";
 const TermsPage: React.FC = () => (
   <LegalPage
     title="Terms"
-    metaTitle="Terms of Use — WHOOP! WHOOP! Daily and Together"
-    metaDescription="WHOOP! WHOOP! Daily and Together are free to play and provided as is. We may change or stop them at any time. Questions: hello@whoop-whoop.com."
+    metaTitle="Terms of Use — Whoop! Whoop! Daily and Together"
+    metaDescription="Whoop! Whoop! Daily and Together are free to play and provided as is. We may change or stop them at any time. Questions: hello@whoop-whoop.com."
     path="/terms"
     updated={UPDATED}
   >
     <LegalSection heading="The game is free">
       <LegalText>
-        WHOOP! WHOOP! free to play. There is nothing to buy, and no account is required.
+        Whoop! Whoop! free to play. There is nothing to buy, and no account is required.
       </LegalText>
     </LegalSection>
 

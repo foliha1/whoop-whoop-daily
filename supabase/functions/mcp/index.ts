@@ -9,16 +9,16 @@ import { defineMcp } from "npm:@lovable.dev/mcp-js@0.23.0";
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.23.0";
 var about_whoop_whoop_default = defineTool({
   name: "about_whoop_whoop",
-  title: "About WHOOP! WHOOP!",
-  description: "Return an overview of WHOOP! WHOOP! \u2014 a competitive memory card game by Oleeha & Co: how it plays, player count, and links.",
+  title: "About Whoop! Whoop!",
+  description: "Return an overview of Whoop! Whoop! \u2014 a competitive memory card game by Oleeha & Co: how it plays, player count, and links.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: () => {
     const text = [
-      "WHOOP! WHOOP! is a competitive memory card game by Oleeha & Co.",
+      "Whoop! Whoop! is a competitive memory card game by Oleeha & Co.",
       "Players: 2\u20136. Recommended age: 7+.",
       "Cards vary by shape (circle, square, triangle, star), number (1\u20134), and color (red, blue, yellow).",
-      "Each round the dice pick a matching rule (e.g. same color, same shape, different number). Peek at face-down cards to memorize them, then shout WHOOP! WHOOP! to claim a matching pair. Wrong claims freeze those cards and cost you your next flip.",
+      "Each round the dice pick a matching rule (e.g. same color, same shape, different number). Peek at face-down cards to memorize them, then shout Whoop! Whoop! to claim a matching pair. Wrong claims freeze those cards and cost you your next flip.",
       "Play online: https://whoop-whoop.lovable.app/"
     ].join("\n");
     return { content: [{ type: "text", text }] };
@@ -30,7 +30,7 @@ import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.23.0";
 var list_matching_rules_default = defineTool2({
   name: "list_matching_rules",
   title: "List matching rules",
-  description: "List the six matching rules used in WHOOP! WHOOP! Each roll of the dice selects one of these rules for the round.",
+  description: "List the six matching rules used in Whoop! Whoop! Each roll of the dice selects one of these rules for the round.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: () => {
@@ -58,7 +58,7 @@ var COLORS = ["red", "blue", "yellow"];
 var list_cards_default = defineTool3({
   name: "list_cards",
   title: "List cards",
-  description: "List every card in the WHOOP! WHOOP! deck. Each card has a shape, number, and color; the deck is the full cartesian product (48 cards).",
+  description: "List every card in the Whoop! Whoop! deck. Each card has a shape, number, and color; the deck is the full cartesian product (48 cards).",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: () => {
@@ -80,9 +80,9 @@ var list_cards_default = defineTool3({
 // src/lib/mcp/index.ts
 var mcp_default = defineMcp({
   name: "whoop-whoop-mcp",
-  title: "WHOOP! WHOOP! MCP",
+  title: "Whoop! Whoop! MCP",
   version: "0.1.0",
-  instructions: "Public read-only tools for the WHOOP! WHOOP! memory card game by Oleeha & Co. Use `about_whoop_whoop` for an overview, `list_matching_rules` for the six round rules, and `list_cards` for the full card catalog.",
+  instructions: "Public read-only tools for the Whoop! Whoop! memory card game by Oleeha & Co. Use `about_whoop_whoop` for an overview, `list_matching_rules` for the six round rules, and `list_cards` for the full card catalog.",
   tools: [about_whoop_whoop_default, list_matching_rules_default, list_cards_default]
 });
 

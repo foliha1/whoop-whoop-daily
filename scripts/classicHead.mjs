@@ -27,11 +27,11 @@ export const CLASSIC_DOC_PATH = "/classic.html";
 
 export const CLASSIC_META = {
   url: `${ORIGIN}${CLASSIC_DOC_PATH}`,
-  title: "WHOOP! WHOOP! Classic — Live Multiplayer Memory Game",
+  title: "Whoop! Whoop! Classic — Live Multiplayer Memory Game",
   description:
-    "Live memory match for 2–6 players. Flip cards, spot the pair, shout WHOOP! WHOOP! first. Join the table—no signup.",
+    "Live memory match for 2–6 players. Flip cards, spot the pair, shout Whoop! Whoop! first. Join the table—no signup.",
   image: `${ORIGIN}/og-classic.png`,
-  imageAlt: "WHOOP! WHOOP! Classic — live multiplayer memory game for 2 to 6 players",
+  imageAlt: "Whoop! Whoop! Classic — live multiplayer memory game for 2 to 6 players",
 };
 
 const DAILY_PRODUCT_HEAD = {
@@ -40,7 +40,7 @@ const DAILY_PRODUCT_HEAD = {
   appleTouchIcon: versioned("/icons/daily/apple-touch-icon.png"),
   favicon32: versioned("/icons/daily/favicon-32.png"),
   favicon16: versioned("/icons/daily/favicon-16.png"),
-  appleTitle: "WHOOP! WHOOP! Daily",
+  appleTitle: "Whoop! Whoop! Daily",
 };
 
 const CLASSIC_PRODUCT_HEAD = {
@@ -49,7 +49,7 @@ const CLASSIC_PRODUCT_HEAD = {
   appleTouchIcon: versioned("/icons/classic/apple-touch-icon.png"),
   favicon32: versioned("/icons/classic/favicon-32.png"),
   favicon16: versioned("/icons/classic/favicon-16.png"),
-  appleTitle: "WHOOP! WHOOP! Classic",
+  appleTitle: "Whoop! Whoop! Classic",
 };
 
 /** Replace the content of a `<meta>` tag matched on name/property. */

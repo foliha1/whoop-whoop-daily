@@ -1,4 +1,4 @@
-# WHOOP! WHOOP! Daily
+# Whoop! Whoop! Daily
 
 The daily memory game at [whoop-whoop.com](https://whoop-whoop.com).
 

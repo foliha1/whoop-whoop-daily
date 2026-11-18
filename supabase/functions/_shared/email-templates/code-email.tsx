@@ -19,7 +19,7 @@ export const requireAuthCode = (token?: string): string => {
 
 export const codeSubject = (token?: string) => {
   const code = requireAuthCode(token)
-  return code ? `Your WHOOP! WHOOP! code: ${code}` : 'Your WHOOP! WHOOP! code'
+  return code ? `Your Whoop! Whoop! code: ${code}` : 'Your Whoop! Whoop! code'
 }
 
 export const CodeEmail = ({ token, purpose }: { token?: string; purpose: string }) => {
@@ -38,7 +38,7 @@ export const CodeEmail = ({ token, purpose }: { token?: string; purpose: string 
           src={LIGHT_LOGO_URL}
           width="126"
           height="100"
-          alt="WHOOP! WHOOP!"
+          alt="Whoop! Whoop!"
           style={logo}
         />
         <Img

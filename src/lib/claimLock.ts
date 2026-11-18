@@ -127,7 +127,7 @@ export async function callClaimLock(input: Input): Promise<ClaimLockResult> {
 // ---------------------------------------------------------------------------
 // Warm-up. Edge functions idle out, so the FIRST claim of a game pays a cold
 // boot (~1.5s on top of a ~600ms warm round trip) — exactly the moment a new
-// player presses WHOOP! WHOOP! for the first time. The host fires this once
+// player presses Whoop! Whoop! for the first time. The host fires this once
 // per game at start to boot the instance early.
 //
 // It is a distinct request shape: `{ warmup: true }` with NO claim fields.

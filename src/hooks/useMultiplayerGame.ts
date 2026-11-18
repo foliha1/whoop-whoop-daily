@@ -171,7 +171,7 @@ export function useMultiplayerHost(opts: {
     claimWindowRef.current = 0;
   }
 
-  // Boot the arbiter before anyone can press WHOOP! WHOOP!. One fire-and-
+  // Boot the arbiter before anyone can press Whoop! Whoop!. One fire-and-
   // forget call per game, host only (this hook is host-only; solo never
   // reaches the arbiter). Game start never waits on it and a failure is
   // invisible to players — it only costs the first claimant a cold boot.

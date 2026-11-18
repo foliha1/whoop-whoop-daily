@@ -1,4 +1,4 @@
-# WHOOP! WHOOP! — Master Game Documentation (v7.2 Two Calls a Round)
+# Whoop! Whoop! — Master Game Documentation (v7.2 Two Calls a Round)
 
 *A card game about memory, luck, and just enough competition to ruin your family dinner.*
 
@@ -8,7 +8,7 @@
 
 ## Game Summary
 
-**WHOOP! WHOOP!** is a competitive memory card game where the matching rule changes every round. Players flip cards face up to learn what is hiding, memorize where things are, and race to call out matching pairs.
+**Whoop! Whoop!** is a competitive memory card game where the matching rule changes every round. Players flip cards face up to learn what is hiding, memorize where things are, and race to call out matching pairs.
 
 The twist: a single Match Die decides what counts as a match — same shape, same number, or same color — and it changes its mind constantly. The cards do not move. What matters about them does.
 
@@ -85,7 +85,7 @@ Player aids summarizing the round and the claim procedure.
 
 ## How to Play
 
-Every round has three beats: **ROLL**, **FLIP**, **WHOOP! WHOOP!**
+Every round has three beats: **ROLL**, **FLIP**, **Whoop! Whoop!**
 
 ### The Roll
 
@@ -122,13 +122,13 @@ You may not flip the same card twice in one turn.
 
 **Two flips is the rule at every table size.** Two players, six players, it does not change. This is what keeps the die from re-rolling before anyone has learned anything.
 
-### WHOOP! WHOOP!
+### Whoop! Whoop!
 
 **You may call out at any moment.** During your turn, during someone else's, while another player is reaching for a card. There is no wrong time.
 
 When you think you know where two matching cards are:
 
-1. **Shout "WHOOP! WHOOP!"** Everyone freezes.
+1. **Shout "Whoop! Whoop!"** Everyone freezes.
 2. **Touch two cards, one at a time.** The moment your finger lands on the second card, your claim is locked. No switching.
 3. **Turn both cards face up** to check.
 
@@ -238,13 +238,13 @@ Your two flips come back to back, so you can hold them against each other. Two c
 
 ## Quick Reference
 
-**Every round: ROLL · FLIP · WHOOP! WHOOP!**
+**Every round: ROLL · FLIP · Whoop! Whoop!**
 
 **ROLL** — one die. SHAPE, NUMBER or COLOR is the rule for the round.
 
 **FLIP** — on your turn, flip two cards, one at a time, showing each for two or three seconds.
 
-**WHOOP! WHOOP!** — shout any time, touch two cards, second touch locks it.
+**Whoop! Whoop!** — shout any time, touch two cards, second touch locks it.
 
 - **Right:** take the pair, refill, round ends, you become the Roller.
 - **Wrong:** return one card to the draw pile, those two cards stay face up and are locked to you for the round, and you use one of your two calls. You keep your flips.
@@ -303,7 +303,7 @@ Tuck box holding 50 cards, one die, and a saddle-stitched rulebook.
 
 ## Digital Editions
 
-WHOOP! WHOOP! is one game online at whoop-whoop.com, with three ways to play. None of them is a demo of the physical game.
+Whoop! Whoop! is one game online at whoop-whoop.com, with three ways to play. None of them is a demo of the physical game.
 
 **Daily** (whoop-whoop.com/daily) is a once-a-day solo puzzle. Nine cards flip up for ten seconds, then down. Three rounds, one die roll each, two misses ends a round. Everyone in the world gets the same puzzle on the same date. Its rules deliberately differ from this document.
 
@@ -318,7 +318,7 @@ WHOOP! WHOOP! is one game online at whoop-whoop.com, with three ways to play. No
 - **v3:** Double Callers introduced
 - **v4:** Converted to memory play with a face-down grid
 - **v5:** Edge cases refined, Caller rotation scaled by player count
-- **v5.1:** Renamed to WHOOP! WHOOP!, palette updated
+- **v5.1:** Renamed to Whoop! Whoop!, palette updated
 - **v6.0:** Caller Deck retired, replaced by two Match Dice. Double Jeopardy added.
 - **v6.1:** Core game reduced to a single die. Two-dice play moved to an optional extension.
 - **v6.2:** Winner Rolls. A correct claim ends the round and seizes the die.
@@ -332,8 +332,8 @@ WHOOP! WHOOP! is one game online at whoop-whoop.com, with three ways to play. No
 
 - **v7.1 — Target Twelve.** The win target moves from 10 cards to 12. A measured sweep of targets 10 through 18 across solo and two- to six-player tables (500 games per cell) showed 10 ending too quickly, while 12 runs about 40% longer and still completes 99.8% of the time at every table size. 14 and above were rejected: they buy little extra time and leave roughly one in twenty-six six-player games unable to finish, because the 48-card deck runs out before that many cards can be banked. Note that the 15–20 minute play time in the header describes the physical game, including shuffling, dealing and table talk; the digital build is a short, replayable game and is not measured against that figure.
 
-- **v7.2 (Current) — Two Calls a Round.** Each player now gets **two wrong claims per round**; after the second miss, claiming is closed to that player until the round ends. This closes an exploit found in live testing on the digital build: because a wrong claim leaves its two cards face up and nothing limited how often you could claim, a player could call repeatedly and turn almost the whole board face up. It was free at the start of a round, when an empty pile returns no card. At a physical table shouting WHOOP! WHOOP! eight times in a row is socially expensive and self-corrects; on a screen it costs one tap. The count is per player, per round, and resets for everyone when the round ends by either route. Correct claims never count against it. Nothing else changes: the returned card, the face-up pair, the lock and the free-of-flips claim all stand.
+- **v7.2 (Current) — Two Calls a Round.** Each player now gets **two wrong claims per round**; after the second miss, claiming is closed to that player until the round ends. This closes an exploit found in live testing on the digital build: because a wrong claim leaves its two cards face up and nothing limited how often you could claim, a player could call repeatedly and turn almost the whole board face up. It was free at the start of a round, when an empty pile returns no card. At a physical table shouting Whoop! Whoop! eight times in a row is socially expensive and self-corrects; on a screen it costs one tap. The count is per player, per round, and resets for everyone when the round ends by either route. Correct claims never count against it. Nothing else changes: the returned card, the face-up pair, the lock and the free-of-flips claim all stand.
 
 ---
 
-*WHOOP! WHOOP! — The memory game where the rules keep changing.*
+*Whoop! Whoop! — The memory game where the rules keep changing.*

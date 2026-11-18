@@ -1,7 +1,7 @@
 // ============================================================================
 // dailyEngine — the daily puzzle's own tiny state machine.
 //
-// The daily is NOT a game of Whoop Whoop: it is one recall test with three
+// The daily is NOT a game of Whoop! Whoop!: it is one recall test with three
 // rule changes. There is no draw pile, no refills, no re-rolls, no bot.
 //
 // Sequence (see DailyPhase):

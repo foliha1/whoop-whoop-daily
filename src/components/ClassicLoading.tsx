@@ -7,7 +7,7 @@ import CardFlipLoader from "@/components/CardFlipLoader";
  * bare "Loading…" line. Reduced-motion users get the static card back.
  */
 const ClassicLoading: React.FC = () => (
-  <CardFlipLoader label="Loading WHOOP! WHOOP! Classic" layout="overlay" />
+  <CardFlipLoader label="Loading Whoop! Whoop! Classic" layout="overlay" />
 );
 
 export default ClassicLoading;

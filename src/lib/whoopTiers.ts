@@ -16,7 +16,7 @@ import {
 } from "@/lib/whoopPoints";
 
 /** What the score is called, everywhere it is labelled. */
-export const SCORE_LABEL = "YOUR WHOOP! WHOOP! SCORE";
+export const SCORE_LABEL = "Your Whoop! Whoop! Score";
 
 /** Tier key → the name shown to players. One map, one edit. */
 export const TIER_NAMES: Record<PointsTier, string> = {

@@ -7,9 +7,9 @@ const CONFIG = readFileSync(resolve(process.cwd(), "src/launch.config.ts"), "utf
 export const UMBRELLA_LAUNCHED = /LAUNCH_CONFIG\s*=\s*\{\s*launched:\s*true\s*\}/.test(CONFIG);
 
 export const HOME_META = {
-  title: "WHOOP! WHOOP!",
+  title: "Whoop! Whoop!",
   description: "The memory game where the rules keep changing. Play the Daily, go Solo, or play Together.",
-  installName: "Whoop Whoop",
+  installName: "Whoop! Whoop!",
   url: `${ORIGIN}/`,
   image: `${ORIGIN}/og-home.png`,
 };
@@ -44,18 +44,18 @@ export function toHomeHtml(dailyHtml) {
 }
 
 export function toDailyHtml(homeHtml) {
-  let html = homeHtml.replace(/<title>[^<]*<\/title>/i, "<title>WHOOP! WHOOP! — Daily Memory Game</title>");
-  const description = "Play the free WHOOP! WHOOP! daily memory game. Nine cards, ten seconds, three rounds, two misses a round. A new memory challenge every day—no signup needed.";
+  let html = homeHtml.replace(/<title>[^<]*<\/title>/i, "<title>Whoop! Whoop! — Daily Memory Game</title>");
+  const description = "Play the free Whoop! Whoop! daily memory game. Nine cards, ten seconds, three rounds, two misses a round. A new memory challenge every day—no signup needed.";
   html = setMeta(html, "name", "description", description);
   html = setMeta(html, "property", "og:url", `${ORIGIN}/daily`);
-  html = setMeta(html, "property", "og:title", "WHOOP! WHOOP! — Daily Memory Game");
+  html = setMeta(html, "property", "og:title", "Whoop! Whoop! — Daily Memory Game");
   html = setMeta(html, "property", "og:description", description);
   html = setMeta(html, "property", "og:image", `${ORIGIN}/og-daily.png`);
-  html = setMeta(html, "property", "og:image:alt", "WHOOP! WHOOP! — Daily Memory Game");
-  html = setMeta(html, "name", "twitter:title", "WHOOP! WHOOP! — Daily Memory Game");
+  html = setMeta(html, "property", "og:image:alt", "Whoop! Whoop! — Daily Memory Game");
+  html = setMeta(html, "name", "twitter:title", "Whoop! Whoop! — Daily Memory Game");
   html = setMeta(html, "name", "twitter:description", description);
   html = setMeta(html, "name", "twitter:image", `${ORIGIN}/og-daily.png`);
-  html = setMeta(html, "name", "apple-mobile-web-app-title", "WHOOP! WHOOP! Daily");
+  html = setMeta(html, "name", "apple-mobile-web-app-title", "Whoop! Whoop! Daily");
   html = setLink(html, "canonical", `${ORIGIN}/daily`);
   return withStaticContent(html
     .replace("/home.webmanifest?v=20260929", "/daily.webmanifest?v=20260927")
