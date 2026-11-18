@@ -41,6 +41,8 @@ import { trackEvent } from "@/lib/analytics";
 import HomeControl from "@/components/HomeControl";
 import HomeEmailSignup from "@/components/HomeEmailSignup";
 import SubscribeChip from "@/components/SubscribeChip";
+import PreorderCardsPhoto from "@/components/PreorderCardsPhoto";
+import { homeIrlStage, showHomeIrl } from "@/lib/homeIrl";
 import { hasCompletedAnyDaily, homeSignupEligible } from "@/lib/homeSignup";
 import { useSubscriberStatus } from "@/hooks/useSubscriberStatus";
 import { useDailyStreakState } from "@/hooks/useDailyStreak";
@@ -331,6 +333,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const [completedAnyDaily] = useState(() => hasCompletedAnyDaily());
   // Lobby Subscribe chip: anyone not yet subscribed or signed in (ON only).
   const showSubscribeChip = umbrella && !reminderSubscribed;
+  // IRL entry (opens /preorder) for subscribers only; stage frozen at load.
+  const [irlStage] = useState(() => homeIrlStage());
+  const showIrl = umbrella && showHomeIrl(reminderSubscribed || updatesSubscribed);
   const showHomeSignup = umbrella && home && !showSubscribeChip && homeSignupEligible(completedAnyDaily, reminderSubscribed);
   const homeViewedRef = useRef(false);
   const [view, setView] = useState<View>(() => {
@@ -1884,7 +1889,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           )}
 
           <div
-            className={umbrella && home ? "ww-home-mode-grid" : undefined}
+            className={umbrella && home ? (showIrl && irlStage === "tile" ? "ww-home-mode-grid ww-home-mode-grid--three" : "ww-home-mode-grid") : undefined}
             style={{ alignSelf: "stretch", display: umbrella && home ? undefined : "flex", gap: SPACE[8] }}
             role={umbrella && home ? "navigation" : undefined}
             aria-label={umbrella && home ? "Choose a game" : undefined}
@@ -1955,6 +1960,68 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
               </svg>
               <div style={playModeLabelStyle(COLORS.onRed)}>{umbrella && home ? "Together" : "Play with Peeps"}</div>
             </button>
+
+            {umbrella && home && showIrl ? (() => {
+              const newTag: React.CSSProperties = {
+                ...textStyle("label", entryMobile),
+                fontSize: 11,
+                lineHeight: 1,
+                background: RAW.orange,
+                color: RAW.warmBlack,
+                padding: "4px 7px",
+                borderRadius: RADIUS.sm,
+              };
+              const go = () => navigate("/preorder");
+              return irlStage === "banner" ? (
+                <button
+                  type="button"
+                  onClick={go}
+                  disabled={busy}
+                  className="ww-home-irl ww-home-irl--banner"
+                  data-testid="home-irl"
+                  aria-label="IRL. New. Play with real cards. Pre-order now."
+                  style={{
+                    ...playModeTileStyle(RAW.warmBlack),
+                    gridColumn: "1 / -1",
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    gap: SPACE[4],
+                    padding: `${SPACE[5]}px ${SPACE[6]}px`,
+                    minHeight: 0,
+                    overflow: "visible",
+                    textAlign: "left",
+                  }}
+                >
+                  <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: SPACE[2], flex: "0 0 44%" }}>
+                    <span style={newTag}>NEW</span>
+                    <span style={playModeLabelStyle(RAW.cream)}>IRL</span>
+                    <span style={{ ...textStyle("caption", entryMobile), color: RAW.khaki, textAlign: "left" }}>
+                      Play with real cards.<br />Pre-order now.
+                    </span>
+                  </span>
+                  <span style={{ flex: "1 1 auto", margin: `-${SPACE[8]}px -${SPACE[4]}px -${SPACE[4]}px 0`, minWidth: 0 }}>
+                    <PreorderCardsPhoto maxWidth={320} sizes="(max-width: 640px) 60vw, 320px" />
+                  </span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={go}
+                  disabled={busy}
+                  className="ww-home-irl"
+                  data-testid="home-irl"
+                  aria-label="IRL. New. Play with real cards."
+                  style={{ ...playModeTileStyle(RAW.warmBlack), position: "relative", overflow: "visible" }}
+                >
+                  <span aria-hidden="true" style={{ ...newTag, position: "absolute", top: -10, right: -6, transform: "rotate(6deg)", border: `1.5px solid ${RAW.warmBlack}` }}>NEW</span>
+                  <svg width="34" height="32" viewBox="0 0 34 32" aria-hidden="true">
+                    <rect x="3" y="7" width="15" height="21" rx="2.5" transform="rotate(-12 10 17)" fill={RAW.red} stroke={RAW.cream} strokeWidth="2" />
+                    <rect x="11" y="4" width="15" height="21" rx="2.5" transform="rotate(8 18 14)" fill={RAW.orange} stroke={RAW.cream} strokeWidth="2" />
+                  </svg>
+                  <div style={playModeLabelStyle(RAW.cream)}>IRL</div>
+                </button>
+              );
+            })() : null}
           </div>
 
           {/* Quiet tail — the Daily link and the same legal line the Daily

@@ -1679,3 +1679,8 @@ All colors MUST be HSL.
     drop-shadow(0 6px 8px rgba(0, 0, 0, 0.35))
     drop-shadow(0 18px 22px rgba(0, 0, 0, 0.3));
 }
+
+/* Home with the IRL tile (subscribers, after the pre-order launch):
+   Daily across the top, then Solo / Together / IRL in one row. */
+.ww-home-mode-grid--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ww-home-mode-grid--three > button { padding-left: 4px !important; padding-right: 4px !important; }
