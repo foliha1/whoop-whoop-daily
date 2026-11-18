@@ -5,8 +5,8 @@
 // - "banner" through 28 Nov 2026 (pre-order launch window): a full-width
 //   tile under Solo / Together with the card photo and a pre-order line.
 // - "tile" from 29 Nov 2026: a plain third tile beside Solo and Together.
-// Only shown to players this device knows are subscribed (Daily reminder or
-// updates list); everyone else keeps the Subscribe prompt instead.
+// Banner: only players this device knows are subscribed (Daily reminder or
+// updates list). Tile: every player.
 // ============================================================================
 
 export type HomeIrlStage = "banner" | "tile";
@@ -19,6 +19,6 @@ export function homeIrlStage(now: Date = new Date()): HomeIrlStage {
   return now.getTime() < switchAt.getTime() ? "banner" : "tile";
 }
 
-export function showHomeIrl(subscribed: boolean): boolean {
-  return subscribed;
+export function showHomeIrl(stage: HomeIrlStage, subscribed: boolean): boolean {
+  return stage === "tile" || subscribed;
 }

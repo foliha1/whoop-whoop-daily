@@ -333,9 +333,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const [completedAnyDaily] = useState(() => hasCompletedAnyDaily());
   // Lobby Subscribe chip: anyone not yet subscribed or signed in (ON only).
   const showSubscribeChip = umbrella && !reminderSubscribed;
-  // IRL entry (opens /preorder) for subscribers only; stage frozen at load.
+  // IRL entry (opens /preorder); stage frozen at load. Banner: subscribers
+  // only. Tile (after the pre-order launch): everyone.
   const [irlStage] = useState(() => homeIrlStage());
-  const showIrl = umbrella && showHomeIrl(reminderSubscribed || updatesSubscribed);
+  const showIrl = umbrella && showHomeIrl(irlStage, reminderSubscribed || updatesSubscribed);
   const showHomeSignup = umbrella && home && !showSubscribeChip && homeSignupEligible(completedAnyDaily, reminderSubscribed);
   const homeViewedRef = useRef(false);
   const [view, setView] = useState<View>(() => {
@@ -928,13 +929,25 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     setHowTo({ mode: "gate", then: run });
   }, []);
 
+  // Home may be scrolled (it scrolls when taller than the screen); games
+  // never scroll, so leave Home from the top.
+  const resetHomeScroll = () => {
+    const root = document.querySelector<HTMLElement>(".mp-page-root");
+    if (root) root.scrollTop = 0;
+  };
+  useEffect(() => {
+    if (view.kind !== "idle") resetHomeScroll();
+  }, [view.kind]);
+
   const handleStartRoom = useCallback(() => {
     if (busy) return;
+    resetHomeScroll();
     gateOr(() => umbrellaOn() ? setView({ kind: "peeps-chooser" }) : startRoomFlow());
   }, [busy, gateOr, startRoomFlow]);
 
   const handlePlaySolo = useCallback(() => {
     if (busy) return;
+    resetHomeScroll();
     gateOr(startSoloFlow);
   }, [busy, gateOr, startSoloFlow]);
 

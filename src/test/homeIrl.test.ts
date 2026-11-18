@@ -13,8 +13,12 @@ describe("homeIrlStage", () => {
 });
 
 describe("showHomeIrl", () => {
-  it("is for subscribers only", () => {
-    expect(showHomeIrl(true)).toBe(true);
-    expect(showHomeIrl(false)).toBe(false);
+  it("banner is for subscribers only", () => {
+    expect(showHomeIrl("banner", true)).toBe(true);
+    expect(showHomeIrl("banner", false)).toBe(false);
+  });
+  it("tile is for everyone", () => {
+    expect(showHomeIrl("tile", true)).toBe(true);
+    expect(showHomeIrl("tile", false)).toBe(true);
   });
 });

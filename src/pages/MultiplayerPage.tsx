@@ -151,6 +151,8 @@ const MultiplayerPage: React.FC<MultiplayerPageProps> = ({ home = false }) => {
         style={{
           height: "var(--ww-vh)",
           width: "100%",
+          // Scrolls only while the Home choices are on screen (see
+          // .mp-page-root:has(.ww-home-mode-grid) in index.css); games never do.
           overflow: "hidden",
           position: "relative",
           isolation: "isolate",
