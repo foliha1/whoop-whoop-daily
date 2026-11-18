@@ -154,6 +154,9 @@ const DailyLogoLockup: React.FC<{ style?: React.CSSProperties; variant?: LockupV
         width: "100%",
         maxWidth: 251,
         aspectRatio: variant === "plain" ? "166.15 / 131.24" : "251 / 211",
+        // Query container for the DAY 100 sticker, so its drop shadow scales
+        // with the lockup instead of staying at fixed phone-size pixels.
+        containerType: "inline-size",
         ...style,
       }}
     >
