@@ -7,12 +7,12 @@ import DailyLegalFooter from '@/components/DailyLegalFooter';
 import HomeControl from '@/components/HomeControl';
 import FelixSignature from '@/components/FelixSignature';
 import SupportBlock from '@/components/SupportBlock';
+import PreorderCardsPhoto from '@/components/PreorderCardsPhoto';
 import headshotAsset from '@/assets/felix-headshot.jpg.asset.json';
 import { Button } from '@/components/ui/button';
 import { rulesType, GAME_COLORS, ChapterDivider, READ_W } from '@/components/rulesLayout';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { BORDER, COLORS, RAW, SPACE, RADIUS, SHADOW, textStyle } from '@/lib/tokens';
-import { cardArt } from '@/lib/assetUrls';
+import { BORDER, COLORS, RAW, SPACE, RADIUS, textStyle } from '@/lib/tokens';
 import { supabase } from '@/integrations/supabase/client';
 import { trackEvent } from '@/lib/analytics';
 import { clampQuantity, createPreorderCheckout, gamesLabel, loadPreorderPrice, money, openCheckoutWindow, PREORDER_FALLBACK_PRICE, proofLabel } from '@/lib/preorder';
@@ -25,7 +25,6 @@ const FAQ = [
  ['Is it the same game as the one online?', 'Yes. Solo and Together use the same rules. The table version adds a bigger 4 by 3 grid for harder games.'],
  ['Is it good for kids?', 'Yes! We recommend playing with ages 7 and up, though it is dependent on the maturity and memory of your kiddo. They are oftentimes better players than adults.'],
 ];
-const CARDS = [['3-circle-red', 'Red Circle 3'], ['1-square-blue', 'Blue Square 1'], ['4-star-yellow', 'Orange Star 4']];
 export default function PreorderPage() {
  const mobile = useIsMobile();
  const { body, read } = rulesType(mobile);
@@ -72,7 +71,7 @@ export default function PreorderPage() {
  ] as [string | null, string][]).filter((s): s is [string, string] => s[0] !== null);
  return <><Helmet><title>Pre-order Whoop! Whoop! | The Card Game</title><meta name="description" content="The memory game where the rules keep changing, now as a real card game. Pre-order for $35 with free shipping. Ships December 2026." /><link rel="canonical" href="https://whoop-whoop.com/preorder" /><meta property="og:url" content="https://whoop-whoop.com/preorder" /></Helmet><HomeControl /><DailyFrame wide scroll align="top" topControl railGap={SPACE[20]}><article style={{ width: '100%', maxWidth: 804, paddingTop: SPACE[6], paddingBottom: SPACE[12], display: 'flex', flexDirection: 'column' }}>
   <header style={{ ...section, alignSelf: 'center' }}><p style={{ ...textStyle('label', mobile), color: COLORS.inkMuted, margin: 0 }}>Pre-order · Shipping Soon</p><h1 style={{ ...heading, fontSize: Math.round(rulesType(mobile).hero * 1.2) }}>Bring {brand}<br />to the table.</h1><p style={body}>The memory game where the rules keep changing. Now with real cards, with a real die, in a bag that fits in your pocket.</p>
-  <div aria-label="Three card faces" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: mobile ? SPACE[4] : SPACE[8], width: '100%', maxWidth: 480, margin: `${SPACE[6]}px auto`, padding: SPACE[3], boxSizing: 'border-box' }}>{CARDS.map(([id, alt], i) => <img key={id} src={cardArt(id)} alt={alt} width={107} height={150} style={{ width: '100%', height: 'auto', aspectRatio: '107 / 150', display: 'block', borderRadius: RADIUS.sm, boxShadow: SHADOW.card, transform: `rotate(${(i - 1) * 8}deg) translateY(${i === 1 ? -8 : 0}px)` }} />)}</div><div style={purchaseGroup}>{buy()}<SupportBlock mobile={mobile} body={body} /></div></header>
+  <PreorderCardsPhoto priority maxWidth={560} style={{ margin: `${SPACE[6]}px auto` }} /><div style={purchaseGroup}>{buy()}<SupportBlock mobile={mobile} body={body} /></div></header>
   {divider()}<section style={section}><h2 style={heading}>Nine cards. One die.<br /><span style={{ fontStyle: 'italic' }}>Everyone shouting.</span></h2><div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: SPACE[10] }}>{[['Roll', 'Roll the die to reveal the rule for the round. Match the shape, color, or number.'], ['Flip', 'Reveal two cards per turn. Then flip them back over to hide them again.'], ['Whoop! Whoop!', 'Yell out Whoop! Whoop! when you think you have a matching pair.']].map(([title, copy], i) => <div key={title} style={{ display: 'flex', flexDirection: 'column', gap: SPACE[4] }}><span style={{ ...textStyle('resultHero', mobile), color: GAME_COLORS[i] }}>{i + 1}</span><h3 style={{ ...textStyle('title', mobile), color: COLORS.ink, margin: 0 }}>{title}</h3><p style={body}>{copy}</p></div>)}</div><Link to="/rules" style={link}>Read the full rules</Link></section>
   {divider()}<section style={section}><h2 style={heading}>What's in the bag</h2><ul style={{ ...body, listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: SPACE[4] }}><li><strong>48 cards.</strong> Each one different.</li><li><strong>1 Match Die.</strong> Shape, number, or color.</li><li><strong>4 QR cards.</strong> They bring you to the game rules.</li><li><strong>1 canvas drawstring bag.</strong> To keep your new favorite game safe.</li></ul><p style={{ ...textStyle('caption', mobile), color: COLORS.inkMuted, margin: 0 }}>2 to 6 players · Ages 7+ (our recommendation, but your house, your rules)</p></section>
   {label && <>{divider()}<section style={{ ...section, gap: SPACE[8] }}><p style={{ ...body, margin: 0 }}>People already love Whoop! Whoop!</p><div style={{ display: 'grid', gridTemplateColumns: mobile ? 'minmax(0, 1fr)' : 'repeat(2, minmax(0, 1fr))', gap: mobile ? SPACE[6] : SPACE[8], width: '100%', maxWidth: 720 }}>{stats.map(([value, caption]) => <div key={caption} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: SPACE[3], padding: mobile ? `${SPACE[6]}px ${SPACE[4]}px` : `${SPACE[10]}px ${SPACE[6]}px`, background: COLORS.panel, border: BORDER.heavy, borderRadius: RADIUS.md, boxSizing: 'border-box' }}><span style={{ ...heading, fontSize: mobile ? 46 : 76, color: COLORS.ink, lineHeight: 1 }}>{value}</span><span style={{ ...textStyle('label', mobile), color: COLORS.inkMuted, margin: 0 }}>{caption}</span></div>)}</div><Link style={link} to="/daily">Play today's Daily</Link></section></>}

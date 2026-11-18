@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ReleaseAnnouncement, { hasSeenAnnouncement } from "@/components/ReleaseAnnouncement";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { COLORS, SPACE, textStyle } from "@/lib/tokens";
+import PreorderCardsPhoto from "@/components/PreorderCardsPhoto";
 
 export const PREORDER_ANNOUNCEMENT = {
   seenKey: "ww-preorder-announcement-v1",
@@ -46,6 +47,7 @@ const PreorderAnnouncement: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         <h2 style={{ ...textStyle("hero", mobile), margin: 0, color: COLORS.ink, lineHeight: 1.05, letterSpacing: 0 }}>
           {PREORDER_ANNOUNCEMENT.headline}
         </h2>
+        <PreorderCardsPhoto maxWidth={420} sizes="(max-width: 640px) 80vw, 420px" />
         <p style={{ ...textStyle("body", mobile), margin: 0, color: COLORS.ink }}>
           {PREORDER_ANNOUNCEMENT.intro}
         </p>

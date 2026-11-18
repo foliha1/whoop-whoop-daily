@@ -1663,3 +1663,19 @@ All colors MUST be HSL.
   transition: background-color 99999s ease-in-out 0s;
 }
 .ww-support-input:focus-visible { outline: 2px solid var(--ww-blue-text); outline-offset: 2px; }
+
+/* Pre-order card photo: a soft, low shadow pooled under the cards (art
+   direction: soft, ~20-25% black, not a hard drop). drop-shadow follows the
+   photo's transparent outline. Static, so it costs nothing after first paint. */
+.ww-cards-photo {
+  filter:
+    drop-shadow(0 1.5px 1.5px rgba(35, 31, 32, 0.22))
+    drop-shadow(0 6px 8px rgba(35, 31, 32, 0.16))
+    drop-shadow(0 18px 22px rgba(35, 31, 32, 0.14));
+}
+[data-theme="night"] .ww-cards-photo {
+  filter:
+    drop-shadow(0 1.5px 1.5px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 6px 8px rgba(0, 0, 0, 0.35))
+    drop-shadow(0 18px 22px rgba(0, 0, 0, 0.3));
+}
