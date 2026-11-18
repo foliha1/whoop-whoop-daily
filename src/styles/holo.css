@@ -302,6 +302,12 @@ html[data-skin="holo"] .ww-game-card::after {
      this follows both the round rim and the exposed diagonal peel. */
   filter: var(--ho-sticker-shadow);
 }
+/* Night: the warm-black shadow disappears against the dark page, so the same
+   lift is painted with a deeper, slightly wider shadow instead. */
+html[data-skin="holo"][data-theme="night"] .ww-day100-sticker {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 6px 9px rgba(0, 0, 0, 0.45));
+}
 .ww-day100-sticker__face {
   position: absolute;
   inset: 0;
