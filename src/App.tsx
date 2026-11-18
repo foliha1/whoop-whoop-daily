@@ -88,6 +88,30 @@ const ProductInstallHead: React.FC = () => {
   const title = classic ? "WHOOP! WHOOP! Classic" : home ? "WHOOP! WHOOP!" : "WHOOP! WHOOP! Daily";
   const themeColor = classic ? "#231F20" : "#F8F2E9";
 
+  // Keep exactly one canonical per page: a page's own canonical replaces the
+  // static homepage one; pages without one get their own address.
+  useEffect(() => {
+    const sync = () => {
+      const own = document.head.querySelector('link[rel="canonical"][data-rh]');
+      const fallback = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]:not([data-rh])');
+      if (own) fallback?.remove();
+      else {
+        const href = `https://whoop-whoop.com${pathname === "/" ? "/" : pathname.replace(/\/$/, "")}`;
+        if (fallback) fallback.href = href;
+        else {
+          const link = document.createElement("link");
+          link.rel = "canonical";
+          link.href = href;
+          document.head.appendChild(link);
+        }
+      }
+    };
+    const observer = new MutationObserver(sync);
+    observer.observe(document.head, { childList: true });
+    sync();
+    return () => observer.disconnect();
+  }, [pathname]);
+
   return (
     <Helmet>
       <link rel="icon" href={home ? "/icons/home/favicon-32.png?v=20260929" : `/icons/${product}/favicon-32.png?v=${INSTALL_ASSET_VERSION}`} sizes="32x32" type="image/png" />
