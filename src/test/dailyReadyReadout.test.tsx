@@ -116,7 +116,8 @@ describe("the Daily before the run starts", () => {
 
     // The pre-start state really is on screen: dialog open, nothing dealt.
     expect(
-      screen.getByRole("heading", { name: /Whoop! Whoop! Daily #/i })
+      // Title is "Whoop! Whoop! Daily #N", or "100 Days of Daily" on #100.
+      screen.getByRole("heading", { name: /Whoop! Whoop! Daily #|100 Days of Daily/i })
     ).toBeInTheDocument();
     expect(screen.getByTestId("daily-start")).toBeInTheDocument();
 
