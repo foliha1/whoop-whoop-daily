@@ -88,22 +88,31 @@ const ProductInstallHead: React.FC = () => {
   const title = classic ? "WHOOP! WHOOP! Classic" : home ? "WHOOP! WHOOP!" : "WHOOP! WHOOP! Daily";
   const themeColor = classic ? "#231F20" : "#F8F2E9";
 
-  // Keep exactly one canonical per page: a page's own canonical replaces the
-  // static homepage one; pages without one get their own address.
+  // Keep exactly one canonical and one og:url per page: a page's own tag
+  // replaces the static homepage one; pages without one get their own address.
   useEffect(() => {
+    const href = `https://whoop-whoop.com${pathname === "/" ? "/" : pathname.replace(/\/$/, "")}`;
     const sync = () => {
       const own = document.head.querySelector('link[rel="canonical"][data-rh]');
       const fallback = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]:not([data-rh])');
       if (own) fallback?.remove();
+      else if (fallback) fallback.href = href;
       else {
-        const href = `https://whoop-whoop.com${pathname === "/" ? "/" : pathname.replace(/\/$/, "")}`;
-        if (fallback) fallback.href = href;
-        else {
-          const link = document.createElement("link");
-          link.rel = "canonical";
-          link.href = href;
-          document.head.appendChild(link);
-        }
+        const link = document.createElement("link");
+        link.rel = "canonical";
+        link.href = href;
+        document.head.appendChild(link);
+      }
+
+      const ownOg = document.head.querySelector('meta[property="og:url"][data-rh]');
+      const fallbackOg = document.head.querySelector<HTMLMetaElement>('meta[property="og:url"]:not([data-rh])');
+      if (ownOg) fallbackOg?.remove();
+      else if (fallbackOg) fallbackOg.content = href;
+      else {
+        const meta = document.createElement("meta");
+        meta.setAttribute("property", "og:url");
+        meta.content = href;
+        document.head.appendChild(meta);
       }
     };
     const observer = new MutationObserver(sync);
