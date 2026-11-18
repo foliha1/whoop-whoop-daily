@@ -9,7 +9,7 @@ export const PREORDER_ANNOUNCEMENT = {
   seenKey: "ww-preorder-announcement-v1",
   headline: "Whoop! Whoop! is coming to the table.",
   intro: "The memory game where the rules keep changing, now as a real card game. 48 cards, a Match Die, and a canvas drawstring bag.",
-  offer: "Pre-order for $35 with free shipping. Ships early December 2026.",
+  offer: "Pre-order for $35 with free shipping.\nShips early December 2026.",
   primary: "Pre-order now",
   secondary: "Not now",
 } as const;
@@ -52,7 +52,7 @@ const PreorderAnnouncement: React.FC<{ onClose: () => void }> = ({ onClose }) =>
           {PREORDER_ANNOUNCEMENT.intro}
         </p>
       </div>
-      <p style={{ ...textStyle("subhead", mobile), margin: 0, color: COLORS.ink }}>
+      <p style={{ ...textStyle("subhead", mobile), margin: 0, color: COLORS.ink, whiteSpace: "pre-line" }}>
         {PREORDER_ANNOUNCEMENT.offer}
       </p>
     </ReleaseAnnouncement>
