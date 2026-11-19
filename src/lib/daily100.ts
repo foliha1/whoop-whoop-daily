@@ -2,10 +2,9 @@
 // Daily #100 ("100 Days of Daily"), 18 Nov 2026.
 //
 // - Copy: the Daily is titled "100 Days of Daily" for puzzle #100.
-// - Keepsake: a one-day foil badge, earned by having a Daily #100 record on
-//   this device (any finished or forfeited run of the 18 Nov puzzle). It is
-//   derived client-side from the stored result, so it needs no server change
-//   and stays forever once earned.
+// - Keepsake: a one-day foil badge, earned by having a Daily #100 record (any
+//   finished or forfeited run of the 18 Nov puzzle). Your Stats checks this
+//   device first, then restores an earned badge from the player's saved result.
 // - Splash: the DAY / 100 / !!! card flip, once per device on Holo Day.
 // ============================================================================
 

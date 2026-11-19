@@ -10,11 +10,12 @@ import CurrentTierBadge from "@/components/CurrentTierBadge";
 import MotionReveal from "@/components/MotionReveal";
 import CardFlipLoader from "@/components/CardFlipLoader";
 import YouBadgeShelf from "@/components/YouBadgeShelf";
-import { withKeepsake } from "@/lib/daily100";
+import { DAILY_100_NUMBER, hasDaily100Keepsake, withKeepsake } from "@/lib/daily100";
 import YouScoreTiles from "@/components/YouScoreTiles";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePointsPopulationState, useWhoopPointsState } from "@/hooks/useWhoopPoints";
-import { fetchDailyStats, type DailyStats } from "@/lib/dailyResults";
+import { fetchDailyStats, fetchFirstAttempt, type DailyStats } from "@/lib/dailyResults";
+import { useSubscriberStatus } from "@/hooks/useSubscriberStatus";
 import { DECAY_PER_DAY, DECAY_PROTECTED_POINTS, GRACE_DAYS, MAX_POINTS_PER_GAME, POINT_FIRST_TRY_MAX } from "@/lib/whoopPoints";
 import { SCORE_LABEL, TIER_LADDER, badgeArt, tierName, tierRange } from "@/lib/whoopTiers";
 import { enterThemeZone, leaveThemeZone, prewarmTheme } from "@/lib/sounds";
@@ -46,12 +47,22 @@ const YouPage: React.FC = () => {
   const backToResults = (location.state as { wwReturn?: string } | null)?.wwReturn === "results";
   const { points, loading } = useWhoopPointsState();
   const { population, loading: populationLoading } = usePointsPopulationState();
+  const { email: accountEmail } = useSubscriberStatus();
   const [stats, setStats] = React.useState<DailyStats | null>(null);
+  const [savedDaily100, setSavedDaily100] = React.useState(false);
   React.useEffect(() => {
     let live = true;
     void fetchDailyStats().then((result) => { if (live) setStats(result); });
     return () => { live = false; };
   }, []);
+  React.useEffect(() => {
+    let live = true;
+    setSavedDaily100(false);
+    void fetchFirstAttempt(DAILY_100_NUMBER, accountEmail).then((result) => {
+      if (live) setSavedDaily100(result !== null);
+    });
+    return () => { live = false; };
+  }, [accountEmail]);
   React.useEffect(() => {
     const cancel = afterPaintIdleOrInteraction(() => prewarmTheme());
     enterThemeZone();
@@ -70,6 +81,9 @@ const YouPage: React.FC = () => {
   const nextTier = points?.nextTierThreshold === null ? null :
     TIER_LADDER.find((row) => row.floor === points?.nextTierThreshold);
   const earnedKeys = new Set(points?.badges.map((badge) => badge.key) ?? []);
+  const displayedBadges = points
+    ? withKeepsake(points.badges, savedDaily100 || hasDaily100Keepsake())
+    : [];
 
   return (
     <DailyFrame gap={SPACE[6]} wide topControl={umbrella} align={umbrella ? "top" : "center"}>
@@ -191,10 +205,10 @@ const YouPage: React.FC = () => {
               </p>
             </MotionReveal>
 
-            {withKeepsake(points.badges).length > 0 && (
+            {displayedBadges.length > 0 && (
               <MotionReveal index={6} style={section}>
                 {sectionLabel("Your Badges", mobile)}
-                <YouBadgeShelf badges={withKeepsake(points.badges)} mobile={mobile} />
+                <YouBadgeShelf badges={displayedBadges} mobile={mobile} />
               </MotionReveal>
             )}
           </div>

@@ -1,5 +1,8 @@
 # Roadmap
 
+## Day 100 badge restoration
+- [x] Restore the earned Day 100 badge from the player's saved Daily result when browser storage no longer has it; 17 focused tests pass, and the signed-in Your Badges shelf was browser-verified with the local record removed. Not published.
+
 ## Project monitoring fixes
 - [x] Restore table and Daily group invite-code generation with the correctly scoped cryptographic random function; both generators and real browser table creation verified, with test tables removed.
 - [x] Show the unsubscribed pre-order signup once per app visit, not after every return Home; later visits and the one-time subscriber announcement retain their behavior. Fourteen focused tests and browser navigation checks pass; build clean. Not published.

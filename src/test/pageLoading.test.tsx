@@ -18,7 +18,10 @@ vi.mock("@/hooks/useWhoopPoints", () => ({
 }));
 vi.mock("@/hooks/useMyGroups", () => ({ useMyGroups: () => groupState }));
 vi.mock("@/hooks/useSubscriberStatus", () => ({ useSubscriberStatus: () => ({ email: null }) }));
-vi.mock("@/lib/dailyResults", () => ({ fetchDailyStats: () => Promise.resolve(null) }));
+vi.mock("@/lib/dailyResults", () => ({
+  fetchDailyStats: () => Promise.resolve(null),
+  fetchFirstAttempt: () => Promise.resolve(null),
+}));
 
 import YouPage from "@/pages/YouPage";
 import GroupsPage from "@/pages/GroupsPage";
