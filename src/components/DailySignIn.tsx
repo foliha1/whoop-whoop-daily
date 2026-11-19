@@ -15,6 +15,7 @@ import {
   type SignInFailure,
 } from "@/lib/account";
 import { hapticError, hapticSuccess, hapticTap } from "@/lib/haptics";
+import { trackDaily } from "@/lib/dailyEvents";
 import { BORDER, COLORS, FONT_FAMILY, RAW, RADIUS, SPACE, buttonStyle } from "@/lib/tokens";
 
 const GEIST = '"Geist", "Geist Sans", system-ui, -apple-system, "Segoe UI", sans-serif';
@@ -85,6 +86,12 @@ const DailySignIn: React.FC<{
   const panelHeadingStyle: React.CSSProperties = onAccentSurface
     ? { ...headingStyle, color: RAW.warmBlack }
     : headingStyle;
+
+  // Instrumentation only, once per mount: lets the admin report compare how
+  // many players saw the ask with how many signed in. Queued, never awaited.
+  useEffect(() => {
+    trackDaily("subscribe_shown", { props: { source: "signin" } });
+  }, []);
 
   useEffect(() => {
     if (resendSeconds <= 0) return;

@@ -156,9 +156,10 @@ const RESULT_BLOCK = {
   rounds: 3,
   /** The Whoop Score panel, directly after today's result. */
   score: 4,
-  share: 5,
-  done: 6,
-  email: 7,
+  /** The save-your-score ask, directly under the score it saves. */
+  email: 5,
+  share: 6,
+  done: 7,
 } as const;
 const blockIn = (block: keyof typeof RESULT_BLOCK): React.CSSProperties =>
   ({ "--ww-res-delay": `${RESULT_BLOCK[block] * BLOCK_STAGGER_MS}ms` } as React.CSSProperties);
@@ -887,6 +888,34 @@ const DailyResultCard: React.FC<{
 
 
 
+      {/* The save-your-score ask sits right after the score it saves, above
+          Share and Done. Below Done it was almost never seen: most players
+          leave on Done without scrolling. */}
+      {emailCaptureOpen && (
+        <div
+          data-testid="results-email-capture"
+          className={resultClass}
+          style={{
+            alignSelf: "stretch",
+            border: `2px solid ${RAW.warmBlack}`,
+            borderRadius: RADIUS.sm,
+            background: COLORS.orange,
+            padding: SPACE[6],
+            display: "flex",
+            flexDirection: "column",
+            marginTop: SPACE[6],
+            ...resultMotion("email"),
+          }}
+        >
+          {needsSignInToSave && (
+            <p
+              data-testid="sign-in-to-save"
+              style={{ ...textStyle("body", mobile), color: RAW.warmBlack, margin: 0, marginBottom: SPACE[4] }}
+            >
+              Sign in to save this game.
+            </p>
+          )}
+
       {/* Tier 4 — the actions are a different kind of thing from the readout. */}
       <div className={resultClass} style={{ alignSelf: "stretch", marginTop: SPACE[6], ...resultMotion("share") }}>
         <ShareBlock
@@ -912,30 +941,6 @@ const DailyResultCard: React.FC<{
         Done
       </button>
 
-      {emailCaptureOpen && (
-        <div
-          data-testid="results-email-capture"
-          className={resultClass}
-          style={{
-            alignSelf: "stretch",
-            border: `2px solid ${RAW.warmBlack}`,
-            borderRadius: RADIUS.sm,
-            background: COLORS.orange,
-            padding: SPACE[6],
-            display: "flex",
-            flexDirection: "column",
-            marginTop: SPACE[8],
-            ...resultMotion("email"),
-          }}
-        >
-          {needsSignInToSave && (
-            <p
-              data-testid="sign-in-to-save"
-              style={{ ...textStyle("body", mobile), color: RAW.warmBlack, margin: 0, marginBottom: SPACE[4] }}
-            >
-              Sign in to save this game.
-            </p>
-          )}
           <DailyEmailCapture
             onAccentSurface
             onSubscribed={(email, restored) => {
