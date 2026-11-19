@@ -24,7 +24,9 @@ const WhoopPointsChange: React.FC<{
   newBadge?: boolean;
   /** The Daily results slot already owns its staggered entrance. */
   animate?: boolean;
-}> = ({ points, mobile, tierUp = false, newBadge = false, animate = true }) => {
+  /** Your Stats is for signed-in players; the Daily results hide it until then. */
+  showStatsLink?: boolean;
+}> = ({ points, mobile, tierUp = false, newBadge = false, animate = true, showStatsLink = true }) => {
   if (points === null) return null;
 
   const tierHasArt = badgeArt(points.tier) !== null;
@@ -165,6 +167,7 @@ const WhoopPointsChange: React.FC<{
           </div>
         </div>
       )}
+      {showStatsLink && (
       <div
         style={{
           display: "grid",
@@ -184,6 +187,7 @@ const WhoopPointsChange: React.FC<{
           Your Stats
         </Link>
       </div>
+      )}
       {tierUp && !newBadge && (
         <span
           data-testid="result-tier-up"

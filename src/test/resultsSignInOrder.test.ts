@@ -25,3 +25,11 @@ describe("Daily results sign-in placement", () => {
     expect(done).toBeGreaterThan(boxClose);
   });
 });
+
+describe("Daily results sign-in styling", () => {
+  it("puts the ask on the blue panel and hides Your Stats until sign-in", () => {
+    expect(src).toContain("background: COLORS.blue");
+    expect(src).toContain("<DailyEmailCapture\n            onBlueSurface");
+    expect(src).toContain("showStatsLink={!emailCaptureOpen}");
+  });
+});

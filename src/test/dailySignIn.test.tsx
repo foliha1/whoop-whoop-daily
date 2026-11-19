@@ -48,6 +48,14 @@ async function finishResendCooldown() {
 }
 
 describe("optional sign-in", () => {
+  it("uses cream ink, the bigger ask and a red Save My Score button on the blue results panel", () => {
+    render(<DailySignIn onBlueSurface />);
+    expect(screen.getByRole("heading", { name: "Save your score!" })).toHaveStyle({ color: "#F8F2E9" });
+    expect(screen.getByText(/Keep your streak and points/)).toHaveStyle({ color: "#F8F2E9" });
+    expect(screen.getByRole("link", { name: "Privacy" })).toHaveStyle({ color: "#F8F2E9" });
+    expect(screen.getByRole("button", { name: "Save My Score" })).toBeInTheDocument();
+  });
+
   it("keeps text on the fixed orange score panel warm black in night mode", () => {
     render(<DailySignIn onAccentSurface />);
     expect(screen.getByRole("heading", { name: "Save your score." })).toHaveStyle({ color: "#231f20" });

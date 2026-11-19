@@ -45,6 +45,8 @@ const DailyEmailCapture: React.FC<{
   onChoiceRequiredChange?: (required: boolean) => void;
   /** The result screen places this form directly on its fixed orange panel. */
   onAccentSurface?: boolean;
+  /** The result screen places this form on its fixed blue panel. */
+  onBlueSurface?: boolean;
   /** Extra content under the body (the lobby Subscribe benefits list). */
   intro?: React.ReactNode;
   className?: string;
@@ -60,6 +62,7 @@ const DailyEmailCapture: React.FC<{
   autoFocus = false,
   onChoiceRequiredChange,
   onAccentSurface = false,
+  onBlueSurface = false,
   intro,
   className,
   onDone,
@@ -73,6 +76,7 @@ const DailyEmailCapture: React.FC<{
       <DailySignIn
         autoFocus={autoFocus}
         onAccentSurface={onAccentSurface}
+        onBlueSurface={onBlueSurface}
         onSignedIn={onSubscribed}
         onChoiceRequiredChange={onChoiceRequiredChange}
       />

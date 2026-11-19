@@ -880,7 +880,7 @@ const DailyResultCard: React.FC<{
           opacity: whoop ? 1 : 0,
           transition: scoreSlotMotion ? "opacity 300ms ease-out 150ms" : "none",
         }}>
-          <WhoopPointsChange points={whoop} mobile={mobile} tierUp={tierUp} newBadge={keepsakeToday} animate={false} />
+          <WhoopPointsChange points={whoop} mobile={mobile} tierUp={tierUp} newBadge={keepsakeToday} animate={false} showStatsLink={!emailCaptureOpen} />
         </div>
       </div>
 
@@ -899,7 +899,9 @@ const DailyResultCard: React.FC<{
             alignSelf: "stretch",
             border: `2px solid ${RAW.warmBlack}`,
             borderRadius: RADIUS.sm,
-            background: COLORS.orange,
+            // Blue, not orange: the score panel turns orange on a tier-up day,
+            // and two orange blocks in a row hid the ask.
+            background: COLORS.blue,
             padding: SPACE[6],
             display: "flex",
             flexDirection: "column",
@@ -910,13 +912,13 @@ const DailyResultCard: React.FC<{
           {needsSignInToSave && (
             <p
               data-testid="sign-in-to-save"
-              style={{ ...textStyle("body", mobile), color: RAW.warmBlack, margin: 0, marginBottom: SPACE[4] }}
+              style={{ ...textStyle("body", mobile), color: COLORS.onBlue, margin: 0, marginBottom: SPACE[4] }}
             >
               Sign in to save this game.
             </p>
           )}
           <DailyEmailCapture
-            onAccentSurface
+            onBlueSurface
             onSubscribed={(email, restored) => {
               setEmailCaptureOpen(false);
               onSubscribed?.(email, restored);

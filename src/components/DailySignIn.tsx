@@ -65,9 +65,14 @@ const DailySignIn: React.FC<{
   autoFocus?: boolean;
   /** Keep text readable when this form sits directly on the fixed orange results panel. */
   onAccentSurface?: boolean;
+  /**
+   * The Daily results place this form on a fixed blue panel so it stands apart
+   * from the score: cream ink, a bigger ask, and a red main button.
+   */
+  onBlueSurface?: boolean;
   onSignedIn?: (email: string, restored: boolean) => void;
   onChoiceRequiredChange?: (required: boolean) => void;
-}> = ({ autoFocus = false, onAccentSurface = false, onSignedIn, onChoiceRequiredChange }) => {
+}> = ({ autoFocus = false, onAccentSurface = false, onBlueSurface = false, onSignedIn, onChoiceRequiredChange }) => {
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -80,12 +85,17 @@ const DailySignIn: React.FC<{
   const [resendSeconds, setResendSeconds] = useState(0);
   const [resendStatus, setResendStatus] = useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const panelBodyStyle: React.CSSProperties = onAccentSurface
-    ? { ...bodyStyle, color: RAW.warmBlack }
+  // Fixed ink for fixed panels: theme ink would vanish on brand fills at night.
+  const panelInk = onBlueSurface ? COLORS.onBlue : onAccentSurface ? RAW.warmBlack : null;
+  const panelBodyStyle: React.CSSProperties = panelInk
+    ? { ...bodyStyle, color: panelInk }
     : bodyStyle;
-  const panelHeadingStyle: React.CSSProperties = onAccentSurface
-    ? { ...headingStyle, color: RAW.warmBlack }
+  const panelHeadingStyle: React.CSSProperties = panelInk
+    ? { ...headingStyle, color: panelInk }
     : headingStyle;
+  const mutedInk = panelInk ?? COLORS.inkMuted;
+  // On the blue panel saving is the screen's main action, so it takes red.
+  const mainButton = onBlueSurface ? "primary" : "secondary";
 
   // Instrumentation only, once per mount: lets the admin report compare how
   // many players saw the ask with how many signed in. Queued, never awaited.
@@ -192,7 +202,7 @@ const DailySignIn: React.FC<{
         <p style={panelHeadingStyle}>
           {games > 1 ? `Welcome back — we found ${games} games.` : "You're signed in."}
         </p>
-        <p style={{ ...panelBodyStyle, color: onAccentSurface ? RAW.warmBlack : COLORS.inkMuted }}>
+        <p style={{ ...panelBodyStyle, color: mutedInk }}>
           {reminderYes ? "See you tomorrow morning." : "Your score now follows you to any device."}
         </p>
       </div>
@@ -209,7 +219,7 @@ const DailySignIn: React.FC<{
           className="ww-press"
           disabled={busy}
           onClick={() => void answer(true)}
-          style={{ ...buttonStyle("secondary", "lg", { fullWidth: true }), width: "100%" }}
+          style={{ ...buttonStyle(mainButton, "lg", { fullWidth: true }), width: "100%" }}
         >
           Sounds good!
         </button>
@@ -239,11 +249,15 @@ const DailySignIn: React.FC<{
       data-testid="signin-form"
       style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}
     >
-      <h2 style={panelHeadingStyle}>{isCode ? "Check your email." : "Save your score."}</h2>
+      <h2 style={onBlueSurface && !isCode ? { ...panelHeadingStyle, fontSize: 28 } : panelHeadingStyle}>
+        {isCode ? "Check your email." : onBlueSurface ? "Save your score!" : "Save your score."}
+      </h2>
       <p style={panelBodyStyle}>
         {isCode
           ? `We sent a 6-digit code to ${email.trim().toLowerCase()}.`
-          : "Sign in with your email to keep your streak and points on any device. No password, just a code."}
+          : onBlueSurface
+            ? "Keep your streak and points on any device. No password, just a code."
+            : "Sign in with your email to keep your streak and points on any device. No password, just a code."}
       </p>
       {isCode ? (
         <input
@@ -286,11 +300,11 @@ const DailySignIn: React.FC<{
         className="ww-press"
         disabled={busy}
         style={{
-          ...buttonStyle("secondary", "lg", { fullWidth: true }),
+          ...buttonStyle(mainButton, "lg", { fullWidth: true }),
           width: "100%",
         }}
       >
-        {isCode ? "Sign In" : "Send Code"}
+        {isCode ? "Sign In" : onBlueSurface ? "Save My Score" : "Send Code"}
       </button>
       {isCode && (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPACE[2] }}>
@@ -314,12 +328,12 @@ const DailySignIn: React.FC<{
           >
             Use a different email
           </button>
-          {resendStatus && <p role="status" style={{ ...panelBodyStyle, fontSize: 13, color: onAccentSurface ? RAW.warmBlack : COLORS.inkMuted }}>{resendStatus}</p>}
+          {resendStatus && <p role="status" style={{ ...panelBodyStyle, fontSize: 13, color: mutedInk }}>{resendStatus}</p>}
         </div>
       )}
-      <p style={{ ...panelBodyStyle, fontSize: 12, color: onAccentSurface ? RAW.warmBlack : COLORS.inkMuted }}>
+      <p style={{ ...panelBodyStyle, fontSize: 12, color: mutedInk }}>
         By adding your email address, you agree to receive occasional updates from the Whoop! Whoop! team. Opt-out at any time (and still track your scores).{" "}
-        <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: onAccentSurface ? RAW.warmBlack : COLORS.inkMuted, textDecoration: "underline" }}>
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: mutedInk, textDecoration: "underline" }}>
           Privacy
         </a>
         .
