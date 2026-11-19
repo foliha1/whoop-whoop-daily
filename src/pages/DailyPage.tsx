@@ -915,6 +915,16 @@ const DailyResultCard: React.FC<{
               Sign in to save this game.
             </p>
           )}
+          <DailyEmailCapture
+            onAccentSurface
+            onSubscribed={(email, restored) => {
+              setEmailCaptureOpen(false);
+              onSubscribed?.(email, restored);
+            }}
+            onChoiceRequiredChange={setReminderChoiceRequired}
+          />
+        </div>
+      )}
 
       {/* Tier 4 — the actions are a different kind of thing from the readout. */}
       <div className={resultClass} style={{ alignSelf: "stretch", marginTop: SPACE[6], ...resultMotion("share") }}>
@@ -940,17 +950,6 @@ const DailyResultCard: React.FC<{
       >
         Done
       </button>
-
-          <DailyEmailCapture
-            onAccentSurface
-            onSubscribed={(email, restored) => {
-              setEmailCaptureOpen(false);
-              onSubscribed?.(email, restored);
-            }}
-            onChoiceRequiredChange={setReminderChoiceRequired}
-          />
-        </div>
-      )}
 
     </div>
   );
