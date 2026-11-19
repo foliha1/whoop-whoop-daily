@@ -35,6 +35,7 @@ vi.mock("@/hooks/useSubscriberStatus", () => ({
 vi.mock("@/lib/dailyResults", () => ({
   fetchDailyStats: () => Promise.resolve(null),
   fetchFirstAttempt: firstAttempt,
+  fetchDailyResults: () => Promise.resolve([]),
 }));
 
 import YouPage from "@/pages/YouPage";

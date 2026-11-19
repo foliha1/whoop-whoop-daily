@@ -1,10 +1,12 @@
 import React from "react";
 import type { PointsTier } from "@/lib/whoopPoints";
-import { badgeArt, tierName } from "@/lib/whoopTiers";
+import { badgeArt } from "@/lib/whoopTiers";
+import { badgeName } from "@/lib/badgeCatalog";
 import { loadBadgeImage } from "@/lib/badgeImages";
 
 type CurrentTierBadgeProps = {
-  tier: PointsTier;
+  /** Any badge key with art: a tier, or a streak badge like "streak-7". */
+  tier: PointsTier | string;
   size: number;
   testId?: string;
   /** Let a token-sized wrapper scale the decoded art with its layout cell. */
@@ -42,7 +44,7 @@ const CurrentTierBadge: React.FC<CurrentTierBadgeProps> = ({ tier, size, testId,
       data-testid={testId}
       data-tier={tier}
       src={src}
-      alt={`${tierName(tier)} badge`}
+      alt={`${badgeName(tier)} badge`}
       width={size}
       height={size}
       style={{

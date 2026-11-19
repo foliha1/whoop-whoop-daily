@@ -10,11 +10,14 @@ import CurrentTierBadge from "@/components/CurrentTierBadge";
 import MotionReveal from "@/components/MotionReveal";
 import CardFlipLoader from "@/components/CardFlipLoader";
 import YouBadgeShelf from "@/components/YouBadgeShelf";
+import AllBadgesDialog from "@/components/AllBadgesDialog";
+import { streakBadgesFrom, withStreakBadges } from "@/lib/streakBadges";
+import type { EarnedBadge } from "@/lib/whoopPoints";
 import { DAILY_100_NUMBER, hasDaily100Keepsake, withKeepsake } from "@/lib/daily100";
 import YouScoreTiles from "@/components/YouScoreTiles";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePointsPopulationState, useWhoopPointsState } from "@/hooks/useWhoopPoints";
-import { fetchDailyStats, fetchFirstAttempt, type DailyStats } from "@/lib/dailyResults";
+import { fetchDailyResults, fetchDailyStats, fetchFirstAttempt, type DailyStats } from "@/lib/dailyResults";
 import { useSubscriberStatus } from "@/hooks/useSubscriberStatus";
 import { DECAY_PER_DAY, DECAY_PROTECTED_POINTS, GRACE_DAYS, MAX_POINTS_PER_GAME, POINT_FIRST_TRY_MAX } from "@/lib/whoopPoints";
 import { SCORE_LABEL, TIER_LADDER, badgeArt, tierName, tierRange } from "@/lib/whoopTiers";
@@ -50,11 +53,19 @@ const YouPage: React.FC = () => {
   const { email: accountEmail } = useSubscriberStatus();
   const [stats, setStats] = React.useState<DailyStats | null>(null);
   const [savedDaily100, setSavedDaily100] = React.useState(false);
+  const [streakBadges, setStreakBadges] = React.useState<EarnedBadge[]>([]);
   React.useEffect(() => {
     let live = true;
     void fetchDailyStats().then((result) => { if (live) setStats(result); });
     return () => { live = false; };
   }, []);
+  // Streak badges come from the identity-scoped server history, so they follow
+  // a signed-in player across devices and backfill streaks from before launch.
+  React.useEffect(() => {
+    let live = true;
+    void fetchDailyResults().then((rows) => { if (live) setStreakBadges(streakBadgesFrom(rows)); });
+    return () => { live = false; };
+  }, [accountEmail]);
   React.useEffect(() => {
     let live = true;
     setSavedDaily100(false);
@@ -82,7 +93,7 @@ const YouPage: React.FC = () => {
     TIER_LADDER.find((row) => row.floor === points?.nextTierThreshold);
   const earnedKeys = new Set(points?.badges.map((badge) => badge.key) ?? []);
   const displayedBadges = points
-    ? withKeepsake(points.badges, savedDaily100 || hasDaily100Keepsake())
+    ? withStreakBadges(withKeepsake(points.badges, savedDaily100 || hasDaily100Keepsake()), streakBadges)
     : [];
 
   return (
@@ -205,12 +216,11 @@ const YouPage: React.FC = () => {
               </p>
             </MotionReveal>
 
-            {displayedBadges.length > 0 && (
-              <MotionReveal index={6} style={section}>
-                {sectionLabel("Your Badges", mobile)}
-                <YouBadgeShelf badges={displayedBadges} mobile={mobile} />
-              </MotionReveal>
-            )}
+            <MotionReveal index={6} style={section}>
+              {sectionLabel("Your Badges", mobile)}
+              {displayedBadges.length > 0 && <YouBadgeShelf badges={displayedBadges} mobile={mobile} />}
+              <AllBadgesDialog earned={displayedBadges} mobile={mobile} />
+            </MotionReveal>
           </div>
         )}
           </TabsContent>

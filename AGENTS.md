@@ -38,3 +38,4 @@
 - The /rules page groups content into numbered chapters via src/components/rulesLayout.tsx; only Quick Start and the Right/Wrong pair are boxed, so the rulebook keeps an open editorial rhythm.
 - Build-time crawler content stays in the HTML but is hidden by a synchronous head-script class in JavaScript-enabled browsers, so deferred application loading cannot flash the fallback; non-JavaScript readers retain the text and shared FAQ data.
 - Skin, Spook, Holo Day and Daily #100 rules live in src/lib/AGENTS.md.
+- Streak badges (src/lib/streakBadges.ts) are derived on Your Stats from the identity-scoped get_daily_results history using the longest run ever, never stored separately, so they backfill earlier streaks, survive broken streaks and follow signed-in players across devices; names and criteria for every badge live in src/lib/badgeCatalog.ts, and the All Badges grid shows art only for earned badges.

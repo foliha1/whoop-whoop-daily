@@ -42,6 +42,14 @@ export const BADGE_ART: Readonly<Record<string, string>> = {
   match_maker: BADGE_URLS.match_maker,
   xray_vision: BADGE_URLS.xray_vision,
   legend: BADGE_URLS.legend,
+  "streak-3": BADGE_URLS["streak-3"],
+  "streak-7": BADGE_URLS["streak-7"],
+  "streak-14": BADGE_URLS["streak-14"],
+  "streak-30": BADGE_URLS["streak-30"],
+  "streak-50": BADGE_URLS["streak-50"],
+  "streak-100": BADGE_URLS["streak-100"],
+  "streak-200": BADGE_URLS["streak-200"],
+  "streak-365": BADGE_URLS["streak-365"],
 };
 
 export function badgeArt(key: string): string | null {

@@ -11,6 +11,14 @@ import badgeGreatEye from "@/assets/badges/great_eye.svg?url";
 import badgeMatchMaker from "@/assets/badges/match_maker.svg?url";
 import badgeXray from "@/assets/badges/xray_vision.svg?url";
 import badgeLegend from "@/assets/badges/legend.svg?url";
+import badgeStreak3 from "@/assets/badges/streak_3.svg?url";
+import badgeStreak7 from "@/assets/badges/streak_7.svg?url";
+import badgeStreak14 from "@/assets/badges/streak_14.svg?url";
+import badgeStreak30 from "@/assets/badges/streak_30.svg?url";
+import badgeStreak50 from "@/assets/badges/streak_50.svg?url";
+import badgeStreak100 from "@/assets/badges/streak_100.svg?url";
+import badgeStreak200 from "@/assets/badges/streak_200.svg?url";
+import badgeStreak365 from "@/assets/badges/streak_365.svg?url";
 import dailyMp3 from "@/assets/sounds/theme.mp3?url";
 import classicMp3 from "@/assets/sounds/classic-theme.mp3?url";
 import howToMp3 from "@/assets/sounds/how-to-play.mp3?url";
@@ -44,6 +52,14 @@ export const BADGE_URLS = {
   match_maker: badgeMatchMaker,
   xray_vision: badgeXray,
   legend: badgeLegend,
+  "streak-3": badgeStreak3,
+  "streak-7": badgeStreak7,
+  "streak-14": badgeStreak14,
+  "streak-30": badgeStreak30,
+  "streak-50": badgeStreak50,
+  "streak-100": badgeStreak100,
+  "streak-200": badgeStreak200,
+  "streak-365": badgeStreak365,
 } as const;
 export const THEME_MP3 = { daily: dailyMp3, classic: classicMp3, howTo: howToMp3 } as const;
 export const THEME_OGG = { daily: dailyOgg, classic: classicOgg, howTo: howToOgg } as const;

@@ -3,21 +3,13 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { AppButton } from "@/components/ui/AppButton";
 import CurrentTierBadge from "@/components/CurrentTierBadge";
 import Daily100Badge from "@/components/Daily100Badge";
-import { KEEPSAKE_CRITERIA, KEEPSAKE_NAME, isKeepsakeBadge } from "@/lib/daily100";
+import { isKeepsakeBadge } from "@/lib/daily100";
+import { badgeCriteria, badgeName } from "@/lib/badgeCatalog";
 import type { EarnedBadge, PointsTier } from "@/lib/whoopPoints";
-import { POINTS_TIER_FLOORS } from "@/lib/whoopPoints";
-import { badgeArt, formatBadgeDate, tierName } from "@/lib/whoopTiers";
+import { badgeArt, formatBadgeDate } from "@/lib/whoopTiers";
 import { BORDER, COLORS, FONT_SIZE, RADIUS, SPACE, TOUCH_MIN, textStyle } from "@/lib/tokens";
 
-const badgeName = (key: string): string =>
-  isKeepsakeBadge(key) ? KEEPSAKE_NAME : tierName(key as PointsTier) || key;
-
-const unlockCriteria = (key: string): string => {
-  if (isKeepsakeBadge(key)) return KEEPSAKE_CRITERIA;
-  const tier = POINTS_TIER_FLOORS.find((row) => row.tier === key);
-  if (!tier) return "Earned through Daily play.";
-  return tier.floor === 0 ? "Play your first Daily game." : `Reach ${tier.floor} total points.`;
-};
+const unlockCriteria = badgeCriteria;
 
 /** Native touch scrolling on mobile; desktop also offers paging arrows. */
 const YouBadgeShelf: React.FC<{ badges: EarnedBadge[]; mobile: boolean }> = ({ badges, mobile }) => {

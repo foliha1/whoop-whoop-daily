@@ -7,7 +7,7 @@ const loadedBadges = new Map<string, Promise<HTMLImageElement | null>>();
  * Load and decode fixed badge artwork for DOM or Canvas 2D use. Unmapped tiers
  * and failed assets resolve to null, so callers never draw a broken image.
  */
-export function loadBadgeImage(tier: PointsTier): Promise<HTMLImageElement | null> {
+export function loadBadgeImage(tier: PointsTier | string): Promise<HTMLImageElement | null> {
   const src = badgeArt(tier);
   if (src === null || typeof Image === "undefined") return Promise.resolve(null);
 
