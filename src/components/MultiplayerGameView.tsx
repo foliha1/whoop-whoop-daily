@@ -2128,6 +2128,7 @@ const MultiplayerGameView: React.FC<Props> = ({
             onDone={onLeave}
             mobile={mobile}
             mySeat={mySeat}
+            askToSave={soloMode === true}
           />
         )}
 

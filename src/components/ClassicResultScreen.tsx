@@ -7,11 +7,14 @@ import { DAILY_CONTENT_MAX_W } from "@/components/DailyFrame";
 import MotionReveal from "@/components/MotionReveal";
 import ChaseHeadline from "@/components/ChaseHeadline";
 import DailyMilestoneConfetti from "@/components/DailyMilestoneConfetti";
+import DailyEmailModal from "@/components/DailyEmailModal";
+import { getSessionUserId, onAccountChange } from "@/lib/account";
+import { trackDaily } from "@/lib/dailyEvents";
 import {
   BORDER,
-  MOTION,
   RADIUS,
   COLORS,
+  FONT_FAMILY,
   RAW,
   SPACE,
   buttonStyle,
@@ -107,8 +110,18 @@ const ClassicResultScreen: React.FC<{
   mobile?: boolean;
   /** Launched only: the viewer's seat, so a win gets the streak confetti. */
   mySeat?: number | null;
-}> = ({ entries, target, canRematch, onPlayAgain, onInvite, onDone, mobile = false, mySeat = null }) => {
+  /** Solo only: ask a signed-out player to sign in so their wins are kept. */
+  askToSave?: boolean;
+}> = ({ entries, target, canRematch, onPlayAgain, onInvite, onDone, mobile = false, mySeat = null, askToSave = false }) => {
   const portalHost = usePortalHost("mp-result");
+  // The ask hides the moment the player signs in, here or in another tab.
+  const [signedIn, setSignedIn] = useState(() => getSessionUserId() !== null);
+  useEffect(() => onAccountChange(() => setSignedIn(getSessionUserId() !== null)), []);
+  const showSaveAsk = askToSave && !signedIn;
+  const [signInOpen, setSignInOpen] = useState(false);
+  useEffect(() => {
+    if (showSaveAsk) trackDaily("subscribe_shown", { props: { source: "solo" } });
+  }, [showSaveAsk]);
 
   const ordered = entries.slice().sort((a, b) => b.score - a.score);
   // Standard competition ranking: equal scores share the position and the next
@@ -287,8 +300,37 @@ const ClassicResultScreen: React.FC<{
             )}
           </div></MotionReveal>
 
+          {/* Solo save ask: a compact card that opens the shared sign-in
+              dialog, so the keyboard never lands inside this scaled screen. */}
+          {showSaveAsk && (
+            <MotionReveal index={2}><div
+              data-testid="solo-save-ask"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: SPACE[4],
+                padding: SPACE[6],
+                background: COLORS.blue,
+                border: `2px solid ${RAW.warmBlack}`,
+                borderRadius: RADIUS.sm,
+              }}
+            >
+              <h2 style={{ fontFamily: FONT_FAMILY, fontSize: 28, lineHeight: 1.2, fontWeight: 400, color: COLORS.onBlue, margin: 0 }}>Save your wins!</h2>
+              <p style={{ ...textStyle("body", mobile), color: COLORS.onBlue, margin: 0 }}>
+                Keep your wins and stats on any device. No password, just a code.
+              </p>
+              <button
+                type="button"
+                onClick={() => setSignInOpen(true)}
+                style={{ ...buttonStyle("accent", "lg", { mobile, fullWidth: true }), width: "100%" }}
+              >
+                Save My Wins
+              </button>
+            </div></MotionReveal>
+          )}
+
           {/* Buttons */}
-          <MotionReveal index={2}><div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
+          <MotionReveal index={3}><div style={{ display: "flex", flexDirection: "column", gap: SPACE[4] }}>
             {canRematch ? (
               <button
                 type="button"
@@ -368,31 +410,6 @@ const ClassicResultScreen: React.FC<{
             </div>
           </div></MotionReveal>
 
-          {/* Quiet footer: the one route out of Classic, to the Daily. No
-              email capture here — Classic is not an acquisition surface. */}
-          <MotionReveal index={3}><nav
-            aria-label="More from Whoop! Whoop!"
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              marginTop: SPACE[2],
-              opacity: 0.85,
-            }}
-          >
-            <a
-              href={umbrellaOn() ? "/daily" : "/"}
-              style={{
-                ...textStyle("caption", mobile),
-                color: COLORS.inkMuted,
-                textDecoration: "none",
-                borderBottom: `1px solid ${COLORS.inkMuted}`,
-                paddingBottom: 1,
-                transition: MOTION.fast,
-              }}
-            >
-              Play today's Daily
-            </a>
-          </nav></MotionReveal>
         </div>
 
       </FitScale>
@@ -405,6 +422,9 @@ const ClassicResultScreen: React.FC<{
     <>
       {createPortal(body, portalHost)}
       {celebrate && <DailyMilestoneConfetti delayMs={330} />}
+      {signInOpen && (
+        <DailyEmailModal mode="restore" onClose={() => setSignInOpen(false)} />
+      )}
     </>
   ) : null;
 };
