@@ -69,6 +69,8 @@ export interface UseDailyGameResult {
   result: DailyResult | null;
   /** True once the finished run has been persisted. Gates the streak read. */
   resultSaved: boolean;
+  /** True while the mount-time cross-device first-attempt check is unresolved. */
+  checkingResult: boolean;
   /** Today's game is kept on this device until the player signs in to save it. */
   needsSignInToSave: boolean;
   alreadyPlayed: boolean;
@@ -207,9 +209,19 @@ export function useDailyGame(): UseDailyGameResult {
     [adopt, debugBypass, ctx.preLaunch, puzzleNumber]
   );
 
+  const [checkingResult, setCheckingResult] = useState(
+    stored === null && !debugBypass && !ctx.preLaunch,
+  );
   useEffect(() => {
-    if (stored !== null) return;
-    checkRef.current = whenAccountReady().then((e) => checkEmail(e, false));
+    if (stored !== null || debugBypass || ctx.preLaunch) return;
+    let live = true;
+    const pending = whenAccountReady().then((e) => checkEmail(e, false));
+    checkRef.current = pending;
+    void pending.finally(() => {
+      if (live) setCheckingResult(false);
+    });
+    return () => { live = false; };
+    // Mount-time restoration only; later email checks use recheckEmail.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -495,6 +507,7 @@ export function useDailyGame(): UseDailyGameResult {
     puzzleNumber,
     result,
     resultSaved,
+    checkingResult,
     needsSignInToSave,
     alreadyPlayed,
     debugBypass,

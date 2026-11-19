@@ -15,6 +15,7 @@ import DailyHowToSteps, { hasSeenHowTo } from "@/components/DailyHowToSteps";
 import DailyRoundIntro, { DAILY_FADE_IN_MS } from "@/components/DailyRoundIntro";
 import DailyMatchGhost, { type GhostCard } from "@/components/DailyMatchGhost";
 import DailyScreenFade from "@/components/DailyScreenFade";
+import CardFlipLoader from "@/components/CardFlipLoader";
 
 import DailyLogoLockup from "@/components/DailyLogoLockup";
 import SettingsSheet from "@/components/SettingsSheet";
@@ -1309,6 +1310,9 @@ const DailyPage: React.FC = () => {
   const daily = useDailyGame();
   const { state, phase } = daily;
   const navigate = useNavigate();
+  const location = useLocation();
+  const openResultRequested =
+    (location.state as { wwOpenResult?: boolean } | null)?.wwOpenResult === true;
   const [leaveOpen, setLeaveOpen] = useState(false);
   const todayArtReady = React.useRef<Promise<void>>(Promise.resolve());
   const todayArtSources = React.useMemo(
@@ -1653,15 +1657,19 @@ const DailyPage: React.FC = () => {
     daily.result !== null && (daily.alreadyPlayed || (phase === "DONE" && runSettled));
   const finished = playedToday && (showResult || directStart);
   const ready = !finished && (!directStart && phase === "READY" || playedToday);
-  const startDialogOpen = directStart && phase === "READY" && !playedToday && onboardingComplete && howTo === null;
+  // Home can know about a server-saved result before this browser has restored
+  // it. Hold that requested-results entry on a loader instead of flashing the
+  // READY board, start dialog, or first-time tutorial while the check resolves.
+  const awaitingRequestedResult = directStart && openResultRequested && daily.checkingResult && daily.result === null;
+  const startDialogOpen = directStart && phase === "READY" && !playedToday && !awaitingRequestedResult && onboardingComplete && howTo === null;
 
   // ON-only Daily entry has no ready screen. First-time players see the
   // existing onboarding first; everyone else lands on the untouched READY
   // board and explicitly starts the existing deal/study sequence.
   useEffect(() => {
-    if (!directStart || phase !== "READY" || playedToday || onboardingComplete || howTo !== null) return;
+    if (!directStart || phase !== "READY" || playedToday || awaitingRequestedResult || onboardingComplete || howTo !== null) return;
     setHowTo("gate");
-  }, [directStart, phase, playedToday, onboardingComplete, howTo]);
+  }, [directStart, phase, playedToday, awaitingRequestedResult, onboardingComplete, howTo]);
 
   // Results-only release note; caller-validated point history proves return.
   const [announcementReady, setAnnouncementReady] = useState(false);
@@ -1715,7 +1723,6 @@ const DailyPage: React.FC = () => {
   // Back from Your Stats / Groups with today's result already saved: land
   // straight on the results screen instead of asking for the ready screen's
   // "See Today's Result" tap again.
-  const location = useLocation();
   useEffect(() => {
     const fromResults =
       (location.state as { wwOpenResult?: boolean } | null)?.wwOpenResult === true;
@@ -1731,11 +1738,11 @@ const DailyPage: React.FC = () => {
   // `startTheme()` is safe to call before a gesture — it records the intent and
   // the theme fades in as soon as `unlockAudio()` runs.
   useEffect(() => {
-    const screen = umbrella && howTo ? "howTo" : finished ? "results" : ready || umbrella && phase === "READY" ? "entry" : "gameplay";
+    const screen = umbrella && howTo ? "howTo" : finished || awaitingRequestedResult ? "results" : ready || umbrella && phase === "READY" ? "entry" : "gameplay";
     const track = screenMusic(screen, umbrella);
     if (track) startTheme(track);
     else stopTheme();
-  }, [audioReady, ready, finished, umbrella, phase, howTo]);
+  }, [audioReady, ready, finished, awaitingRequestedResult, umbrella, phase, howTo]);
 
   useEffect(() => {
     const cancel = afterPaintIdleOrInteraction(() => prewarmTheme(screenMusic("entry", umbrella) ?? undefined));
@@ -1877,7 +1884,7 @@ const DailyPage: React.FC = () => {
       {startDialogOpen ? (
         <DailyStartDialog puzzleNumber={daily.puzzleNumber} mobile={mobile} busy={playWaiting} onStart={startRun} onHowTo={() => setHowTo("reference")} />
       ) : null}
-      {directStart && howTo ? (
+      {directStart && howTo && !awaitingRequestedResult ? (
         <DailyHowToSteps
           mode={howTo}
           mobile={mobile}
@@ -1889,9 +1896,9 @@ const DailyPage: React.FC = () => {
         />
       ) : null}
       <DailyScreenFade
-        screenKey={finished ? "result" : ready ? "ready" : "play"}
-        background={finished || ready ? COLORS.surface : COLORS.panel}
-        fadeInOnMount={umbrella && finished}
+        screenKey={finished || awaitingRequestedResult ? "result" : ready ? "ready" : "play"}
+        background={finished || awaitingRequestedResult || ready ? COLORS.surface : COLORS.panel}
+        fadeInOnMount={umbrella && (finished || awaitingRequestedResult)}
       >
         {daily.debugBypass && (
           <div
@@ -2006,7 +2013,7 @@ const DailyPage: React.FC = () => {
           </>
         )}
         {!ready && (
-        <DailyFrame gap={SPACE[4]} fill={!finished} tone={finished ? "surface" : "panel"} topControl={umbrella}>
+        <DailyFrame gap={SPACE[4]} fill={!finished && !awaitingRequestedResult} tone={finished || awaitingRequestedResult ? "surface" : "panel"} topControl={umbrella}>
 
           {finished ? (
             <DailyResultCard
@@ -2047,6 +2054,8 @@ const DailyPage: React.FC = () => {
                 else setShowResult(false);
               }}
             />
+          ) : awaitingRequestedResult ? (
+            <CardFlipLoader label="Loading today's results" layout="page" />
           ) : ready ? null : (
             <div
               onKeyDown={boardKeyDown}
