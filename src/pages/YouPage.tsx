@@ -216,10 +216,12 @@ const YouPage: React.FC = () => {
               </p>
             </MotionReveal>
 
-            <MotionReveal index={6} style={section}>
-              {sectionLabel("Your Badges", mobile)}
+            <MotionReveal index={6} style={{ ...section, gap: SPACE[4] }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SPACE[4], minWidth: 0 }}>
+                {sectionLabel("Your Badges", mobile)}
+                <AllBadgesDialog earned={displayedBadges} mobile={mobile} />
+              </div>
               {displayedBadges.length > 0 && <YouBadgeShelf badges={displayedBadges} mobile={mobile} />}
-              <AllBadgesDialog earned={displayedBadges} mobile={mobile} />
             </MotionReveal>
           </div>
         )}

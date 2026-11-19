@@ -49,4 +49,14 @@ describe("AllBadgesDialog", () => {
     expect(within(dialog).getByText("1 of 14 earned")).toBeVisible();
     expect(within(dialog).getByText("Keepsakes")).toBeVisible();
   });
+
+  it("keeps an icon close action outside the scrolling badge list", async () => {
+    render(<AllBadgesDialog mobile earned={[]} />);
+    fireEvent.click(screen.getByRole("button", { name: "See All Badges" }));
+    const dialog = await screen.findByRole("dialog", { name: "All Badges" });
+    const close = within(dialog).getByRole("button", { name: "Close all badges" });
+    expect(within(dialog).getByTestId("all-badges-scroll").contains(close)).toBe(false);
+    fireEvent.click(close);
+    expect(screen.queryByRole("dialog", { name: "All Badges" })).not.toBeInTheDocument();
+  });
 });
