@@ -43,6 +43,7 @@ import {
 import {
   DAILY_LAUNCH_LABEL,
   formatDailyShare,
+  formatDailyShareCaption,
   type DailyResult,
 } from "@/lib/daily";
 import { renderDailyShareImage } from "@/lib/dailyShareImage";
@@ -335,9 +336,9 @@ const ShareBlock: React.FC<{
         ) {
           await navigator.share({
             files: [file],
-            // The result text rides along as the caption, so it can be
-            // copied straight into a scoreboard site (e.g. sussydle) or chat.
-            text,
+            // The image carries the score, so the caption is a short
+            // invitation. Text-only paths keep the scoreboard string.
+            text: formatDailyShareCaption(result.puzzleNumber),
           });
           trackDaily("share_clicked", {
             puzzleNumber: result.puzzleNumber,
