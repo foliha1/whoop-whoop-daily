@@ -1,13 +1,10 @@
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import type { LottieRefCurrentProps } from "lottie-react";
 import { RAW } from "@/lib/tokens";
+import { loadLottieComponent } from "@/lib/lottieLoader";
 
 // Never let a failed chunk fetch throw inside Suspense and blank the screen.
-const Lottie = React.lazy(() =>
-  import("lottie-react")
-    .then((m) => ({ default: m.default }))
-    .catch(() => ({ default: (() => null) as unknown as typeof import("lottie-react").default })),
-);
+const Lottie = React.lazy(loadLottieComponent);
 
 const STORAGE_KEY = "ww_intro_seen";
 const ASSET_URL = "/intro/whoop-intro.json";

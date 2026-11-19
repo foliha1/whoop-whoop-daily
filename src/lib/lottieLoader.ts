@@ -1,0 +1,33 @@
+import type LottieReact from "lottie-react";
+
+type LottieComponent = typeof LottieReact;
+
+const StaticFallback = (() => null) as unknown as LottieComponent;
+
+/**
+ * Production ESM exposes the component at module.default. The preview's
+ * CommonJS compatibility layer can instead expose module.default.default.
+ * Accept both so React.lazy always receives a component, never a module object.
+ */
+export const resolveLottieComponent = (loaded: unknown): LottieComponent | null => {
+  if (!loaded || (typeof loaded !== "object" && typeof loaded !== "function") || !("default" in loaded)) {
+    return null;
+  }
+
+  let component = (loaded as { default: unknown }).default;
+  if (component && typeof component === "object" && "default" in component) {
+    component = (component as { default: unknown }).default;
+  }
+
+  return component ? (component as LottieComponent) : null;
+};
+
+/** A failed or incompatible chunk leaves the caller's static artwork intact. */
+export const loadLottieComponent = async (): Promise<{ default: LottieComponent }> => {
+  try {
+    const loaded = await import("lottie-react");
+    return { default: resolveLottieComponent(loaded) ?? StaticFallback };
+  } catch {
+    return { default: StaticFallback };
+  }
+};

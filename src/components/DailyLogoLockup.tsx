@@ -6,14 +6,11 @@ import animationAsset from "@/assets/whoop-daily-logo.json.asset.json";
 import { useThemeMode } from "@/lib/nightMode";
 import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
 import { HOLO_AT_LOAD } from "@/lib/holoSkin";
+import { loadLottieComponent } from "@/lib/lottieLoader";
 
 // A failed chunk fetch (stale build, flaky network) must never blank the page:
 // resolve to a no-op so the static lockup stays on screen.
-const Lottie = React.lazy(() =>
-  import("lottie-react")
-    .then((m) => ({ default: m.default }))
-    .catch(() => ({ default: (() => null) as unknown as typeof import("lottie-react").default })),
-);
+const Lottie = React.lazy(loadLottieComponent);
 
 const dataPromises = new Map<string, Promise<unknown>>();
 const loadData = (url: string) => {
