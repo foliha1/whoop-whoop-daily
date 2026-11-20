@@ -16,6 +16,7 @@ import { signOut as accountSignOut } from "@/lib/account";
 import { AppButton } from "@/components/ui/AppButton";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import AdminBackupBanner from "@/components/AdminBackupBanner";
+import AdminOverview from "@/components/AdminOverview";
 import { AdminMetricBars } from "@/components/AdminMetricBars";
 import { adminDateRange } from "@/lib/adminPresentation";
 import {
@@ -836,7 +837,17 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
 
       {header}
 
+      {/* Lifetime overview first: the numbers checked every day, in plain
+          questions. Everything date-ranged lives in the closed section below. */}
+      <AdminOverview />
 
+      <Accordion type="single" collapsible style={{ minWidth: 0 }}>
+        <AccordionItem value="detail" style={{ borderColor: COLORS.panelMuted }}>
+          <AccordionTrigger style={{ ...sectionTitle, margin: 0, color: COLORS.ink }}>
+            Detailed reports, diagnostics and exports
+          </AccordionTrigger>
+          <AccordionContent>
+      <div style={{ display: "flex", flexDirection: "column", gap: SPACE[10], minWidth: 0 }}>
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: SPACE[5] }}>
         <span style={labelStyle}>Range</span>
         <div role="group" aria-label="Quick date ranges" style={{ display: "flex", flexWrap: "wrap", gap: SPACE[2] }}>
@@ -1316,6 +1327,10 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         </Card>
 
       </div>
+      </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </main>
   );
 };

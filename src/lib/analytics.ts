@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { isPreviewHost } from "@/lib/previewHost";
 import { getVisitorId } from "@/lib/visitor";
 
 // Must match the allow-list in the log_analytics_events server function;
@@ -38,6 +39,8 @@ export function trackEvent(eventType: AnalyticsEventType, opts: TrackOpts = {}):
     const publicHosts = ["whoop-whoop.com", "www.whoop-whoop.com", "whoop-whoop.lovable.app"];
     if (import.meta.env.DEV || !publicHosts.includes(window.location.hostname)) return;
   }
+  // Lovable previews are test traffic; admin reports count the public game only.
+  if (isPreviewHost()) return;
   // Fire and forget — never block, never throw.
   try {
     const event = {

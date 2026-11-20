@@ -10,6 +10,7 @@
 // ============================================================================
 
 import { supabase } from "@/integrations/supabase/client";
+import { isPreviewHost } from "@/lib/previewHost";
 import { getVisitorId } from "@/lib/visitor";
 
 export type DailyEventName =
@@ -224,7 +225,7 @@ export interface TrackOpts {
  */
 export function trackDaily(event: DailyEventName, opts: TrackOpts = {}): void {
   try {
-    if (!trackingEnabled()) return;
+    if (!trackingEnabled() || isPreviewHost()) return;
     // Ensures attribution exists from the very first event onward.
     getAttribution();
     queue.push({

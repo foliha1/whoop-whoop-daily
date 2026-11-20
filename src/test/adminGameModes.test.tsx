@@ -19,6 +19,11 @@ const emptyFunnel = { ready_viewed: 0, run_started: 0, run_finished: 0, run_aban
 
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 
+// Date-ranged reports live in a closed section below the lifetime overview.
+const openDetail = async () => {
+  fireEvent.click(await screen.findByRole("button", { name: /Detailed reports/ }));
+};
+
 describe("admin mode reporting", () => {
   it("applies a quick date window to every range-scoped report and supports custom dates", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
@@ -26,6 +31,7 @@ describe("admin mode reporting", () => {
     try {
       rpc.mockImplementation(async (name: string) => ({ data: name === "admin_funnel" ? [emptyFunnel] : [], error: null }));
       render(<AdminPage />);
+      await openDetail();
       await screen.findByRole("button", { name: "7 days" });
       fireEvent.click(screen.getByRole("button", { name: "7 days" }));
       await waitFor(() => {
@@ -45,6 +51,7 @@ describe("admin mode reporting", () => {
       { mode: "together", games_completed: 3, median_seconds: 240, avg_players: 4, avg_correct_claims: 8.5, avg_wrong_claims: 2.1 },
     ] : [], error: null }));
     render(<AdminPage />);
+      await openDetail();
     await screen.findByText("1:30");
     const solo = screen.getByRole("heading", { name: "Solo" }).closest("section");
     const together = screen.getByRole("heading", { name: "Together" }).closest("section");
@@ -65,6 +72,7 @@ describe("admin mode reporting", () => {
   it("does not present a failed mode report as zero completed games", async () => {
     rpc.mockImplementation(async (name: string) => ({ data: name === "admin_funnel" ? [emptyFunnel] : [], error: name === "admin_game_modes" ? { message: "Unavailable" } : null }));
     render(<AdminPage />);
+      await openDetail();
     await waitFor(() => expect(screen.getAllByText("Report unavailable")).toHaveLength(2));
     expect(screen.queryByText("No Solo games completed in this range.")).toBeNull();
     expect(screen.queryByText("No Together games completed in this range.")).toBeNull();
