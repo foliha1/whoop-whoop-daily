@@ -19,11 +19,15 @@
 // ============================================================================
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { LAUNCH_CONFIG } from "@/launch.config";
 
 /** Build-time value. True only in a build made after launch day. */
 export const LAUNCHED: boolean = LAUNCH_CONFIG.launched;
+
+// The database client is loaded on demand. Importing it statically here pulled
+// the whole Supabase SDK into the startup bundle, ahead of the first paint.
+const loadSupabase = () =>
+  import("@/integrations/supabase/client").then((m) => m.supabase);
 
 let preview = false;
 let checked = false;
@@ -33,6 +37,8 @@ let generation = 0;
 
 async function resolvePreview(gen: number): Promise<void> {
   try {
+    const supabase = await loadSupabase();
+    if (gen !== generation) return;
     const { data: u } = await supabase.auth.getUser();
     if (gen !== generation) return; // identity changed mid-check: discard
     if (!u.user) return;
@@ -75,25 +81,37 @@ export function umbrellaOn(): boolean {
 export function useUmbrella(): boolean {
   const [on, setOn] = useState(umbrellaOn());
   useEffect(() => {
+    // After launch the answer is fixed: no preview check, no auth listener,
+    // and no reason to load the database client at startup.
+    if (LAUNCHED) return;
     let live = true;
     void initUmbrellaPreview().then(() => {
       if (live) setOn(umbrellaOn());
     });
-    const authSubscription = supabase.auth?.onAuthStateChange?.((event) => {
-      // Only a real identity change re-resolves the preview; the initial
-      // session restore and token refreshes must not wipe it.
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") return;
-      generation += 1; // discards any check that was still running
-      checked = false;
-      preview = false;
-      setOn(false);
-      void initUmbrellaPreview().then(() => {
-        if (live) setOn(umbrellaOn());
+    let unsubscribe: (() => void) | null = null;
+    void loadSupabase()
+      .then((supabase) => {
+        if (!live) return;
+        const authSubscription = supabase.auth?.onAuthStateChange?.((event) => {
+          // Only a real identity change re-resolves the preview; the initial
+          // session restore and token refreshes must not wipe it.
+          if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") return;
+          generation += 1; // discards any check that was still running
+          checked = false;
+          preview = false;
+          setOn(false);
+          void initUmbrellaPreview().then(() => {
+            if (live) setOn(umbrellaOn());
+          });
+        });
+        unsubscribe = () => authSubscription?.data.subscription.unsubscribe();
+      })
+      .catch(() => {
+        /* stays OFF */
       });
-    });
     return () => {
       live = false;
-      authSubscription?.data.subscription.unsubscribe();
+      unsubscribe?.();
     };
   }, []);
   return on;

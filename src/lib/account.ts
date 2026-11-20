@@ -6,13 +6,16 @@
 // requests to make. Nothing here is ever trusted as proof of who someone is.
 // ============================================================================
 
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/db";
 import { getVisitorId } from "@/lib/visitor";
 import { trackDaily } from "@/lib/dailyEvents";
 import { isAccountOwnedRecord, type DailyResultOwner } from "@/lib/daily";
 import { resolveDisplayName } from "@/lib/profile";
 import { umbrellaOn } from "@/lib/launch";
-import { markUpdatesSubscription, UPDATES_SUBSCRIBED_KEY } from "@/lib/updatesSubscriptionStatus";
+import {
+  markUpdatesSubscription,
+  UPDATES_SUBSCRIBED_KEY,
+} from "@/lib/updatesSubscriptionStatus";
 
 let sessionEmail: string | null = null;
 let sessionUserId: string | null = null;
@@ -40,10 +43,14 @@ function publish(next: string | null) {
  * clears account-owned local state — however the sign-out was triggered, so a
  * direct auth call elsewhere can never skip it.
  */
-export function handleAuthIdentity(event: string, nextUserId: string | null): boolean {
+export function handleAuthIdentity(
+  event: string,
+  nextUserId: string | null,
+): boolean {
   const prev = sessionUserId;
   sessionUserId = nextUserId;
-  const crossed = event === "SIGNED_OUT" || (prev !== null && prev !== nextUserId);
+  const crossed =
+    event === "SIGNED_OUT" || (prev !== null && prev !== nextUserId);
   if (crossed) clearLocalPlayerData();
   return crossed;
 }
@@ -55,25 +62,30 @@ export function handleAuthIdentity(event: string, nextUserId: string | null): bo
 // alone; those keys are owned by dailySubscribe (clearSubscribed forgets them
 // explicitly) and nothing reads the stored email. Nothing is removed here.
 
-try {
-  supabase.auth.onAuthStateChange((event, session) => {
-    handleAuthIdentity(event, session?.user?.id ?? null);
-    if (session?.user?.id) setDeviceLinkedHint(true);
-    publish(session?.user?.email ?? null);
-    // Umbrella Part 1: account name sync only after launch / admin preview.
-    if (session?.user?.id && umbrellaOn()) void resolveDisplayName();
-  });
-  void supabase.auth
-    .getUser()
-    .then(({ data }) => {
-      if (sessionUserId === null && data.user?.id) sessionUserId = data.user.id;
-      publish(data.user?.email ?? null);
-      if (data.user?.id && umbrellaOn()) void resolveDisplayName();
-    })
-    .catch(() => publish(null));
-} catch {
-  publish(null);
-}
+void getSupabase()
+  .then((supabase) => {
+    try {
+      supabase.auth.onAuthStateChange((event, session) => {
+        handleAuthIdentity(event, session?.user?.id ?? null);
+        if (session?.user?.id) setDeviceLinkedHint(true);
+        publish(session?.user?.email ?? null);
+        // Umbrella Part 1: account name sync only after launch / admin preview.
+        if (session?.user?.id && umbrellaOn()) void resolveDisplayName();
+      });
+      void supabase.auth
+        .getUser()
+        .then(({ data }) => {
+          if (sessionUserId === null && data.user?.id)
+            sessionUserId = data.user.id;
+          publish(data.user?.email ?? null);
+          if (data.user?.id && umbrellaOn()) void resolveDisplayName();
+        })
+        .catch(() => publish(null));
+    } catch {
+      publish(null);
+    }
+  })
+  .catch(() => publish(null));
 
 /** The signed-in user id, or null. Synchronous; may be null until ready. */
 export function getSessionUserId(): string | null {
@@ -96,27 +108,39 @@ export function whenAccountReady(): Promise<string | null> {
   return ready;
 }
 
-export function onAccountChange(fn: (email: string | null) => void): () => void {
+export function onAccountChange(
+  fn: (email: string | null) => void,
+): () => void {
   listeners.add(fn);
   return () => listeners.delete(fn);
 }
 
-export type SignInFailure = "invalid_code" | "expired" | "rate_limited" | "send_error";
+export type SignInFailure =
+  "invalid_code" | "expired" | "rate_limited" | "send_error";
 // Must match the Email OTP length configured in the auth settings (6 digits).
-export const isValidSignInCode = (code: string): boolean => /^[0-9]{6}$/.test(code.trim());
+export const isValidSignInCode = (code: string): boolean =>
+  /^[0-9]{6}$/.test(code.trim());
 
-function classify(message: string | undefined, sending: boolean): SignInFailure {
+function classify(
+  message: string | undefined,
+  sending: boolean,
+): SignInFailure {
   const m = (message ?? "").toLowerCase();
-  if (m.includes("rate") || m.includes("too many") || m.includes("429")) return "rate_limited";
+  if (m.includes("rate") || m.includes("too many") || m.includes("429"))
+    return "rate_limited";
   if (sending) return "send_error";
   if (m.includes("expired")) return "expired";
   return "invalid_code";
 }
 
-export async function sendSignInCode(email: string): Promise<{ ok: true } | { ok: false; reason: SignInFailure }> {
+export async function sendSignInCode(
+  email: string,
+): Promise<{ ok: true } | { ok: false; reason: SignInFailure }> {
   trackDaily("signin_started");
   try {
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await (
+      await getSupabase()
+    ).auth.signInWithOtp({
       email: email.trim().toLowerCase(),
       options: { shouldCreateUser: true },
     });
@@ -143,7 +167,9 @@ export interface MergeResult {
 /** Links this browser to the signed-in account and merges its history. */
 export async function linkDeviceAndMerge(): Promise<MergeResult | null> {
   try {
-    const { data, error } = await supabase.rpc("link_device_and_merge", {
+    const { data, error } = await (
+      await getSupabase()
+    ).rpc("link_device_and_merge", {
       p_visitor_id: getVisitorId(),
     });
     if (error) return null;
@@ -163,11 +189,15 @@ export async function linkDeviceAndMerge(): Promise<MergeResult | null> {
 
 export async function verifySignInCode(
   email: string,
-  code: string
-): Promise<{ ok: true; merge: MergeResult | null } | { ok: false; reason: SignInFailure }> {
+  code: string,
+): Promise<
+  { ok: true; merge: MergeResult | null } | { ok: false; reason: SignInFailure }
+> {
   if (!isValidSignInCode(code)) return { ok: false, reason: "invalid_code" };
   try {
-    const { data, error } = await supabase.auth.verifyOtp({
+    const { data, error } = await (
+      await getSupabase()
+    ).auth.verifyOtp({
       email: email.trim().toLowerCase(),
       token: code.trim(),
       type: "email",
@@ -183,19 +213,37 @@ export async function verifySignInCode(
     // so later signed-out opens still receive the subscriber announcement.
     markUpdatesSubscription();
     const merge = await linkDeviceAndMerge();
-    window.__lovableEvents?.track?.("project.progress_signin", { first_signin: merge?.firstSignIn ?? false });
+    window.__lovableEvents?.track?.("project.progress_signin", {
+      first_signin: merge?.firstSignIn ?? false,
+    });
     // Every signed-in player joins "WW: Updates"; best effort, never blocks.
     try {
       void Promise.resolve(
-        supabase.functions.invoke("ac-subscribe", { body: { email: email.trim().toLowerCase(), list: "updates" } })
-      ).then((r) => {
-        if ((r as { data?: { syncedToAc?: boolean } } | undefined)?.data?.syncedToAc === true) {
-          window.__lovableEvents?.track?.("project.updates_list_added", { via: "signin" });
-        }
-      }).catch(() => {});
-    } catch { /* never blocks sign-in */ }
+        getSupabase().then((sb) =>
+          sb.functions.invoke("ac-subscribe", {
+            body: { email: email.trim().toLowerCase(), list: "updates" },
+          }),
+        ),
+      )
+        .then((r) => {
+          if (
+            (r as { data?: { syncedToAc?: boolean } } | undefined)?.data
+              ?.syncedToAc === true
+          ) {
+            window.__lovableEvents?.track?.("project.updates_list_added", {
+              via: "signin",
+            });
+          }
+        })
+        .catch(() => {});
+    } catch {
+      /* never blocks sign-in */
+    }
     trackDaily("signin_verified", {
-      props: { first_signin: merge?.firstSignIn ?? null, games: merge?.games ?? null },
+      props: {
+        first_signin: merge?.firstSignIn ?? null,
+        games: merge?.games ?? null,
+      },
     });
     return { ok: true, merge };
   } catch {
@@ -212,13 +260,19 @@ export async function verifySignInCode(
  */
 export const DEVICE_LINKED_KEY = "ww_device_linked";
 export function isDeviceLinkedHint(): boolean {
-  try { return localStorage.getItem(DEVICE_LINKED_KEY) === "1"; } catch { return false; }
+  try {
+    return localStorage.getItem(DEVICE_LINKED_KEY) === "1";
+  } catch {
+    return false;
+  }
 }
 function setDeviceLinkedHint(on: boolean): void {
   try {
     if (on) localStorage.setItem(DEVICE_LINKED_KEY, "1");
     else localStorage.removeItem(DEVICE_LINKED_KEY);
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 const KEEP_ON_SIGN_OUT = new Set([
@@ -242,7 +296,10 @@ export function clearLocalPlayerData(): void {
           !KEEP_ON_SIGN_OUT.has(k) &&
           // The browser's own played-game records stay so today's Daily
           // can't be replayed; an account's records leave with the account.
-          !(k.startsWith("ww_daily_whoop-") && !isAccountOwnedRecord(localStorage.getItem(k)))
+          !(
+            k.startsWith("ww_daily_whoop-") &&
+            !isAccountOwnedRecord(localStorage.getItem(k))
+          ),
       )
       .forEach((k) => localStorage.removeItem(k));
   } catch {
@@ -257,12 +314,14 @@ export function clearLocalPlayerData(): void {
  */
 export async function signOut(): Promise<void> {
   try {
-    await supabase.rpc("unlink_device", { p_visitor_id: getVisitorId() });
+    await (
+      await getSupabase()
+    ).rpc("unlink_device", { p_visitor_id: getVisitorId() });
   } catch {
     // still sign out locally
   }
   try {
-    await supabase.auth.signOut();
+    await (await getSupabase()).auth.signOut();
   } finally {
     clearLocalPlayerData();
     setDeviceLinkedHint(false);
@@ -278,7 +337,9 @@ export async function signOut(): Promise<void> {
 /** Latest reminder answer; an older list signup counts as On. Null signed out. */
 export async function getReminderStatus(): Promise<boolean | null> {
   try {
-    const { data, error } = await supabase.rpc("get_reminder_status");
+    const { data, error } = await (
+      await getSupabase()
+    ).rpc("get_reminder_status");
     if (error) return null;
     return data === null ? null : data === true;
   } catch {
@@ -292,12 +353,14 @@ export async function getReminderStatus(): Promise<boolean | null> {
  */
 export async function setReminder(
   consented: boolean,
-  source: "post_signin" | "settings"
+  source: "post_signin" | "settings",
 ): Promise<boolean> {
   const email = sessionEmail;
   if (!email) return false;
   try {
-    const { data, error } = await supabase.rpc("set_reminder_consent", {
+    const { data, error } = await (
+      await getSupabase()
+    ).rpc("set_reminder_consent", {
       p_consented: consented,
       p_source: source,
     });
@@ -306,15 +369,28 @@ export async function setReminder(
       props: { choice: consented ? "sounds_good" : "no_thanks", source },
     });
     if (consented) {
-      window.__lovableEvents?.track?.("project.daily_reminder_opt_in", { source });
-      const r = await supabase.functions.invoke("ac-subscribe", {
+      window.__lovableEvents?.track?.("project.daily_reminder_opt_in", {
+        source,
+      });
+      const r = await (
+        await getSupabase()
+      ).functions.invoke("ac-subscribe", {
         body: { email, visitorId: getVisitorId(), source: "daily_result" },
       });
-      if ((r as { data?: { syncedToAc?: boolean } } | undefined)?.data?.syncedToAc === true) {
-        window.__lovableEvents?.track?.("project.daily_subscribers_added", { source });
+      if (
+        (r as { data?: { syncedToAc?: boolean } } | undefined)?.data
+          ?.syncedToAc === true
+      ) {
+        window.__lovableEvents?.track?.("project.daily_subscribers_added", {
+          source,
+        });
       }
     } else if (source === "settings") {
-      await supabase.functions.invoke("delete-account", { body: { action: "reminder_off" } });
+      await (
+        await getSupabase()
+      ).functions.invoke("delete-account", {
+        body: { action: "reminder_off" },
+      });
     }
     return true;
   } catch {
@@ -325,7 +401,9 @@ export async function setReminder(
 /** Deletes the account and all its data, then starts this browser fresh. */
 export async function deleteAccount(): Promise<boolean> {
   try {
-    const { data, error } = await supabase.functions.invoke("delete-account", {
+    const { data, error } = await (
+      await getSupabase()
+    ).functions.invoke("delete-account", {
       body: { action: "delete" },
     });
     if (error || !data?.ok) return false;
@@ -337,7 +415,10 @@ export async function deleteAccount(): Promise<boolean> {
           (k) =>
             (k.startsWith("ww_daily") || k === "ww_visitor_id") &&
             // Only the browser's own played records stay (see above).
-            !(k.startsWith("ww_daily_whoop-") && !isAccountOwnedRecord(localStorage.getItem(k)))
+            !(
+              k.startsWith("ww_daily_whoop-") &&
+              !isAccountOwnedRecord(localStorage.getItem(k))
+            ),
         )
         .forEach((k) => localStorage.removeItem(k));
     } catch {

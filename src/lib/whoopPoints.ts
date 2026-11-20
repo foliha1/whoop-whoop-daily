@@ -11,7 +11,7 @@
 // Score, which has been removed. Display names live in `src/lib/whoopTiers.ts`.
 // ============================================================================
 
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/db";
 import { getVisitorId } from "@/lib/visitor";
 import { getSubscribedEmail } from "@/lib/dailySubscribe";
 import { getDailyDateKey } from "@/lib/daily";
@@ -262,7 +262,7 @@ export async function fetchWhoopPoints(
   puzzleDate: string = getDailyDateKey()
 ): Promise<WhoopPoints | null> {
   try {
-    const { data, error } = await supabase.rpc("get_whoop_points", {
+    const { data, error } = await (await getSupabase()).rpc("get_whoop_points", {
       p_visitor_id: visitorId,
       p_puzzle_date: puzzleDate,
     });
@@ -300,7 +300,7 @@ export interface PointsPopulation {
 /** Aggregate tier populations of active players, or null when nobody is active. */
 export async function fetchPointsPopulation(): Promise<PointsPopulation | null> {
   try {
-    const { data, error } = await supabase.rpc("get_whoop_points_population");
+    const { data, error } = await (await getSupabase()).rpc("get_whoop_points_population");
     if (error || !Array.isArray(data) || data.length === 0) return null;
     const total = Number(data[0].active_total ?? 0);
     if (!total) return null;

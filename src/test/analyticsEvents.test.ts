@@ -28,9 +28,10 @@ describe("trackEvent", () => {
     from.mockClear();
   });
 
-  it("writes through log_analytics_events with a one-event batch", () => {
+  // The database client loads on demand (lib/db), so the write lands a tick later.
+  it("writes through log_analytics_events with a one-event batch", async () => {
     trackEvent("room_joined", { roomCode: "ABC123", metadata: { seat: 1 } });
-    expect(rpc).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(rpc).toHaveBeenCalledTimes(1));
     const [fn, args] = rpc.mock.calls[0];
     expect(fn).toBe("log_analytics_events");
     expect(args).toEqual({
@@ -50,12 +51,12 @@ describe("trackEvent", () => {
   );
 
   it.each(["whoop-whoop.com", "www.whoop-whoop.com", "whoop-whoop.lovable.app"])(
-    "counts public pre-order views and clicks on %s", (hostname) => {
+    "counts public pre-order views and clicks on %s", async (hostname) => {
       vi.stubEnv("DEV", false);
       vi.stubGlobal("window", { location: { hostname } });
       trackEvent("preorder_view");
       trackEvent("preorder_click", { metadata: { quantity: 2 } });
-      expect(rpc).toHaveBeenCalledTimes(2);
+      await vi.waitFor(() => expect(rpc).toHaveBeenCalledTimes(2));
       expect(rpc.mock.calls[1][1].p_events).toEqual([
         { event_type: "preorder_click", room_code: null, metadata: { quantity: 2 } },
       ]);

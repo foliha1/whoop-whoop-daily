@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/db";
 import { getSessionUserId } from "@/lib/account";
 import { getVisitorId } from "@/lib/visitor";
 
@@ -46,7 +46,7 @@ export function mergeHistory(remote: MatchHistory, local: MatchHistory): MatchHi
 }
 export async function fetchMatchHistory(): Promise<MatchHistory> {
   if (!getSessionUserId()) return localMatchHistory();
-  const { data, error } = await supabase.rpc("get_player_match_stats");
+  const { data, error } = await (await getSupabase()).rpc("get_player_match_stats");
   if (error) throw new Error("Match stats unavailable");
   return mergeHistory(data as unknown as MatchHistory, localMatchHistory());
 }

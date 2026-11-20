@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/db";
 
 const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const CODE_LEN = 6;
@@ -34,7 +34,7 @@ export interface RoomRow {
 
 export async function createRoom(hostVisitorId: string): Promise<RoomRow> {
   // The server generates the code (collision-retried) and rate-caps creation.
-  const { data, error } = await supabase.rpc("create_room", { p_visitor_id: hostVisitorId });
+  const { data, error } = await (await getSupabase()).rpc("create_room", { p_visitor_id: hostVisitorId });
   if (!error && Array.isArray(data) && data.length > 0) return data[0] as RoomRow;
   const msg =
     error && typeof error === "object" && "message" in error
@@ -50,7 +50,7 @@ export async function findRoomByCode(
   const normalized = code.toUpperCase();
   if (!isValidRoomCode(normalized)) return null;
   try {
-    const { data, error } = await supabase.rpc("get_room_by_code", {
+    const { data, error } = await (await getSupabase()).rpc("get_room_by_code", {
       p_code: normalized,
       p_visitor_id: visitorId,
     });
@@ -78,7 +78,7 @@ export async function joinRoomSessionSigned(
   displayName: string,
 ): Promise<{ pub_id: string; game_id: string | null; seat: number | null; display_name: string } | null> {
   try {
-    const { data, error } = await supabase.rpc("join_room_session", {
+    const { data, error } = await (await getSupabase()).rpc("join_room_session", {
       p_room_id: roomId,
       p_visitor_id: visitorId,
       p_player_key: playerKey,
@@ -98,7 +98,7 @@ export async function joinRoomSessionSigned(
 }
 
 export async function fetchRoomMemberNames(roomId: string, visitorId: string, playerKey: string) {
-  const { data, error } = await supabase.rpc("room_member_names", {
+  const { data, error } = await (await getSupabase()).rpc("room_member_names", {
     p_room_id: roomId,
     p_visitor_id: visitorId,
     p_player_key: playerKey,
@@ -114,7 +114,7 @@ export async function fetchSignKeys(
   playerKey: string,
 ): Promise<Array<{ role: string; seat: number | null; pub_id: string; sign_pubkey: string }> | null> {
   try {
-    const { data, error } = await supabase.rpc("room_sign_keys", {
+    const { data, error } = await (await getSupabase()).rpc("room_sign_keys", {
       p_room_id: roomId,
       p_visitor_id: visitorId,
       p_player_key: playerKey,

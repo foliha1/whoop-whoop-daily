@@ -19,7 +19,25 @@ export default defineConfig(({ mode }) => ({
   },
   // Never inline assets: every font, card, die, badge and sound keeps its own
   // hashed /assets/ URL with year-long immutable caching.
-  build: { assetsInlineLimit: 0 },
+  build: {
+    assetsInlineLimit: 0,
+    rollupOptions: {
+      output: {
+        // Libraries change far less often than our code. Giving them their own
+        // files means a deploy only invalidates the app chunks, so returning
+        // players keep the cached libraries instead of re-downloading them.
+        manualChunks(id: string) {
+          if (!id.includes("node_modules")) return undefined;
+          // tslib is shared with the UI libraries. Left to Rollup it lands in
+          // the Supabase chunk and drags that chunk onto the first-paint path.
+          if (/node_modules\/tslib\//.test(id)) return "vendor-react";
+          if (/node_modules\/(@supabase|iceberg-js)\//.test(id)) return "vendor-supabase";
+          if (/node_modules\/(react|react-dom|scheduler|react-router|react-router-dom|@remix-run)\//.test(id)) return "vendor-react";
+          return undefined;
+        },
+      },
+    },
+  },
   plugins: [react(), mode === "development" && componentTagger(), mcpPlugin(), umbrellaHead(), classicPrerender()].filter(Boolean),
   resolve: {
     alias: [

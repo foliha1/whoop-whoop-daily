@@ -6,7 +6,7 @@
 // ============================================================================
 
 
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/db";
 import { getVisitorId } from "@/lib/visitor";
 import { getDailyNumber } from "@/lib/daily";
 import { getSessionEmail } from "@/lib/account";
@@ -142,7 +142,7 @@ export async function subscribeDaily(
   if (!isValidEmail(email)) return false;
   const puzzleNumber = localPuzzleNumber();
   try {
-    const { data, error } = await supabase.functions.invoke("ac-subscribe", {
+    const { data, error } = await (await getSupabase()).functions.invoke("ac-subscribe", {
       body: {
         email: email.trim().toLowerCase(),
         visitorId,

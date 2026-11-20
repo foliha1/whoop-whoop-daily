@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 export const DISPLAY_NAME_MAX = 6;
 export const DISPLAY_NAME_ERROR = "Try another name.";
 
@@ -46,11 +44,9 @@ export function isDisplayNameAllowed(raw: string): boolean {
   return !blocked.has(normalizedDisplayName(value));
 }
 
-export const displayNameSchema = z.string()
-  .refine(isDisplayNameAllowed, DISPLAY_NAME_ERROR)
-  .transform(cleanDisplayName);
-
+// Plain checks, no schema library: zod added ~20 KB (gzip) to every page's
+// startup code for this one rule.
 export function validateDisplayName(value: string): { ok: true; name: string } | { ok: false; error: string } {
-  const parsed = displayNameSchema.safeParse(value);
-  return parsed.success ? { ok: true, name: parsed.data } : { ok: false, error: DISPLAY_NAME_ERROR };
+  if (typeof value !== "string" || !isDisplayNameAllowed(value)) return { ok: false, error: DISPLAY_NAME_ERROR };
+  return { ok: true, name: cleanDisplayName(value) };
 }

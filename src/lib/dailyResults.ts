@@ -3,7 +3,7 @@
 // security-definer RPCs. Never blocks the UI: every failure is swallowed.
 // ============================================================================
 
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/db";
 import { getVisitorId } from "@/lib/visitor";
 import { getSubscribedEmail } from "@/lib/dailySubscribe";
 
@@ -43,7 +43,7 @@ export async function saveDailyResultOutcome(
   visitorId: string = getVisitorId()
 ): Promise<DailySaveOutcome> {
   try {
-    const { data, error } = await supabase.rpc("save_daily_result", {
+    const { data, error } = await (await getSupabase()).rpc("save_daily_result", {
       p_visitor_id: visitorId,
       p_puzzle_number: result.puzzleNumber,
       p_puzzle_date: puzzleDateFromSeed(result.seed),
@@ -96,7 +96,7 @@ export async function fetchFirstAttempt(
   visitorId: string = getVisitorId()
 ): Promise<FirstAttempt | null> {
   try {
-    const { data, error } = await supabase.rpc("get_first_attempt", {
+    const { data, error } = await (await getSupabase()).rpc("get_first_attempt", {
       p_visitor_id: visitorId,
       p_puzzle_number: puzzleNumber,
     });
@@ -119,7 +119,7 @@ export async function fetchDailyResults(
   email: string | null = null
 ): Promise<StoredDailyResult[]> {
   try {
-    const { data, error } = await supabase.rpc("get_daily_results", {
+    const { data, error } = await (await getSupabase()).rpc("get_daily_results", {
       p_visitor_id: visitorId,
     });
     if (error || !Array.isArray(data)) return [];
@@ -146,7 +146,7 @@ export async function fetchStreak(
   email: string | null = getSubscribedEmail()
 ): Promise<DailyStreak | null> {
   try {
-    const { data, error } = await supabase.rpc("get_streak", {
+    const { data, error } = await (await getSupabase()).rpc("get_streak", {
       p_visitor_id: visitorId,
       p_current_puzzle_number: currentPuzzleNumber,
     });
@@ -183,7 +183,7 @@ export async function fetchDailyStats(
   email: string | null = getSubscribedEmail()
 ): Promise<DailyStats | null> {
   try {
-    const { data, error } = await supabase.rpc("get_daily_stats", {
+    const { data, error } = await (await getSupabase()).rpc("get_daily_stats", {
       p_visitor_id: visitorId,
     });
     if (error) return null;
@@ -212,7 +212,7 @@ export async function fetchDailyPercentile(
   email: string | null = getSubscribedEmail()
 ): Promise<number | null> {
   try {
-    const { data, error } = await supabase.rpc("get_daily_percentile", {
+    const { data, error } = await (await getSupabase()).rpc("get_daily_percentile", {
       p_visitor_id: visitorId,
       p_puzzle_number: puzzleNumber,
     });

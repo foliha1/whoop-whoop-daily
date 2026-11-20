@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/db";
 import { isPreviewHost } from "@/lib/previewHost";
 import { getVisitorId } from "@/lib/visitor";
 
@@ -48,14 +48,18 @@ export function trackEvent(eventType: AnalyticsEventType, opts: TrackOpts = {}):
       room_code: opts.roomCode ?? null,
       metadata: opts.metadata ?? {},
     };
-    void supabase
-      .rpc("log_analytics_events", {
-        p_visitor_id: getVisitorId(),
-        p_events: [event] as never,
-      })
+    const visitorId = getVisitorId();
+    void getSupabase()
+      .then((sb) =>
+        sb.rpc("log_analytics_events", {
+          p_visitor_id: visitorId,
+          p_events: [event] as never,
+        }),
+      )
       .then(({ error }) => {
         if (error) console.warn("[analytics] log failed", error.message);
-      });
+      })
+      .catch(() => undefined);
   } catch (e) {
     console.warn("[analytics] threw synchronously", e);
   }

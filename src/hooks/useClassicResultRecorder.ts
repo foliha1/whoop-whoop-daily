@@ -19,7 +19,7 @@
 import { useEffect, useRef } from "react";
 import { umbrellaOn } from "@/lib/launch";
 import { rememberMatch, replaceLocalMatchId } from "@/lib/playerStats";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/db";
 import {
   endReasonFor,
   saveClassicGame,
@@ -147,7 +147,7 @@ export function useClassicResultRecorder({
       void pending.then((id) => {
         if (!id) return;
         void saveSoloGame({ ...report, gameId: id }).then(async (saved) => {
-          if (saved && umbrellaOn()) await supabase.rpc("save_solo_player_stats", { p_game_id: id, p_correct: selectedStats.correct, p_wrong: selectedStats.wrong, p_victory_ms: selectedStats.victoryMs });
+          if (saved && umbrellaOn()) await (await getSupabase()).rpc("save_solo_player_stats", { p_game_id: id, p_correct: selectedStats.correct, p_wrong: selectedStats.wrong, p_victory_ms: selectedStats.victoryMs });
         });
       });
       return;

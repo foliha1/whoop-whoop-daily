@@ -24,6 +24,22 @@
     <link rel="preload" href="/src/assets/fonts/friend-regular.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/src/assets/fonts/friend-italic.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/src/assets/fonts/geist-variable.woff2" as="font" type="font/woff2" crossorigin />
+    <script>
+      // Home's entry screen waits for its logo and pattern strip. Those load
+      // only once the page code runs, so start them now, in the current theme.
+      (function () {
+        try {
+          if (location.pathname !== "/") return;
+          var m = localStorage.getItem("ww-theme-mode");
+          var night = m === "night" || (m !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+          ["/WhoopWhoop_Daily_Pattern_Seamless.svg", night ? "/WhoopWhoop_Stacked_Logo.svg" : "/WhoopWhoop_Dark_Logo.svg"].forEach(function (h) {
+            var l = document.createElement("link");
+            l.rel = "preload"; l.as = "image"; l.href = h;
+            document.head.appendChild(l);
+          });
+        } catch (e) {}
+      })();
+    </script>
 
     <link rel="canonical" href="https://whoop-whoop.com/" />
     <meta property="og:site_name" content="Whoop! Whoop!" />

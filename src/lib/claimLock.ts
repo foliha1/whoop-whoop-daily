@@ -20,7 +20,7 @@
 // how "unknown" is resolved into "won" or "lost" whenever the network recovers.
 // ============================================================================
 
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/db";
 import {
   CLAIM_LOCK_RETRIES,
   CLAIM_LOCK_RETRY_DELAY_MS,
@@ -64,7 +64,7 @@ async function attempt(input: Input): Promise<ClaimLockResult> {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const timeout = new Promise<"timeout">((r) => { timer = setTimeout(() => r("timeout"), CLAIM_LOCK_ATTEMPT_TIMEOUT_MS); });
     const res = await Promise.race([
-      supabase.functions.invoke("claim-lock", { body: input }),
+      getSupabase().then((sb) => sb.functions.invoke("claim-lock", { body: input })),
       timeout,
     ]);
     clearTimeout(timer);
@@ -138,8 +138,8 @@ export async function callClaimLock(input: Input): Promise<ClaimLockResult> {
 // never retried.
 // ---------------------------------------------------------------------------
 export function warmClaimLock(): void {
-  void supabase.functions
-    .invoke("claim-lock", { body: { warmup: true } })
+  void getSupabase()
+    .then((sb) => sb.functions.invoke("claim-lock", { body: { warmup: true } }))
     .then(({ error }) => {
       if (error) console.warn("[claim-lock] warm-up failed (ignored)", error);
     })

@@ -7,7 +7,7 @@
 // server rejects the row as implausible, and every failure here is swallowed.
 // ============================================================================
 
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/db";
 import { APP_VERSION } from "@/lib/appVersion";
 
 export interface ClassicSeatResult {
@@ -74,7 +74,7 @@ export async function saveClassicGame(
   },
 ): Promise<boolean> {
   try {
-    const { data, error } = await supabase.rpc("save_classic_game", {
+    const { data, error } = await (await getSupabase()).rpc("save_classic_game", {
       p_room_id: p.roomId,
       p_game_id: p.gameId,
       p_visitor_id: p.visitorId,
@@ -100,7 +100,7 @@ export async function saveClassicGame(
 /** Server-issued solo game id. Null when the server refused (rate cap) or failed. */
 export async function startSoloGame(visitorId: string): Promise<string | null> {
   try {
-    const { data, error } = await supabase.rpc("start_solo_game", { p_visitor_id: visitorId });
+    const { data, error } = await (await getSupabase()).rpc("start_solo_game", { p_visitor_id: visitorId });
     if (error) return null;
     const row = Array.isArray(data) ? data[0] : data;
     return row && typeof row.id === "string" ? row.id : null;
@@ -113,7 +113,7 @@ export async function saveSoloGame(
   p: VerifiedGameReport & { gameId: string },
 ): Promise<boolean> {
   try {
-    const { data, error } = await supabase.rpc("save_solo_game", {
+    const { data, error } = await (await getSupabase()).rpc("save_solo_game", {
       p_game_id: p.gameId,
       p_end_reason: p.endReason,
       p_seats: seatsForSave(p.scores, p.names) as unknown as never,

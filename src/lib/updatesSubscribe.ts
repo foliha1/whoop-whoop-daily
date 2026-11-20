@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/db";
 import { isValidEmail } from "@/lib/dailySubscribe";
 import { markUpdatesSubscription } from "@/lib/updatesSubscriptionStatus";
 
@@ -10,7 +10,7 @@ export async function subscribeToUpdates(
   const clean = email.trim().toLowerCase();
   if (!isValidEmail(clean)) return false;
   try {
-    const { data, error } = await supabase.functions.invoke("ac-subscribe", {
+    const { data, error } = await (await getSupabase()).functions.invoke("ac-subscribe", {
       body: { email: clean, list: "updates", source },
     });
     if (error || (data as { ok?: boolean } | null)?.ok !== true) return false;

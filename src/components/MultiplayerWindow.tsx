@@ -76,8 +76,17 @@ import EntryReveal from "@/components/EntryReveal";
 import { PATTERN_URL } from "@/components/DailyShapeRule";
 import { useEntryReady } from "@/hooks/useEntryReady";
 
-/** Everything the Classic entry screen must have decoded before it appears. */
-const ENTRY_ASSETS = [...(SPOOK_AT_LOAD ? [spookLightLogo, spookNightLogo] : lockupStills("classic")), PATTERN_URL] as const;
+/**
+ * What the entry screen must have decoded before it appears: the logo still
+ * it actually shows, in the current theme only, plus the pattern strip.
+ * (It used to wait on both themes of the Classic lockup, which Home never
+ * shows, so the logo on screen wasn't part of the wait.)
+ */
+const entryAssetsFor = (variant: "plain" | "classic", night: boolean): readonly string[] => {
+  if (SPOOK_AT_LOAD) return [night ? spookNightLogo : spookLightLogo, PATTERN_URL];
+  const [still, cream] = lockupStills(variant);
+  return [night ? cream : still, PATTERN_URL];
+};
 
 import SettingsSheet from "@/components/SettingsSheet";
 import { BarChart3, HelpCircle, Settings as SettingsIcon } from "lucide-react";
@@ -219,7 +228,7 @@ import {
 } from "@/lib/rooms";
 
 import { startTheme, stopTheme, leaveThemeZone, unlockAudio, CLASSIC_THEME_FILE } from "@/lib/sounds";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/db";
 import MaterialIcon from "@/components/MaterialIcon";
 
 
@@ -1061,12 +1070,12 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     if (!activeRoom?.id) { setStarting(false); return; }
     const roomId = activeRoom.id;
     const ok = await registerSeatsWithRetry(() =>
-      supabase.rpc("register_room_seats_by_pid", {
+      getSupabase().then((sb) => sb.rpc("register_room_seats_by_pid", {
         p_room_id: roomId,
         p_game_id: newGameId,
         p_host_visitor_id: browserId,
         p_seats: seatMap.map((e) => ({ seat: e.seat, pid: e.pid })),
-      }),
+      })),
     );
     // Load the new game's seat keys before any intent can arrive.
     if (ok) await security?.directory.refresh(true);
@@ -1231,7 +1240,11 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // Shared load gate: Friend via document.fonts.ready, plus the Classic lockup
   // stills and the pattern strip decoded — capped so a slow link costs a beat
   // of cream ground, not a blank screen.
-  const entryReady = useEntryReady(ENTRY_ASSETS);
+  const entryAssets = useMemo(
+    () => entryAssetsFor(umbrella && home ? "plain" : "classic", theme === "night"),
+    [umbrella, home, theme],
+  );
+  const entryReady = useEntryReady(entryAssets);
 
   // Lobby / solo-setup: the same compression rhythm applied to the stacked
   // sections so the whole screen still fits at 390x520 with no scrolling.
@@ -1480,12 +1493,12 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       if (seats && roomId) {
         const candidate = crypto.randomUUID();
         const ok = await registerSeatsWithRetry(() =>
-          supabase.rpc("register_room_seats_by_pid", {
+          getSupabase().then((sb) => sb.rpc("register_room_seats_by_pid", {
             p_room_id: roomId,
             p_game_id: candidate,
             p_host_visitor_id: browserId,
             p_seats: seats.map((e) => ({ seat: e.seat, pid: e.pid })),
-          }),
+          })),
         );
         if (ok) {
           await security?.directory.refresh(true);

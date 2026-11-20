@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/db";
 import { signEnvelope, type IncomingVerifier } from "@/lib/channelSigning";
 
 /**
@@ -84,192 +84,247 @@ export function useRoomPresence(
     joinedAtRef.current = Date.now();
     setStatus("connecting");
 
-    const ch: RealtimeChannel = supabase.channel(`room:${roomId}`, {
-      config: {
-        presence: { key: visitorId },
-        broadcast: { self: false, ack: false },
-      },
-    });
-    // Consumers get a view of the channel whose broadcast `send` signs every
-    // message with this tab's key, in send order. Everything else passes
-    // straight through to the real channel.
-    let sendChain: Promise<unknown> = Promise.resolve();
-    const signedSend = (args: Parameters<RealtimeChannel["send"]>[0], opts?: Parameters<RealtimeChannel["send"]>[1]) => {
-      const sec = securityRef.current;
-      const payload = (args as { payload?: unknown }).payload;
-      if (!sec || args.type !== "broadcast" || !payload || typeof payload !== "object") {
-        return ch.send(args, opts);
-      }
-      const job = sendChain.then(async () => {
-        const signed = await signEnvelope(payload as object, sec.pid, sec.privateKey, sec.roomId);
-        return ch.send({ ...args, payload: signed }, opts);
-      });
-      sendChain = job.catch(() => undefined);
-      return job;
-    };
-    const exposed = new Proxy(ch, {
-      get(target, prop) {
-        if (prop === "send") return signedSend;
-        const v = Reflect.get(target, prop, target);
-        return typeof v === "function" ? v.bind(target) : v;
-      },
-    }) as RealtimeChannel;
-    channelRef.current = exposed;
-
-    // Incoming broadcasts are verified in arrival order before fan-out;
-    // anything that fails verification never reaches game code.
-    let recvChain: Promise<unknown> = Promise.resolve();
-    const deliver = (payload: unknown) => {
-      listenersRef.current.forEach((cb) => {
-        try { cb({ payload }); } catch { /* isolate */ }
-      });
-    };
-
-
-    const syncParticipants = () => {
-      const state = ch.presenceState<PresenceMeta>();
-      const seen = new Map<string, PresenceParticipant>();
-      for (const key of Object.keys(state)) {
-        const metas = state[key];
-        if (!metas || metas.length === 0) continue;
-        let best: PresenceMeta | null = null;
-        for (const m of metas) {
-          if (!best || m.joined_at < best.joined_at) best = m;
-        }
-        if (best) {
-          seen.set(best.pid, {
-            pid: best.pid,
-            display_name: "",
-            joined_at: best.joined_at,
-            is_host: false,
+    // The realtime client loads on demand (see lib/db). Everything below
+    // runs once it has arrived; a room left before then just cancels.
+    let disposed = false;
+    let teardown: (() => void) | null = null;
+    void getSupabase()
+      .then((supabase) => {
+        if (disposed) return;
+        teardown = (() => {
+          const ch: RealtimeChannel = supabase.channel(`room:${roomId}`, {
+            config: {
+              presence: { key: visitorId },
+              broadcast: { self: false, ack: false },
+            },
           });
-        }
-      }
-      const list = Array.from(seen.values()).sort((a, b) => {
-        // Host always seat 0 in lobby ordering.
-        if (a.is_host !== b.is_host) return a.is_host ? -1 : 1;
-        if (a.joined_at !== b.joined_at) return a.joined_at - b.joined_at;
-        return a.pid.localeCompare(b.pid);
-      });
-      setParticipants(list);
-    };
-
-    ch
-      .on("presence", { event: "sync" }, syncParticipants)
-      .on("presence", { event: "join" }, syncParticipants)
-      .on("presence", { event: "leave" }, syncParticipants)
-      .on("broadcast", { event: "msg" }, (msg: { payload?: unknown }) => {
-        const payload = msg.payload;
-        recvChain = recvChain
-          .then(async () => {
+          // Consumers get a view of the channel whose broadcast `send` signs every
+          // message with this tab's key, in send order. Everything else passes
+          // straight through to the real channel.
+          let sendChain: Promise<unknown> = Promise.resolve();
+          const signedSend = (
+            args: Parameters<RealtimeChannel["send"]>[0],
+            opts?: Parameters<RealtimeChannel["send"]>[1],
+          ) => {
             const sec = securityRef.current;
-            if (!sec) return;
-            if (await sec.verify(payload)) deliver(payload);
-          })
-          .catch(() => undefined);
-      })
-      .subscribe(async (subStatus) => {
-        // A channel replaced by a newer room/visitor must never write state.
-        if (channelRef.current !== exposed) return;
-        if (subStatus === "SUBSCRIBED") {
-          try {
-            await ch.track({
-              pid: visitorId,
-              joined_at: joinedAtRef.current,
-            } satisfies PresenceMeta);
-            if (channelRef.current !== exposed) return;
-            setChannel(exposed);
-            setStatus("connected");
-            setConnectEpoch((n) => n + 1);
-          } catch (e) {
-            if (channelRef.current !== exposed) return;
-            console.warn("[presence] track failed", e);
-            setStatus("error");
-          }
-        } else if (subStatus === "CHANNEL_ERROR" || subStatus === "TIMED_OUT") {
-          setStatus("error");
-        } else if (subStatus === "CLOSED") {
-          setStatus("connecting");
-        }
-      });
-
-    // pagehide fires reliably on mobile Safari (unlike beforeunload) when the
-    // tab is closed, backgrounded to bfcache, or the browser is quit. Untrack
-    // synchronously so the server broadcasts a leave to remaining peers
-    // instead of waiting for the socket heartbeat to time out.
-    const onPageHide = () => {
-      try { ch.untrack(); } catch { /* ignore */ }
-    };
-    window.addEventListener("pagehide", onPageHide);
-
-    // Return path: backgrounded tabs come back via pageshow (bfcache restore)
-    // and/or visibilitychange. Re-track with the ORIGINAL meta (same
-    // joined_at) so the player keeps their lobby ordering and seat. Both
-    // events often fire together, and re-tracking while already tracked is a
-    // harmless no-op — Supabase just overwrites the presence entry.
-    let rejoining = false;
-    const rejoin = () => {
-      if (rejoining) return;
-      if (channelRef.current !== exposed) return; // superseded by a newer channel
-      rejoining = true;
-      void (async () => {
-        try {
-          // If the socket died while backgrounded, tracking alone won't
-          // reach the server — resubscribe first and wait for it.
-          if (ch.state === "closed" || ch.state === "errored") {
-            await new Promise<void>((resolve) => {
-              ch.subscribe((subStatus) => {
-                if (subStatus === "SUBSCRIBED") resolve();
-                else if (subStatus === "CHANNEL_ERROR" || subStatus === "TIMED_OUT" || subStatus === "CLOSED") resolve();
-              });
+            const payload = (args as { payload?: unknown }).payload;
+            if (
+              !sec ||
+              args.type !== "broadcast" ||
+              !payload ||
+              typeof payload !== "object"
+            ) {
+              return ch.send(args, opts);
+            }
+            const job = sendChain.then(async () => {
+              const signed = await signEnvelope(
+                payload as object,
+                sec.pid,
+                sec.privateKey,
+                sec.roomId,
+              );
+              return ch.send({ ...args, payload: signed }, opts);
             });
-            if (channelRef.current !== exposed) return;
-          }
-          await ch.track({
-            pid: visitorId,
-            joined_at: joinedAtRef.current,
-          } satisfies PresenceMeta);
-          if (channelRef.current !== exposed) return;
-          setChannel(exposed);
-          setStatus("connected");
-          setConnectEpoch((n) => n + 1);
-        } catch (e) {
-          console.warn("[presence] rejoin failed", e);
-        } finally {
-          rejoining = false;
-        }
-      })();
-    };
-    const onPageShow = () => rejoin();
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") rejoin();
-    };
-    window.addEventListener("pageshow", onPageShow);
-    document.addEventListener("visibilitychange", onVisibilityChange);
+            sendChain = job.catch(() => undefined);
+            return job;
+          };
+          const exposed = new Proxy(ch, {
+            get(target, prop) {
+              if (prop === "send") return signedSend;
+              const v = Reflect.get(target, prop, target);
+              return typeof v === "function" ? v.bind(target) : v;
+            },
+          }) as RealtimeChannel;
+          channelRef.current = exposed;
 
+          // Incoming broadcasts are verified in arrival order before fan-out;
+          // anything that fails verification never reaches game code.
+          let recvChain: Promise<unknown> = Promise.resolve();
+          const deliver = (payload: unknown) => {
+            listenersRef.current.forEach((cb) => {
+              try {
+                cb({ payload });
+              } catch {
+                /* isolate */
+              }
+            });
+          };
+
+          const syncParticipants = () => {
+            const state = ch.presenceState<PresenceMeta>();
+            const seen = new Map<string, PresenceParticipant>();
+            for (const key of Object.keys(state)) {
+              const metas = state[key];
+              if (!metas || metas.length === 0) continue;
+              let best: PresenceMeta | null = null;
+              for (const m of metas) {
+                if (!best || m.joined_at < best.joined_at) best = m;
+              }
+              if (best) {
+                seen.set(best.pid, {
+                  pid: best.pid,
+                  display_name: "",
+                  joined_at: best.joined_at,
+                  is_host: false,
+                });
+              }
+            }
+            const list = Array.from(seen.values()).sort((a, b) => {
+              // Host always seat 0 in lobby ordering.
+              if (a.is_host !== b.is_host) return a.is_host ? -1 : 1;
+              if (a.joined_at !== b.joined_at) return a.joined_at - b.joined_at;
+              return a.pid.localeCompare(b.pid);
+            });
+            setParticipants(list);
+          };
+
+          ch.on("presence", { event: "sync" }, syncParticipants)
+            .on("presence", { event: "join" }, syncParticipants)
+            .on("presence", { event: "leave" }, syncParticipants)
+            .on("broadcast", { event: "msg" }, (msg: { payload?: unknown }) => {
+              const payload = msg.payload;
+              recvChain = recvChain
+                .then(async () => {
+                  const sec = securityRef.current;
+                  if (!sec) return;
+                  if (await sec.verify(payload)) deliver(payload);
+                })
+                .catch(() => undefined);
+            })
+            .subscribe(async (subStatus) => {
+              // A channel replaced by a newer room/visitor must never write state.
+              if (channelRef.current !== exposed) return;
+              if (subStatus === "SUBSCRIBED") {
+                try {
+                  await ch.track({
+                    pid: visitorId,
+                    joined_at: joinedAtRef.current,
+                  } satisfies PresenceMeta);
+                  if (channelRef.current !== exposed) return;
+                  setChannel(exposed);
+                  setStatus("connected");
+                  setConnectEpoch((n) => n + 1);
+                } catch (e) {
+                  if (channelRef.current !== exposed) return;
+                  console.warn("[presence] track failed", e);
+                  setStatus("error");
+                }
+              } else if (
+                subStatus === "CHANNEL_ERROR" ||
+                subStatus === "TIMED_OUT"
+              ) {
+                setStatus("error");
+              } else if (subStatus === "CLOSED") {
+                setStatus("connecting");
+              }
+            });
+
+          // pagehide fires reliably on mobile Safari (unlike beforeunload) when the
+          // tab is closed, backgrounded to bfcache, or the browser is quit. Untrack
+          // synchronously so the server broadcasts a leave to remaining peers
+          // instead of waiting for the socket heartbeat to time out.
+          const onPageHide = () => {
+            try {
+              ch.untrack();
+            } catch {
+              /* ignore */
+            }
+          };
+          window.addEventListener("pagehide", onPageHide);
+
+          // Return path: backgrounded tabs come back via pageshow (bfcache restore)
+          // and/or visibilitychange. Re-track with the ORIGINAL meta (same
+          // joined_at) so the player keeps their lobby ordering and seat. Both
+          // events often fire together, and re-tracking while already tracked is a
+          // harmless no-op — Supabase just overwrites the presence entry.
+          let rejoining = false;
+          const rejoin = () => {
+            if (rejoining) return;
+            if (channelRef.current !== exposed) return; // superseded by a newer channel
+            rejoining = true;
+            void (async () => {
+              try {
+                // If the socket died while backgrounded, tracking alone won't
+                // reach the server — resubscribe first and wait for it.
+                if (ch.state === "closed" || ch.state === "errored") {
+                  await new Promise<void>((resolve) => {
+                    ch.subscribe((subStatus) => {
+                      if (subStatus === "SUBSCRIBED") resolve();
+                      else if (
+                        subStatus === "CHANNEL_ERROR" ||
+                        subStatus === "TIMED_OUT" ||
+                        subStatus === "CLOSED"
+                      )
+                        resolve();
+                    });
+                  });
+                  if (channelRef.current !== exposed) return;
+                }
+                await ch.track({
+                  pid: visitorId,
+                  joined_at: joinedAtRef.current,
+                } satisfies PresenceMeta);
+                if (channelRef.current !== exposed) return;
+                setChannel(exposed);
+                setStatus("connected");
+                setConnectEpoch((n) => n + 1);
+              } catch (e) {
+                console.warn("[presence] rejoin failed", e);
+              } finally {
+                rejoining = false;
+              }
+            })();
+          };
+          const onPageShow = () => rejoin();
+          const onVisibilityChange = () => {
+            if (document.visibilityState === "visible") rejoin();
+          };
+          window.addEventListener("pageshow", onPageShow);
+          document.addEventListener("visibilitychange", onVisibilityChange);
+
+          return () => {
+            window.removeEventListener("pagehide", onPageHide);
+            window.removeEventListener("pageshow", onPageShow);
+            document.removeEventListener(
+              "visibilitychange",
+              onVisibilityChange,
+            );
+            try {
+              ch.untrack();
+            } catch {
+              // ignore
+            }
+            supabase.removeChannel(ch);
+            channelRef.current = null;
+            setChannel(null);
+          };
+        })();
+      })
+      .catch(() => {
+        /* stays "connecting"; the next join retries */
+      });
     return () => {
-      window.removeEventListener("pagehide", onPageHide);
-      window.removeEventListener("pageshow", onPageShow);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      try {
-        ch.untrack();
-      } catch {
-        // ignore
-      }
-      supabase.removeChannel(ch);
-      channelRef.current = null;
-      setChannel(null);
+      disposed = true;
+      teardown?.();
     };
   }, [roomId, visitorId]);
 
   const onBroadcast = useCallback((listener: BroadcastListener) => {
     listenersRef.current.add(listener);
-    return () => { listenersRef.current.delete(listener); };
+    return () => {
+      listenersRef.current.delete(listener);
+    };
   }, []);
 
   return useMemo(
-    () => ({ participants, status, channel, channelRef, onBroadcast, connectEpoch }),
+    () => ({
+      participants,
+      status,
+      channel,
+      channelRef,
+      onBroadcast,
+      connectEpoch,
+    }),
     [participants, status, channel, onBroadcast, connectEpoch],
   );
 }
-

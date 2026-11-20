@@ -1,6 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
+import { afterFirstContent } from "@/lib/deferredWork";
 import { Helmet } from "react-helmet-async";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -192,7 +192,7 @@ const AnimatedRoutes: React.FC = () => {
 
   // The pre-order page is one tap from Home (IRL, the pre-order note): fetch
   // its code once the current page has painted and gone idle.
-  useEffect(() => afterPaintIdleOrInteraction(() => { void loadPreorderPage().catch(() => undefined); }), []);
+  useEffect(() => afterFirstContent(() => { void loadPreorderPage().catch(() => undefined); }), []);
 
   return (
     <div

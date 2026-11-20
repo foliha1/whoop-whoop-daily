@@ -9,7 +9,7 @@
 // RLS on with no policies), same pattern as `save_daily_result`.
 // ============================================================================
 
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/db";
 import { isPreviewHost } from "@/lib/previewHost";
 import { getVisitorId } from "@/lib/visitor";
 
@@ -194,7 +194,7 @@ export async function flushDailyEvents(): Promise<number> {
       if (attr.utm_source) first.utm_source = attr.utm_source;
       markAttributionSent();
     }
-    const { error } = await supabase.rpc("log_daily_events", {
+    const { error } = await (await getSupabase()).rpc("log_daily_events", {
       p_visitor_id: getVisitorId(),
       p_events: batch as unknown as never,
     });

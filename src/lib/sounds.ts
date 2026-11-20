@@ -1,5 +1,6 @@
 import { THEME_MP3, THEME_OGG } from "@/lib/assetUrls";
 import { SPOOK_AT_LOAD } from "@/lib/skin";
+import { afterFirstContent } from "@/lib/deferredWork";
 import spookDailyMp3 from "@/assets/spook/theme-daily.mp3?url";
 import spookClassicMp3 from "@/assets/spook/theme-classic.mp3?url";
 import spookHowToMp3 from "@/assets/spook/theme-how-to-play.mp3?url";
@@ -386,6 +387,17 @@ function findLoopBounds(buffer: AudioBuffer): { loopStart: number; loopEnd: numb
   return { loopStart: first / buffer.sampleRate, loopEnd: (last + 1) / buffer.sampleRate };
 }
 
+let musicGate: Promise<void> | null = null;
+function musicFetchAllowed(): Promise<void> {
+  if (!musicGate) {
+    musicGate =
+      typeof window === "undefined" || typeof PerformanceObserver === "undefined"
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => { afterFirstContent(resolve); });
+  }
+  return musicGate;
+}
+
 function loadLoop(url: string): Promise<LoopBuffer | null> {
   const cached = loopBuffers.get(url);
   if (cached) return cached;
@@ -483,7 +495,7 @@ function playElement(): void {
 export function prewarmTheme(trackUrl?: string): void {
   const url = trackUrl ?? DEFAULT_THEME_FILE;
   if (!ctxCtor()) return;
-  void loadLoop(url);
+  void musicFetchAllowed().then(() => loadLoop(url));
 }
 
 /**
@@ -511,7 +523,10 @@ export function startTheme(trackUrl?: string): void {
   preferPlaybackSession();
   const wanted = themeUrl;
   const c = ctx;
-  void loadLoop(wanted).then((loop) => {
+  // The track is a few hundred KB. Fetch it once the page has painted (or on
+  // the first tap, which is also when playback can start), so it never
+  // competes with the page's own code and images on a slow connection.
+  void musicFetchAllowed().then(() => loadLoop(wanted)).then((loop) => {
     if (!themeDesired || !musicEnabled || themeUrl !== wanted) return;
     if (!loop) { playElement(); return; }
     whenRunning(c, () => {
