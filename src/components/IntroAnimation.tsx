@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import type { LottieRefCurrentProps } from "lottie-react";
 import { RAW } from "@/lib/tokens";
-import { loadLottieComponent } from "@/lib/lottieLoader";
+import { loadLottieComponent, needsFullLottie } from "@/lib/lottieLoader";
 
 // Never let a failed chunk fetch throw inside Suspense and blank the screen.
 const Lottie = React.lazy(loadLottieComponent);
@@ -20,6 +20,8 @@ export const preloadIntroJson = (): Promise<unknown> => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.json();
     })
+    // A file the light player can't draw is treated like a failed load.
+    .then((d) => (needsFullLottie(d) ? null : d))
     .catch(() => null);
   return introJsonPromise;
 };

@@ -31,3 +31,24 @@ export const loadLottieComponent = async (): Promise<{ default: LottieComponent 
     return { default: StaticFallback };
   }
 };
+
+/**
+ * True when an animation uses something the light lottie player can't draw:
+ * expressions (a string "x" on a property) or layer effects ("ef").
+ * Callers keep their static artwork for such files instead of a broken draw.
+ */
+export const needsFullLottie = (data: unknown): boolean => {
+  const stack: unknown[] = [data];
+  while (stack.length) {
+    const o = stack.pop();
+    if (Array.isArray(o)) {
+      for (const v of o) if (v && typeof v === "object") stack.push(v);
+    } else if (o && typeof o === "object") {
+      const rec = o as Record<string, unknown>;
+      if (typeof rec.x === "string") return true;
+      if (Array.isArray(rec.ef) && rec.ef.length > 0) return true;
+      for (const v of Object.values(rec)) if (v && typeof v === "object") stack.push(v);
+    }
+  }
+  return false;
+};

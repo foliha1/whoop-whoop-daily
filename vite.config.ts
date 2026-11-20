@@ -22,9 +22,15 @@ export default defineConfig(({ mode }) => ({
   build: { assetsInlineLimit: 0 },
   plugins: [react(), mode === "development" && componentTagger(), mcpPlugin(), umbrellaHead(), classicPrerender()].filter(Boolean),
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    alias: [
+      { find: "@", replacement: path.resolve(__dirname, "./src") },
+      // lottie-react imports the full lottie-web player (~77 KB gzip). Our
+      // animations use the SVG renderer with no expressions or effects, so
+      // the light SVG-only build (~47 KB gzip) draws them identically.
+      // DailyLogoLockup checks each file and keeps the still art if one ever
+      // needs a feature the light build lacks.
+      { find: /^lottie-web$/, replacement: path.resolve(__dirname, "node_modules/lottie-web/build/player/lottie_light.js") },
+    ],
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
   },
 }));

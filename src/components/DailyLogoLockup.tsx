@@ -6,7 +6,7 @@ import animationAsset from "@/assets/whoop-daily-logo.json.asset.json";
 import { useThemeMode } from "@/lib/nightMode";
 import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
 import { HOLO_AT_LOAD } from "@/lib/holoSkin";
-import { loadLottieComponent } from "@/lib/lottieLoader";
+import { loadLottieComponent, needsFullLottie } from "@/lib/lottieLoader";
 
 // A failed chunk fetch (stale build, flaky network) must never blank the page:
 // resolve to a no-op so the static lockup stays on screen.
@@ -122,7 +122,7 @@ const DailyLogoLockup: React.FC<{ style?: React.CSSProperties; variant?: LockupV
     setReady(false);
     const cancel = afterPaintIdleOrInteraction(() => {
       void Promise.all([import("lottie-react"), loadData(art.animation)])
-        .then(([, data]) => { if (live) setJson(data); })
+        .then(([, data]) => { if (live && !needsFullLottie(data)) setJson(data); })
         .catch(() => { /* keep the static fallback */ });
     });
     return () => {
