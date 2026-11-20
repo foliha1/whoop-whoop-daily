@@ -32,6 +32,21 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_excluded_browsers: {
+        Row: {
+          created_at: string
+          visitor_id: string
+        }
+        Insert: {
+          created_at?: string
+          visitor_id: string
+        }
+        Update: {
+          created_at?: string
+          visitor_id?: string
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string
@@ -1023,6 +1038,12 @@ export type Database = {
           total_players: number
         }[]
       }
+      admin_hidden_visitors: {
+        Args: never
+        Returns: {
+          visitor_id: string
+        }[]
+      }
       admin_howto: {
         Args: { p_from: string; p_to: string }
         Returns: {
@@ -1045,6 +1066,10 @@ export type Database = {
           visitor_pct: number
           visitor_returned: number
         }[]
+      }
+      admin_overview: {
+        Args: { p_hide_admin?: boolean; p_visitor_id?: string }
+        Returns: Json
       }
       admin_preorder: {
         Args: { p_from: string; p_to: string }
@@ -1116,6 +1141,10 @@ export type Database = {
           synced: number
           total: number
         }[]
+      }
+      admin_tag_browser: {
+        Args: { p_hide?: boolean; p_visitor_id: string }
+        Returns: boolean
       }
       admin_trend: {
         Args: { p_from: string; p_to: string }
