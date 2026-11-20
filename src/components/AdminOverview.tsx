@@ -83,6 +83,8 @@ const shortDate = (iso: string) => {
 const ui: CSSProperties = { fontFamily: FONT_FAMILY_UI, fontVariantNumeric: "tabular-nums" };
 const heading: CSSProperties = { fontFamily: FONT_FAMILY, fontSize: 24, lineHeight: 1.15, fontWeight: 400, color: COLORS.ink, margin: 0 };
 const sub: CSSProperties = { ...ui, fontSize: FONT_SIZE.xs, color: COLORS.inkMuted, margin: 0 };
+const chartTick = { fontFamily: FONT_FAMILY_UI, fontSize: 10, fill: COLORS.inkMuted };
+const chartTooltipStyle: CSSProperties = { fontFamily: FONT_FAMILY_UI };
 const grid: CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: SPACE[5] };
 const section: CSSProperties = { display: "flex", flexDirection: "column", gap: SPACE[5], minWidth: 0 };
 
@@ -156,16 +158,16 @@ const TrendChart: React.FC<{ days: OverviewDay[] }> = ({ days }) => (
             <ResponsiveContainer width="100%" height="100%">
               {s.bar ? (
                 <BarChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
-                  <XAxis dataKey="day" tick={{ fontSize: 10, fill: COLORS.inkMuted }} interval={9} tickLine={false} axisLine={false} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: COLORS.inkMuted }} tickLine={false} axisLine={false} />
-                  <Tooltip formatter={(v: number) => [n(v), s.label]} />
+                  <XAxis dataKey="day" tick={chartTick} interval={9} tickLine={false} axisLine={false} />
+                  <YAxis allowDecimals={false} tick={chartTick} tickLine={false} axisLine={false} />
+                  <Tooltip formatter={(v: number) => [n(v), s.label]} contentStyle={chartTooltipStyle} wrapperStyle={chartTooltipStyle} />
                   <Bar dataKey="v" fill={s.color} radius={[2, 2, 0, 0]} isAnimationActive={false} />
                 </BarChart>
               ) : (
                 <LineChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
-                  <XAxis dataKey="day" tick={{ fontSize: 10, fill: COLORS.inkMuted }} interval={9} tickLine={false} axisLine={false} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: COLORS.inkMuted }} tickLine={false} axisLine={false} />
-                  <Tooltip formatter={(v: number) => [n(v), s.label]} />
+                  <XAxis dataKey="day" tick={chartTick} interval={9} tickLine={false} axisLine={false} />
+                  <YAxis allowDecimals={false} tick={chartTick} tickLine={false} axisLine={false} />
+                  <Tooltip formatter={(v: number) => [n(v), s.label]} contentStyle={chartTooltipStyle} wrapperStyle={chartTooltipStyle} />
                   <Line dataKey="v" stroke={s.color} strokeWidth={2} dot={false} isAnimationActive={false} />
                 </LineChart>
               )}
