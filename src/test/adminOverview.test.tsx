@@ -11,6 +11,7 @@ vi.mock("recharts", async () => {
 
 import { AdminOverviewView, pct, type Overview } from "@/components/AdminOverview";
 import { isPreviewHost } from "@/lib/previewHost";
+import { FONT_FAMILY, FONT_FAMILY_UI } from "@/lib/tokens";
 
 const data = JSON.parse(readFileSync(resolve(__dirname, "fixtures-admin-overview.json"), "utf8")) as Overview;
 
@@ -37,6 +38,13 @@ describe("Admin overview", () => {
     expect(onHide).toHaveBeenCalledWith(false);
     fireEvent.click(screen.getByRole("button", { name: "This Is Me" }));
     expect(onTag).toHaveBeenCalledWith(true);
+  });
+
+  it("uses Friend for headers and Geist for content and controls", () => {
+    render(<AdminOverviewView data={data} hideMine onHideMineChange={() => {}} onTagBrowser={() => {}} />);
+    expect(screen.getByRole("heading", { name: "Players" })).toHaveStyle({ fontFamily: FONT_FAMILY });
+    expect(screen.getByText("1,589")).toHaveStyle({ fontFamily: FONT_FAMILY_UI });
+    expect(screen.getByRole("button", { name: "This Is Me" })).toHaveStyle({ fontFamily: FONT_FAMILY_UI });
   });
 
   it("rounds rates and never divides by zero", () => {

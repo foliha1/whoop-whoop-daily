@@ -236,6 +236,17 @@ const mono: CSSProperties = {
   fontVariantNumeric: "tabular-nums",
 };
 
+/** Dashboard controls are content too; keep the site's shared Friend buttons elsewhere. */
+const adminControlFont: CSSProperties = {
+  fontFamily: FONT_FAMILY_UI,
+  fontWeight: FONT_WEIGHT_UI,
+};
+
+const adminButtonStyle = (...args: Parameters<typeof buttonStyle>): CSSProperties => ({
+  ...buttonStyle(...args),
+  ...adminControlFont,
+});
+
 const cardStyle: CSSProperties = {
   boxSizing: "border-box",
   minWidth: 0,
@@ -396,7 +407,7 @@ const SignInGate: React.FC = () => {
               type="button"
               onClick={() => void verify()}
               disabled={busy}
-              style={buttonStyle("primary", "sm", { fullWidth: true })}
+              style={adminButtonStyle("primary", "sm", { fullWidth: true })}
             >
               Sign In
             </AppButton>
@@ -438,7 +449,7 @@ const SignInGate: React.FC = () => {
               type="button"
               onClick={() => void send()}
               disabled={busy}
-              style={buttonStyle("primary", "sm", { fullWidth: true })}
+              style={adminButtonStyle("primary", "sm", { fullWidth: true })}
             >
               Send Code
             </AppButton>
@@ -807,7 +818,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
         </h1>
         <span style={labelStyle}>{session.user.email}</span>
       </div>
-      <AppButton type="button" onClick={signOut} style={buttonStyle("ink", "sm")}>
+      <AppButton type="button" onClick={signOut} style={adminButtonStyle("ink", "sm")}>
         Sign Out
       </AppButton>
     </header>
@@ -856,6 +867,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
             const selected = from === range.from && to === range.to;
             return (
               <AppButton key={days} type="button" variant="secondary" size="sm" active={selected} aria-pressed={selected}
+                style={adminControlFont}
                 onClick={() => { setFrom(range.from); setTo(range.to); }}>
                 {days === 1 ? "Today" : `${days} days`}
               </AppButton>
@@ -876,7 +888,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
           aria-label="To date"
           style={inputStyle}
         />
-        <AppButton type="button" onClick={() => void load()} style={buttonStyle("secondary", "sm")}>
+        <AppButton type="button" onClick={() => void load()} style={adminButtonStyle("secondary", "sm")}>
           {state === "loading" ? "Loading…" : "Refresh"}
         </AppButton>
       </div>
@@ -940,7 +952,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
               type="button"
               onClick={() => void exportSubscribers()}
               disabled={listBusy}
-              style={buttonStyle("primary", "sm")}
+              style={adminButtonStyle("primary", "sm")}
             >
               {listBusy ? "Preparing…" : "Download the List"}
             </AppButton>
@@ -950,7 +962,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
                 setConfirmList(false);
                 setListError(null);
               }}
-              style={buttonStyle("secondary", "sm")}
+              style={adminButtonStyle("secondary", "sm")}
             >
               Cancel
             </AppButton>
@@ -1316,7 +1328,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
                   <AppButton
                     type="button"
                     onClick={() => setTrendAll((v) => !v)}
-                    style={buttonStyle("secondary", "sm")}
+                    style={adminButtonStyle("secondary", "sm")}
                   >
                     {trendAll ? "Show Last 7 Days" : `Show All ${all.length} Days`}
                   </AppButton>

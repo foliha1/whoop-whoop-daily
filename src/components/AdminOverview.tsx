@@ -18,6 +18,7 @@ import {
   FONT_FAMILY,
   FONT_FAMILY_UI,
   FONT_SIZE,
+  FONT_WEIGHT_UI,
   RADIUS,
   SPACE,
   buttonStyle,
@@ -201,7 +202,7 @@ export const AdminOverviewView: React.FC<{
           type="button"
           disabled={busy}
           onClick={() => onTagBrowser(!data.this_browser_hidden)}
-          style={buttonStyle("quiet", "sm")}
+          style={{ ...buttonStyle("quiet", "sm"), fontFamily: FONT_FAMILY_UI, fontWeight: FONT_WEIGHT_UI }}
         >
           {data.this_browser_hidden ? "Count This Browser Again" : "This Is Me"}
         </AppButton>
