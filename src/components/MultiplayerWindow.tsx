@@ -91,14 +91,23 @@ const entryAssetsFor = (variant: "plain" | "classic", night: boolean): readonly 
 import SettingsSheet from "@/components/SettingsSheet";
 import { BarChart3, HelpCircle, Settings as SettingsIcon } from "lucide-react";
 import { useViewportHeight, compressionFactor, lerpCompress } from "@/hooks/useViewportHeight";
-import MultiplayerGameView from "@/components/MultiplayerGameView";
 import { preloadGameArt } from "@/lib/preloadArt";
 import { useSoloGame } from "@/hooks/useSoloGame";
 import { useClassicResultRecorder } from "@/hooks/useClassicResultRecorder";
 import { rememberHostedTable } from "@/lib/playerStats";
 
-import ClassicDemo, { hasSeenClassicDemo } from "@/components/ClassicDemo";
-import DailyHowToSteps from "@/components/DailyHowToSteps";
+import { hasSeenClassicDemo } from "@/lib/classicDemoSeen";
+import { afterFirstContent } from "@/lib/deferredWork";
+
+// The game board and both How to Play flows load on demand, so Home paints
+// without them. They are fetched once Home has painted (see the prefetch in
+// MultiplayerWindow), so a tap on Solo or How to Play rarely waits.
+const loadGameView = () => import("@/components/MultiplayerGameView");
+const loadClassicDemo = () => import("@/components/ClassicDemo");
+const loadDailyHowTo = () => import("@/components/DailyHowToSteps");
+const MultiplayerGameView = React.lazy(loadGameView);
+const ClassicDemo = React.lazy(loadClassicDemo);
+const DailyHowToSteps = React.lazy(loadDailyHowTo);
 import HowToChooser from "@/components/HowToChooser";
 import DailyLegalFooter from "@/components/DailyLegalFooter";
 
@@ -173,7 +182,7 @@ const GameShell: React.FC<{ mobile: boolean; children: React.ReactNode }> = ({ m
       overflow: "hidden",
     }}
   >
-    {children}
+    <React.Suspense fallback={null}>{children}</React.Suspense>
   </div>
 );
 
@@ -1245,6 +1254,14 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     [umbrella, home, theme],
   );
   const entryReady = useEntryReady(entryAssets);
+  // Fetch the game board and How to Play once Home has painted.
+  useEffect(
+    () =>
+      afterFirstContent(() => {
+        for (const load of [loadGameView, loadClassicDemo, loadDailyHowTo]) void load().catch(() => undefined);
+      }),
+    [],
+  );
 
   // Lobby / solo-setup: the same compression rhythm applied to the stacked
   // sections so the whole screen still fits at 390x520 with no scrolling.
@@ -1450,8 +1467,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
         </FitColumn>
       </DailyFrame>
 
-      {howToOverlay}
-      {howToChooserOverlay}
+      <React.Suspense fallback={null}>
+        {howToOverlay}
+        {howToChooserOverlay}
+      </React.Suspense>
       {showSettings && (
         <SettingsSheet
           product={home && umbrella ? "home" : "classic"}

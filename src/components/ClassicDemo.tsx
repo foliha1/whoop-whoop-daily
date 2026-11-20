@@ -94,13 +94,8 @@ import {
  * ------------------------------------------------------------------ */
 const SEEN_KEY = "ww_classic_demo_seen";
 
-export function hasSeenClassicDemo(): boolean {
-  try {
-    return window.localStorage.getItem(SEEN_KEY) === "1";
-  } catch {
-    return true; // storage blocked: never trap the player behind the gate
-  }
-}
+// Lives in its own tiny module so Home can check it without loading the demo.
+export { hasSeenClassicDemo } from "@/lib/classicDemoSeen";
 
 export function markClassicDemoSeen(): void {
   try {

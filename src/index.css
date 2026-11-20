@@ -414,6 +414,9 @@ All colors MUST be HSL.
 }
 
 @keyframes ww-ui-revisit { from { opacity: 0; } to { opacity: 1; } }
+/* Its own name on purpose: re-using ww-ui-revisit with "reverse" doesn't
+   restart a finished animation, so the backdrop used to vanish in one frame. */
+@keyframes ww-ui-fade-out { from { opacity: 1; } to { opacity: 0; } }
 @keyframes ww-ui-modal-in {
   from { opacity: 0; transform: scale(var(--ww-ui-modal-scale, 0.96)); }
   to { opacity: 1; transform: scale(1); }
@@ -458,7 +461,7 @@ All colors MUST be HSL.
 .ww-subscribe-form h2 { font-size: 28px !important; }
 .ww-subscribe-form h2 + p { margin-top: -8px !important; }
 .ww-subscribe-form input { padding-inline: 16px !important; }
-.ww-ui-modal-backdrop[data-motion-exit="true"] { animation: ww-ui-revisit var(--ww-ui-exit, 150ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) reverse both; }
+.ww-ui-modal-backdrop[data-motion-exit="true"] { animation: ww-ui-fade-out var(--ww-ui-exit, 150ms) ease-out both; }
 .ww-ui-modal-panel[data-motion-exit="true"] { animation: ww-ui-modal-out var(--ww-ui-exit, 150ms) var(--ww-ui-ease, cubic-bezier(0.23, 1, 0.32, 1)) both; }
 
 .ww-you-badge-track:focus-visible,
@@ -1702,4 +1705,12 @@ All colors MUST be HSL.
 .ww-page-in { animation: ww-page-in 280ms ease-out both; }
 @media (prefers-reduced-motion: reduce) {
   .ww-page-in { animation: none; }
+}
+
+/* Modal exit ghost (src/lib/modalExitFade.ts): a closed modal re-added for its
+   fade-out. Freeze CSS motion so it doesn't replay its entry animation. */
+.ww-exit-ghost,
+.ww-exit-ghost * {
+  animation: none !important;
+  transition: none !important;
 }

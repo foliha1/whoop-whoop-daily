@@ -7,12 +7,14 @@ import { initTheme } from "./lib/nightMode";
 import { initSkin } from "./lib/skin";
 import { initHoloSkin } from "./lib/holoSkin";
 import "./lib/installPrompt";
+import { installModalExitFade } from "./lib/modalExitFade";
 
 // Resolve light/night before the first paint so there is never a flash.
 initTheme();
 // Stamp the Spook Spook palette flag before first paint for the same reason.
 initSkin();
 initHoloSkin();
+installModalExitFade();
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>
