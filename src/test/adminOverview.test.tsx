@@ -19,8 +19,8 @@ describe("Admin overview", () => {
   it("shows lifetime players by format, returns, list, sharing, sources and trend", () => {
     render(<AdminOverviewView data={data} hideMine onHideMineChange={() => {}} onTagBrowser={() => {}} />);
     expect(screen.getByText("1,589")).toBeInTheDocument();
-    expect(screen.getByText("people have played Whoop! Whoop!")).toBeInTheDocument();
-    expect(screen.getByText("played all three · 164 played 2 or more")).toBeInTheDocument();
+    expect(screen.getByText("unique players across all formats")).toBeInTheDocument();
+    expect(screen.getByText(/cross-mode overlap · .* played all three · 164 played 2 or more/)).toBeInTheDocument();
     expect(screen.getByText("18 of 108 came back on Nov 19", { exact: false })).toBeInTheDocument();
     expect(screen.getByText("Daily results screen")).toBeInTheDocument();
     expect(screen.getByText("pre-order cart clicks · 0 today")).toBeInTheDocument();
@@ -28,6 +28,14 @@ describe("Admin overview", () => {
     expect(within(playlin).getByText("0 · 0%")).toBeInTheDocument();
     expect(screen.getByText("Together players")).toBeInTheDocument();
     expect(screen.getByText("24 admin and test browsers left out")).toBeInTheDocument();
+  });
+
+  it("shows today's activity from today's trend row", () => {
+    render(<AdminOverviewView data={data} hideMine onHideMineChange={() => {}} onTagBrowser={() => {}} />);
+    expect(screen.getByRole("heading", { name: "Today so far" })).toBeInTheDocument();
+    expect(screen.getByText("played the Daily today").previousSibling!.textContent).toBe(
+      String((data.trend.find((d) => d.day === data.today)?.daily ?? 0).toLocaleString()),
+    );
   });
 
   it("lets an admin show everyone or tag this browser", () => {

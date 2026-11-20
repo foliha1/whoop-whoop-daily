@@ -189,6 +189,7 @@ export const AdminOverviewView: React.FC<{
 }> = ({ data, hideMine, onHideMineChange, onTagBrowser, busy = false }) => {
   const p = data.players;
   const r = data.returning;
+  const t = data.trend.find((d) => d.day === data.today) ?? { daily: 0, solo: 0, together: 0, signups: 0 };
   return (
     <div data-testid="admin-overview" style={{ display: "flex", flexDirection: "column", gap: SPACE[12], minWidth: 0 }}>
       {/* Whose activity counts */}
@@ -210,13 +211,24 @@ export const AdminOverviewView: React.FC<{
         </AppButton>
       </div>
 
-      <Section title="Players" note={data.since ? `Lifetime, since ${shortDate(data.since)}` : "Lifetime"}>
+      <Section title="Today so far" note={`${shortDate(data.today)} · UTC day in progress`}>
         <div style={grid}>
-          <Tile wide tone="blue" value={n(p.any)} label="people have played Whoop! Whoop!" />
-          <Tile value={n(p.daily)} label="played the Daily" />
+          <Tile value={n(t.daily)} label="played the Daily today" />
+          <Tile value={n(t.solo)} label="played Solo today" />
+          <Tile value={n(t.together)} label="played Together today" />
+          <Tile value={n(t.signups)} label="new signups today" />
+          <Tile value={n(data.shares.today)} label={`Daily shares today · ${n(data.shares.invites_today)} invite links opened`} />
+          <Tile value={n(data.preorder.clicks_today)} label="pre-order cart clicks today" />
+        </div>
+      </Section>
+
+      <Section title="Players" note={`${data.since ? `Lifetime, since ${shortDate(data.since)}` : "Lifetime"} · format tiles count each mode; multi-mode players appear in each`}>
+        <div style={grid}>
+          <Tile wide tone="blue" value={n(p.any)} label="unique players across all formats" />
+          <Tile value={n(p.daily)} label="played Daily" />
           <Tile value={n(p.solo)} label="played Solo" />
           <Tile value={n(p.together)} label="played Together" />
-          <Tile tone="orange" value={n(p.all_three)} label={`played all three · ${n(p.two_plus)} played 2 or more`} />
+          <Tile tone="orange" value={n(p.all_three)} label={`cross-mode overlap · ${n(p.all_three)} played all three · ${n(p.two_plus)} played 2 or more`} />
         </div>
       </Section>
 
