@@ -803,7 +803,7 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
     >
       <div style={{ minWidth: 0, overflowWrap: "anywhere" }}>
         <h1 style={{ ...textStyle("title"), color: COLORS.ink, margin: 0 }}>
-          WHOOP! Dashboard
+          {ADMIN_DASHBOARD_TITLE}
         </h1>
         <span style={labelStyle}>{session.user.email}</span>
       </div>
@@ -1351,9 +1351,22 @@ const pageStyle: CSSProperties = {
 // route entry — session gate only; the real gate is server-side
 // ---------------------------------------------------------------------------
 
+/** The dashboard's name: the page header and the browser tab share this one string. */
+export const ADMIN_DASHBOARD_TITLE = "Whoop! Whoop! Dashboard";
+
 const AdminPage: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [checked, setChecked] = useState(false);
+
+  // Same pattern as the other routes: a plain title swap, restored on unmount,
+  // so the tab never keeps the dashboard name after leaving /admin.
+  useEffect(() => {
+    const prev = document.title;
+    document.title = ADMIN_DASHBOARD_TITLE;
+    return () => {
+      document.title = prev;
+    };
+  }, []);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
