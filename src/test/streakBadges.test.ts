@@ -54,8 +54,16 @@ describe("streak badges", () => {
   });
 
   it("lists the keepsake in the grid only once earned", () => {
-    expect(badgeGroups(false).map((g) => g.title)).toEqual(["Score Tiers", "Streaks"]);
-    expect(badgeGroups(true).map((g) => g.title)).toEqual(["Score Tiers", "Streaks", "Keepsakes"]);
+    expect(badgeGroups(false).map((g) => g.title)).toEqual(["Score Tiers", "Skill", "Streaks"]);
+    expect(badgeGroups(true).map((g) => g.title)).toEqual(["Score Tiers", "Skill", "Streaks", "Keepsakes"]);
     expect(badgeGroups(false)[0].keys).toEqual(["rookie", "great_eye", "match_maker", "xray_vision", "legend"]);
+  });
+});
+
+describe("badge art files", () => {
+  it("use no masked strokes, which leave hairline rings when scaled", async () => {
+    const files = import.meta.glob("@/assets/badges/{streak,clean,perfect,no}_*.svg", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
+    expect(Object.keys(files).length).toBe(13);
+    for (const [name, svg] of Object.entries(files)) expect(svg, name).not.toMatch(/mask=/);
   });
 });

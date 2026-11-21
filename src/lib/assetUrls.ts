@@ -19,6 +19,11 @@ import badgeStreak50 from "@/assets/badges/streak_50.svg?url";
 import badgeStreak100 from "@/assets/badges/streak_100.svg?url";
 import badgeStreak200 from "@/assets/badges/streak_200.svg?url";
 import badgeStreak365 from "@/assets/badges/streak_365.svg?url";
+import badgeClean1 from "@/assets/badges/clean_1.svg?url";
+import badgeClean10 from "@/assets/badges/clean_10.svg?url";
+import badgeClean25 from "@/assets/badges/clean_25.svg?url";
+import badgePerfectDay from "@/assets/badges/perfect_day.svg?url";
+import badgeNoPeek from "@/assets/badges/no_peek.svg?url";
 import dailyMp3 from "@/assets/sounds/theme.mp3?url";
 import classicMp3 from "@/assets/sounds/classic-theme.mp3?url";
 import howToMp3 from "@/assets/sounds/how-to-play.mp3?url";
@@ -60,6 +65,11 @@ export const BADGE_URLS = {
   "streak-100": badgeStreak100,
   "streak-200": badgeStreak200,
   "streak-365": badgeStreak365,
+  "clean-1": badgeClean1,
+  "clean-10": badgeClean10,
+  "clean-25": badgeClean25,
+  "perfect-day": badgePerfectDay,
+  "no-peek": badgeNoPeek,
 } as const;
 export const THEME_MP3 = { daily: dailyMp3, classic: classicMp3, howTo: howToMp3 } as const;
 export const THEME_OGG = { daily: dailyOgg, classic: classicOgg, howTo: howToOgg } as const;

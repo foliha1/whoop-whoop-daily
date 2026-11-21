@@ -12,6 +12,7 @@ import CardFlipLoader from "@/components/CardFlipLoader";
 import YouBadgeShelf from "@/components/YouBadgeShelf";
 import AllBadgesDialog from "@/components/AllBadgesDialog";
 import { streakBadgesFrom, withStreakBadges } from "@/lib/streakBadges";
+import { skillBadgesFrom } from "@/lib/skillBadges";
 import type { EarnedBadge } from "@/lib/whoopPoints";
 import { DAILY_100_NUMBER, hasDaily100Keepsake, withKeepsake } from "@/lib/daily100";
 import YouScoreTiles from "@/components/YouScoreTiles";
@@ -59,11 +60,11 @@ const YouPage: React.FC = () => {
     void fetchDailyStats().then((result) => { if (live) setStats(result); });
     return () => { live = false; };
   }, []);
-  // Streak badges come from the identity-scoped server history, so they follow
+  // Skill and streak badges come from the identity-scoped server history, so they follow
   // a signed-in player across devices and backfill streaks from before launch.
   React.useEffect(() => {
     let live = true;
-    void fetchDailyResults().then((rows) => { if (live) setStreakBadges(streakBadgesFrom(rows)); });
+    void fetchDailyResults().then((rows) => { if (live) setStreakBadges([...skillBadgesFrom(rows), ...streakBadgesFrom(rows)]); });
     return () => { live = false; };
   }, [accountEmail]);
   React.useEffect(() => {

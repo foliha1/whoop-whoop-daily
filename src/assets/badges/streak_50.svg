@@ -1,4 +1,4 @@
-<svg width="420" height="420" viewBox="0 0 420 420" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="420" height="420" viewBox="0 0 420 420" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect x="8" y="8" width="404" height="404" rx="202" fill="#F8F2E9"/>
 <rect x="8" y="8" width="404" height="404" rx="202" stroke="#231F20" stroke-width="16"/>
 <g clip-path="url(#clip0_763_73)">
@@ -33,12 +33,7 @@
 <path d="M95.088 51.8372C106.14 43.8075 118.003 36.9583 130.483 31.4019L210 210L95.088 51.8372Z" fill="#D72229"/>
 <path d="M130.483 31.4019C142.963 25.8455 155.991 21.6124 169.353 18.7722L210 210L130.483 31.4019Z" fill="#E79024"/>
 <path d="M169.353 18.7722C182.716 15.9319 196.339 14.5 210 14.5V210L169.353 18.7722Z" fill="#0072B2"/>
-<use xlink:href="#stroke0_763_73" fill="#231F20"/>
-<mask id="stroke1_763_73" maskUnits="userSpaceOnUse" x="63" y="63" width="293" height="293" fill="black">
-<rect fill="white" x="63" y="63" width="293" height="293"/>
-<use xlink:href="#stroke0_763_73"/>
-</mask>
-<path d="M340 209.5C340 281.573 281.573 340 209.5 340C137.427 340 79 281.573 79 209.5C79 137.427 137.427 79 209.5 79C281.573 79 340 137.427 340 209.5Z" stroke-width="32" stroke="#231F20" mask="url(#stroke1_763_73)"/>
+<path d="M209.5 340C281.573 340 340 281.573 340 209.5C340 137.427 281.573 79 209.5 79C137.427 79 79 137.427 79 209.5C79 281.573 137.427 340 209.5 340Z" fill="#231F20"/>
 <circle cx="180.512" cy="101.316" r="5" fill="#0072B2"/>
 <circle cx="153.5" cy="112.505" r="5" fill="#E79024"/>
 <circle cx="130.304" cy="130.304" r="5" fill="#D72229"/>
@@ -69,6 +64,5 @@
 <clipPath id="clip0_763_73">
 <rect width="391" height="391" rx="195.5" fill="white" transform="translate(14.5 14.5)"/>
 </clipPath>
-<path id="stroke0_763_73" d="M209.5 340C281.573 340 340 281.573 340 209.5C340 137.427 281.573 79 209.5 79C137.427 79 79 137.427 79 209.5C79 281.573 137.427 340 209.5 340Z"/>
 </defs>
 </svg>

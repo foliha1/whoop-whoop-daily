@@ -50,6 +50,11 @@ export const BADGE_ART: Readonly<Record<string, string>> = {
   "streak-100": BADGE_URLS["streak-100"],
   "streak-200": BADGE_URLS["streak-200"],
   "streak-365": BADGE_URLS["streak-365"],
+  "clean-1": BADGE_URLS["clean-1"],
+  "clean-10": BADGE_URLS["clean-10"],
+  "clean-25": BADGE_URLS["clean-25"],
+  "perfect-day": BADGE_URLS["perfect-day"],
+  "no-peek": BADGE_URLS["no-peek"],
 };
 
 export function badgeArt(key: string): string | null {

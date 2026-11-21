@@ -21,10 +21,10 @@ describe("AllBadgesDialog", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "See All Badges" }));
     const dialog = await screen.findByRole("dialog", { name: "All Badges" });
-    expect(within(dialog).getByText("2 of 13 earned")).toBeVisible();
+    expect(within(dialog).getByText("2 of 18 earned")).toBeVisible();
 
     const items = within(dialog).getAllByTestId("all-badges-item");
-    expect(items).toHaveLength(13);
+    expect(items).toHaveLength(18);
 
     const earned = items.filter((el) => el.dataset.earned === "true").map((el) => el.dataset.badge);
     expect(earned).toEqual(["rookie", "streak-7"]);
@@ -46,7 +46,7 @@ describe("AllBadgesDialog", () => {
     render(<AllBadgesDialog mobile earned={[{ key: "daily-100", earnedOn: "2026-11-18" }]} />);
     fireEvent.click(screen.getByRole("button", { name: "See All Badges" }));
     const dialog = await screen.findByRole("dialog", { name: "All Badges" });
-    expect(within(dialog).getByText("1 of 14 earned")).toBeVisible();
+    expect(within(dialog).getByText("1 of 19 earned")).toBeVisible();
     expect(within(dialog).getByText("Keepsakes")).toBeVisible();
   });
 
