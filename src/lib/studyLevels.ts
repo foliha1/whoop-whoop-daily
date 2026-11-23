@@ -18,6 +18,18 @@ export function normalizeStudyLevel(value: unknown): StudyLevel {
   return STUDY_LEVELS.some((l) => l.key === value) ? (value as StudyLevel) : DEFAULT_STUDY_LEVEL;
 }
 
+/**
+ * Score bonus for a finished run; mirrors public.whoop_points_study_bonus.
+ * Blink: +0.5 per solved round. Glance: the same, minus the first solved round.
+ */
+export function studyLevelBonus(level: unknown, roundsSolved: number): number {
+  const solved = Math.max(0, Math.min(3, roundsSolved || 0));
+  const key = normalizeStudyLevel(level);
+  if (key === "blink") return 0.5 * solved;
+  if (key === "glance") return 0.5 * Math.max(0, solved - 1);
+  return 0;
+}
+
 export function studyMsFor(level: unknown): number {
   const key = normalizeStudyLevel(level);
   return STUDY_LEVELS.find((l) => l.key === key)!.ms;

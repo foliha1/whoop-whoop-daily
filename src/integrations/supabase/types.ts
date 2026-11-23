@@ -1669,6 +1669,10 @@ export type Database = {
           used_fallback: boolean
         }[]
       }
+      whoop_points_study_bonus: {
+        Args: { p_rounds_solved: number; p_study_level: string }
+        Returns: number
+      }
       whoop_points_table: {
         Args: { p_as_of?: string }
         Returns: {

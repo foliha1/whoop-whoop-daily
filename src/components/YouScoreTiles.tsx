@@ -1,7 +1,7 @@
 import React from "react";
 import { StatInfoTile } from "@/components/StatInfo";
 import CurrentTierBadge from "@/components/CurrentTierBadge";
-import type { WhoopPoints } from "@/lib/whoopPoints";
+import { formatPoints, type WhoopPoints } from "@/lib/whoopPoints";
 import { SCORE_LABEL, badgeArt, tierName } from "@/lib/whoopTiers";
 import { BORDER, COLORS, FONT_SIZE, RADIUS, SPACE, TEXT, textStyle } from "@/lib/tokens";
 
@@ -30,7 +30,7 @@ const YouScoreTiles: React.FC<{ points: WhoopPoints; mobile: boolean; compact?: 
       </Box>
       <Box label="Total Score" style={{ ...tile, padding: compact ? SPACE[4] : SPACE[8], display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: SPACE[4], containerType: "inline-size" }}>
         <span style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, textAlign: "center" }}>Total Score</span>
-        <span style={{ ...textStyle("scoreTotal", mobile), fontSize: `min(${compact ? TEXT.scoreTotal.mobileSize : TEXT.scoreTotal.size}px, ${Math.floor((compact ? FONT_SIZE["8xl"] : 240) / String(points.total).length)}cqi)`, color: COLORS.ink, whiteSpace: "nowrap", maxWidth: "100%" }}>{points.total}</span>
+        <span style={{ ...textStyle("scoreTotal", mobile), fontSize: `min(${compact ? TEXT.scoreTotal.mobileSize : TEXT.scoreTotal.size}px, ${Math.floor((compact ? FONT_SIZE["8xl"] : 240) / formatPoints(points.total).length)}cqi)`, color: COLORS.ink, whiteSpace: "nowrap", maxWidth: "100%" }}>{formatPoints(points.total)}</span>
       </Box>
     </div>
   );

@@ -12,8 +12,7 @@ import { BADGE_URLS } from "@/lib/assetUrls";
 import {
   POINTS_TIER_FLOORS,
   pointsTierForTotal,
-  type PointsTier,
-} from "@/lib/whoopPoints";
+  type PointsTier, formatPoints } from "@/lib/whoopPoints";
 
 /** What the score is called, everywhere it is labelled. */
 export const SCORE_LABEL = "Your Whoop! Whoop! Score";
@@ -107,7 +106,7 @@ export function formatPointsChange(
       TIER_LADDER.findIndex((t) => t.tier === pointsTierForTotal(before));
   return {
     delta: todayPoints,
-    text: `+${todayPoints} today`,
+    text: `+${formatPoints(todayPoints)} today`,
     tierUp,
   };
 }

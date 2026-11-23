@@ -15,6 +15,12 @@ import { getSupabase } from "@/lib/db";
 import { getVisitorId } from "@/lib/visitor";
 import { getSubscribedEmail } from "@/lib/dailySubscribe";
 import { getDailyDateKey } from "@/lib/daily";
+import { studyLevelBonus } from "@/lib/studyLevels";
+
+/** Scores can hold halves: "87.5", whole numbers without a decimal. */
+export function formatPoints(n: number): string {
+  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+}
 
 // ----------------------------------------------------------------- constants --
 
@@ -68,6 +74,8 @@ export interface PointsGame {
   roundsSolved: number;
   /** Per-round event marks. Missing on older rows — then the fallback applies. */
   roundEvents?: string[][] | null;
+  /** Study level chosen at Start. Missing = Look (no bonus). */
+  studyLevel?: string | null;
   /** When the result was saved. The earliest per puzzle is the one counted. */
   createdAt?: string;
 }
@@ -123,12 +131,13 @@ export function firstTryRounds(game: PointsGame): number {
   return Math.max(0, (game.roundsSolved ?? 0) - (game.totalMisses ?? 0));
 }
 
-/** Points earned by one finished result. Never more than 5. */
+/** Points earned by one finished result: up to 5 base plus any study level bonus. */
 export function gamePoints(game: PointsGame): number {
   return (
     POINT_PLAY +
     Math.min(POINT_FIRST_TRY_MAX, firstTryRounds(game)) +
-    (game.peekUsed ? 0 : POINT_NO_PEEK)
+    (game.peekUsed ? 0 : POINT_NO_PEEK) +
+    studyLevelBonus(game.studyLevel, game.roundsSolved)
   );
 }
 

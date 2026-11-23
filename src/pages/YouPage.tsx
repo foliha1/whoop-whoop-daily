@@ -20,7 +20,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { usePointsPopulationState, useWhoopPointsState } from "@/hooks/useWhoopPoints";
 import { fetchDailyResults, fetchDailyStats, fetchFirstAttempt, type DailyStats } from "@/lib/dailyResults";
 import { useSubscriberStatus } from "@/hooks/useSubscriberStatus";
-import { DECAY_PER_DAY, DECAY_PROTECTED_POINTS, GRACE_DAYS, MAX_POINTS_PER_GAME, POINT_FIRST_TRY_MAX } from "@/lib/whoopPoints";
+import { formatPoints, DECAY_PER_DAY, DECAY_PROTECTED_POINTS, GRACE_DAYS, MAX_POINTS_PER_GAME, POINT_FIRST_TRY_MAX } from "@/lib/whoopPoints";
 import { SCORE_LABEL, TIER_LADDER, badgeArt, tierName, tierRange } from "@/lib/whoopTiers";
 import { enterThemeZone, leaveThemeZone, prewarmTheme } from "@/lib/sounds";
 import { BORDER, COLORS, FONT_SIZE, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
@@ -187,7 +187,7 @@ const YouPage: React.FC = () => {
                   ) : nextTier && points.pointsToNextTier !== null ? <span aria-hidden="true" /> : null}
                   {nextTier && points.pointsToNextTier !== null && (
                     <div data-testid="you-next-tier" style={{ ...creamTile, padding: SPACE[8], ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
-                      {points.pointsToNextTier} {points.pointsToNextTier === 1 ? "point" : "points"} to {nextTier.name} Tier
+                      {formatPoints(points.pointsToNextTier)} {points.pointsToNextTier === 1 ? "point" : "points"} to {nextTier.name} Tier
                     </div>
                   )}
                 </div>

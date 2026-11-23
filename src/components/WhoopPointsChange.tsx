@@ -11,7 +11,7 @@ import CurrentTierBadge from "@/components/CurrentTierBadge";
 import Daily100Badge from "@/components/Daily100Badge";
 import { KEEPSAKE_NAME } from "@/lib/daily100";
 import MaterialIcon from "@/components/MaterialIcon";
-import type { WhoopPoints } from "@/lib/whoopPoints";
+import { formatPoints, type WhoopPoints } from "@/lib/whoopPoints";
 import { SCORE_LABEL, badgeArt, tierName } from "@/lib/whoopTiers";
 import { BORDER, COLORS, FONT_SIZE, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
 
@@ -116,7 +116,7 @@ const WhoopPointsChange: React.FC<{
           }}
         >
           <span style={{ ...textStyle("resultWinner", mobile), color: COLORS.ink }}>
-            +{points.todayPoints ?? 0}
+            +{formatPoints(points.todayPoints ?? 0)}
           </span>
           <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
             today
@@ -137,7 +137,7 @@ const WhoopPointsChange: React.FC<{
           }}
         >
           <span style={{ ...textStyle("resultWinner", mobile), color: COLORS.ink }}>
-            {points.total}
+            {formatPoints(points.total)}
           </span>
           <span style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
             total
