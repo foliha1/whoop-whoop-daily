@@ -407,6 +407,7 @@ export type Database = {
           puzzle_number: number
           round_events: Json
           rounds_solved: number
+          study_level: string
           total_misses: number
           user_id: string | null
           visitor_id: string
@@ -421,6 +422,7 @@ export type Database = {
           puzzle_number: number
           round_events?: Json
           rounds_solved?: number
+          study_level?: string
           total_misses?: number
           user_id?: string | null
           visitor_id: string
@@ -435,6 +437,7 @@ export type Database = {
           puzzle_number?: number
           round_events?: Json
           rounds_solved?: number
+          study_level?: string
           total_misses?: number
           user_id?: string | null
           visitor_id?: string
@@ -1551,6 +1554,7 @@ export type Database = {
           p_puzzle_number: number
           p_round_events: Json
           p_rounds_solved: number
+          p_study_level?: string
           p_total_misses: number
           p_visitor_id: string
         }

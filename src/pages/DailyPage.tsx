@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { DEFAULT_STUDY_LEVEL, type StudyLevel } from "@/lib/studyLevels";
 import { DAILY_100_NUMBER, dailyTitle, hasDaily100Keepsake } from "@/lib/daily100";
 import { useLocation, useNavigate } from "react-router-dom";
 import HomeControl from "@/components/HomeControl";
@@ -1355,7 +1356,7 @@ const DailyPage: React.FC = () => {
   // loading label so the tap never looks ignored.
   const [playWaiting, setPlayWaiting] = useState(false);
   const startingRef = React.useRef(false);
-  const startRun = React.useCallback(() => {
+  const startRun = React.useCallback((level: StudyLevel = DEFAULT_STUDY_LEVEL) => {
     if (startingRef.current || daily.phase !== "READY") return;
     startingRef.current = true;
     setPlayWaiting(true);
@@ -1368,8 +1369,8 @@ const DailyPage: React.FC = () => {
       setPlayWaiting(false);
       // 600ms cue; the deal lands at 700ms, so it clears cleanly.
       playStart();
-      trackDaily("run_started", { puzzleNumber: daily.puzzleNumber });
-      daily.start();
+      trackDaily("run_started", { puzzleNumber: daily.puzzleNumber, props: { study_level: level } });
+      daily.start(level);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [daily.start, daily.phase, daily.puzzleNumber]);
@@ -1480,8 +1481,10 @@ const DailyPage: React.FC = () => {
       props: {
         roundsSolved: state.roundsSolved,
         totalMisses: state.totalMisses,
+        study_level: daily.studyLevel,
       },
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, state.roundsSolved, state.totalMisses, puzzleNumber]);
 
   // Left mid-run: the number that says whether the game is too hard.
@@ -1495,6 +1498,7 @@ const DailyPage: React.FC = () => {
           round: state.roundIndex,
           roundsSolved: state.roundsSolved,
           totalMisses: state.totalMisses,
+          study_level: daily.studyLevel,
         },
       });
       void flushDailyEvents();

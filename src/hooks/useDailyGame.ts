@@ -21,6 +21,7 @@ import {
   type DailyState,
 } from "@/lib/dailyEngine";
 import { DAILY_ROLL_HERO_MS } from "@/components/DailyRoundIntro";
+import { DEFAULT_STUDY_LEVEL, normalizeStudyLevel, studyMsFor, type StudyLevel } from "@/lib/studyLevels";
 import { pickTumbleSeed } from "@/lib/rolls";
 import {
   resolveDailyContext,
@@ -85,7 +86,9 @@ export interface UseDailyGameResult {
   /** True when the single peek can be taken right now. */
   canPeek: boolean;
 
-  start: () => void;
+  start: (level?: StudyLevel) => void;
+  /** Study level locked in at Start (Look until then). */
+  studyLevel: StudyLevel;
   select: (idx: number) => void;
   peek: () => void;
   /**
@@ -225,6 +228,8 @@ export function useDailyGame(): UseDailyGameResult {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const [studyLevel, setStudyLevel] = useState<StudyLevel>(DEFAULT_STUDY_LEVEL);
+
   // ---- phase sequence: (start gate) deal → study → hide → roll → play ----
   useEffect(() => {
     if (state.phase !== "DEAL") return;
@@ -234,8 +239,10 @@ export function useDailyGame(): UseDailyGameResult {
 
   useEffect(() => {
     if (state.phase !== "STUDY") return;
-    const t = setTimeout(() => dispatch({ type: "HIDE" }), STUDY_MS);
+    const t = setTimeout(() => dispatch({ type: "HIDE" }), studyMsFor(studyLevel));
     return () => clearTimeout(t);
+    // studyLevel is locked before DEAL, so it never changes during STUDY.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase]);
 
   // HIDE is entered both after the study window and after each round ends.
@@ -288,12 +295,14 @@ export function useDailyGame(): UseDailyGameResult {
   useEffect(() => {
     if (state.phase !== "STUDY") return;
     const start = Date.now();
-    setStudyRemaining(Math.ceil(STUDY_MS / 1000));
+    const ms = studyMsFor(studyLevel);
+    setStudyRemaining(Math.ceil(ms / 1000));
     const id = setInterval(() => {
-      const left = Math.max(0, STUDY_MS - (Date.now() - start));
+      const left = Math.max(0, ms - (Date.now() - start));
       setStudyRemaining(Math.ceil(left / 1000));
     }, 100);
     return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase]);
 
   // ---- running clock (paused whenever startedAt is null, e.g. during rolls) ----
@@ -353,6 +362,7 @@ export function useDailyGame(): UseDailyGameResult {
       totalMisses: state.totalMisses,
       roundEvents: state.roundEvents,
       peekUsed: state.peekUsed,
+      studyLevel,
       peekRound: state.peekRound,
       failed: state.failed,
       completedAt: new Date().toISOString(),
@@ -472,8 +482,10 @@ export function useDailyGame(): UseDailyGameResult {
   // The gate is enforced here too, so no path can start a pre-launch run.
   // A pending already-played check is awaited (briefly) so a known player's
   // board is never dealt when their first attempt already exists.
-  const start = useCallback(() => {
+  const start = useCallback((level?: StudyLevel) => {
     if (ctx.preLaunch) return;
+    // Locked here: the level cannot change once the run is dealt.
+    if (state.phase === "READY") setStudyLevel(normalizeStudyLevel(level ?? DEFAULT_STUDY_LEVEL));
     const pending = checkRef.current;
     if (!pending) {
       dispatch({ type: "START" });
@@ -483,7 +495,7 @@ export function useDailyGame(): UseDailyGameResult {
     void Promise.race([pending, timeout]).then(() => {
       if (!adoptedRef.current) dispatch({ type: "START" });
     });
-  }, [ctx.preLaunch]);
+  }, [ctx.preLaunch, state.phase]);
   const recheckEmail = useCallback(
     (email: string) => {
       // This browser's own saved run is fine to keep; anything else wins.
@@ -517,6 +529,7 @@ export function useDailyGame(): UseDailyGameResult {
     canPeek: canPeekNow(state),
 
     start,
+    studyLevel,
     select,
     peek,
     recheckEmail,

@@ -173,6 +173,8 @@ export interface DailyResult {
   roundEvents: DailyMark[][];
   /** Whether the single peek was spent. */
   peekUsed: boolean;
+  /** Study level chosen at Start (trial). Missing on older results = Look. */
+  studyLevel?: import("@/lib/studyLevels").StudyLevel;
   /** The round the peek was used in, or null. */
   peekRound: number | null;
   /** True when no round was solved. */

@@ -9,6 +9,7 @@ import { getSubscribedEmail } from "@/lib/dailySubscribe";
 
 import { getLocalDateString, type DailyResult } from "@/lib/daily";
 import type { DailyMark } from "@/lib/dailyEngine";
+import { normalizeStudyLevel } from "@/lib/studyLevels";
 
 export interface StoredDailyResult {
   puzzle_number: number;
@@ -52,6 +53,7 @@ export async function saveDailyResultOutcome(
       p_peek_used: result.peekUsed,
       p_round_events: result.roundEvents ?? [],
       p_elapsed_ms: Math.round(result.elapsedMs ?? 0),
+      p_study_level: normalizeStudyLevel(result.studyLevel),
     });
     if (error) return "retryable";
     return data === true ? "stored" : "refused";

@@ -330,6 +330,13 @@
       "when": 1795018039649,
       "tag": "0046_fix_invite_code_random_function",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1795449931899,
+      "tag": "0047_daily_study_level",
+      "breakpoints": true
     }
   ]
 }
