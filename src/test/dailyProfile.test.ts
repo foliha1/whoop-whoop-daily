@@ -156,12 +156,12 @@ describe("percentile", () => {
   it("appends to the share text only when present", () => {
     const line = (t: string) => t.split("\n")[2];
     expect(line(formatDailyShare(result, 4, 78))).toBe(
-      "3 of 3 · Clean · Look 10s · 4 day streak · Better than 78% today"
+      "3 of 3 · Clean · 4 day streak · Better than 78% today"
     );
     expect(line(formatDailyShare(result, 4, null))).toBe(
-      "3 of 3 · Clean · Look 10s · 4 day streak"
+      "3 of 3 · Clean · 4 day streak"
     );
-    expect(line(formatDailyShare(result, 4))).toBe("3 of 3 · Clean · Look 10s · 4 day streak");
+    expect(line(formatDailyShare(result, 4))).toBe("3 of 3 · Clean · 4 day streak");
   });
 });
 

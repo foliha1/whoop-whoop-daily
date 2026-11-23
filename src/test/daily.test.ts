@@ -519,7 +519,7 @@ describe("formatDailyShare", () => {
         failed: false,
       })
     ).toBe(
-      "Whoop! Whoop! #14\nR1 🔵 · R2 🔵 · R3 🔵\n3 of 3 · Clean · Look 10s\n\nhttps://whoop-whoop.com/daily"
+      "Whoop! Whoop! #14\nR1 🔵 · R2 🔵 · R3 🔵\n3 of 3 · Clean\n\nhttps://whoop-whoop.com/daily"
     );
   });
 
@@ -533,7 +533,7 @@ describe("formatDailyShare", () => {
         failed: false,
       })
     ).toBe(
-      "Whoop! Whoop! #14\nR1 🔵 · R2 🔴🔵 · R3 🔴🔵\n3 of 3 · 2 misses · Look 10s\n\nhttps://whoop-whoop.com/daily"
+      "Whoop! Whoop! #14\nR1 🔵 · R2 🔴🔵 · R3 🔴🔵\n3 of 3 · 2 misses\n\nhttps://whoop-whoop.com/daily"
     );
   });
 
@@ -547,7 +547,7 @@ describe("formatDailyShare", () => {
         failed: false,
       })
     ).toBe(
-      "Whoop! Whoop! #14\nR1 🔵 · R2 🔴 · R3 🔵\n2 of 3 · 1 miss · Look 10s\n\nhttps://whoop-whoop.com/daily"
+      "Whoop! Whoop! #14\nR1 🔵 · R2 🔴 · R3 🔵\n2 of 3 · 1 miss\n\nhttps://whoop-whoop.com/daily"
     );
   });
 
@@ -563,7 +563,7 @@ describe("formatDailyShare", () => {
         failed: false,
       })
     ).toBe(
-      "Whoop! Whoop! #14\nR1 🔵 · R2 👀🔴🔵 · R3 🔴🔴\n3 of 3 · 3 misses · Look 10s\n\nhttps://whoop-whoop.com/daily"
+      "Whoop! Whoop! #14\nR1 🔵 · R2 👀🔴🔵 · R3 🔴🔴\n3 of 3 · 3 misses\n\nhttps://whoop-whoop.com/daily"
     );
   });
 
@@ -577,7 +577,7 @@ describe("formatDailyShare", () => {
         failed: false,
       })
     ).toBe(
-      "Whoop! Whoop! #14\nR1 🔵 · R2 🔴🔴 · R3 🔵\n2 of 3 · 2 misses · Look 10s\n\nhttps://whoop-whoop.com/daily"
+      "Whoop! Whoop! #14\nR1 🔵 · R2 🔴🔴 · R3 🔵\n2 of 3 · 2 misses\n\nhttps://whoop-whoop.com/daily"
     );
   });
 
@@ -595,18 +595,7 @@ describe("formatDailyShare", () => {
         failed: true,
       })
     ).toBe(
-      "Whoop! Whoop! #14\nR1 🔴🔴 · R2 🔴🔴 · R3 🔴🔴\nWhooped! Better luck tomorrow. · Look 10s\n\nhttps://whoop-whoop.com/daily"
+      "Whoop! Whoop! #14\nR1 🔴🔴 · R2 🔴🔴 · R3 🔴🔴\nWhooped! Better luck tomorrow.\n\nhttps://whoop-whoop.com/daily"
     );
-  });
-});
-
-describe("formatDailyShare study level", () => {
-  it("shows the saved level as name plus time", () => {
-    const text = formatDailyShare({
-      seed: "whoop-2026-08-05", puzzleNumber: 14, attributes: ["SHAPE", "COLOR", "NUMBER"],
-      elapsedMs: 1, roundsSolved: 3, totalMisses: 0, roundEvents: [["SOLVE"], ["SOLVE"], ["SOLVE"]],
-      peekUsed: false, peekRound: null, failed: false, studyLevel: "blink",
-    } as never);
-    expect(text).toContain("3 of 3 · Clean · Blink 3s");
   });
 });

@@ -5,6 +5,7 @@
 // ============================================================================
 
 import { normalizeStudyLevel, studyLevelLabel } from "@/lib/studyLevels";
+import { STUDY_LEVELS_ENABLED } from "@/lib/featureFlags";
 import { umbrellaOn } from "@/lib/launch";
 import { DAILY_ROUNDS, type DailyMark } from "@/lib/dailyEngine";
 
@@ -328,11 +329,12 @@ export function formatDailyShare(
       : "";
   const missTag =
     misses === 0 ? "Clean" : `${misses} ${misses === 1 ? "miss" : "misses"}`;
+  const studyTag = STUDY_LEVELS_ENABLED ? ` · ${studyLevelLabel(result.studyLevel)}` : "";
   const line3 =
     (solved === 0
       ? "Whooped! Better luck tomorrow."
       : `${solved} of ${DAILY_ROUNDS} · ${missTag}`) +
-    ` · ${studyLevelLabel(result.studyLevel)}` +
+    studyTag +
     streakTag +
     percentileTag;
 

@@ -131,7 +131,7 @@ describe("ON Daily direct start", () => {
     const start = vi.fn();
     render(<DailyStartDialog puzzleNumber={123} onStart={start} />);
     const dialog = screen.getByRole("dialog", { name: "Whoop! Whoop! Daily #123" });
-    expect(screen.getByText("How long do you want to look?")).toBeTruthy();
+    expect(dialog.textContent).toContain("Eyes up. Brain on.");
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Start" }));
     fireEvent.keyDown(window, { key: "Escape" });
     fireEvent.click(dialog);

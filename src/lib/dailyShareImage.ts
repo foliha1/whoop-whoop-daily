@@ -6,6 +6,7 @@
 // ============================================================================
 
 import { studyLevelLabel } from "@/lib/studyLevels";
+import { STUDY_LEVELS_ENABLED } from "@/lib/featureFlags";
 import { DAILY_ROUNDS } from "@/lib/dailyEngine";
 import type { DailyResult } from "@/lib/daily";
 import { RAW, FONT_FAMILY } from "@/lib/tokens";
@@ -115,7 +116,7 @@ type Segment = { text: string; color: string };
  * The score line split into coloured runs. Concatenated, this is exactly the
  * string `scoreLine` returns.
  */
-function scoreSegments(
+export function scoreSegments(
   result: DailyResult,
   streak?: number | null,
   ink: string = RAW.warmBlack
@@ -140,8 +141,10 @@ function scoreSegments(
     );
   }
 
-  segs.push(dot);
-  segs.push({ text: studyLevelLabel(result.studyLevel), color: ink });
+  if (STUDY_LEVELS_ENABLED) {
+    segs.push(dot);
+    segs.push({ text: studyLevelLabel(result.studyLevel), color: ink });
+  }
 
   if (typeof streak === "number" && streak >= SHARE_STREAK_MIN) {
     segs.push(dot);

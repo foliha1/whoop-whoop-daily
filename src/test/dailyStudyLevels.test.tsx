@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
+
+// The picker is behind a switch; these tests exercise it switched on.
+vi.mock("@/lib/featureFlags", () => ({ SIGN_IN_ENABLED: true, STUDY_LEVELS_ENABLED: true }));
+
 import DailyStartDialog from "@/components/DailyStartDialog";
 import { STUDY_LEVELS, normalizeStudyLevel, studyMsFor } from "@/lib/studyLevels";
 

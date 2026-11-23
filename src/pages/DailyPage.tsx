@@ -1,6 +1,7 @@
 import { studyLevelLabel } from "@/lib/studyLevels";
 import React, { useEffect, useState } from "react";
 import { DEFAULT_STUDY_LEVEL, type StudyLevel } from "@/lib/studyLevels";
+import { STUDY_LEVELS_ENABLED } from "@/lib/featureFlags";
 import { DAILY_100_NUMBER, dailyTitle, hasDaily100Keepsake } from "@/lib/daily100";
 import { useLocation, useNavigate } from "react-router-dom";
 import HomeControl from "@/components/HomeControl";
@@ -800,12 +801,14 @@ const DailyResultCard: React.FC<{
           )}
 
         </div>
-        <p
-          data-testid="result-study-level"
-          style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, textAlign: "center", margin: 0, marginTop: SPACE[2] }}
-        >
-          Study level: {studyLevelLabel(result.studyLevel)}
-        </p>
+        {STUDY_LEVELS_ENABLED ? (
+          <p
+            data-testid="result-study-level"
+            style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, textAlign: "center", margin: 0, marginTop: SPACE[2] }}
+          >
+            Study level: {studyLevelLabel(result.studyLevel)}
+          </p>
+        ) : null}
         {/* Round review rows — today's information, so they live here, without
             a heading of their own. */}
         <div
