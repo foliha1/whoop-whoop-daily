@@ -1,3 +1,4 @@
+import { studyLevelLabel } from "@/lib/studyLevels";
 import React, { useEffect, useState } from "react";
 import { DEFAULT_STUDY_LEVEL, type StudyLevel } from "@/lib/studyLevels";
 import { DAILY_100_NUMBER, dailyTitle, hasDaily100Keepsake } from "@/lib/daily100";
@@ -799,6 +800,12 @@ const DailyResultCard: React.FC<{
           )}
 
         </div>
+        <p
+          data-testid="result-study-level"
+          style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted, textAlign: "center", margin: 0, marginTop: SPACE[2] }}
+        >
+          Study level: {studyLevelLabel(result.studyLevel)}
+        </p>
         {/* Round review rows — today's information, so they live here, without
             a heading of their own. */}
         <div

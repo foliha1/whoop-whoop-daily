@@ -1288,6 +1288,7 @@ export type Database = {
           puzzle_number: number
           round_events: Json
           rounds_solved: number
+          study_level: string
           total_misses: number
         }[]
       }

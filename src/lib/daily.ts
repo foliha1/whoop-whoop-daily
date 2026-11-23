@@ -4,6 +4,7 @@
 // while everyone on the same calendar date shares the same puzzle.
 // ============================================================================
 
+import { normalizeStudyLevel, studyLevelLabel } from "@/lib/studyLevels";
 import { umbrellaOn } from "@/lib/launch";
 import { DAILY_ROUNDS, type DailyMark } from "@/lib/dailyEngine";
 
@@ -249,6 +250,7 @@ export function loadDailyResult(seed: string): DailyResult | null {
       failed: parsed.failed === true,
       completedAt: parsed.completedAt ?? new Date().toISOString(),
       owner: isAccountOwner(parsed.owner) ? parsed.owner : "anon",
+      studyLevel: normalizeStudyLevel(parsed.studyLevel),
     };
   } catch {
     return null;
@@ -330,6 +332,7 @@ export function formatDailyShare(
     (solved === 0
       ? "Whooped! Better luck tomorrow."
       : `${solved} of ${DAILY_ROUNDS} · ${missTag}`) +
+    ` · ${studyLevelLabel(result.studyLevel)}` +
     streakTag +
     percentileTag;
 

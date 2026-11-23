@@ -344,6 +344,13 @@
       "when": 1795450219072,
       "tag": "0048_study_level_score_bonus",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1795450475236,
+      "tag": "0049_first_attempt_study_level",
+      "breakpoints": true
     }
   ]
 }

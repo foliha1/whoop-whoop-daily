@@ -87,19 +87,19 @@ describe("share block streak threshold", () => {
   const scoreLine = (text: string) => text.split("\n")[2];
 
   it("omits the streak below three days", () => {
-    expect(scoreLine(formatDailyShare(result, 2))).toBe("3 of 3 · Clean");
+    expect(scoreLine(formatDailyShare(result, 2))).toBe("3 of 3 · Clean · Look 10s");
   });
 
   it("appends the streak at exactly three days", () => {
-    expect(scoreLine(formatDailyShare(result, 3))).toBe("3 of 3 · Clean · 3 day streak");
+    expect(scoreLine(formatDailyShare(result, 3))).toBe("3 of 3 · Clean · Look 10s · 3 day streak");
   });
 
   it("appends the streak above three days", () => {
-    expect(scoreLine(formatDailyShare(result, 5))).toBe("3 of 3 · Clean · 5 day streak");
+    expect(scoreLine(formatDailyShare(result, 5))).toBe("3 of 3 · Clean · Look 10s · 5 day streak");
   });
 
   it("omits the streak when it is unknown", () => {
-    expect(scoreLine(formatDailyShare(result, null))).toBe("3 of 3 · Clean");
-    expect(scoreLine(formatDailyShare(result))).toBe("3 of 3 · Clean");
+    expect(scoreLine(formatDailyShare(result, null))).toBe("3 of 3 · Clean · Look 10s");
+    expect(scoreLine(formatDailyShare(result))).toBe("3 of 3 · Clean · Look 10s");
   });
 });

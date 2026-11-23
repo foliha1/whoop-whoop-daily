@@ -5,6 +5,7 @@
 // rolled, or anything else that could spoil the day's puzzle.
 // ============================================================================
 
+import { studyLevelLabel } from "@/lib/studyLevels";
 import { DAILY_ROUNDS } from "@/lib/dailyEngine";
 import type { DailyResult } from "@/lib/daily";
 import { RAW, FONT_FAMILY } from "@/lib/tokens";
@@ -139,6 +140,9 @@ function scoreSegments(
     );
   }
 
+  segs.push(dot);
+  segs.push({ text: studyLevelLabel(result.studyLevel), color: ink });
+
   if (typeof streak === "number" && streak >= SHARE_STREAK_MIN) {
     segs.push(dot);
     segs.push({ text: `${streak} day streak`, color: ink });
@@ -156,10 +160,16 @@ function drawScoreLine(
   ink: string
 ) {
   const segs = scoreSegments(result, streak, ink);
-  ctx.font = `72px ${FONT_FAMILY}`;
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  const widths = segs.map((s) => ctx.measureText(s.text).width);
+  // Shrink to fit with the study level and a streak on the same line.
+  let size = 72;
+  let widths: number[] = [];
+  for (; size >= 44; size -= 4) {
+    ctx.font = `${size}px ${FONT_FAMILY}`;
+    widths = segs.map((s) => ctx.measureText(s.text).width);
+    if (widths.reduce((a, b) => a + b, 0) <= SHARE_IMAGE_W - 96) break;
+  }
   const total = widths.reduce((a, b) => a + b, 0);
   let x = (SHARE_IMAGE_W - total) / 2;
   segs.forEach((s, i) => {

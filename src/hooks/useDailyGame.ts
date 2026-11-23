@@ -125,6 +125,7 @@ export function firstAttemptToResult(
     peekRound: null,
     failed: row.rounds_solved === 0,
     completedAt: row.created_at,
+    studyLevel: normalizeStudyLevel(row.study_level),
   };
 }
 

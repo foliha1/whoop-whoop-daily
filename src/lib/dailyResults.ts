@@ -20,6 +20,8 @@ export interface StoredDailyResult {
   round_events: DailyMark[][];
   elapsed_ms: number;
   created_at: string;
+  /** Missing on older reads; counts as Look. */
+  study_level?: string | null;
 }
 
 /** `whoop-2026-08-05` → `2026-08-05`. Falls back to today (local). */

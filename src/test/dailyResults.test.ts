@@ -43,6 +43,7 @@ describe("saveDailyResultRemote", () => {
       p_puzzle_number: 5,
       p_puzzle_date: "2026-08-05",
       p_rounds_solved: 2,
+      p_study_level: "look",
       p_total_misses: 3,
       p_peek_used: true,
       p_round_events: [["SOLVE"], ["MISS", "MISS"], ["MISS", "SOLVE"]],

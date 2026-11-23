@@ -34,3 +34,10 @@ export function studyMsFor(level: unknown): number {
   const key = normalizeStudyLevel(level);
   return STUDY_LEVELS.find((l) => l.key === key)!.ms;
 }
+
+/** "Blink 3s": the level name plus its study time, for results and share. */
+export function studyLevelLabel(level: unknown): string {
+  const key = normalizeStudyLevel(level);
+  const l = STUDY_LEVELS.find((x) => x.key === key)!;
+  return `${l.name} ${Math.round(l.ms / 1000)}s`;
+}
