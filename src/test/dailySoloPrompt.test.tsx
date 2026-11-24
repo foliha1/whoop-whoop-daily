@@ -3,7 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import DailySoloPrompt, { felixDailyComment } from "@/components/DailySoloPrompt";
-import { BUTTON_PALETTE, RAW } from "@/lib/tokens";
+import { BUTTON_PALETTE, COLORS, RAW } from "@/lib/tokens";
 
 /** jsdom normalizes hex colors to rgb(), so compare against the same form. */
 const rgb = (hex: string) => {
@@ -46,7 +46,7 @@ describe("Daily Solo prompt", () => {
     expect(onDone).toHaveBeenCalledOnce();
   });
 
-  it("paints the FELIX says container brand black with literal light copy", () => {
+  it("paints the FELIX says container light pink with a red outline", () => {
     render(
       <MemoryRouter>
         <DailySoloPrompt roundsSolved={2} totalMisses={1} mobile onDone={vi.fn()} />
@@ -57,14 +57,15 @@ describe("Daily Solo prompt", () => {
     const label = screen.getByText("FELIX says:").parentElement?.firstElementChild as HTMLElement;
     const body = screen.getByText(felixDailyComment(2, 1)) as HTMLElement;
 
-    // Brand black is fixed, so the words on it must be fixed light tones too:
-    // a themed ink would flip to warm black at night and vanish into the panel.
-    expect(prompt.style.background).toBe(rgb(RAW.warmBlack));
-    expect(label.style.color).toBe(rgb(RAW.khakiMuted));
-    expect(body.style.color).toBe(rgb(RAW.cream));
+    // The pink is fixed in both themes, so the words on it stay literal warm
+    // black: a themed ink would flip to cream at night and read on pink.
+    expect(prompt.style.background).toBe(rgb(COLORS.peepsTint));
+    expect(prompt.style.border.toLowerCase()).toBe(`2px solid ${RAW.red.toLowerCase()}`);
+    expect(label.style.color).toBe(rgb(RAW.warmGrey));
+    expect(body.style.color).toBe(rgb(RAW.warmBlack));
   });
 
-  it("keeps Done a quiet outline so Play Solo stays the strongest action", () => {
+  it("keeps Done a quiet surface so Play Solo stays the strongest action", () => {
     render(
       <MemoryRouter>
         <DailySoloPrompt roundsSolved={1} totalMisses={2} mobile onDone={vi.fn()} />
@@ -74,13 +75,12 @@ describe("Daily Solo prompt", () => {
     const solo = screen.getByTestId("results-solo");
     const done = screen.getByTestId("results-done");
 
-    // Solo is the only solid fill in the panel; Done is a cream outline on the
-    // brand-black surface, never a second solid block.
+    // Solo is the only solid brand fill in the panel; Done keeps the shared
+    // quiet surface. jsdom drops `var()` fills, so the palette's hover token
+    // is the fill that reaches the DOM.
     expect(solo.style.getPropertyValue("--ww-button-hover")).toBe(BUTTON_PALETTE.primary.bgHover);
-    expect(done.style.background).toBe(rgb(RAW.warmBlack));
-    expect(done.style.color).toBe(rgb(RAW.cream));
-    expect(done.style.border.toLowerCase()).toBe(`2px solid ${RAW.cream.toLowerCase()}`);
-    expect(done.style.background).not.toBe(rgb(RAW.red));
+    expect(done.style.getPropertyValue("--ww-button-hover")).toBe(BUTTON_PALETTE.neutral.bgHover);
+    expect(done.style.border).not.toContain(RAW.cream);
   });
 
   it("leaves a spent Done on its own inactive surface", () => {
@@ -92,9 +92,7 @@ describe("Daily Solo prompt", () => {
 
     const done = screen.getByTestId("results-done");
     expect(done).toBeDisabled();
-    // The literal cream outline is only for the live state; a spent control
-    // keeps the shared inactive surface so it never looks like a live action.
-    expect(done.style.background).not.toBe(rgb(RAW.warmBlack));
-    expect(done.style.border).not.toContain(RAW.cream);
+    // A spent control keeps the shared inactive surface, never the live one.
+    expect(done.style.getPropertyValue("--ww-button-hover")).toBe(COLORS.panel);
   });
 });

@@ -2062,9 +2062,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
                   style={{ ...playModeTileStyle(RAW.warmBlack), position: "relative", overflow: "visible" }}
                 >
                   <span aria-hidden="true" style={{ ...newTag, position: "absolute", top: -10, right: -6, transform: "rotate(6deg)", border: `1.5px solid ${RAW.warmBlack}` }}>NEW</span>
-                  <svg width="34" height="32" viewBox="0 0 34 32" aria-hidden="true">
-                    <rect x="3" y="7" width="15" height="21" rx="2.5" transform="rotate(-12 10 17)" fill={RAW.red} stroke={RAW.cream} strokeWidth="2" />
-                    <rect x="11" y="4" width="15" height="21" rx="2.5" transform="rotate(8 18 14)" fill={RAW.orange} stroke={RAW.cream} strokeWidth="2" />
+                  <svg width="40" height="32" viewBox="0 0 40 32" aria-hidden="true">
+                    <rect x="3" y="8" width="15" height="21" rx="2.5" transform="rotate(-16 10.5 18.5)" fill={RAW.blue} stroke={RAW.cream} strokeWidth="2" />
+                    <rect x="12" y="5" width="15" height="21" rx="2.5" transform="rotate(-3 19.5 15.5)" fill={RAW.red} stroke={RAW.cream} strokeWidth="2" />
+                    <rect x="21" y="3" width="15" height="21" rx="2.5" transform="rotate(10 28.5 13.5)" fill={RAW.orange} stroke={RAW.cream} strokeWidth="2" />
                   </svg>
                   <div style={playModeLabelStyle(RAW.cream)}>IRL</div>
                 </button>
