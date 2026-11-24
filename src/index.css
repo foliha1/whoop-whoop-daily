@@ -705,6 +705,22 @@ All colors MUST be HSL.
   100%   { transform: translate(363.761px, 125.869px) rotate(30deg); }
 }
 
+/* One-shot shine: the same two glints at the same crossing speed, but a
+   single pass instead of the 10s loop. `forwards` parks them past the far
+   edge so they never snap back to the start position when the pass ends, and
+   the arrival delay keeps the shine landing after the result marks. */
+.ww-shine-once .ww-shine-thin,
+.ww-shine-once .ww-shine-wide {
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-delay: var(--ww-sweep-delay, 0ms);
+}
+/* The SHARE button is much smaller than the Solo button these glints were
+   drawn for, so both are narrowed to keep the pass a glint rather than a
+   full cream flash over the label. */
+.ww-shine-once .ww-shine-thin { width: 12px; }
+.ww-shine-once .ww-shine-wide { width: 30px; }
+
 @media (prefers-reduced-motion: reduce) {
   .ww-card-flip,
   .ww-match-ghost-flip,
@@ -1435,31 +1451,9 @@ All colors MUST be HSL.
   .ww-res-in, .ww-mark-in { animation-delay: 0ms; }
 }
 
-/* ── One-shot sweep across a button: enters fully off the left edge and exits
-      fully off the right, so no gradient edge is ever parked visible. ── */
-.ww-sweep-once {
-  position: absolute;
-  top: -50%;
-  left: 0;
-  width: 40%;
-  height: 200%;
-  pointer-events: none;
-  background: linear-gradient(90deg, rgba(248,242,233,0) 0%, rgba(248,242,233,0.55) 50%, rgba(248,242,233,0) 100%);
-  transform: translateX(-160%) skewX(-20deg);
-  animation: ww-sweep-once 900ms cubic-bezier(0.4, 0, 0.2, 1) var(--ww-sweep-delay, 0ms) 1 both;
-}
-@keyframes ww-sweep-once {
-  from { transform: translateX(-160%) skewX(-20deg); opacity: 1; }
-  99%  { opacity: 1; }
-  to   { transform: translateX(310%) skewX(-20deg); opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ww-sweep-once { animation: none; opacity: 0; }
-}
-
-/* ── Looping variant of the sweep, used only on the milestone Streak tile.
-      A separate class and separate keyframes: `ww-sweep-once` and the SHARE
-      button are untouched. One sweep every 3.5s, and it self-terminates after
+/* ── Looping sweep, used only on the milestone Streak tile.
+      A separate class and separate keyframes from the SHARE button's one-shot
+      shine. One sweep every 3.5s, and it self-terminates after
       8 iterations (~28s) so nothing runs forever on a screen left open. ── */
 .ww-sweep-loop {
   position: absolute;

@@ -102,6 +102,13 @@ describe("Daily Solo prompt", () => {
     // The glint cycles every 10s, not every 2s: 80% less frequent.
     expect(css).toContain("animation: ww-shine-thin 10s linear infinite;");
     expect(css).toContain("animation: ww-shine-wide 10s linear infinite;");
+    // The Share button gets the same glints for a single pass: one iteration,
+    // parked past the far edge so they cannot snap back to the start.
+    expect(css).toMatch(
+      /\.ww-shine-once \.ww-shine-thin,\s*\.ww-shine-once \.ww-shine-wide \{\s*\n\s*animation-iteration-count: 1;\s*\n\s*animation-fill-mode: forwards;\s*\n\s*animation-delay: var\(--ww-sweep-delay, 0ms\);\s*\n\s*\}/,
+    );
+    // The old gradient sweep is gone: one shine per button, not two.
+    expect(css).not.toContain(".ww-sweep-once");
   });
 
   it("grows the FELIX portrait to fill the quote area", () => {

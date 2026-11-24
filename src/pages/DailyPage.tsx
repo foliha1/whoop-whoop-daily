@@ -403,7 +403,8 @@ const ShareBlock: React.FC<{
     setPreviewOpen(true);
   };
 
-  // One-shot sweep: travels the full width and exits off the far edge.
+  // Arrival delay for the Share button's one-shot shine, so it lands after
+  // the result marks finish arriving rather than underneath them.
   const sweep: React.CSSProperties | null =
     sweepDelayMs === undefined
       ? null
@@ -414,7 +415,7 @@ const ShareBlock: React.FC<{
       <button
         type="button"
         ref={shareBtnRef}
-        className="ww-press"
+        className="ww-press ww-shine-once"
         onClick={openPreview}
         disabled={working}
         data-testid="result-share"
@@ -427,9 +428,13 @@ const ShareBlock: React.FC<{
           overflow: "hidden",
         }}
       >
+        {/* Play Solo's glint pair, but a single pass. The delay the previous
+            one-shot sweep used is kept, so the shine still lands after the
+            result marks finish arriving. */}
+        <span className="ww-shine-thin" aria-hidden="true" style={{ pointerEvents: "none", background: "#F8F2E9", transformOrigin: "0 0", ...(sweep || {}) }} />
+        <span className="ww-shine-wide" aria-hidden="true" style={{ pointerEvents: "none", background: "#F8F2E9", transformOrigin: "0 0", ...(sweep || {}) }} />
         <Share size={16} strokeWidth={2.25} aria-hidden="true" />
         {working ? "Making Image…" : copied ? "Copied" : "Share"}
-        {sweep && <span aria-hidden="true" className="ww-sweep-once" style={sweep} />}
       </button>
 
 
