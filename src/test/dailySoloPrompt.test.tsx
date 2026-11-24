@@ -1,4 +1,6 @@
 import React from "react";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
@@ -76,5 +78,45 @@ describe("Daily Solo prompt", () => {
     expect(done).toBeDisabled();
     // A spent control keeps the shared inactive surface, never the live one.
     expect(done.style.getPropertyValue("--ww-button-hover")).toBe(COLORS.panel);
+  });
+
+  it("paints the Play Solo shine across the whole button", () => {
+    render(
+      <MemoryRouter>
+        <DailySoloPrompt roundsSolved={3} totalMisses={0} mobile onDone={vi.fn()} />
+      </MemoryRouter>,
+    );
+
+    const solo = screen.getByTestId("results-solo");
+    // The fixed 240px run only cleared part of a wide button, so the sweep has
+    // to be the full-cover one and the old one must be gone.
+    expect(solo.querySelector(".ww-full-shine")).not.toBeNull();
+    expect(solo.querySelector(".ww-sub-shine")).toBeNull();
+
+    const css = readFileSync(resolve(__dirname, "../index.css"), "utf8");
+    const block = css.slice(css.indexOf(".ww-full-shine {"));
+    expect(block).toContain("position: absolute; inset: 0;");
+    expect(block).toContain("background-size: 220% 100%;");
+    expect(block).toContain("background-position: -20% 0;");
+    expect(block).toContain("background-position: 110% 0;");
+    expect(css).toContain("@media (prefers-reduced-motion: reduce) {\n  .ww-full-shine { display: none; }");
+  });
+
+  it("grows the FELIX portrait to fill the quote area", () => {
+    render(
+      <MemoryRouter>
+        <DailySoloPrompt roundsSolved={3} totalMisses={0} mobile onDone={vi.fn()} />
+      </MemoryRouter>,
+    );
+
+    const avatar = screen.getByTestId("results-felix-avatar");
+    const portrait = within(avatar).getByAltText("FELIX");
+    // jsdom reports zero heights, so the portrait sits at its floor size and
+    // must still be a square with the photo covering it edge to edge.
+    expect(avatar.style.width).toBe("72px");
+    expect(avatar.style.width).toBe(avatar.style.height);
+    expect(portrait.className).toContain("object-cover");
+    expect(portrait.className).toContain("h-full");
+    expect(portrait.className).toContain("w-full");
   });
 });
