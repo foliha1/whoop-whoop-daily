@@ -1,7 +1,7 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import DailySoloPrompt, { felixDailyComment } from "@/components/DailySoloPrompt";
 
 describe("FELIX's Daily result reaction", () => {
@@ -21,12 +21,18 @@ describe("FELIX's Daily result reaction", () => {
 });
 
 describe("Daily Solo prompt", () => {
-  it("links directly to Solo", () => {
+  it("links directly to Solo and keeps Done in the same panel", () => {
+    const onDone = vi.fn();
     render(
       <MemoryRouter>
-        <DailySoloPrompt roundsSolved={3} totalMisses={0} mobile />
+        <DailySoloPrompt roundsSolved={3} totalMisses={0} mobile onDone={onDone} />
       </MemoryRouter>,
     );
+    const prompt = screen.getByTestId("results-solo-prompt");
+    expect(screen.getByText("FELIX says:")).toBeInTheDocument();
     expect(screen.getByTestId("results-solo")).toHaveAttribute("href", "/classic?mode=solo");
+    expect(within(prompt).getByTestId("results-done")).toBeInTheDocument();
+    screen.getByTestId("results-done").click();
+    expect(onDone).toHaveBeenCalledOnce();
   });
 });

@@ -26,7 +26,9 @@ const WhoopPointsChange: React.FC<{
   animate?: boolean;
   /** Your Stats is for signed-in players; the Daily results hide it until then. */
   showStatsLink?: boolean;
-}> = ({ points, mobile, tierUp = false, newBadge = false, animate = true, showStatsLink = true }) => {
+  /** Share sits alone when signed out, or beside Your Stats when signed in. */
+  shareAction?: React.ReactNode;
+}> = ({ points, mobile, tierUp = false, newBadge = false, animate = true, showStatsLink = true, shareAction }) => {
   if (points === null) return null;
 
   const tierHasArt = badgeArt(points.tier) !== null;
@@ -167,26 +169,37 @@ const WhoopPointsChange: React.FC<{
           </div>
         </div>
       )}
-      {showStatsLink && (
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr)",
-          gap: SPACE[5],
-          minWidth: 0,
-        }}
-      >
-        <Link
-          to="/you"
-          state={{ wwReturn: "results" }}
-          data-testid="result-you-link"
-          className="ww-press"
-          style={{ ...buttonStyle("secondary", "md", { mobile, fullWidth: true }), minWidth: 0, paddingInline: SPACE[2] }}
+      {(showStatsLink || shareAction) && (
+        <div
+          data-testid="result-score-actions"
+          style={{
+            display: "grid",
+            gridTemplateColumns: showStatsLink && shareAction
+              ? "repeat(2, minmax(0, 1fr))"
+              : "minmax(0, 1fr)",
+            gap: SPACE[3],
+            minWidth: 0,
+          }}
         >
-          <MaterialIcon name="leaderboard" size={16} />
-          Your Stats
-        </Link>
-      </div>
+          {showStatsLink && (
+            <Link
+              to="/you"
+              state={{ wwReturn: "results" }}
+              data-testid="result-you-link"
+              className="ww-press"
+              style={{
+                ...buttonStyle("secondary", "md", { mobile, fullWidth: true }),
+                minWidth: 0,
+                gap: SPACE[2],
+                paddingInline: SPACE[2],
+              }}
+            >
+              <MaterialIcon name="leaderboard" size={16} />
+              Your Stats
+            </Link>
+          )}
+          {shareAction}
+        </div>
       )}
       {tierUp && !newBadge && (
         <span

@@ -1,5 +1,10 @@
 # Roadmap
 
+## Daily results action refinement
+- [x] Move Share into the Whoop! Whoop! Score panel: alone when signed out, beside Your Stats when signed in, with a matching share icon.
+- [x] Add the colon to FELIX says, move Done into that panel, and make Play Solo red with the current Solo icon.
+- [x] Focused regressions and browser checks pass for signed-in/signed-out results at 390px, 320px and desktop in both themes; Share fallback and Done navigation exercised, no horizontal overflow or page errors. Not published.
+
 ## Daily results and lobby updates
 - [x] Add ©2026 Oleeha & Co. to the shared bottom footer.
 - [x] Remove Daily pattern rails and use Solo's 420px content ceiling and gameplay gutters.

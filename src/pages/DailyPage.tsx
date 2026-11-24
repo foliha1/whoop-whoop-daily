@@ -53,6 +53,7 @@ import { renderDailyShareImage } from "@/lib/dailyShareImage";
 import { useDailyShareImage, type DailyShareImage } from "@/hooks/useDailyShareImage";
 import DailySharePreview from "@/components/DailySharePreview";
 import DailySoloPrompt from "@/components/DailySoloPrompt";
+import MaterialIcon from "@/components/MaterialIcon";
 import { preloadDailyBoardArt, preloadEssentialGameArt, preloadGameArt } from "@/lib/preloadArt";
 import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
 import {
@@ -160,9 +161,7 @@ const RESULT_BLOCK = {
   score: 4,
   /** The save-your-score ask, directly under the score it saves. */
   email: 5,
-  share: 6,
-  solo: 7,
-  done: 8,
+  solo: 6,
 } as const;
 const blockIn = (block: keyof typeof RESULT_BLOCK): React.CSSProperties =>
   ({ "--ww-res-delay": `${RESULT_BLOCK[block] * BLOCK_STAGGER_MS}ms` } as React.CSSProperties);
@@ -412,20 +411,24 @@ const ShareBlock: React.FC<{
       : ({ "--ww-sweep-delay": `${sweepDelayMs}ms` } as React.CSSProperties);
 
   return (
-    <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
+    <div style={{ display: "contents" }}>
       <button
         type="button"
         ref={shareBtnRef}
         className="ww-press"
         onClick={openPreview}
         disabled={working}
+        data-testid="result-share"
         style={{
-          ...buttonStyle("accent", "lg", { mobile }),
-          alignSelf: "stretch",
+          ...buttonStyle("secondary", "md", { mobile, fullWidth: true }),
+          minWidth: 0,
+          gap: SPACE[2],
+          paddingInline: SPACE[2],
           position: "relative",
           overflow: "hidden",
         }}
       >
+        <MaterialIcon name="share" size={16} />
         {working ? "Making Image…" : copied ? "Copied" : "Share"}
         {sweep && <span aria-hidden="true" className="ww-sweep-once" style={sweep} />}
       </button>
@@ -446,7 +449,7 @@ const ShareBlock: React.FC<{
       )}
 
       {manual && (
-        <div style={{ display: "flex", flexDirection: "column", gap: SPACE[2] }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: SPACE[2], gridColumn: "1 / -1" }}>
           <label
             htmlFor="ww-share-manual"
             style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}
@@ -817,7 +820,24 @@ const DailyResultCard: React.FC<{
           opacity: whoop ? 1 : 0,
           transition: scoreSlotMotion ? "opacity 300ms ease-out 150ms" : "none",
         }}>
-          <WhoopPointsChange points={whoop} mobile={mobile} tierUp={tierUp} newBadge={keepsakeToday} animate={false} showStatsLink={!emailCaptureOpen} />
+          <WhoopPointsChange
+            points={whoop}
+            mobile={mobile}
+            tierUp={tierUp}
+            newBadge={keepsakeToday}
+            animate={false}
+            showStatsLink={subscribed}
+            shareAction={
+              <ShareBlock
+                text={shareText}
+                result={result}
+                streak={streak}
+                mobile={mobile}
+                sweepDelayMs={sweepDelayMs}
+                image={shareImage}
+              />
+            }
+          />
         </div>
       </div>
 
@@ -825,9 +845,8 @@ const DailyResultCard: React.FC<{
 
 
 
-      {/* The save-your-score ask sits right after the score it saves, above
-          Share and Done. Below Done it was almost never seen: most players
-          leave on Done without scrolling. */}
+      {/* The save-your-score ask sits right after the score it saves. Share
+          stays available inside that score panel whether or not this appears. */}
       {emailCaptureOpen && (
         <div
           data-testid="results-email-capture"
@@ -865,37 +884,20 @@ const DailyResultCard: React.FC<{
         </div>
       )}
 
-      {/* Tier 4 — the actions are a different kind of thing from the readout. */}
-      <div className={resultClass} style={{ alignSelf: "stretch", marginTop: SPACE[6], ...resultMotion("share") }}>
-        <ShareBlock
-          text={shareText}
-          result={result}
-          streak={streak}
-          mobile={mobile}
-          sweepDelayMs={sweepDelayMs}
-          image={shareImage}
-        />
-      </div>
-
       <div
         className={resultClass}
         style={{ alignSelf: "stretch", marginTop: SPACE[4], ...resultMotion("solo") }}
       >
-        <DailySoloPrompt roundsSolved={roundsSolved} totalMisses={totalMisses} mobile={mobile} />
+        <DailySoloPrompt
+          roundsSolved={roundsSolved}
+          totalMisses={totalMisses}
+          mobile={mobile}
+          onDone={() => {
+            if (!reminderChoiceRequired) onLeave();
+          }}
+          doneDisabled={reminderChoiceRequired}
+        />
       </div>
-
-      <button
-        type="button"
-        className={["ww-press", resultClass].filter(Boolean).join(" ")}
-        onClick={() => {
-          if (!reminderChoiceRequired) onLeave();
-        }}
-        disabled={reminderChoiceRequired}
-        data-testid="results-done"
-        style={{ ...buttonStyle("ink", "lg", { mobile, disabled: reminderChoiceRequired }), alignSelf: "stretch", marginTop: SPACE[4], ...resultMotion("done") }}
-      >
-        Done
-      </button>
 
     </div>
   );

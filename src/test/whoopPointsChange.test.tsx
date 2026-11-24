@@ -65,6 +65,40 @@ describe("Daily results score panel", () => {
     expect(screen.queryByText("Total score", { exact: false })).toBeNull();
   });
 
+  it("places Share beside Your Stats when signed in", () => {
+    render(
+      <MemoryRouter>
+        <WhoopPointsChange
+          points={points}
+          mobile
+          shareAction={<button type="button">Share</button>}
+        />
+      </MemoryRouter>,
+    );
+
+    const actions = screen.getByTestId("result-score-actions");
+    expect(within(actions).getByRole("link", { name: "Your Stats" })).toBeInTheDocument();
+    expect(within(actions).getByRole("button", { name: "Share" })).toBeInTheDocument();
+  });
+
+  it("gives Share the whole action row when Your Stats is unavailable", () => {
+    render(
+      <MemoryRouter>
+        <WhoopPointsChange
+          points={points}
+          mobile
+          showStatsLink={false}
+          shareAction={<button type="button">Share</button>}
+        />
+      </MemoryRouter>,
+    );
+
+    const actions = screen.getByTestId("result-score-actions");
+    expect(within(actions).queryByRole("link", { name: "Your Stats" })).not.toBeInTheDocument();
+    expect(within(actions).getByRole("button", { name: "Share" })).toBeInTheDocument();
+    expect(actions).toHaveStyle({ gridTemplateColumns: "minmax(0, 1fr)" });
+  });
+
   it("keeps the tier tile complete without mapped art", () => {
     render(
       <MemoryRouter>
