@@ -1,5 +1,9 @@
 # Roadmap
 
+## FELIX avatar and Solo shine
+- [x] Restore the neutral FELIX panel, add the uploaded portrait to the left of the quoted comment, and reuse the reduced-motion-aware button shine on Play Solo.
+- [x] Five focused tests pass; phone, small-phone and desktop results checked in both themes with the portrait rendered, quoted comment, shine, black Done and two-thirds Solo preserved. No overflow or page errors. Not published.
+
 ## FELIX panel pink and IRL blue card
 - [x] Repaint the Daily results FELIX says container light pink (`COLORS.peepsTint`) with a red outline and literal warm-black copy; Done returns to the shared quiet surface so Play Solo's red stays strongest.
 - [x] Add the blue card to the Home IRL tile's fan, so it shows one card per brand colour (blue, red, orange) in cream outlines.

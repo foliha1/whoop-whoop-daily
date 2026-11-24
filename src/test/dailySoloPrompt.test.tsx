@@ -46,26 +46,7 @@ describe("Daily Solo prompt", () => {
     expect(onDone).toHaveBeenCalledOnce();
   });
 
-  it("paints the FELIX says container light pink with a red outline", () => {
-    render(
-      <MemoryRouter>
-        <DailySoloPrompt roundsSolved={2} totalMisses={1} mobile onDone={vi.fn()} />
-      </MemoryRouter>,
-    );
-
-    const prompt = screen.getByTestId("results-solo-prompt");
-    const label = screen.getByText("FELIX says:").parentElement?.firstElementChild as HTMLElement;
-    const body = screen.getByText(felixDailyComment(2, 1)) as HTMLElement;
-
-    // The pink is fixed in both themes, so the words on it stay literal warm
-    // black: a themed ink would flip to cream at night and read on pink.
-    expect(prompt.style.background).toBe(rgb(COLORS.peepsTint));
-    expect(prompt.style.border.toLowerCase()).toBe(`2px solid ${RAW.red.toLowerCase()}`);
-    expect(label.style.color).toBe(rgb(RAW.warmGrey));
-    expect(body.style.color).toBe(rgb(RAW.warmBlack));
-  });
-
-  it("keeps Done black on the pink panel in both themes", () => {
+  it("keeps Done black in both themes", () => {
     render(
       <MemoryRouter>
         <DailySoloPrompt roundsSolved={1} totalMisses={2} mobile onDone={vi.fn()} />
@@ -75,8 +56,7 @@ describe("Daily Solo prompt", () => {
     const solo = screen.getByTestId("results-solo");
     const done = screen.getByTestId("results-done");
 
-    // The panel is fixed pink in both themes, so Done's black is literal too:
-    // the themed ink would flip to cream at night. jsdom drops `var()` fills,
+    // Done's brand black is fixed in both themes. jsdom drops `var()` fills,
     // so the palette's hover token still marks the variant Done came from.
     expect(done.style.background).toBe(rgb(RAW.warmBlack));
     expect(done.style.color).toBe(rgb(RAW.cream));
