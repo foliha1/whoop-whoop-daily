@@ -1232,7 +1232,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     setStarting(false);
     setShowLeaveConfirm(false);
     setView({ kind: "idle" });
-  }, []);
+    // Launched site: the lobby lives at Home, so leaving a game opened on
+    // /classic (e.g. Solo from Daily results) returns there, not the Classic entry.
+    if (umbrella && !home) navigate("/", { replace: true });
+  }, [umbrella, home, navigate]);
 
 
   // ---- Entry-screen chrome: the Daily's ready screen, copied ------------
