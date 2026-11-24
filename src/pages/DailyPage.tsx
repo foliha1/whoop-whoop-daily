@@ -909,6 +909,9 @@ const DailyResultCard: React.FC<{
         <DailySoloPrompt
           roundsSolved={roundsSolved}
           totalMisses={totalMisses}
+          streak={streak}
+          peekUsed={peekUsed}
+          seed={result.puzzleNumber}
           mobile={mobile}
           onDone={() => {
             if (!reminderChoiceRequired) onLeave();

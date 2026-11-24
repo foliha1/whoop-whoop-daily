@@ -3,30 +3,90 @@ import { Link } from "react-router-dom";
 import { BORDER, COLORS, FONT_FAMILY, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
 import felixPortrait from "@/assets/felix-portrait-red.svg.asset.json";
 
+export interface FelixContext {
+  streak?: number | null;
+  peekUsed?: boolean;
+  /** Picks the variation; the puzzle number keeps it stable on revisit. */
+  seed?: number;
+}
+
+const pick = (lines: string[], seed: number) => lines[Math.abs(Math.floor(seed)) % lines.length];
+
 /** FELIX reacts to the saved Daily outcome without changing any game data. */
-export function felixDailyComment(roundsSolved: number, totalMisses: number): string {
-  if (roundsSolved >= 3 && totalMisses === 0) {
-    return "A perfect Daily? Show-off. Now come try that against me.";
+export function felixDailyComment(
+  roundsSolved: number,
+  totalMisses: number,
+  { streak = null, peekUsed = false, seed = 0 }: FelixContext = {},
+): string {
+  const allSolved = roundsSolved >= 3;
+  if (peekUsed && !allSolved) {
+    return pick([
+      "Even with the peek? Don't worry, your secret is safe with me. Rematch in Solo?",
+      "A quick peek and still a miss? Hey, it happens. Shake it off in Solo.",
+      "I saw that peek! Even a second look couldn't save that round. Come get your revenge.",
+    ], seed);
   }
-  if (roundsSolved >= 3) {
-    return "Three rounds solved. I may have met my match. Care to test that theory?";
+  if (peekUsed && allSolved) {
+    return pick([
+      "Hey, a win is a win, even if you had to take a little peek. Try Solo with no helpers!",
+      "Sneaking a peek to seal the deal? I respect the hustle. Let's see how you do in Solo.",
+    ], seed);
+  }
+  if (streak !== null && streak >= 10 && roundsSolved >= 2) {
+    return pick([
+      `A ${streak}-day streak? Don't let it go to your head. Solo is a whole different beast.`,
+      `${streak} days in a row! You're on fire. Think you can keep that pace against me?`,
+    ], seed);
+  }
+  if (streak !== null && streak >= 3 && roundsSolved >= 2 && seed % 2 === 0) {
+    return pick([
+      `${streak}-day streak and climbing. Keep the momentum going in Solo!`,
+      "Building up quite the streak! Care to test those reflexes against me?",
+    ], seed >> 1);
+  }
+  if (allSolved && totalMisses === 0) {
+    return pick([
+      "A perfect Daily? Show-off. Now come try that against me.",
+      "Zero misses, clean sweep. Impressive. But can you do it with me on the clock?",
+      "Flawless memory today! Solo is waiting whenever you want a real challenge.",
+    ], seed);
+  }
+  if (allSolved) {
+    return pick([
+      "Three rounds solved. I may have met my match. Care to test that theory?",
+      "You got there in the end! Ready to see how fast you are in Solo?",
+      "A few bumps along the way, but all three solved. Let's see what you've got in Solo.",
+    ], seed);
   }
   if (roundsSolved === 2) {
-    return "Two out of three. Not bad, but I think you have one more in you.";
+    return pick([
+      "Two out of three. Not bad, but I think you have one more in you.",
+      "So close to a clean sweep. Come shake off that last round in Solo.",
+      "Two down, one got away. Quick warm-up before you play me?",
+    ], seed);
   }
   if (roundsSolved === 1) {
-    return "One round solved. I have a feeling you are just warming up.";
+    return pick([
+      "One round solved. I have a feeling you are just warming up.",
+      "Just getting your bearings today. Come play a round of Solo to get in the groove.",
+    ], seed);
   }
-  return "That Daily was a tricky one. Come play me in Solo and get your revenge.";
+  return pick([
+    "That Daily was a tricky one. Come play me in Solo and get your revenge.",
+    "Rough board today! Happens to the best of us. Solo is ready when you want payback.",
+  ], seed);
 }
 
 const DailySoloPrompt: React.FC<{
   roundsSolved: number;
   totalMisses: number;
+  streak?: number | null;
+  peekUsed?: boolean;
+  seed?: number;
   mobile: boolean;
   onDone?: () => void;
   doneDisabled?: boolean;
-}> = ({ roundsSolved, totalMisses, mobile, onDone, doneDisabled = false }) => {
+}> = ({ roundsSolved, totalMisses, streak = null, peekUsed = false, seed = 0, mobile, onDone, doneDisabled = false }) => {
   const quoteRef = useRef<HTMLDivElement>(null);
   const floor = mobile ? 72 : 84;
   const ceiling = mobile ? 108 : 132;
@@ -86,7 +146,7 @@ const DailySoloPrompt: React.FC<{
             FELIX says:
           </p>
           <p style={{ ...textStyle("body", mobile), color: RAW.warmBlack, margin: 0 }}>
-            “{felixDailyComment(roundsSolved, totalMisses)}”
+            “{felixDailyComment(roundsSolved, totalMisses, { streak, peekUsed, seed })}”
           </p>
         </div>
       </div>
