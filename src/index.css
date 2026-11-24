@@ -706,9 +706,24 @@ All colors MUST be HSL.
 }
 
 /* One-shot shine: the same two glints at the same crossing speed, but a
-   single pass instead of the 10s loop. `forwards` parks them past the far
-   edge so they never snap back to the start position when the pass ends, and
-   the arrival delay keeps the shine landing after the result marks. */
+   single pass instead of the 10s loop. Their horizontal endpoints are relative
+   to the button, not fixed pixel translations, so even the full-width Share
+   button is crossed completely. `forwards` parks them past the far edge so they
+   never snap back, and the arrival delay keeps them after the result marks. */
+@keyframes ww-shine-once-thin {
+  0%     { left: 2.934px; top: -97.496px; transform: rotate(30deg); }
+  0.43%  { animation-timing-function: ease-in-out;
+           left: 2.934px; top: -97.496px; transform: rotate(30deg); }
+  3.98%  { left: calc(100% + 160px); top: -15.496px; transform: rotate(30deg); }
+  100%   { left: calc(100% + 160px); top: -15.496px; transform: rotate(30deg); }
+}
+@keyframes ww-shine-once-wide {
+  0%     { left: -19.6577px; top: -130.365px; transform: rotate(30deg); }
+  1.19%  { animation-timing-function: ease-in-out;
+           left: -19.6577px; top: -130.365px; transform: rotate(30deg); }
+  6.55%  { left: calc(100% + 180px); top: -4.496px; transform: rotate(30deg); }
+  100%   { left: calc(100% + 180px); top: -4.496px; transform: rotate(30deg); }
+}
 .ww-shine-once .ww-shine-thin,
 .ww-shine-once .ww-shine-wide {
   animation-iteration-count: 1;
@@ -718,8 +733,8 @@ All colors MUST be HSL.
 /* The SHARE button is much smaller than the Solo button these glints were
    drawn for, so both are narrowed to keep the pass a glint rather than a
    full cream flash over the label. */
-.ww-shine-once .ww-shine-thin { width: 12px; }
-.ww-shine-once .ww-shine-wide { width: 30px; }
+.ww-shine-once .ww-shine-thin { width: 12px; animation-name: ww-shine-once-thin; }
+.ww-shine-once .ww-shine-wide { width: 30px; animation-name: ww-shine-once-wide; }
 
 @media (prefers-reduced-motion: reduce) {
   .ww-card-flip,

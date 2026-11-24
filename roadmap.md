@@ -332,3 +332,7 @@
 ## Button shine timing (unpublished)
 - [x] Shine frequency cut 80%: the shared `.ww-shine-thin` / `.ww-shine-wide` cycle is 10s instead of 2s, with the sweep keyframes scaled by the same factor so the glint crosses at its old speed and only the gap between passes grows. Applies to Play Solo, the Solo PLAY button and the in-game "Your Roll" call button.
 - [x] SHARE button now uses the same glint pair for a single pass instead of its old gradient sweep: `.ww-shine-once` sets one iteration with `forwards` fill (parked past the far edge, so nothing snaps back to the start) and keeps the existing arrival delay; both glints are narrowed (12px / 30px) because the SHARE button is far smaller than the Solo button they were drawn for. `.ww-sweep-once` is removed from the sheet and the markup; the milestone Streak tile's separate `.ww-sweep-loop` is untouched. Verified in-browser (phone, day and night): one iteration, forwards fill, 0.76s delay, the pass crosses and leaves the button clean, and with reduced motion the glints are `animation-name: none; opacity: 0`.
+
+## Share shine full-width fix
+- [x] Replace the single Share shine's fixed horizontal travel with button-relative endpoints, so both glints clear the widest signed-out layout as well as the compact signed-in one.
+- [x] Seven focused tests pass; exact animation-frame browser checks confirm both glints finish beyond the button on phone and desktop in day and night. Build clean; not published.

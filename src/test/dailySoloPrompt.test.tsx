@@ -107,6 +107,12 @@ describe("Daily Solo prompt", () => {
     expect(css).toMatch(
       /\.ww-shine-once \.ww-shine-thin,\s*\.ww-shine-once \.ww-shine-wide \{\s*\n\s*animation-iteration-count: 1;\s*\n\s*animation-fill-mode: forwards;\s*\n\s*animation-delay: var\(--ww-sweep-delay, 0ms\);\s*\n\s*\}/,
     );
+    // Share's endpoints follow its own width, so the widest signed-out layout
+    // is cleared too instead of leaving either glint parked on the right edge.
+    expect(css).toContain("animation-name: ww-shine-once-thin;");
+    expect(css).toContain("animation-name: ww-shine-once-wide;");
+    expect(css).toContain("left: calc(100% + 160px);");
+    expect(css).toContain("left: calc(100% + 180px);");
     // The old gradient sweep is gone: one shine per button, not two.
     expect(css).not.toContain(".ww-sweep-once");
   });
