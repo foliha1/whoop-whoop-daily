@@ -1729,3 +1729,7 @@ All colors MUST be HSL.
   animation: none !important;
   transition: none !important;
 }
+
+/* Narrow screens: the content column reaches the fixed top-left control. */
+.ww-top-control-clear { display: block; flex: 0 0 auto; width: 100%; height: var(--ww-top-clear, 0px); }
+@media (min-width: 560px) { .ww-top-control-clear { height: 0; } }

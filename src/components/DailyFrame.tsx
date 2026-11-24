@@ -60,7 +60,14 @@ const DailyFrame: React.FC<{
     } as React.CSSProperties}
   >
 
-    {noRails ? <span /> : <DailyShapeRule clearStart={topControl ? Math.max(0, 12 + 44 + SPACE[4] - pad) : 0} />}
+    {noRails ? (
+      // Without the top rail, narrow screens keep a band clear of the fixed
+      // Home/Leave control so it never sits on Daily content (index.css).
+      <span
+        className={topControl ? "ww-top-control-clear" : undefined}
+        style={topControl ? ({ "--ww-top-clear": `${Math.max(0, 12 + 44 + SPACE[2] - pad)}px` } as React.CSSProperties) : undefined}
+      />
+    ) : <DailyShapeRule clearStart={topControl ? Math.max(0, 12 + 44 + SPACE[4] - pad) : 0} />}
 
     <div
       style={{
