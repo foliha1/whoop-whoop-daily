@@ -97,8 +97,15 @@ describe("Daily Solo prompt", () => {
     const block = css.slice(css.indexOf(".ww-full-shine {"));
     expect(block).toContain("position: absolute; inset: 0;");
     expect(block).toContain("background-size: 220% 100%;");
-    expect(block).toContain("background-position: -20% 0;");
+    // The glint now travels right to left, brighter than the original 0.55,
+    // and finishes half again as fast as the 7s run.
+    expect(block).toContain("rgba(248, 242, 233, 0.66)");
+    expect(block).not.toContain("0.55");
+    expect(block).toContain("animation: ww-full-shine 4.67s linear 2s infinite;");
     expect(block).toContain("background-position: 110% 0;");
+    const keyframes = css.slice(css.indexOf("@keyframes ww-full-shine {"));
+    expect(keyframes).toContain("0%   { background-position: 110% 0; }");
+    expect(keyframes).toContain("18%  { background-position: -20% 0; }");
     expect(css).toContain("@media (prefers-reduced-motion: reduce) {\n  .ww-full-shine { display: none; }");
   });
 

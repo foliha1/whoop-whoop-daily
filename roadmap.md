@@ -3,6 +3,7 @@
 ## FELIX avatar and Solo shine
 - [x] Restore the neutral FELIX panel, add the uploaded portrait to the left of the quoted comment, and reuse the reduced-motion-aware button shine on Play Solo.
 - [x] Seven focused tests pass; phone, small-phone and desktop results checked in both themes with the portrait rendered, quoted comment, shine, black Done and two-thirds Solo preserved. No overflow or page errors. Not published.
+- [x] Reverse the Play Solo shine to travel right to left, raise its alpha from 0.55 to 0.66 and cut the run from 7s to 4.67s (50% faster); tests and browser checks confirm the computed values.
 
 ## FELIX panel pink and IRL blue card
 - [x] Repaint the Daily results FELIX says container light pink (`COLORS.peepsTint`) with a red outline and literal warm-black copy; Done returns to the shared quiet surface so Play Solo's red stays strongest.
