@@ -83,7 +83,7 @@ const DailySoloPrompt: React.FC<{
           disabled={doneDisabled}
           data-testid="results-done"
           style={{
-            ...buttonStyle("ink", "lg", { mobile, fullWidth: true, disabled: doneDisabled }),
+            ...buttonStyle("neutral", "lg", { mobile, fullWidth: true, disabled: doneDisabled }),
             minWidth: 0,
             paddingInline: SPACE[3],
           }}
