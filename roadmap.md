@@ -3,6 +3,7 @@
 ## FELIX panel pink and IRL blue card
 - [x] Repaint the Daily results FELIX says container light pink (`COLORS.peepsTint`) with a red outline and literal warm-black copy; Done returns to the shared quiet surface so Play Solo's red stays strongest.
 - [x] Add the blue card to the Home IRL tile's fan, so it shows one card per brand colour (blue, red, orange) in cream outlines.
+- [x] Revert the Done button to brand black with cream copy, literal in both themes so it never flips to cream on the fixed pink panel.
 - [x] 53 focused tests pass; browser-checked results at 390px, 320px and desktop in both themes and the IRL tile signed-in/signed-out with no overflow or page errors. Not published.
 
 

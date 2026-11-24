@@ -89,9 +89,13 @@ const DailySoloPrompt: React.FC<{
           disabled={doneDisabled}
           data-testid="results-done"
           style={{
-            ...buttonStyle("neutral", "lg", { mobile, fullWidth: true, disabled: doneDisabled }),
+            ...buttonStyle("ink", "lg", { mobile, fullWidth: true, disabled: doneDisabled }),
             minWidth: 0,
             paddingInline: SPACE[3],
+            // The pink panel is fixed in both themes, so Done stays literal
+            // black: the themed ink would flip to cream at night and read as a
+            // light chip on the pink. A spent Done keeps its inactive surface.
+            ...(doneDisabled ? {} : { background: RAW.warmBlack, color: RAW.cream }),
           }}
         >
           Done

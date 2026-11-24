@@ -65,7 +65,7 @@ describe("Daily Solo prompt", () => {
     expect(body.style.color).toBe(rgb(RAW.warmBlack));
   });
 
-  it("keeps Done a quiet surface so Play Solo stays the strongest action", () => {
+  it("keeps Done black on the pink panel in both themes", () => {
     render(
       <MemoryRouter>
         <DailySoloPrompt roundsSolved={1} totalMisses={2} mobile onDone={vi.fn()} />
@@ -75,12 +75,14 @@ describe("Daily Solo prompt", () => {
     const solo = screen.getByTestId("results-solo");
     const done = screen.getByTestId("results-done");
 
-    // Solo is the only solid brand fill in the panel; Done keeps the shared
-    // quiet surface. jsdom drops `var()` fills, so the palette's hover token
-    // is the fill that reaches the DOM.
+    // The panel is fixed pink in both themes, so Done's black is literal too:
+    // the themed ink would flip to cream at night. jsdom drops `var()` fills,
+    // so the palette's hover token still marks the variant Done came from.
+    expect(done.style.background).toBe(rgb(RAW.warmBlack));
+    expect(done.style.color).toBe(rgb(RAW.cream));
+    expect(done.style.background).not.toBe(rgb(RAW.cream));
     expect(solo.style.getPropertyValue("--ww-button-hover")).toBe(BUTTON_PALETTE.primary.bgHover);
-    expect(done.style.getPropertyValue("--ww-button-hover")).toBe(BUTTON_PALETTE.neutral.bgHover);
-    expect(done.style.border).not.toContain(RAW.cream);
+    expect(done.style.getPropertyValue("--ww-button-hover")).toBe(BUTTON_PALETTE.ink.bgHover);
   });
 
   it("leaves a spent Done on its own inactive surface", () => {
