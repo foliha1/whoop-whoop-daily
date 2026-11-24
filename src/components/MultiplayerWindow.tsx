@@ -1,5 +1,4 @@
 import LaunchAnnouncement, { shouldShowLaunchNote } from "@/components/LaunchAnnouncement";
-import PreorderAnnouncement, { introAllowsPreorderAnnouncement, preorderAnnouncementVariant, shouldShowSignupPreorderNote, shouldShowSubscriberPreorderNote } from "@/components/PreorderAnnouncement";
 import { dailyTitle } from "@/lib/daily100";
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -332,16 +331,9 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [account, setAccount] = useState<string | null>(() => getSessionEmail());
-  const [accountReady, setAccountReady] = useState(false);
   const [now, setNow] = useState(() => new Date());
   const [launchNoteOpen, setLaunchNoteOpen] = useState(() => shouldShowLaunchNote());
-  // Open state is local; storage controls repeat delivery when Home remounts.
-  const [preorderNoteOpen, setPreorderNoteOpen] = useState(true);
   const [updatesSubscribed] = useState(() => hasUpdatesSubscription());
-  const preorderVariant = preorderAnnouncementVariant(accountReady, account, updatesSubscribed);
-  const showPreorderNote = preorderVariant === "signup"
-    ? shouldShowSignupPreorderNote()
-    : preorderVariant === "subscriber" ? shouldShowSubscriberPreorderNote() : false;
   const puzzleNumber = getDailyNumber(now);
   const locallyPlayed = useMemo(() => loadDailyResult(getDailySeed(now)) !== null, [now]);
   const [dailyPlayed, setDailyPlayed] = useState(locallyPlayed);
@@ -411,7 +403,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     void whenAccountReady().then((email) => {
       if (!live) return;
       setAccount(email);
-      setAccountReady(true);
     });
     return () => { live = false; };
   }, []);
@@ -1404,7 +1395,6 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     <>
       {umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null}
       {umbrella && home && view.kind === "idle" && launchNoteOpen ? <LaunchAnnouncement onClose={() => setLaunchNoteOpen(false)} /> : null}
-      {umbrella && home && view.kind === "idle" && !launchNoteOpen && preorderNoteOpen && preorderVariant && showPreorderNote && introAllowsPreorderAnnouncement(introStatus) ? <PreorderAnnouncement variant={preorderVariant} onClose={() => setPreorderNoteOpen(false)} /> : null}
       <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill={!(umbrella && home)} scroll={umbrella && home} noRails={umbrella && home && isMobile} topControl={umbrella && !home && opts.homeControl !== false}>
         <FitColumn disableScale={umbrella && home}>
         <div

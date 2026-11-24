@@ -1,5 +1,10 @@
 # Roadmap
 
+## IRL pre-order popup removed
+- [x] Remove the Home pre-order popup for every visitor: both the signed-out "Play Whoop! Whoop! IRL" email form and the one-time updates-list announcement no longer open. The IRL tile and /preorder page are untouched.
+- [x] Delete the popup component and its test, and drop its lobby wiring (open state, variant choice, repeat-delivery checks) so nothing can reopen it.
+- [x] Home loads with no popup signed-in and signed-out on phone and desktop; the IRL tile and /preorder still open, and the full suite (883 tests) passes.
+
 ## FELIX avatar and Solo shine
 - [x] Restore the neutral FELIX panel, add the uploaded portrait to the left of the quoted comment, and reuse the reduced-motion-aware button shine on Play Solo.
 - [x] Seven focused tests pass; phone, small-phone and desktop results checked in both themes with the portrait rendered, quoted comment, shine, black Done and two-thirds Solo preserved. No overflow or page errors. Not published.
