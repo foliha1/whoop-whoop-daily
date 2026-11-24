@@ -1703,15 +1703,6 @@ All colors MUST be HSL.
 .ww-home-mode-grid--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .ww-home-mode-grid--three > button { padding-left: 4px !important; padding-right: 4px !important; }
 
-/* Home can run taller than the screen (IRL banner, small phones): let the
-   fixed-viewport page root scroll, but only while the Home choices are
-   showing. Game screens on the same route keep the no-scroll rule. */
-.mp-page-root:has(.ww-home-mode-grid) {
-  overflow-y: auto !important;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-}
-
 /* Editorial pages ease in on first paint instead of popping in. */
 @keyframes ww-page-in {
   from { opacity: 0; transform: translateY(8px); }

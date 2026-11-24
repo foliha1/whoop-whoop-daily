@@ -118,7 +118,7 @@ import DailyLegalFooter from "@/components/DailyLegalFooter";
  * "measure then scale" approach the board uses for cards, and it keeps the
  * entry screens whole at 390x520 instead of clipping them.
  */
-const FitColumn: React.FC<{ children: React.ReactNode; disableScale?: boolean }> = ({ children, disableScale = false }) => {
+const FitColumn: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const boxRef = useRef<HTMLDivElement | null>(null);
   const innerRef = useRef<HTMLDivElement | null>(null);
   const [scale, setScale] = useState(1);
@@ -131,14 +131,14 @@ const FitColumn: React.FC<{ children: React.ReactNode; disableScale?: boolean }>
       const avail = box.clientHeight;
       const natural = inner.scrollHeight;
       if (!avail || !natural) return;
-      setScale(disableScale ? 1 : Math.min(1, avail / natural));
+      setScale(Math.min(1, avail / natural));
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(box);
     ro.observe(inner);
     return () => ro.disconnect();
-  }, [children, disableScale]);
+  }, [children]);
 
   return (
     <div
@@ -941,25 +941,13 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     setHowTo({ mode: "gate", then: run });
   }, []);
 
-  // Home may be scrolled (it scrolls when taller than the screen); games
-  // never scroll, so leave Home from the top.
-  const resetHomeScroll = () => {
-    const root = document.querySelector<HTMLElement>(".mp-page-root");
-    if (root) root.scrollTop = 0;
-  };
-  useEffect(() => {
-    if (view.kind !== "idle") resetHomeScroll();
-  }, [view.kind]);
-
   const handleStartRoom = useCallback(() => {
     if (busy) return;
-    resetHomeScroll();
     gateOr(() => umbrellaOn() ? setView({ kind: "peeps-chooser" }) : startRoomFlow());
   }, [busy, gateOr, startRoomFlow]);
 
   const handlePlaySolo = useCallback(() => {
     if (busy) return;
-    resetHomeScroll();
     gateOr(startSoloFlow);
   }, [busy, gateOr, startSoloFlow]);
 
@@ -1395,8 +1383,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     <>
       {umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null}
       {umbrella && home && view.kind === "idle" && launchNoteOpen ? <LaunchAnnouncement onClose={() => setLaunchNoteOpen(false)} /> : null}
-      <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill={!(umbrella && home)} scroll={umbrella && home} noRails={umbrella && home && isMobile} topControl={umbrella && !home && opts.homeControl !== false}>
-        <FitColumn disableScale={umbrella && home}>
+      <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill noRails={umbrella && home && isMobile} topControl={umbrella && !home && opts.homeControl !== false}>
+        <FitColumn>
         <div
           style={{
             width: "100%",
