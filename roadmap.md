@@ -1,5 +1,11 @@
 # Roadmap
 
+## Daily results proportions and Share accent
+- [x] Give Play Solo two-thirds of the action row when Done is present; keep Solo full-width when Done is unavailable.
+- [x] Use the existing orange accent treatment for Share, including its score-read fallback.
+- [ ] Clarify and apply the unfinished FELIX says button request.
+- [x] Verified the exact 2:1 Solo/Done widths and orange Share at 390px, 320px and desktop in both themes; 14 focused regressions pass with no overflow or page errors. Not published.
+
 ## Daily navigation and gameplay refinement
 - [x] Add a 16px gap above the footer copyright and replace the unclear share glyph with a familiar share arrow; preserve a Share fallback if the score read fails.
 - [x] Rename the lobby Subscribe action to Score Keeper; retain the existing signup flow.

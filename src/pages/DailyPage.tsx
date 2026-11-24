@@ -419,7 +419,7 @@ const ShareBlock: React.FC<{
         disabled={working}
         data-testid="result-share"
         style={{
-          ...buttonStyle("secondary", "md", { mobile, fullWidth: true }),
+          ...buttonStyle("accent", "md", { mobile, fullWidth: true }),
           minWidth: 0,
           gap: SPACE[2],
           paddingInline: SPACE[2],

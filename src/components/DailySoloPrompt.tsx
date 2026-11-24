@@ -50,7 +50,13 @@ const DailySoloPrompt: React.FC<{
     </div>
     <div
       data-testid="results-exit-actions"
-      style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[3] }}
+      style={{
+        display: "grid",
+        gridTemplateColumns: onDone
+          ? "minmax(0, 2fr) minmax(0, 1fr)"
+          : "minmax(0, 1fr)",
+        gap: SPACE[3],
+      }}
     >
       <Link
         to="/classic?mode=solo"
