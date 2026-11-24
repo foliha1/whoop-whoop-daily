@@ -52,10 +52,9 @@ import {
 import { renderDailyShareImage } from "@/lib/dailyShareImage";
 import { useDailyShareImage, type DailyShareImage } from "@/hooks/useDailyShareImage";
 import DailySharePreview from "@/components/DailySharePreview";
+import DailySoloPrompt from "@/components/DailySoloPrompt";
 import { preloadDailyBoardArt, preloadEssentialGameArt, preloadGameArt } from "@/lib/preloadArt";
 import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
-import { getInviteCode } from "@/lib/inviteCode";
-import { toast } from "@/hooks/use-toast";
 import {
   flushDailyEvents,
   noteInviteLanding,
@@ -162,7 +161,8 @@ const RESULT_BLOCK = {
   /** The save-your-score ask, directly under the score it saves. */
   email: 5,
   share: 6,
-  done: 7,
+  solo: 7,
+  done: 8,
 } as const;
 const blockIn = (block: keyof typeof RESULT_BLOCK): React.CSSProperties =>
   ({ "--ww-res-delay": `${RESULT_BLOCK[block] * BLOCK_STAGGER_MS}ms` } as React.CSSProperties);
@@ -244,8 +244,6 @@ const ShareBlock: React.FC<{
   /** Set when the clipboard write was refused: we show the text to copy by hand. */
   const [manual, setManual] = useState(false);
   const manualRef = React.useRef<HTMLTextAreaElement | null>(null);
-  /** Guards the invite path against a double tap or an in-flight share sheet. */
-  const inviteBusyRef = React.useRef(false);
 
 
   const flashCopied = () => {
@@ -381,49 +379,6 @@ const ShareBlock: React.FC<{
     await settleClipboard(copyPromise);
   };
 
-  /**
-   * INVITE — a separate, link-only path. It shares nothing but today's URL:
-   * no score, no rounds, no misses, no streak, no peek, no cards, no rule.
-   * It never runs while the image share is in flight.
-   */
-  const invite = async (source: "results" | "modal") => {
-    if (working || inviteBusyRef.current) return;
-    inviteBusyRef.current = true;
-    hapticTap();
-    const code = getInviteCode();
-    const url = umbrellaOn() ? `https://whoop-whoop.com/daily?i=${code}` : `https://whoop-whoop.com/?i=${code}`;
-    const text = "Play today's Whoop! Whoop! Daily.";
-
-    try {
-      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-        await navigator.share({ text, url });
-        // Fired only once the sheet has resolved — the page is awake again, so
-        // the normal debounce and the pagehide listener carry the write.
-        trackDaily("invite_sent", {
-          puzzleNumber: result.puzzleNumber,
-          props: { code, source, method: "share" },
-        });
-        return;
-      }
-      throw new Error("no-web-share");
-    } catch (err) {
-      // A dismissed sheet is silent, and is not a sent invite.
-      if (err instanceof Error && err.name === "AbortError") return;
-      try {
-        await navigator.clipboard.writeText(url);
-        trackDaily("invite_sent", {
-          puzzleNumber: result.puzzleNumber,
-          props: { code, source, method: "clipboard" },
-        });
-        toast({ title: "Invite link copied" });
-      } catch {
-        toast({ title: "Copy the link", description: url });
-      }
-    } finally {
-      inviteBusyRef.current = false;
-    }
-  };
-
   /** Close the modal and hand focus back to the button that opened it. */
   const closePreview = () => {
     setPreviewOpen(false);
@@ -458,50 +413,22 @@ const ShareBlock: React.FC<{
 
   return (
     <div style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: SPACE[4] }}>
-      {/* Share + Invite. Same slot and height as the old single button, so
-          nothing below it moves. */}
-      <div
+      <button
+        type="button"
+        ref={shareBtnRef}
+        className="ww-press"
+        onClick={openPreview}
+        disabled={working}
         style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "stretch",
+          ...buttonStyle("accent", "lg", { mobile }),
           alignSelf: "stretch",
-          gap: SPACE[4],
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        <button
-          type="button"
-          className="ww-press"
-          onClick={() => void invite("results")}
-          aria-label="Invite a friend to today's puzzle"
-          data-testid="results-invite"
-          style={{
-            ...buttonStyle("primary", "lg", { mobile }),
-            flex: "1 1 0",
-            minWidth: 0,
-            whiteSpace: "nowrap",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          Invite
-          {sweep && <span aria-hidden="true" className="ww-sweep-once" style={sweep} />}
-        </button>
-        <button
-          type="button"
-          ref={shareBtnRef}
-          className="ww-press"
-          onClick={openPreview}
-          disabled={working}
-          style={{
-            ...buttonStyle("accent", "lg", { mobile }),
-            flex: "1 1 0",
-            minWidth: 0,
-          }}
-        >
-          {working ? "Making Image…" : copied ? "Copied" : "Share"}
-        </button>
-      </div>
+        {working ? "Making Image…" : copied ? "Copied" : "Share"}
+        {sweep && <span aria-hidden="true" className="ww-sweep-once" style={sweep} />}
+      </button>
 
 
       {previewOpen && (
@@ -513,7 +440,6 @@ const ShareBlock: React.FC<{
           working={working}
           mobile={mobile}
           onSend={() => void sendFromPreview()}
-          onInvite={() => void invite("modal")}
           onClose={closePreview}
 
         />
@@ -951,6 +877,13 @@ const DailyResultCard: React.FC<{
         />
       </div>
 
+      <div
+        className={resultClass}
+        style={{ alignSelf: "stretch", marginTop: SPACE[4], ...resultMotion("solo") }}
+      >
+        <DailySoloPrompt roundsSolved={roundsSolved} totalMisses={totalMisses} mobile={mobile} />
+      </div>
+
       <button
         type="button"
         className={["ww-press", resultClass].filter(Boolean).join(" ")}
@@ -1084,13 +1017,12 @@ const DailyReadyScreen: React.FC<{
   const t = compressionFactor(vh);
   const colGap = lerpCompress(t, 12, 40);
   const pad = lerpCompress(t, 12, 24);
-  const railGap = lerpCompress(t, 10, 24);
   const lockupMax = lerpCompress(t, 132, 251);
   // Never below the 44px minimum tap target.
   const ctaHeight = Math.max(56, lerpCompress(t, 56, 80));
 
   return (
-  <DailyFrame gap={colGap} pad={pad} railGap={railGap}>
+  <DailyFrame gap={colGap} pad={pad} railGap={0} noRails contentMaxWidth={420}>
       {showLogo ? <DailyLogoLockup style={{ maxWidth: lockupMax }} /> : null}
 
 
@@ -2033,7 +1965,7 @@ const DailyPage: React.FC = () => {
           </>
         )}
         {!ready && (
-        <DailyFrame gap={SPACE[4]} fill={!finished && !awaitingRequestedResult} tone={finished || awaitingRequestedResult ? "surface" : "panel"} topControl={umbrella}>
+        <DailyFrame gap={SPACE[4]} pad={finished || awaitingRequestedResult ? 24 : mobile ? 12 : 8} railGap={0} fill={!finished && !awaitingRequestedResult} tone={finished || awaitingRequestedResult ? "surface" : "panel"} topControl={umbrella} noRails contentMaxWidth={420}>
 
           {finished ? (
             <DailyResultCard

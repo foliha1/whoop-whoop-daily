@@ -54,8 +54,7 @@ describe("Part 3 destinations", () => {
     expect(formatDailyShare(result)).toMatch(/\nhttps:\/\/whoop-whoop\.com\/daily$/);
   });
 
-  it("gates every other Daily destination behind the switch", () => {
-    expect(src("src/pages/DailyPage.tsx")).toContain("umbrellaOn() ? `https://whoop-whoop.com/daily?i=${code}` : `https://whoop-whoop.com/?i=${code}`");
+  it("gates the remaining Daily destinations behind the switch", () => {
     // The Solo/Together result screen no longer links to the Daily (Nov 2026).
     expect(src("src/components/ClassicResultScreen.tsx")).not.toContain("Play today's Daily");
     expect(src("src/components/MultiplayerWindow.tsx")).toContain('href={umbrella ? "/daily" : "/"}');

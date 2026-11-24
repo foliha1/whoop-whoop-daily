@@ -8,9 +8,9 @@ export const DAILY_CONTENT_MAX_W = 402;
 
 /**
  * The single outer shell shared by the daily screens (ready, gameplay,
- * result): cream page, 24px padding, a shape rule top and bottom, and a
- * centred content column capped at 402px in between. Keeping this in one
- * place is what stops the screens drifting apart visually.
+ * result): themed page, 24px padding, optional shape rules, and a centred
+ * content column capped at 402px by default. The Daily itself hides the rules
+ * and uses the same 420px ceiling as Solo.
  */
 const DailyFrame: React.FC<{
   /** Gap inside the content column. */
@@ -32,11 +32,13 @@ const DailyFrame: React.FC<{
   scroll?: boolean;
   /** Hide the top and bottom pattern strips. */
   noRails?: boolean;
+  /** Optional wider play column; Solo uses the same 420px ceiling. */
+  contentMaxWidth?: number;
   /** Where the content column sits between the rails: centred (default) or
    *  pinned under the top rail so short screens do not float mid-page. */
   align?: "center" | "top";
   children?: React.ReactNode;
-}> = ({ gap = 24, pad = 24, railGap = 24, fill = false, tone = "surface", wide = false, topControl = false, scroll = false, noRails = false, align = "center", children }) => (
+}> = ({ gap = 24, pad = 24, railGap = 24, fill = false, tone = "surface", wide = false, topControl = false, scroll = false, noRails = false, contentMaxWidth = DAILY_CONTENT_MAX_W, align = "center", children }) => (
   <div
     className={SPOOK_AT_LOAD ? "ww-spook-frame" : undefined}
     style={{
@@ -53,7 +55,7 @@ const DailyFrame: React.FC<{
       padding: pad,
       paddingBottom: `calc(${pad}px + env(safe-area-inset-bottom))`,
       overflowY: scroll ? "visible" : fill ? "hidden" : "auto",
-      "--daily-content-max-width": `${DAILY_CONTENT_MAX_W}px`,
+      "--daily-content-max-width": `${contentMaxWidth}px`,
       "--daily-content-padding-x": `${pad}px`,
     } as React.CSSProperties}
   >
@@ -63,7 +65,7 @@ const DailyFrame: React.FC<{
     <div
       style={{
         width: "100%",
-        maxWidth: wide ? DAILY_CONTENT_MAX_W * 2 : DAILY_CONTENT_MAX_W,
+        maxWidth: wide ? contentMaxWidth * 2 : contentMaxWidth,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

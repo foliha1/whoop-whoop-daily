@@ -45,8 +45,6 @@ const DailySharePreview: React.FC<{
   working?: boolean;
   mobile: boolean;
   onSend: () => void;
-  /** Link-only invitation to today's puzzle. Never carries result data. */
-  onInvite: () => void;
   onClose: () => void;
 }> = ({
   imageUrl,
@@ -56,7 +54,6 @@ const DailySharePreview: React.FC<{
   working = false,
   mobile,
   onSend,
-  onInvite,
   onClose,
 }) => {
 
@@ -348,8 +345,7 @@ const DailySharePreview: React.FC<{
             </div>
           </div>
 
-          {/* Send + Invite. Same slot and same height as the old single
-              button, so the card preview keeps every pixel it had. */}
+          {/* Send keeps the existing full-width action slot. */}
           <div
             style={{
               display: "flex",
@@ -370,26 +366,11 @@ const DailySharePreview: React.FC<{
               data-testid="share-preview-send"
               style={{
                 ...buttonStyle("primary", "lg", { mobile, disabled: !imageUrl }),
-                flex: "2 1 0",
+                flex: "1 1 0",
                 minWidth: 0,
               }}
             >
               {working ? "Sending…" : "Send"}
-            </button>
-            <button
-              type="button"
-              className="ww-press"
-              onClick={onInvite}
-              aria-label="Invite a friend to today's puzzle"
-              data-testid="share-preview-invite"
-              style={{
-                ...buttonStyle("secondary", "lg", { mobile }),
-                flex: "1 1 0",
-                minWidth: 0,
-                whiteSpace: "nowrap",
-              }}
-            >
-              Invite
             </button>
           </div>
 

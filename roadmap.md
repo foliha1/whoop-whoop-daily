@@ -1,5 +1,12 @@
 # Roadmap
 
+## Daily results and lobby updates
+- [x] Add ©2026 Oleeha & Co. to the shared bottom footer.
+- [x] Remove Daily pattern rails and use Solo's 420px content ceiling and gameplay gutters.
+- [x] Add result-aware playful FELIX comments with a direct Solo link; remove both Daily Invite actions.
+- [x] Use the compact IRL tile on Home immediately for every player.
+- [x] Focused regressions pass; full suite's one outdated Invite assertion corrected and rerun. Browser checked phone/desktop in light and night, Share action, Solo navigation and small-phone overflow. Build clean; not published.
+
 ## Day 100 badge restoration
 - [x] Restore the earned Day 100 badge from the player's saved Daily result when browser storage no longer has it; 17 focused tests pass, and the signed-in Your Badges shelf was browser-verified with the local record removed. Not published.
 
