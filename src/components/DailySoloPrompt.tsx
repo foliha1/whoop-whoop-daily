@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { COLORS, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
+import { BORDER, COLORS, FONT_FAMILY, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
 import felixPortrait from "@/assets/felix-portrait-red.svg.asset.json";
 
 /** FELIX reacts to the saved Daily outcome without changing any game data. */
@@ -59,10 +59,11 @@ const DailySoloPrompt: React.FC<{
         flexDirection: "column",
         gap: SPACE[4],
         padding: SPACE[5],
-        border: `1.5px solid ${COLORS.inkMuted}`,
+        border: BORDER.heavy,
         borderRadius: RADIUS.sm,
-        background: COLORS.panel,
-        color: COLORS.ink,
+        // Light blue stays light in both themes, so copy uses fixed warm black.
+        background: RAW.soloTint,
+        color: RAW.warmBlack,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: SPACE[3] }}>
@@ -81,10 +82,10 @@ const DailySoloPrompt: React.FC<{
           data-testid="results-felix-quote"
           style={{ display: "flex", flexDirection: "column", gap: SPACE[2], minWidth: 0 }}
         >
-          <p style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, margin: 0 }}>
+          <p style={{ ...textStyle("label", mobile), fontFamily: FONT_FAMILY, color: RAW.warmBlack, margin: 0 }}>
             FELIX says:
           </p>
-          <p style={{ ...textStyle("body", mobile), color: COLORS.ink, margin: 0 }}>
+          <p style={{ ...textStyle("body", mobile), color: RAW.warmBlack, margin: 0 }}>
             “{felixDailyComment(roundsSolved, totalMisses)}”
           </p>
         </div>
