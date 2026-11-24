@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { Home } from "lucide-react";
 import { BORDER, COLORS, FONT_FAMILY, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
 import felixPortrait from "@/assets/felix-portrait-red.svg.asset.json";
 
@@ -192,11 +193,13 @@ const DailySoloPrompt: React.FC<{
             style={{
               ...buttonStyle("ink", "lg", { mobile, fullWidth: true, disabled: doneDisabled }),
               minWidth: 0,
+              gap: SPACE[2],
               paddingInline: SPACE[3],
               // Done remains brand black in both themes; disabled uses the shared inactive surface.
               ...(doneDisabled ? {} : { background: RAW.warmBlack, color: RAW.cream }),
             }}
           >
+            <Home size={20} aria-hidden="true" />
             Done
           </button>
         )}
