@@ -910,7 +910,10 @@ const DailyResultCard: React.FC<{
           roundsSolved={roundsSolved}
           totalMisses={totalMisses}
           streak={streak}
-          peekUsed={peekUsed}
+          // Restored results do not retain the peek round. Without that
+          // round-level evidence the round list shows no peek, so FELIX must
+          // not contradict the run by attributing one to the player.
+          peekUsed={peekUsed && peekRound !== null}
           seed={result.puzzleNumber}
           mobile={mobile}
           onDone={() => {

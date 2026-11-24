@@ -136,6 +136,32 @@ describe("requested Daily results restoration", () => {
     expect(screen.getByTestId("results-done")).toBeInTheDocument();
   });
 
+  it("does not attribute a peek when a restored result has no peek round", async () => {
+    const base = makeDaily(false) as Record<string, unknown>;
+    daily.current = {
+      ...base,
+      result: {
+        seed: "whoop-test-requested-results",
+        puzzleNumber: 101,
+        attributes: ["SHAPE", "NUMBER", "COLOR"],
+        elapsedMs: 42000,
+        roundsSolved: 3,
+        totalMisses: 0,
+        roundEvents: [["SOLVE"], ["SOLVE"], ["SOLVE"]],
+        peekUsed: true,
+        peekRound: null,
+        failed: false,
+        completedAt: "2026-11-19T12:00:00.000Z",
+        studyLevel: "look",
+      },
+      alreadyPlayed: true,
+      resultSaved: true,
+    };
+
+    mountPage();
+    expect(await screen.findByTestId("results-felix-quote")).not.toHaveTextContent(/peek/i);
+  });
+
   it("holds a results loader instead of mounting the board or start dialog", async () => {
     const view = mountPage();
     expect(await screen.findByRole("status", { name: "Loading today's results" })).toBeInTheDocument();

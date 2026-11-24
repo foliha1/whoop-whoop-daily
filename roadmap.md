@@ -1,5 +1,10 @@
 # Roadmap
 
+## FELIX peek attribution
+- [x] Reproduce a restored result whose peek flag has no round evidence and whose FELIX comment incorrectly mentions a peek.
+- [x] Show peek quips only when the result also identifies the peek round; preserve scores, badges, round marks, and all non-peek comments.
+- [x] Reproduced the bad quote before the fix; 16 focused tests pass, and phone checks in both themes confirm no peek quip without round evidence and the correct quip with it. No page errors. Do not publish.
+
 ## Home lobby no-scroll revert
 - [x] Home fits the viewport again with no scrolling: the frame keeps its fixed height and the lobby column scales down to fit, the same measure-then-scale treatment the other entry screens use.
 - [x] Removed the page-root overflow rule that let Home scroll, the frame's scroll flag, and the scroll resets that only existed for it.
