@@ -62,7 +62,7 @@ const DailySoloPrompt: React.FC<{
         border: BORDER.heavy,
         borderRadius: RADIUS.sm,
         // Light blue stays light in both themes, so copy uses fixed warm black.
-        background: RAW.soloTint,
+        background: RAW.felixTint,
         color: RAW.warmBlack,
       }}
     >

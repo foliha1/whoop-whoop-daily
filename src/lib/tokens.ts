@@ -39,6 +39,8 @@ export const RAW = {
   successHover: "#4ab87d",
   offWhite: "#fef9f0",
   soloTint: "#97DAFF",
+  /** FELIX says results panel: pale blue, light in both themes. */
+  felixTint: "#BDECFF",
   peepsTint: "#FFC1C3",
   /** Seat accents stay distinct from the seasonal brand green. */
   seat4: SPOOK_AT_LOAD ? "#C39BD3" : "#59cd90",
