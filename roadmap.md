@@ -1,5 +1,11 @@
 # Roadmap
 
+## FELIX says container brand black
+- [x] Paint the Daily results FELIX says container brand black (`RAW.warmBlack`) in both themes, with literal light copy (khaki-muted label, cream body) so nothing can flip to black-on-black at night.
+- [x] Keep Play Solo the only solid fill; Done becomes a literal cream outline on the black surface, and a spent Done keeps its shared inactive surface.
+- [x] 11 focused tests pass; browser-checked signed-in/signed-out results at 390px, 320px and desktop in both themes with no overflow or page errors. Not published.
+
+
 ## Daily results proportions and Share accent
 - [x] Give Play Solo two-thirds of the action row when Done is present; keep Solo full-width when Done is unavailable.
 - [x] Use the existing orange accent treatment for Share, including its score-read fallback.

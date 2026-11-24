@@ -1,6 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { COLORS, RADIUS, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
+import {
+  BORDER,
+  COLORS,
+  RADIUS,
+  RAW,
+  SPACE,
+  buttonStyle,
+  textStyle,
+} from "@/lib/tokens";
 
 /** FELIX reacts to the saved Daily outcome without changing any game data. */
 export function felixDailyComment(roundsSolved: number, totalMisses: number): string {
@@ -37,14 +45,18 @@ const DailySoloPrompt: React.FC<{
       padding: SPACE[5],
       border: `2px solid ${COLORS.ink}`,
       borderRadius: RADIUS.sm,
-      background: COLORS.panel,
+      // Brand black in both themes, so every word inside is a literal light
+      // tone: themed ink would flip to warm black at night and vanish. The
+      // themed border stays because the night page is itself brand black.
+      background: RAW.warmBlack,
+      color: RAW.cream,
     }}
   >
     <div style={{ display: "flex", flexDirection: "column", gap: SPACE[2] }}>
-      <p style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, margin: 0 }}>
+      <p style={{ ...textStyle("label", mobile), color: RAW.khakiMuted, margin: 0 }}>
         FELIX says:
       </p>
-      <p style={{ ...textStyle("body", mobile), color: COLORS.ink, margin: 0 }}>
+      <p style={{ ...textStyle("body", mobile), color: RAW.cream, margin: 0 }}>
         {felixDailyComment(roundsSolved, totalMisses)}
       </p>
     </div>
@@ -86,6 +98,17 @@ const DailySoloPrompt: React.FC<{
             ...buttonStyle("neutral", "lg", { mobile, fullWidth: true, disabled: doneDisabled }),
             minWidth: 0,
             paddingInline: SPACE[3],
+            // On a brand-black panel the themed neutral surface would read as
+            // black-on-black at night, so the quiet action becomes a literal
+            // cream outline. A spent Done keeps its own inactive surface.
+            ...(doneDisabled
+              ? null
+              : {
+                  background: RAW.warmBlack,
+                  color: RAW.cream,
+                  border: `2px solid ${RAW.cream}`,
+                  ["--ww-button-hover" as string]: `color-mix(in srgb, ${RAW.cream} 16%, ${RAW.warmBlack})`,
+                }),
           }}
         >
           Done
