@@ -63,7 +63,7 @@ describe("Daily Solo prompt", () => {
     expect(done.style.background).toBe(rgb(RAW.warmBlack));
     expect(done.style.color).toBe(rgb(RAW.cream));
     expect(done.style.background).not.toBe(rgb(RAW.cream));
-    expect(solo.style.getPropertyValue("--ww-button-hover")).toBe(BUTTON_PALETTE.primary.bgHover);
+    expect(solo.style.getPropertyValue("--ww-button-hover")).toBe(BUTTON_PALETTE.secondary.bgHover);
     expect(done.style.getPropertyValue("--ww-button-hover")).toBe(BUTTON_PALETTE.ink.bgHover);
   });
 
@@ -80,7 +80,7 @@ describe("Daily Solo prompt", () => {
     expect(done.style.getPropertyValue("--ww-button-hover")).toBe(COLORS.panel);
   });
 
-  it("paints the Play Solo shine across the whole button", () => {
+  it("sweeps Play Solo with the Solo PLAY button's shine", () => {
     render(
       <MemoryRouter>
         <DailySoloPrompt roundsSolved={3} totalMisses={0} mobile onDone={vi.fn()} />
@@ -88,25 +88,17 @@ describe("Daily Solo prompt", () => {
     );
 
     const solo = screen.getByTestId("results-solo");
-    // The fixed 240px run only cleared part of a wide button, so the sweep has
-    // to be the full-cover one and the old one must be gone.
-    expect(solo.querySelector(".ww-full-shine")).not.toBeNull();
-    expect(solo.querySelector(".ww-sub-shine")).toBeNull();
+    // Play Solo carries the same two glints as the Solo PLAY button, and the
+    // one-off full-button sweep is gone from both the markup and the sheet.
+    expect(solo.querySelector(".ww-shine-thin")).not.toBeNull();
+    expect(solo.querySelector(".ww-shine-wide")).not.toBeNull();
+    expect(solo.querySelector(".ww-full-shine")).toBeNull();
+    expect(solo.style.getPropertyValue("--ww-button-hover")).toBe(BUTTON_PALETTE.secondary.bgHover);
 
     const css = readFileSync(resolve(__dirname, "../index.css"), "utf8");
-    const block = css.slice(css.indexOf(".ww-full-shine {"));
-    expect(block).toContain("position: absolute; inset: 0;");
-    expect(block).toContain("background-size: 220% 100%;");
-    // The glint now travels right to left, brighter than the original 0.55,
-    // and finishes half again as fast as the 7s run.
-    expect(block).toContain("rgba(248, 242, 233, 0.66)");
-    expect(block).not.toContain("0.55");
-    expect(block).toContain("animation: ww-full-shine 4.67s linear 2s infinite;");
-    expect(block).toContain("background-position: 110% 0;");
-    const keyframes = css.slice(css.indexOf("@keyframes ww-full-shine {"));
-    expect(keyframes).toContain("0%   { background-position: 110% 0; }");
-    expect(keyframes).toContain("18%  { background-position: -20% 0; }");
-    expect(css).toContain("@media (prefers-reduced-motion: reduce) {\n  .ww-full-shine { display: none; }");
+    expect(css).toContain(".ww-shine-thin {");
+    expect(css).toContain(".ww-shine-wide {");
+    expect(css).not.toContain(".ww-full-shine");
   });
 
   it("grows the FELIX portrait to fill the quote area", () => {

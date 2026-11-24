@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { COLORS, RADIUS, RAW, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
-import felixPortrait from "@/assets/felix-portrait.svg.asset.json";
+import felixPortrait from "@/assets/felix-portrait-red.svg.asset.json";
 
 /** FELIX reacts to the saved Daily outcome without changing any game data. */
 export function felixDailyComment(roundsSolved: number, totalMisses: number): string {
@@ -104,7 +104,7 @@ const DailySoloPrompt: React.FC<{
           className="ww-press"
           data-testid="results-solo"
           style={{
-            ...buttonStyle("primary", "lg", { mobile, fullWidth: true }),
+            ...buttonStyle("secondary", "lg", { mobile, fullWidth: true }),
             minWidth: 0,
             gap: SPACE[2],
             paddingInline: SPACE[3],
@@ -112,7 +112,9 @@ const DailySoloPrompt: React.FC<{
             overflow: "hidden",
           }}
         >
-          <span aria-hidden="true" className="ww-full-shine" />
+          {/* Same sweep the Solo PLAY button uses: a thin and a wide glint. */}
+          <span className="ww-shine-thin" aria-hidden="true" style={{ pointerEvents: "none", background: "#F8F2E9", transformOrigin: "0 0" }} />
+          <span className="ww-shine-wide" aria-hidden="true" style={{ pointerEvents: "none", background: "#F8F2E9", transformOrigin: "0 0" }} />
           <svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true">
             <circle cx="16" cy="11" r="5" fill="none" stroke="currentColor" strokeWidth="2.5" />
             <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />

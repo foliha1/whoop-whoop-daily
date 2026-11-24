@@ -1651,31 +1651,8 @@ All colors MUST be HSL.
   .ww-sub-shine { display: none; }
 }
 
-/* Full-button shine: the glint is painted across the whole control with a
-   percentage-positioned gradient, so it always crosses the entire button at
-   any width instead of travelling a fixed 240px run. It travels right to
-   left, at the brighter 0.66 alpha, and completes half again as fast. */
-.ww-full-shine {
-  position: absolute; inset: 0;
-  pointer-events: none;
-  background-image: linear-gradient(105deg,
-    transparent 47%,
-    rgba(248, 242, 233, 0.66) 49%,
-    rgba(248, 242, 233, 0.66) 51%,
-    transparent 53%);
-  background-repeat: no-repeat;
-  background-size: 220% 100%;
-  background-position: 110% 0;
-  animation: ww-full-shine 4.67s linear 2s infinite;
-}
-@keyframes ww-full-shine {
-  0%   { background-position: 110% 0; }
-  18%  { background-position: -20% 0; }
-  100% { background-position: -20% 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ww-full-shine { display: none; }
-}
+/* Full-button shine removed: Play Solo now uses the Solo PLAY button's own
+   .ww-shine-thin / .ww-shine-wide sweep. */
 
 /* ── Support block "Other" amount field ──
    Readable placeholder (ink-muted meets AA on the neutral panel), no browser
