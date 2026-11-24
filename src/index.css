@@ -678,13 +678,16 @@ All colors MUST be HSL.
   position: absolute; width: 16.9703px; height: 209px;
   left: 2.934px; top: -97.496px;
   transform: translate(0px, 0px) rotate(30deg);
-  animation: ww-shine-thin 2s linear infinite;
+  /* 10s cycle: the glint itself keeps its old crossing speed (the sweep
+     keyframes are scaled down by the same factor), only the wait between
+     passes is 5x longer, so it flashes 80% less often. */
+  animation: ww-shine-thin 10s linear infinite;
 }
 @keyframes ww-shine-thin {
   0%     { transform: translate(0px, 0px) rotate(30deg); }
-  2.13%  { animation-timing-function: ease-in-out;
+  0.43%  { animation-timing-function: ease-in-out;
            transform: translate(0px, 0px) rotate(30deg); }
-  19.91% { transform: translate(347px, 82px) rotate(30deg); }
+  3.98%  { transform: translate(347px, 82px) rotate(30deg); }
   100%   { transform: translate(347px, 82px) rotate(30deg); }
 }
 
@@ -692,13 +695,13 @@ All colors MUST be HSL.
   position: absolute; width: 80.8406px; height: 243.338px;
   left: -19.6577px; top: -130.365px;
   transform: translate(0px, 0px) rotate(30deg);
-  animation: ww-shine-wide 2s linear infinite;
+  animation: ww-shine-wide 10s linear infinite;
 }
 @keyframes ww-shine-wide {
   0%     { transform: translate(0px, 0px) rotate(30deg); }
-  5.96%  { animation-timing-function: ease-in-out;
+  1.19%  { animation-timing-function: ease-in-out;
            transform: translate(0px, 0px) rotate(30deg); }
-  32.76% { transform: translate(363.761px, 125.869px) rotate(30deg); }
+  6.55%  { transform: translate(363.761px, 125.869px) rotate(30deg); }
   100%   { transform: translate(363.761px, 125.869px) rotate(30deg); }
 }
 

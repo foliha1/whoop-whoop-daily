@@ -99,6 +99,9 @@ describe("Daily Solo prompt", () => {
     expect(css).toContain(".ww-shine-thin {");
     expect(css).toContain(".ww-shine-wide {");
     expect(css).not.toContain(".ww-full-shine");
+    // The glint cycles every 10s, not every 2s: 80% less frequent.
+    expect(css).toContain("animation: ww-shine-thin 10s linear infinite;");
+    expect(css).toContain("animation: ww-shine-wide 10s linear infinite;");
   });
 
   it("grows the FELIX portrait to fill the quote area", () => {
