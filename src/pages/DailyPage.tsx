@@ -9,7 +9,7 @@ import DailyLeaveDialog from "@/components/DailyLeaveDialog";
 import DailyStartDialog from "@/components/DailyStartDialog";
 import { runInProgress } from "@/lib/dailyForfeit";
 import { Helmet } from "react-helmet-async";
-import { HelpCircle, Settings } from "lucide-react";
+import { HelpCircle, Settings, Share } from "lucide-react";
 
 import GameCard from "@/components/GameCard";
 import DailyMissTracker from "@/components/DailyMissTracker";
@@ -53,7 +53,6 @@ import { renderDailyShareImage } from "@/lib/dailyShareImage";
 import { useDailyShareImage, type DailyShareImage } from "@/hooks/useDailyShareImage";
 import DailySharePreview from "@/components/DailySharePreview";
 import DailySoloPrompt from "@/components/DailySoloPrompt";
-import MaterialIcon from "@/components/MaterialIcon";
 import { preloadDailyBoardArt, preloadEssentialGameArt, preloadGameArt } from "@/lib/preloadArt";
 import { afterPaintIdleOrInteraction } from "@/lib/deferredWork";
 import {
@@ -428,7 +427,7 @@ const ShareBlock: React.FC<{
           overflow: "hidden",
         }}
       >
-        <MaterialIcon name="share" size={16} />
+        <Share size={16} strokeWidth={2.25} aria-hidden="true" />
         {working ? "Making Image…" : copied ? "Copied" : "Share"}
         {sweep && <span aria-hidden="true" className="ww-sweep-once" style={sweep} />}
       </button>
@@ -841,9 +840,23 @@ const DailyResultCard: React.FC<{
         </div>
       </div>
 
-
-
-
+      {/* A failed score read must never take sharing down with it. The normal
+          placement remains inside the score panel whenever points resolve. */}
+      {whoop === null && (
+        <div
+          className={resultClass}
+          style={{ alignSelf: "stretch", marginTop: SPACE[6], ...resultMotion("score") }}
+        >
+          <ShareBlock
+            text={shareText}
+            result={result}
+            streak={streak}
+            mobile={mobile}
+            sweepDelayMs={sweepDelayMs}
+            image={shareImage}
+          />
+        </div>
+      )}
 
       {/* The save-your-score ask sits right after the score it saves. Share
           stays available inside that score panel whether or not this appears. */}
@@ -1178,13 +1191,14 @@ const BOARD_COLS = 3;
 const BOARD_GAP = 8;
 const BOARD_RATIO = 7 / 5; // card height / card width
 const BOARD_MIN_CARD_W = 44;
+const BOARD_HEADER_H = 78;
 
 const DailyBoard: React.FC<{
   rows: number;
-  /** Reports the measured grid width so the header can share the card edges. */
-  onGridWidth?: (w: number) => void;
+  /** Round status, misses and Peek travel with the grid as one centered group. */
+  header?: React.ReactNode;
   children: React.ReactNode;
-}> = ({ rows, onGridWidth, children }) => {
+}> = ({ rows, header, children }) => {
   const ref = React.useRef<HTMLDivElement | null>(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
 
@@ -1214,17 +1228,14 @@ const DailyBoard: React.FC<{
       : typeof window !== "undefined" && window.innerHeight > 0
       ? window.innerHeight
       : 0;
-  const byHeight = (availH - (rows - 1) * BOARD_GAP) / rows / BOARD_RATIO;
+  const headerReserve = header ? BOARD_HEADER_H + SPACE[6] : 0;
+  const byHeight = (availH - headerReserve - (rows - 1) * BOARD_GAP) / rows / BOARD_RATIO;
   const raw = availH > 0 ? Math.min(byWidth, byHeight) : byWidth;
   const cardW = Math.floor(
     Math.max(BOARD_MIN_CARD_W, Number.isFinite(raw) && raw > 0 ? raw : BOARD_MIN_CARD_W)
   );
   const cardH = Math.round(cardW * BOARD_RATIO);
   const gridW = cardW * BOARD_COLS + (BOARD_COLS - 1) * BOARD_GAP;
-
-  useEffect(() => {
-    onGridWidth?.(gridW);
-  }, [gridW, onGridWidth]);
 
   return (
     <div
@@ -1241,13 +1252,23 @@ const DailyBoard: React.FC<{
     >
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${BOARD_COLS}, ${cardW}px)`,
-          gridAutoRows: `${cardH}px`,
-          gap: BOARD_GAP,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: SPACE[6],
         }}
       >
-        {children}
+        {header ? <div style={{ width: gridW, flex: "0 0 auto" }}>{header}</div> : null}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${BOARD_COLS}, ${cardW}px)`,
+            gridAutoRows: `${cardH}px`,
+            gap: BOARD_GAP,
+          }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -1334,8 +1355,6 @@ const DailyPage: React.FC = () => {
 
   // True while the round intro overlay is up: taps stay locked.
   const [introUp, setIntroUp] = useState(false);
-  // Measured card-grid width: the single alignment line for the gameplay screen.
-  const [gridWidth, setGridWidth] = useState(0);
   // Bumped after an email signup: the server can now fold in rows linked to
   // that address, so the streak and stats are re-read.
   const [profileKey, setProfileKey] = useState(0);
@@ -1812,7 +1831,7 @@ const DailyPage: React.FC = () => {
         <meta name="twitter:image" content="https://whoop-whoop.com/og-daily.png" />
       </Helmet>
 
-      {umbrella && (ready || finished || phase === "READY") ? <HomeControl /> : null}
+      {umbrella && !finished && (ready || phase === "READY") ? <HomeControl /> : null}
       {umbrella && !ready && !finished && daily.result === null && runInProgress(state) ? (
         <HomeControl kind="leave" onLeave={() => { hapticTap(); setLeaveOpen(true); }} />
       ) : null}
@@ -2024,60 +2043,59 @@ const DailyPage: React.FC = () => {
               }}
             >
 
-              <div
-                style={{
-                  flex: "0 0 auto",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: SPACE[3],
-                  width: gridWidth ? gridWidth : "100%",
-                  alignSelf: "center",
-                }}
-              >
-                <div style={{ flex: "1 1 auto", minWidth: 0 }}>
-                  <div style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
-                    Round {state.roundIndex} of {DAILY_ROUNDS} · {remainingCount(state)} cards
-                  </div>
-                  <div
-                    aria-live="polite"
-                    style={{
-                      ...textStyle("title", mobile),
-                      color: COLORS.ink,
-                      fontVariantNumeric: "tabular-nums",
-                      minHeight: "1.2em",
-                    }}
-                  >
-                    {readout}
-                  </div>
-                  <div style={{ marginTop: SPACE[2] }}>
-                    <MissTracker used={state.roundMisses} />
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="ww-press"
-                  disabled={!daily.canPeek}
-                  onClick={() => {
-                    hapticTap();
-                    daily.peek();
-                  }}
-                  style={{
-                    ...buttonStyle("secondary", "sm", {
-                      mobile,
-                      disabled: !daily.canPeek,
-                    }),
-                    whiteSpace: "nowrap",
-                    flex: "0 0 auto",
-                  }}
-                >
-                  {state.peekUsed ? "Peek Used" : "Peek (5s)"}
-                </button>
-              </div>
-
               <DailyBoard
                 rows={Math.max(1, Math.ceil(state.grid.length / 3))}
-                onGridWidth={setGridWidth}
+                header={
+                  <div
+                    data-testid="daily-gameplay-status"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: SPACE[3],
+                      width: "100%",
+                    }}
+                  >
+                    <div style={{ flex: "1 1 auto", minWidth: 0 }}>
+                      <div style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
+                        Round {state.roundIndex} of {DAILY_ROUNDS} · {remainingCount(state)} cards
+                      </div>
+                      <div
+                        aria-live="polite"
+                        style={{
+                          ...textStyle("title", mobile),
+                          color: COLORS.ink,
+                          fontVariantNumeric: "tabular-nums",
+                          minHeight: "1.2em",
+                        }}
+                      >
+                        {readout}
+                      </div>
+                      <div style={{ marginTop: SPACE[2] }}>
+                        <MissTracker used={state.roundMisses} />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="ww-press"
+                      disabled={!daily.canPeek}
+                      onClick={() => {
+                        hapticTap();
+                        daily.peek();
+                      }}
+                      style={{
+                        ...buttonStyle("secondary", "sm", {
+                          mobile,
+                          disabled: !daily.canPeek,
+                        }),
+                        whiteSpace: "nowrap",
+                        flex: "0 0 auto",
+                      }}
+                    >
+                      {state.peekUsed ? "Peek Used" : "Peek (5s)"}
+                    </button>
+                  </div>
+                }
               >
                 {state.grid.map((card, idx) => (
                   // Persistent slot wrapper: it outlives the card, so the

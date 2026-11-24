@@ -14,6 +14,7 @@ import SubscribeChip, { SUBSCRIBE_BENEFITS } from "@/components/SubscribeChip";
 describe("lobby Subscribe chip", () => {
   it("opens an explainer listing the three benefits", () => {
     render(<SubscribeChip style={{}} />);
+    expect(screen.getByRole("button", { name: "Score Keeper" })).toBeTruthy();
     fireEvent.click(screen.getByTestId("lobby-subscribe"));
     expect(screen.getByText("Stay in the loop loop.")).toBeTruthy();
     expect(SUBSCRIBE_BENEFITS.map((b) => b.title)).toEqual(["Daily reminder", "Score keeper", "Game updates"]);

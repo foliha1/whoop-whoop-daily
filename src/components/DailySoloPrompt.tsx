@@ -48,33 +48,44 @@ const DailySoloPrompt: React.FC<{
         {felixDailyComment(roundsSolved, totalMisses)}
       </p>
     </div>
-    <Link
-      to="/classic?mode=solo"
-      className="ww-press"
-      data-testid="results-solo"
-      style={{ ...buttonStyle("primary", "lg", { mobile }), alignSelf: "stretch" }}
+    <div
+      data-testid="results-exit-actions"
+      style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: SPACE[3] }}
     >
-      <svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true">
-        <circle cx="16" cy="11" r="5" fill="none" stroke="currentColor" strokeWidth="2.5" />
-        <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-      </svg>
-      Play Solo
-    </Link>
-    {onDone && (
-      <button
-        type="button"
+      <Link
+        to="/classic?mode=solo"
         className="ww-press"
-        onClick={onDone}
-        disabled={doneDisabled}
-        data-testid="results-done"
+        data-testid="results-solo"
         style={{
-          ...buttonStyle("ink", "lg", { mobile, disabled: doneDisabled }),
-          alignSelf: "stretch",
+          ...buttonStyle("primary", "lg", { mobile, fullWidth: true }),
+          minWidth: 0,
+          gap: SPACE[2],
+          paddingInline: SPACE[3],
         }}
       >
-        Done
-      </button>
-    )}
+        <svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true">
+          <circle cx="16" cy="11" r="5" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          <path d="M6 27c2-5 6-7 10-7s8 2 10 7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
+        Play Solo
+      </Link>
+      {onDone && (
+        <button
+          type="button"
+          className="ww-press"
+          onClick={onDone}
+          disabled={doneDisabled}
+          data-testid="results-done"
+          style={{
+            ...buttonStyle("ink", "lg", { mobile, fullWidth: true, disabled: doneDisabled }),
+            minWidth: 0,
+            paddingInline: SPACE[3],
+          }}
+        >
+          Done
+        </button>
+      )}
+    </div>
   </section>
 );
 

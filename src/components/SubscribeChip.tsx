@@ -6,7 +6,7 @@
 // ============================================================================
 
 import React, { useState } from "react";
-import { Mail } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import DailyEmailModal from "@/components/DailyEmailModal";
 import { hapticTap } from "@/lib/haptics";
 import { COLORS, FONT_FAMILY, SPACE } from "@/lib/tokens";
@@ -55,8 +55,8 @@ const SubscribeChip: React.FC<{ style: React.CSSProperties; onSubscribed?: (emai
         style={{ ...style, position: "relative", overflow: "hidden", background: COLORS.blue, color: COLORS.onBlue }}
       >
         <span aria-hidden="true" className="ww-sub-shine" />
-        <Mail size={16} aria-hidden="true" />
-        Subscribe
+        <BarChart3 size={16} aria-hidden="true" />
+        Score Keeper
       </button>}
       {open ? (
         <DailyEmailModal

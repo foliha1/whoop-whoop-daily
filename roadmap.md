@@ -1,5 +1,12 @@
 # Roadmap
 
+## Daily navigation and gameplay refinement
+- [x] Add a 16px gap above the footer copyright and replace the unclear share glyph with a familiar share arrow; preserve a Share fallback if the score read fails.
+- [x] Rename the lobby Subscribe action to Score Keeper; retain the existing signup flow.
+- [x] Remove Home from Daily results, place Play Solo and Done side by side, and group gameplay status/miss indicators/Peek 12px above the cards without changing rules or timing.
+- [x] Add https://www.instagram.com/whoop.whoop.game/ to the shared footer, the recommended always-available location outside gameplay.
+- [x] Verify signed-in/signed-out results and live gameplay at 390px, 320px and desktop in both themes; 52 focused regressions pass with no overflow or page errors. Not published.
+
 ## Daily results action refinement
 - [x] Move Share into the Whoop! Whoop! Score panel: alone when signed out, beside Your Stats when signed in, with a matching share icon.
 - [x] Add the colon to FELIX says, move Done into that panel, and make Play Solo red with the current Solo icon.

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { COLORS, FONT_FAMILY_UI, FONT_WEIGHT_UI, SPACE } from "@/lib/tokens";
 
 const CONTACT = "hello@whoop-whoop.com";
+const INSTAGRAM = "https://www.instagram.com/whoop.whoop.game/";
 
 const textBase: React.CSSProperties = {
   fontFamily: FONT_FAMILY_UI,
@@ -27,12 +28,12 @@ const DailyLegalFooter: React.FC = () => (
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      gap: SPACE[2],
+      gap: SPACE[8],
       opacity: 0.85,
     }}
   >
     <nav
-      aria-label="Legal"
+      aria-label="Footer"
       style={{
         display: "flex",
         alignItems: "center",
@@ -42,6 +43,7 @@ const DailyLegalFooter: React.FC = () => (
       }}
     >
       <Link to="/about" style={linkStyle}>About</Link>
+      <a href={INSTAGRAM} target="_blank" rel="noreferrer" style={linkStyle}>Instagram</a>
       <Link to="/privacy" style={linkStyle}>Privacy</Link>
       <Link to="/terms" style={linkStyle}>Terms</Link>
       <Link to="/faq" style={linkStyle}>FAQ</Link>

@@ -99,9 +99,9 @@ describe("Part 3 Home control", () => {
     expect(onLeave).toHaveBeenCalledOnce();
   });
 
-  it("only mounts Home controls when ON", () => {
+  it("mounts Home controls only when ON and never over finished results", () => {
     const daily = src("src/pages/DailyPage.tsx");
-    expect(daily).toContain('{umbrella && (ready || finished || phase === "READY") ? <HomeControl /> : null}');
+    expect(daily).toContain('{umbrella && !finished && (ready || phase === "READY") ? <HomeControl /> : null}');
     expect(daily).toContain("umbrella && !ready && !finished && daily.result === null && runInProgress(state)");
     expect(src("src/components/MultiplayerWindow.tsx")).toContain("umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null");
     expect(src("src/components/SiteHeader.tsx")).toContain("umbrella && !onLeave ?");

@@ -108,6 +108,34 @@ describe("requested Daily results restoration", () => {
     vi.unstubAllGlobals();
   });
 
+  it("removes the Home shortcut from finished results and keeps Done available", async () => {
+    const base = makeDaily(false) as Record<string, unknown>;
+    daily.current = {
+      ...base,
+      result: {
+        seed: "whoop-test-requested-results",
+        puzzleNumber: 101,
+        attributes: ["SHAPE", "NUMBER", "COLOR"],
+        elapsedMs: 42000,
+        roundsSolved: 3,
+        totalMisses: 0,
+        roundEvents: [["SOLVE"], ["SOLVE"], ["SOLVE"]],
+        peekUsed: false,
+        peekRound: null,
+        failed: false,
+        completedAt: "2026-11-19T12:00:00.000Z",
+        studyLevel: "look",
+      },
+      alreadyPlayed: true,
+      resultSaved: true,
+    };
+
+    mountPage();
+    expect(await screen.findByTestId("results-solo-prompt")).toBeInTheDocument();
+    expect(screen.queryByTestId("home-control")).not.toBeInTheDocument();
+    expect(screen.getByTestId("results-done")).toBeInTheDocument();
+  });
+
   it("holds a results loader instead of mounting the board or start dialog", async () => {
     const view = mountPage();
     expect(await screen.findByRole("status", { name: "Loading today's results" })).toBeInTheDocument();
