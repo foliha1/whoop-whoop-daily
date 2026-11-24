@@ -1,5 +1,10 @@
 # Roadmap
 
+## Home lobby no-scroll revert
+- [x] Home fits the viewport again with no scrolling: the frame keeps its fixed height and the lobby column scales down to fit, the same measure-then-scale treatment the other entry screens use.
+- [x] Removed the page-root overflow rule that let Home scroll, the frame's scroll flag, and the scroll resets that only existed for it.
+- [x] Verified no scroll at 390x520, 390x844 and 1280x800 in day and night (wheel scroll moves nothing, content ends inside the viewport); full suite 883 passed / 4 skipped. Not published.
+
 ## IRL pre-order popup removed
 - [x] Remove the Home pre-order popup for every visitor: both the signed-out "Play Whoop! Whoop! IRL" email form and the one-time updates-list announcement no longer open. The IRL tile and /preorder page are untouched.
 - [x] Delete the popup component and its test, and drop its lobby wiring (open state, variant choice, repeat-delivery checks) so nothing can reopen it.
