@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { Card, CARD_BACK_PATH } from "@/cardData";
 import { COLORS, RADIUS } from "@/lib/tokens";
 import { CARD_FLIP_MS } from "@/lib/animationTiming";
@@ -108,6 +109,7 @@ const GameCard = ({
     return () => clearTimeout(t);
   }, [card.svgPath]);
   const frontFace = card.svgPath || stickyFace;
+  const reduceMotion = useReducedMotion();
 
   const boxShadow = undefined;
 
@@ -218,17 +220,24 @@ const GameCard = ({
         className={pulsing ? "ww-select-pulse-scale" : undefined}
         style={{ position: "absolute", inset: 0, transformOrigin: "center" }}
       >
-      <div
-
+      {/* Motion drives the flip: it starts from whatever angle the card is
+          at, so a flip that is reversed or re-sent mid-turn never jumps.
+          initial={false}: a card mounts at its resting face, no flip. */}
+      <motion.div
+        className="ww-card-flip"
+        initial={false}
+        animate={{ rotateY: faceUp ? 0 : 180 }}
+        transition={
+          reduceMotion
+            ? { duration: 0 }
+            : { duration: CARD_FLIP_MS / 1000, ease: [0.4, 0, 0.2, 1] }
+        }
         style={{
           width: "100%",
           height: "100%",
           position: "relative",
           transformStyle: "preserve-3d",
-          transition: `transform ${CARD_FLIP_MS}ms cubic-bezier(0.4,0,0.2,1)`,
-          transform: faceUp ? "rotateY(0deg)" : "rotateY(180deg)",
         }}
-          className="ww-card-flip"
       >
 
         {/* Front */}
@@ -287,7 +296,7 @@ const GameCard = ({
             draggable={false}
           />
         </div>
-      </div>
+      </motion.div>
 
       {/* Shared active-claim stroke. Nested inside the scaled + glowing
           wrapper (as the SVG's single filtered <g>) so stroke, glow and scale
