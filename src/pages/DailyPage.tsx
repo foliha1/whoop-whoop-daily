@@ -696,16 +696,14 @@ const DailyResultCard: React.FC<{
       >
         {dailyTitle(puzzleNumber, "Whoop! Whoop!")}
       </h1>
-      {/* No subhead on a completed run: the title carries it. The failed and
-          revisit endings still say their one thing. */}
-      {(failed || revisit) && (
+      {/* No subhead on a completed run: the title carries it. Only a failed
+          run still says its one thing; a revisit shows its results instead. */}
+      {failed && (
         <p
           className={resultClass}
           style={{ ...textStyle("body", mobile), color: COLORS.inkMuted, textAlign: "center", margin: 0, marginTop: SPACE[6], ...resultMotion("message") }}
         >
-          {failed
-            ? "Whooped! Better luck tomorrow."
-             : <>You already tested your memory today.<br />Come back tomorrow!</>}
+          Whooped! Better luck tomorrow.
         </p>
       )}
       {/* Your daily results: this run's numbers, the round rows, and the
@@ -714,7 +712,7 @@ const DailyResultCard: React.FC<{
         className={resultClass}
         style={{ alignSelf: "stretch", display: "flex", flexDirection: "column", gap: 0, marginTop: SPACE[6], ...resultMotion("stats") }}
       >
-        <h2 style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, margin: 0 }}>
+        <h2 style={{ ...textStyle("label", mobile), color: COLORS.inkMuted, textAlign: "center", margin: 0 }}>
           Your daily results
         </h2>
 

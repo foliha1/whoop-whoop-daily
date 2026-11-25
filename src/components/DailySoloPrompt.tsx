@@ -147,7 +147,7 @@ const DailySoloPrompt: React.FC<{
             FELIX says:
           </p>
           <p style={{ ...textStyle("body", mobile), color: RAW.warmBlack, margin: 0 }}>
-            “{felixDailyComment(roundsSolved, totalMisses, { streak, peekUsed, seed })}”
+            {felixDailyComment(roundsSolved, totalMisses, { streak, peekUsed, seed })}
           </p>
         </div>
       </div>
