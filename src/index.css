@@ -26,8 +26,6 @@
   font-display: swap;
 }
 
-
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -212,7 +210,6 @@ All colors MUST be HSL.
     --ww-red-text: #DB66FF;
   }
 
-
   body.ww-locked,
   html:has(body.ww-locked) {
     overflow: hidden;
@@ -224,16 +221,6 @@ All colors MUST be HSL.
 }
 
 /* ── Global keyframes ── */
-
-@keyframes win-open {
-  from { opacity: 0; transform: scale(0.92); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes whoop-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.03); }
-}
 
 /* Classic loading screen — a game card flipping back and forth.
    500ms flips (matching CARD_FLIP_MS) with a hold on each side. */
@@ -316,75 +303,15 @@ All colors MUST be HSL.
   to { opacity: 1; transform: scale(1); }
 }
 
-@keyframes score-bounce {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
-
 @keyframes card-shrink {
   from { opacity: 1; transform: scale(1); }
   to { opacity: 0; transform: scale(0.5); }
-}
-
-/* Uses COLORS.orange (#E79024) — update if token changes */
-@keyframes orange-pulse-border {
-  0%, 100% { box-shadow: 0 0 0 2px var(--ww-anim-orange, #E79024), 0 0 8px var(--ww-anim-orange-glow-30, rgba(231,144,36,0.3)); }
-  50% { box-shadow: 0 0 0 2px var(--ww-anim-orange, #E79024), 0 0 16px var(--ww-anim-orange-glow-60, rgba(231,144,36,0.6)); }
-}
-
-@keyframes red-pulse-border {
-  0%, 100% { box-shadow: 0 0 0 1.5px #D93A3A, 0 0 6px rgba(217,58,58,0.25); }
-  50% { box-shadow: 0 0 0 1.5px #D93A3A, 0 0 14px rgba(217,58,58,0.55); }
-}
-
-
-@keyframes double-title-in {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes double-title-out {
-  from { opacity: 1; transform: scale(1); }
-  to { opacity: 0; transform: scale(0.9); }
-}
-
-@keyframes pill-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
 }
 
 /* How to Play, slide 4: the die-tile label cuts and punches in on change. */
 @keyframes ww-die-punch {
   from { transform: scale(0.94); }
   to   { transform: scale(1); }
-}
-
-
-
-@keyframes dice-tumble {
-  0%   { transform: translateY(0)   rotate(-8deg); }
-  25%  { transform: translateY(-6px) rotate(6deg); }
-  50%  { transform: translateY(2px)  rotate(-10deg); }
-  75%  { transform: translateY(-4px) rotate(9deg); }
-  100% { transform: translateY(0)   rotate(-8deg); }
-}
-
-@keyframes dice-land-flip {
-  0%   { transform: rotateX(-90deg) scale(0.9); opacity: 0; }
-  60%  { transform: rotateX(10deg)  scale(1.05); opacity: 1; }
-  100% { transform: rotateX(0deg)   scale(1);    opacity: 1; }
-}
-
-@keyframes fly-to-grid {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(var(--fly-to-x), var(--fly-to-y)) scaleX(var(--fly-scale-x)) scaleY(var(--fly-scale-y));
-    opacity: 1;
-  }
 }
 
 @keyframes marquee {
@@ -580,8 +507,6 @@ All colors MUST be HSL.
 @keyframes ww-step-fade-in  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes ww-step-fade-out { from { opacity: 1; } to { opacity: 0; } }
 
-
-
 /* ── Daily ready screen buttons ──
    Maps to COLORS tokens: panel / panelMutedHover / red / redHover / blue */
 .daily-btn-howto,
@@ -653,9 +578,6 @@ All colors MUST be HSL.
     transition: none;
   }
 }
-
-
-
 
 /* Reduced motion is authored per effect below. A universal duration override
    used to erase intentional fades while gameplay timers kept running. */
@@ -839,13 +761,6 @@ All colors MUST be HSL.
   .ww-select-wash { animation: ww-select-wash 120ms ease-out 1 both; }
   .ww-select-ring { animation: ww-select-ring 120ms ease-out 1 both; }
 }
-
-
-
-
-
-
-
 
 /* ── Great-match ghost (per-card, 1s @ 300ms delay) ── */
 .ww-great {
@@ -1048,40 +963,6 @@ All colors MUST be HSL.
   .ww-grid-option[data-selected="true"] { transform: none; }
 }
 
-/* ── "Let's Play!" enabled-state motion ── */
-.ww-play-ring {
-  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  animation: ww-play-ring 1s linear infinite;
-}
-.ww-play-shine {
-  position: absolute; background: #F8F2E9; transform-origin: 0 0;
-  pointer-events: none;
-  width: 28.1111px; height: 228.331px;
-  left: 30.165px; top: -117.701px;
-  animation: ww-play-shine 1s linear infinite;
-}
-
-@keyframes ww-play-ring {
-  0%   { animation-timing-function: cubic-bezier(.01,.412,.424,1.001);
-         box-shadow: inset 0 0 0 2px #231F20; }
-  50%  { animation-timing-function: cubic-bezier(.58,0,.99,.59);
-         box-shadow: inset 0 0 0 6px #231F20; }
-  100% { box-shadow: inset 0 0 0 2px #231F20; }
-}
-
-@keyframes ww-play-shine {
-  0%   { animation-timing-function: cubic-bezier(.89,.02,.5,1);
-         transform: translate(0px, 0px) rotate(30deg); }
-  50%  { transform: translate(312.845px, 117.884px) rotate(30deg); }
-  100% { transform: translate(312.845px, 117.884px) rotate(30deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ww-play-ring, .ww-play-shine { animation: none; }
-  .ww-play-ring { box-shadow: inset 0 0 0 2px #231F20; }
-  .ww-play-shine { display: none; }
-}
-
 /* ── Mobile press feedback: uniform 100% → 95% scale + darker surface ──
    Applied to every button by default, plus any element opting in with
    .ww-press (links, tiles, custom tap targets). Opt out with .ww-no-press. */
@@ -1115,7 +996,6 @@ All colors MUST be HSL.
   .ww-press:active { transform: none; }
   .ww-press-on { transform: none; }
 }
-
 
 /* ---------------------------------------------------------------------------
    Landing page desktop composition (>= 1024px). Below that, the mobile
@@ -1464,7 +1344,6 @@ All colors MUST be HSL.
 @media (prefers-reduced-motion: reduce) {
   .ww-sweep-loop { animation: none; opacity: 0; }
 }
-
 
 /* ---------------------------------------------------------------------------
    Cross-product link ("Looking for Whoop! Whoop! Daily?"). Neutral at rest,
