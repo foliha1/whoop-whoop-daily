@@ -84,6 +84,23 @@ const prefersReducedMotion = (): boolean => {
   }
 };
 
+/**
+ * The pair a wrong claim just locked: the cards newly added to one seat's
+ * wrongBy set. Every client receives wrongBy, so this works even when a
+ * joiner never saw the two-card selection (throttled broadcasts).
+ */
+export function wrongPairFromGrowth(
+  before: number[][],
+  after: number[][],
+): { seat: number; idxs: number[] } | null {
+  for (let seat = 0; seat < after.length; seat++) {
+    const prev = new Set(before[seat] ?? []);
+    const added = (after[seat] ?? []).filter((i) => !prev.has(i));
+    if (added.length === 2) return { seat, idxs: added.sort((a, b) => a - b) };
+  }
+  return null;
+}
+
 /** Slots the match-settle ghost copies are built from. */
 export function matchGhostIndices(matchedCards: number[], lastPair: number[]): number[] {
   return matchedCards.length > 0 ? [...matchedCards] : [...lastPair];
@@ -1339,6 +1356,9 @@ const MultiplayerGameView: React.FC<Props> = ({
   // reveal and the read beat before it starts. Same broadcast trigger, so a
   // non-claiming client runs the same clock.
   const [wrongCards, setWrongCards] = React.useState<number[]>([]);
+  // wrongBy as of the previous state. Updated by an effect declared AFTER the
+  // wrong-settle effect, so that effect still reads the pre-claim sets.
+  const prevWrongByRef = React.useRef<number[][]>(s.wrongBy);
   // Transient PENALTY chip state — held for the treatment window, then falls
   // back to the seat's live state.
   const [penaltySeat, setPenaltySeat] = React.useState<number | null>(null);
@@ -1348,8 +1368,11 @@ const MultiplayerGameView: React.FC<Props> = ({
       setPenaltySeat(null);
       return;
     }
-    const idxs = [...lastPairRef.current];
-    const seat = s.claimBy ?? lastClaimSeatRef.current;
+    // The newly locked pair is authoritative; lastPairRef can be empty or
+    // stale on a joiner that never saw the selection. It is only a fallback.
+    const grown = wrongPairFromGrowth(prevWrongByRef.current, s.wrongBy);
+    const idxs = grown ? grown.idxs : [...lastPairRef.current];
+    const seat = s.claimBy ?? grown?.seat ?? lastClaimSeatRef.current;
     // Late client: skip what already happened, keep the rest on time.
     const rawElapsed = presentationElapsed(s.settleEndsAt, SETTLE_WRONG_MS, serverNow());
     // ON: both cards already face up — skip the flip beat, keep the read hold.
@@ -1371,6 +1394,9 @@ const MultiplayerGameView: React.FC<Props> = ({
     return () => { clearTimeout(start); clearTimeout(end); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wrongSettling]);
+  React.useEffect(() => {
+    prevWrongByRef.current = s.wrongBy;
+  }, [s.wrongBy]);
 
   // Chips still key off the transient event stream; the card treatments no
   // longer do (they are state-driven above, so no client can miss one).
