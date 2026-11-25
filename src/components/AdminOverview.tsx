@@ -243,36 +243,10 @@ export const AdminOverviewView: React.FC<{
         </div>
       </Section>
 
-      <Section title="Email list" note="Lifetime · accounts join WW: Updates; Daily reminders is a separate opt-in list">
-        {data.contacts && (
-          <div style={{ ...grid, marginBottom: SPACE[4] }}>
-            <Tile tone="blue" value={n(data.contacts.total)} label={`total contacts · WW: Updates · plus ${n(data.contacts.unconfirmed)} unfinished sign-ins`} />
-          </div>
-        )}
+      <Section title="Email list" note="Lifetime · every unique email in WW: Updates">
         <div style={grid}>
-          <Tile tone="blue" value={n(data.list.accounts)} label="signed-in accounts · WW: Updates" />
-          <Tile tone="blue" value={n(data.list.total)} label="Daily reminder subscribers" />
+          <Tile tone="blue" value={data.contacts ? n(data.contacts.total) : "–"} label="total contacts" />
         </div>
-        <table style={table}>
-          <thead>
-            <tr>
-              <th style={{ ...th, textAlign: "left" }}>Daily reminders · where they joined</th>
-              <th style={th}>People</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.list.by_source.map((s) => (
-              <tr key={s.source}>
-                <td style={{ ...td, textAlign: "left" }}>{LIST_SOURCE_NAMES[s.source] ?? s.source}</td>
-                <td style={td}>{n(s.n)}</td>
-              </tr>
-            ))}
-            <tr>
-              <td style={{ ...td, textAlign: "left", color: COLORS.inkMuted }}>Signed-in accounts · said yes to reminder</td>
-              <td style={{ ...td, color: COLORS.inkMuted }}>{n(data.list.accounts)} · {n(data.list.reminder_yes)}</td>
-            </tr>
-          </tbody>
-        </table>
       </Section>
 
       <Section title="Sharing and sales">
