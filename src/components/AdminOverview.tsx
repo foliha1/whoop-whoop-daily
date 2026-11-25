@@ -54,6 +54,7 @@ export interface Overview {
     yesterday_back: number;
   };
   list: { total: number; by_source: { source: string; n: number }[]; accounts: number; reminder_yes: number };
+  contacts?: { total: number; unconfirmed: number } | null;
   shares: { lifetime: number; today: number; invites_lifetime: number; invites_today: number };
   preorder: { clicks: number; clicks_today: number; views: number };
   sources: OverviewSource[];
@@ -243,6 +244,11 @@ export const AdminOverviewView: React.FC<{
       </Section>
 
       <Section title="Email list" note="Lifetime · accounts join WW: Updates; Daily reminders is a separate opt-in list">
+        {data.contacts && (
+          <div style={{ ...grid, marginBottom: SPACE[4] }}>
+            <Tile tone="blue" value={n(data.contacts.total)} label={`total contacts · WW: Updates · plus ${n(data.contacts.unconfirmed)} unfinished sign-ins`} />
+          </div>
+        )}
         <div style={grid}>
           <Tile tone="blue" value={n(data.list.accounts)} label="signed-in accounts · WW: Updates" />
           <Tile tone="blue" value={n(data.list.total)} label="Daily reminder subscribers" />
@@ -333,7 +339,10 @@ const AdminOverview: React.FC = () => {
       setState("error");
       return;
     }
-    setData(out as Overview);
+    const { data: c } = await (
+      supabase.rpc as unknown as (n: string) => Promise<{ data: unknown }>
+    ).call(supabase, "admin_contact_totals");
+    setData({ ...(out as Overview), contacts: (c as Overview["contacts"]) ?? null });
     setState("ready");
   }, []);
 

@@ -978,6 +978,7 @@ export type Database = {
           surface: string
         }[]
       }
+      admin_contact_totals: { Args: never; Returns: Json }
       admin_difficulty: {
         Args: { p_from: string; p_to: string }
         Returns: {
