@@ -22,12 +22,19 @@ describe("Admin overview", () => {
     expect(screen.getByText("unique players across all formats")).toBeInTheDocument();
     expect(screen.getByText(/cross-mode overlap · .* played all three · 164 played 2 or more/)).toBeInTheDocument();
     expect(screen.getByText("18 of 108 came back on Nov 19", { exact: false })).toBeInTheDocument();
-    expect(screen.getByText("Daily results screen")).toBeInTheDocument();
+    // Email list shows one tile: total WW: Updates contacts (a dash until loaded).
+    expect(within(screen.getByText("total contacts").parentElement!).getByText("–")).toBeInTheDocument();
     expect(screen.getByText("pre-order cart clicks · 0 today")).toBeInTheDocument();
     const playlin = screen.getByText("playlin.io").closest("tr")!;
     expect(within(playlin).getByText("0 · 0%")).toBeInTheDocument();
     expect(screen.getByText("Together players")).toBeInTheDocument();
     expect(screen.getByText("24 admin and test browsers left out")).toBeInTheDocument();
+  });
+
+  it("shows the total WW: Updates contacts in the email list", () => {
+    const withContacts = { ...data, contacts: { total: 2345, unconfirmed: 7 } } as Overview;
+    render(<AdminOverviewView data={withContacts} hideMine onHideMineChange={() => {}} onTagBrowser={() => {}} />);
+    expect(within(screen.getByText("total contacts").parentElement!).getByText("2,345")).toBeInTheDocument();
   });
 
   it("shows today's activity from today's trend row", () => {
