@@ -25,6 +25,7 @@
 
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { animate, motion, useReducedMotion } from "motion/react";
 import { House, Settings as SettingsIcon, X } from "lucide-react";
 import { usePortalHost } from "@/hooks/usePortalHost";
 import { useMotionExit } from "@/hooks/useMotionExit";
@@ -233,8 +234,41 @@ function deriveChips(
 
 // -------- Small building blocks --------
 
+// Chip state changes (whose turn, WHOOP!, GREAT MATCH!) blend their colours
+// and pop the new word in, so the turn visibly passes instead of snapping.
+// Colours use a CSS transition because they are theme variables (night mode
+// must keep repainting them); the word and the score use Motion.
+const CHIP_COLOR_MS = 220;
+const CHIP_LABEL_POP = { type: "spring", stiffness: 520, damping: 26, mass: 0.7 } as const;
+
+/** Bumps the score up when it rises and dips it when it falls. */
+const ScoreBump: React.FC<{ score: number; color: string }> = ({ score, color }) => {
+  const ref = React.useRef<HTMLSpanElement>(null);
+  const prev = React.useRef(score);
+  const reduce = useReducedMotion();
+  React.useEffect(() => {
+    const before = prev.current;
+    prev.current = score;
+    if (reduce || !ref.current || score === before) return;
+    const peak = score > before ? 1.35 : 0.8;
+    const run = animate(ref.current, { scale: [1, peak, 1] }, { duration: 0.38, ease: [0.33, 0, 0.2, 1] });
+    return () => run.stop();
+  }, [score, reduce]);
+  return (
+    <span ref={ref} style={{
+      display: "inline-block", transformOrigin: "center bottom",
+      fontFamily: FONT_FAMILY, fontSize: 14, lineHeight: 1,
+      letterSpacing: "0.02em", color,
+    }}>{score}</span>
+  );
+};
+
 export const ChipCell: React.FC<{ chip: DerivedChip }> = ({ chip }) => {
   const c = CHIP[chip.kind];
+  const reduce = useReducedMotion();
+  const colorTransition = reduce
+    ? undefined
+    : `background-color ${CHIP_COLOR_MS}ms ease-out, border-color ${CHIP_COLOR_MS}ms ease-out`;
   const seatColor = SEAT_COLORS[chip.seat % SEAT_COLORS.length];
   const score = chip.score ?? 0;
   const progress = Math.min(1, Math.max(0, score / TARGET_SCORE));
@@ -247,6 +281,7 @@ export const ChipCell: React.FC<{ chip: DerivedChip }> = ({ chip }) => {
         display: "flex", flexDirection: "row", alignItems: "stretch",
         padding: 0, height: 22, borderRadius: 4, minWidth: 0,
         background: c.bg, border: `2px solid ${c.border}`,
+        transition: colorTransition,
         boxSizing: "border-box", overflow: "hidden",
         boxShadow: atThreshold ? `inset 0 0 0 2px ${seatColor}` : undefined,
       }}
@@ -282,10 +317,7 @@ export const ChipCell: React.FC<{ chip: DerivedChip }> = ({ chip }) => {
             borderRadius: 2, padding: "0 3px", flexShrink: 0,
             background: c.badgeBg, boxSizing: "border-box",
           }}>
-            <span style={{
-              fontFamily: FONT_FAMILY, fontSize: 14, lineHeight: 1,
-              letterSpacing: "0.02em", color: c.badgeText,
-            }}>{chip.score}</span>
+            <ScoreBump score={chip.score} color={c.badgeText} />
             <span style={{
               fontFamily: FONT_FAMILY, fontSize: 9, lineHeight: 1,
               color: c.badgeText, opacity: 0.65,
@@ -299,11 +331,19 @@ export const ChipCell: React.FC<{ chip: DerivedChip }> = ({ chip }) => {
         background: "transparent", boxSizing: "border-box",
       }}>
         {c.labelText && (
-          <AutoFitText minScale={0.7} style={{
-            margin: "0 auto", fontFamily: FONT_FAMILY, fontSize: 12, lineHeight: 1,
-            letterSpacing: "0.04em", color: c.label,
-            fontStyle: c.italic ? "italic" : "normal",
-          }}>{c.labelText}</AutoFitText>
+          <motion.div
+            key={c.labelText}
+            initial={reduce ? false : { opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={CHIP_LABEL_POP}
+            style={{ display: "flex", flex: "1 1 0", minWidth: 0, justifyContent: "center" }}
+          >
+            <AutoFitText minScale={0.7} style={{
+              margin: "0 auto", fontFamily: FONT_FAMILY, fontSize: 12, lineHeight: 1,
+              letterSpacing: "0.04em", color: c.label,
+              fontStyle: c.italic ? "italic" : "normal",
+            }}>{c.labelText}</AutoFitText>
+          </motion.div>
         )}
       </div>
     </div>
