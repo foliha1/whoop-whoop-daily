@@ -13,7 +13,8 @@
 // ============================================================================
 
 import React from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { animate, motion, useMotionValue, useReducedMotion } from "motion/react";
+import { useCardLift } from "@/lib/cardLift";
 import type { Card } from "@/cardData";
 import { CARD_BACK_PATH } from "@/cardData";
 import { RADIUS } from "@/lib/tokens";
@@ -87,16 +88,28 @@ export const MatchGhostCard: React.FC<{
   style?: React.CSSProperties;
   /** Start angle for a card caught mid-flip; it continues up to face up. */
   fromRotate?: number;
-}> = ({ card, stage, faceUp, k, radius = RADIUS.md, style, fromRotate }) => {
+  /** Carry the board card's moving shadow through the flip and the lift-off. */
+  shadow?: boolean;
+}> = ({ card, stage, faceUp, k, radius = RADIUS.md, style, fromRotate, shadow = false }) => {
   // Subscribed so a skin toggle re-renders; skinArt maps at render time.
   useSkin();
   // Captured at mount: face down means this card should flip; face up means
   // it starts revealed. Motion owns the start frame, so no paint race.
   const initialRotate = React.useRef(fromRotate ?? (faceUp ? 0 : 180)).current;
   const reduceMotion = useReducedMotion();
+  // One angle value drives the flip, the lift and the shadow (as on the board).
+  const flipAngle = useMotionValue(initialRotate);
+  const target = fromRotate != null || faceUp ? 0 : 180;
+  React.useEffect(() => {
+    if (reduceMotion) { flipAngle.set(target); return; }
+    const run = animate(flipAngle, target, { duration: DAILY_MATCH_REVEAL_MS / 1000, ease: [0.4, 0, 0.2, 1] });
+    return () => run.stop();
+  }, [target, reduceMotion, flipAngle]);
+  const { scale: flipScale, shadow: shadowCss, shadowScaleX } = useCardLift(flipAngle);
+  const great = stage === "great";
   return (
   <div
-    className={stage === "great" ? "ww-great" : undefined}
+    className={great ? (shadow ? "ww-great ww-great-shadow" : "ww-great") : undefined}
     style={{
       borderRadius: radius,
       perspective: 600,
@@ -105,19 +118,26 @@ export const MatchGhostCard: React.FC<{
       ...style,
     }}
   >
+    {/* Flip shadow. On "great" the card is face up and .ww-great clips its
+        children, so the shadow hands over to .ww-great-shadow's box-shadow,
+        which starts at the same resting values and follows the lift-off. */}
+    {shadow && !great && (
+      <motion.div
+        aria-hidden="true"
+        style={{
+          position: "absolute", inset: 0, borderRadius: radius,
+          pointerEvents: "none", boxShadow: shadowCss, scaleX: shadowScaleX,
+        }}
+      />
+    )}
     <motion.div
       className="ww-match-ghost-flip"
-      initial={{ rotateY: initialRotate }}
-      animate={{ rotateY: fromRotate != null || faceUp ? 0 : 180 }}
-      transition={
-        reduceMotion
-          ? { duration: 0 }
-          : { duration: DAILY_MATCH_REVEAL_MS / 1000, ease: [0.4, 0, 0.2, 1] }
-      }
       style={{
         position: "absolute",
         inset: 0,
         transformStyle: "preserve-3d",
+        rotateY: flipAngle,
+        scale: flipScale,
       }}
     >
       <div

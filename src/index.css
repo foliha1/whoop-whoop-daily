@@ -768,6 +768,21 @@ All colors MUST be HSL.
   animation: ww-great-move 1s linear var(--ww-great-delay, 300ms) both,
              ww-great-fade 1s linear var(--ww-great-delay, 300ms) both;
 }
+/* Solo / Together copies keep the board card's shadow through the lift-off.
+   It starts at the card's resting shadow (src/lib/cardLift.ts), drops and
+   softens as the card grows to 1.1 (0–35%), then fades with the card. It sits
+   on .ww-great itself because .ww-great clips its children. */
+.ww-great.ww-great-shadow {
+  animation: ww-great-move 1s linear var(--ww-great-delay, 300ms) both,
+             ww-great-fade 1s linear var(--ww-great-delay, 300ms) both,
+             ww-great-shadow 1s linear var(--ww-great-delay, 300ms) both;
+}
+@keyframes ww-great-shadow {
+  0%   { animation-timing-function: cubic-bezier(.33,0,.2,1);
+         box-shadow: 0px 4px 4px rgba(0,0,0,0.25); }
+  35%  { box-shadow: 0px 14px 18px rgba(0,0,0,0.18); }
+  100% { box-shadow: 0px 14px 18px rgba(0,0,0,0.18); }
+}
 .ww-great-wash {
   background: rgba(89,205,144,0.5); opacity: 0;
   animation: ww-great-wash 1s linear var(--ww-great-delay, 300ms) both;
@@ -873,6 +888,7 @@ All colors MUST be HSL.
 
 @media (prefers-reduced-motion: reduce) {
   .ww-great { animation: ww-great-fade 1s linear var(--ww-great-delay, 300ms) both; }
+  .ww-great.ww-great-shadow { animation: ww-great-fade 1s linear var(--ww-great-delay, 300ms) both; }
   .ww-great-shine { display: none; }
 }
 

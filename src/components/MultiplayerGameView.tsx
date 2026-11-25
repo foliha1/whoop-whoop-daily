@@ -2269,6 +2269,7 @@ const MultiplayerGameView: React.FC<Props> = ({
         <DailyMatchGhost
           pair={ghost}
           startFaceUp
+          shadow
           elapsedMs={ghostElapsed}
           onDone={() => setGhost([])}
         />

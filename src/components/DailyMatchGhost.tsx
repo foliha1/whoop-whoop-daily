@@ -38,7 +38,9 @@ const DailyMatchGhost: React.FC<{
   startFaceUp?: boolean;
   /** How far into the timeline this client already is (late join). */
   elapsedMs?: number;
-}> = ({ pair, onDone, startFaceUp = false, elapsedMs = 0 }) => {
+  /** Give the copies the board card's moving shadow (Solo / Together). */
+  shadow?: boolean;
+}> = ({ pair, onDone, startFaceUp = false, elapsedMs = 0, shadow = false }) => {
   const { stage, faceUp } = useMatchGhostStage(onDone, startFaceUp && !pair.some((g) => g.flip), elapsedMs);
 
   if (pair.length === 0) return null;
@@ -55,6 +57,7 @@ const DailyMatchGhost: React.FC<{
           stage={stage}
           faceUp={startFaceUp && !g.flip ? true : faceUp}
           fromRotate={g.fromRotate}
+          shadow={shadow}
           k={g.rect.width / 104.333}
           style={{
             position: "absolute",

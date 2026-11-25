@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { animate, motion, useMotionTemplate, useMotionValue, useReducedMotion, useTransform } from "motion/react";
+import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
+import { useCardLift } from "@/lib/cardLift";
 import { Card, CARD_BACK_PATH } from "@/cardData";
 import { COLORS, RADIUS } from "@/lib/tokens";
 import { CARD_FLIP_MS, SELECT_PULSE_MS } from "@/lib/animationTiming";
@@ -19,15 +20,8 @@ const PULSE_LOOP = {
 export const PULSE_SETTLE_MS = 240;
 const PULSE_SETTLE = { duration: PULSE_SETTLE_MS / 1000, ease: [0.33, 0, 0.2, 1] as const };
 
-// Card shadow and lift. The shadow lives inside the card's moving layers, so
-// it travels with the deal-in, the wrong-claim shake, the press and the claim
-// pulse. During a flip it narrows with the card's edge, and the card lifts a
-// little off the table: the shadow drops further and softens at the midpoint.
-const SHADOW_REST = { y: 4, blur: 4, alpha: 0.25 };
-const SHADOW_LIFT = { y: 10, blur: 14, alpha: 0.16 };
-const FLIP_LIFT_SCALE = 0.04;
+// Flip depth. The shadow and lift come from useCardLift (src/lib/cardLift.ts).
 const FLIP_PERSPECTIVE = 600;
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 interface GameCardProps {
   card: Card;
@@ -165,14 +159,7 @@ const GameCard = ({
     const run = animate(flipAngle, to, { duration: CARD_FLIP_MS / 1000, ease: [0.4, 0, 0.2, 1] });
     return () => run.stop();
   }, [faceUp, reduceMotion, flipAngle]);
-  // 0 when flat on the table, 1 when standing on its edge mid-flip.
-  const lift = useTransform(flipAngle, (a) => Math.abs(Math.sin((a * Math.PI) / 180)));
-  const flipScale = useTransform(lift, (l) => 1 + FLIP_LIFT_SCALE * l);
-  const shadowScaleX = useTransform(flipAngle, (a) => Math.max(0.04, Math.abs(Math.cos((a * Math.PI) / 180))));
-  const shadowY = useTransform(lift, (l) => lerp(SHADOW_REST.y, SHADOW_LIFT.y, l));
-  const shadowBlur = useTransform(lift, (l) => lerp(SHADOW_REST.blur, SHADOW_LIFT.blur, l));
-  const shadowAlpha = useTransform(lift, (l) => lerp(SHADOW_REST.alpha, SHADOW_LIFT.alpha, l));
-  const shadowCss = useMotionTemplate`0px ${shadowY}px ${shadowBlur}px rgba(0,0,0,${shadowAlpha})`;
+  const { scale: flipScale, shadow: shadowCss, shadowScaleX } = useCardLift(flipAngle);
 
   const boxShadow = undefined;
 
