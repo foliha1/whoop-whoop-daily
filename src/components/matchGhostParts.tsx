@@ -13,6 +13,7 @@
 // ============================================================================
 
 import React from "react";
+import { motion, useReducedMotion } from "motion/react";
 import type { Card } from "@/cardData";
 import { CARD_BACK_PATH } from "@/cardData";
 import { RADIUS } from "@/lib/tokens";
@@ -87,6 +88,10 @@ export const MatchGhostCard: React.FC<{
 }> = ({ card, stage, faceUp, k, radius = RADIUS.md, style }) => {
   // Subscribed so a skin toggle re-renders; skinArt maps at render time.
   useSkin();
+  // Captured at mount: face down means this card should flip; face up means
+  // it starts revealed. Motion owns the start frame, so no paint race.
+  const initialRotate = React.useRef(faceUp ? 0 : 180).current;
+  const reduceMotion = useReducedMotion();
   return (
   <div
     className={stage === "great" ? "ww-great" : undefined}
@@ -98,14 +103,19 @@ export const MatchGhostCard: React.FC<{
       ...style,
     }}
   >
-    <div
+    <motion.div
       className="ww-match-ghost-flip"
+      initial={{ rotateY: initialRotate }}
+      animate={{ rotateY: faceUp ? 0 : 180 }}
+      transition={
+        reduceMotion
+          ? { duration: 0 }
+          : { duration: DAILY_MATCH_REVEAL_MS / 1000, ease: [0.4, 0, 0.2, 1] }
+      }
       style={{
         position: "absolute",
         inset: 0,
         transformStyle: "preserve-3d",
-        transition: `transform ${DAILY_MATCH_REVEAL_MS}ms cubic-bezier(0.4,0,0.2,1)`,
-        transform: faceUp ? "rotateY(0deg)" : "rotateY(180deg)",
       }}
     >
       <div
@@ -141,7 +151,7 @@ export const MatchGhostCard: React.FC<{
           style={{ width: "100%", height: "100%", display: "block" }}
         />
       </div>
-    </div>
+    </motion.div>
 
     {stage === "great" && (
       <>
