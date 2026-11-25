@@ -82,6 +82,11 @@ const prefersReducedMotion = (): boolean => {
   }
 };
 
+/** Slots the match-settle ghost copies are built from. */
+export function matchGhostIndices(matchedCards: number[], lastPair: number[]): number[] {
+  return matchedCards.length > 0 ? [...matchedCards] : [...lastPair];
+}
+
 interface Props {
   publicState: PublicState;
   mySeat: number | null; // null = spectator
@@ -1238,7 +1243,10 @@ const MultiplayerGameView: React.FC<Props> = ({
   // of empty slots (the flash). A layout effect re-render lands pre-paint.
   React.useLayoutEffect(() => {
     if (!matchSettling) return;
-    const idxs = lastPairRef.current;
+    // matchedCards is always set while SETTLING on a MATCH; a joiner may never
+    // see the two-card selection (throttled broadcasts), so lastPairRef can be
+    // empty or stale. It is only a fallback.
+    const idxs = matchGhostIndices(s.matchedCards, lastPairRef.current);
     const copies = idxs.flatMap<GhostCard>((i) => {
       const el = cellRefs.current[i];
       const card = gridRef.current[i]?.card;
