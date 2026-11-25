@@ -160,6 +160,10 @@ const GameCard = ({
     return () => run.stop();
   }, [faceUp, reduceMotion, flipAngle]);
   const { scale: flipScale, shadow: shadowCss, shadowScaleX } = useCardLift(flipAngle);
+  // The visible face's angle: past 90° the back is showing, which looks like
+  // the front turned the other way. Overlays use it to match the card's
+  // outline without ever showing their own reverse side.
+  const overlayAngle = useTransform(flipAngle, (a) => (a > 90 ? a - 180 : a));
 
   const boxShadow = undefined;
 
@@ -356,55 +360,66 @@ const GameCard = ({
         </div>
       </motion.div>
 
-      {/* Shared active-claim stroke. Nested inside the scaled + glowing
-          wrapper (as the SVG's single filtered <g>) so stroke, glow and scale
-          stay locked together. */}
-      {glowOn && !wrong && !matched && (
-        <motion.div className="ww-select-pulse" style={{ zIndex: 4, opacity: pulseGlow }} />
-      )}
+      {/* Card overlays: tap outline, selection, claim pulse, wrong and match
+          treatments. They ride the same layers as the card (deal-in, pulse,
+          press, shake) and copy the flip's visible outline: the same narrowing,
+          perspective and lift, but never turning over, so a selected or
+          pulsing card's outline stays glued to the card while it flips. */}
+      <motion.div
+        aria-hidden="true"
+        className="ww-card-overlays"
+        style={{
+          position: "absolute", inset: 0, borderRadius: radius,
+          pointerEvents: "none",
+          rotateY: overlayAngle,
+          scale: flipScale,
+        }}
+      >
+        {/* Shared active-claim stroke, inside the scaled wrapper so stroke,
+            glow and scale stay locked together. */}
+        {glowOn && !wrong && !matched && (
+          <motion.div className="ww-select-pulse" style={{ zIndex: 4, opacity: pulseGlow }} />
+        )}
+        {onPressStart && (
+          <div
+            aria-hidden
+            className={`ww-card-opening${opening ? " is-on" : ""}`}
+            style={{ zIndex: 3, borderRadius: radius }}
+          />
+        )}
+
+        {highlighted && !wrong && !matched && (
+          <>
+            <div ref={washRef} className="ww-select-wash" style={{ zIndex: 2 }} />
+            <div className="ww-select-ring" style={{ zIndex: 3 }} />
+          </>
+        )}
+
+
+
+        {wrong && (
+          <>
+            <div className="ww-wrong-wash" style={{ zIndex: 4 }} />
+            <div className="ww-wrong-ring" style={{ zIndex: 5 }} />
+          </>
+        )}
+
+        {matched && !wrong && (
+          <>
+            <div
+              className="ww-great-wash"
+              style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 4 }}
+            />
+            <div className="ww-great-shine" style={{ pointerEvents: "none", zIndex: 5 }} />
+            <div
+              className="ww-great-ring"
+              style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 6 }}
+            />
+          </>
+        )}
+      </motion.div>
       </motion.div>
       </div>
-
-      {onPressStart && (
-        <div
-          aria-hidden
-          className={`ww-card-opening${opening ? " is-on" : ""}`}
-          style={{ zIndex: 3, borderRadius: radius }}
-        />
-      )}
-
-      {highlighted && !wrong && !matched && (
-        <>
-          <div ref={washRef} className="ww-select-wash" style={{ zIndex: 2 }} />
-          <div className="ww-select-ring" style={{ zIndex: 3 }} />
-        </>
-      )}
-
-
-
-      {wrong && (
-        <>
-          <div className="ww-wrong-wash" style={{ zIndex: 4 }} />
-          <div className="ww-wrong-ring" style={{ zIndex: 5 }} />
-        </>
-      )}
-
-      {matched && !wrong && (
-        <>
-          <div
-            className="ww-great-wash"
-            style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 4 }}
-          />
-          <div className="ww-great-shine" style={{ pointerEvents: "none", zIndex: 5 }} />
-          <div
-            className="ww-great-ring"
-            style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 6 }}
-          />
-        </>
-      )}
-
-
-
     </div>
   );
 };
