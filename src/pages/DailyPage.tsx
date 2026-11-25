@@ -1202,6 +1202,10 @@ const BOARD_RATIO = 7 / 5; // card height / card width
 const BOARD_MIN_CARD_W = 44;
 const BOARD_HEADER_H = 78;
 
+/** Space kept clear around the board for the card shadow (src/lib/cardLift.ts). */
+const SHADOW_ROOM_X = 4;
+const SHADOW_ROOM_Y = 12;
+
 const DailyBoard: React.FC<{
   rows: number;
   /** Round status, misses and Peek travel with the grid as one centered group. */
@@ -1227,7 +1231,9 @@ const DailyBoard: React.FC<{
     return () => ro.disconnect();
   }, []);
 
-  const byWidth = (box.w - (BOARD_COLS - 1) * BOARD_GAP) / BOARD_COLS;
+  // Leave room for the cards' moving shadow so the board's clip never cuts
+  // it: a little at each side, more below for the drop as a card lifts.
+  const byWidth = (box.w - 2 * SHADOW_ROOM_X - (BOARD_COLS - 1) * BOARD_GAP) / BOARD_COLS;
   // A measured height of zero (a browser that dropped a dvh declaration, or a
   // measurement taken before layout) must never collapse the board to minimum
   // cards: fall back to the viewport height instead.
@@ -1238,7 +1244,8 @@ const DailyBoard: React.FC<{
       ? window.innerHeight
       : 0;
   const headerReserve = header ? BOARD_HEADER_H + SPACE[6] : 0;
-  const byHeight = (availH - headerReserve - (rows - 1) * BOARD_GAP) / rows / BOARD_RATIO;
+  const byHeight =
+    (availH - SHADOW_ROOM_Y - headerReserve - (rows - 1) * BOARD_GAP) / rows / BOARD_RATIO;
   const raw = availH > 0 ? Math.min(byWidth, byHeight) : byWidth;
   const cardW = Math.floor(
     Math.max(BOARD_MIN_CARD_W, Number.isFinite(raw) && raw > 0 ? raw : BOARD_MIN_CARD_W)
@@ -2129,6 +2136,7 @@ const DailyPage: React.FC = () => {
                       <GameCard
                         card={card}
                         fill
+                        shadow
                         faceUp={state.faceUp || finalReveal}
                         highlighted={state.selected.includes(idx)}
                         matched={state.matchedPair.includes(idx)}
@@ -2158,6 +2166,7 @@ const DailyPage: React.FC = () => {
               {ghost.length > 0 && (
                 <DailyMatchGhost
                   pair={ghost}
+                  shadow
                   onDone={() => {
                     settleDoneRef.current = true;
                     settleResolveRef.current?.();

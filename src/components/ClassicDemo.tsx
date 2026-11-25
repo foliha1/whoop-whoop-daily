@@ -853,6 +853,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                       card={card(scene.cards[pos])}
                       faceUp={scene.faceUp.includes(pos) || scene.burned.includes(pos)}
                       fill
+                      shadow
                       interactive={false}
                       highlighted={scene.selected.includes(pos)}
                       wrong={scene.wrong.includes(pos)}
@@ -868,6 +869,7 @@ const ClassicDemo: React.FC<ClassicDemoProps> = ({
                       stage="great"
                       faceUp
                       k={cardW / 104.333}
+                      shadow
                       radius={RADIUS.md}
                       style={{ position: "absolute", inset: 0 }}
                     />

@@ -62,7 +62,7 @@ const ROLL_EVERY_MS = DAILY_ROLL_HERO_MS + DEMO_BEAT_MS * 2;
 // Starts face down and flips itself, exactly like the live board's ghost layer.
 function Reward({ card, k }: { card: Card; k: number }) {
   const { stage, faceUp } = useMatchGhostStage(undefined, false);
-  return <MatchGhostCard card={card} stage={stage} faceUp={faceUp} k={k} style={{ position: "absolute", inset: 0 }} />;
+  return <MatchGhostCard card={card} stage={stage} faceUp={faceUp} k={k} shadow style={{ position: "absolute", inset: 0 }} />;
 }
 
 let lastOpen = { mode: "", at: 0 };
@@ -251,7 +251,7 @@ export default function DailyDemo({ mode, onStart, onClose }: DailyDemoProps) {
           {DAILY_DEMO_CARDS.map((card, i) => <div key={card.id} style={{ aspectRatio: "5 / 7", position: "relative" }}>
             {scene.removed.includes(i) ? <div style={{ height: "100%", borderRadius: RADIUS.sm, border: `2px dashed ${COLORS.inkMuted}`, opacity: 0.25 }} /> : <>
             <div style={{ height: "100%", visibility: scene.ghost && PAIR.includes(i) ? "hidden" : "visible" }}>
-              <GameCard card={card} faceUp={scene.face.includes(i)} highlighted={scene.selected.includes(i)} wrong={!reduced && scene.wrong.includes(i)} interactive={false} fill dealKey={!reduced && step === 0 ? step : undefined} dealIndex={step === 0 ? i : undefined} />
+              <GameCard card={card} faceUp={scene.face.includes(i)} highlighted={scene.selected.includes(i)} wrong={!reduced && scene.wrong.includes(i)} interactive={false} fill shadow dealKey={!reduced && step === 0 ? step : undefined} dealIndex={step === 0 ? i : undefined} />
             </div>
             {scene.ghost && PAIR.includes(i) && <Reward card={card} k={(boardWidth - BOARD_GAP * 2) / 3 / 104.333} />}
             </>}

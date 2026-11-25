@@ -682,7 +682,7 @@ const slotCard = (
   key?: React.Key,
 ) => (
   <div key={key} style={{ width: w, height: h, position: "relative" }}>
-    <GameCard {...props} fill interactive={false} radius={cardRadius(w)} />
+    <GameCard {...props} fill shadow interactive={false} radius={cardRadius(w)} />
   </div>
 );
 
@@ -828,6 +828,7 @@ const MatchGhostPair: React.FC<{
           stage={stage}
           faceUp={faceUp}
           k={w / 104.333}
+          shadow
           radius={cardRadius(w)}
           style={{
             position: "absolute",
