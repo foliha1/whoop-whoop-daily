@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
+import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { useCardLift } from "@/lib/cardLift";
 import { Card, CARD_BACK_PATH } from "@/cardData";
 import { COLORS, RADIUS } from "@/lib/tokens";
@@ -22,6 +22,20 @@ const PULSE_SETTLE = { duration: PULSE_SETTLE_MS / 1000, ease: [0.33, 0, 0.2, 1]
 
 // Flip depth. The shadow and lift come from useCardLift (src/lib/cardLift.ts).
 const FLIP_PERSPECTIVE = 600;
+
+// Touch and hover. A press sinks the card into the table (smaller, tighter
+// shadow) and springs back on release; a mouse hover lifts it a little (bigger,
+// softer shadow). Both sit on the same layer as the claim pulse.
+const PRESS_SCALE = 0.04;
+const HOVER_SCALE = 0.02;
+const PRESS_DOWN = { duration: 0.08, ease: [0.33, 0, 0.2, 1] as const };
+const PRESS_UP = { type: "spring", stiffness: 520, damping: 22, mass: 0.6 } as const;
+const HOVER_EASE = { duration: 0.18, ease: [0.33, 0, 0.2, 1] as const };
+/** Selection outline fade on deselect: matches its 120ms fade-in. */
+const SELECT_FADE_OUT = { duration: 0.12, ease: [0.4, 0, 1, 1] as const };
+const canHover = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(hover: hover) and (pointer: fine)").matches === true;
 
 interface GameCardProps {
   card: Card;
@@ -159,7 +173,15 @@ const GameCard = ({
     const run = animate(flipAngle, to, { duration: CARD_FLIP_MS / 1000, ease: [0.4, 0, 0.2, 1] });
     return () => run.stop();
   }, [faceUp, reduceMotion, flipAngle]);
-  const { scale: flipScale, shadow: shadowCss, shadowScaleX } = useCardLift(flipAngle);
+  // Press (0..1) and hover (0..1) feed the card's elevation: press sinks it,
+  // hover lifts it. The shadow reads the total through useCardLift.
+  const press = useMotionValue(0);
+  const hover = useMotionValue(0);
+  const elevation = useTransform(() => 0.4 * hover.get() - press.get());
+  const touchScale = useTransform(
+    () => pulseScale.get() * (1 - PRESS_SCALE * press.get()) * (1 + HOVER_SCALE * hover.get()),
+  );
+  const { scale: flipScale, shadow: shadowCss, shadowScaleX } = useCardLift(flipAngle, elevation);
   // The visible face's angle: past 90° the back is showing, which looks like
   // the front turned the other way. Overlays use it to match the card's
   // outline without ever showing their own reverse side.
@@ -205,6 +227,20 @@ const GameCard = ({
   // claim this round. Quiet, static, no animation — it must not read as an
   // error. Other seats render the very same card fully available.
   const tappable = interactive && !unavailable;
+  const pressTo = (v: number) => {
+    if (reduceMotion) return;
+    animate(press, v, v ? PRESS_DOWN : PRESS_UP);
+  };
+  const hoverTo = (v: number) => {
+    if (reduceMotion) return;
+    animate(hover, v, HOVER_EASE);
+  };
+  // A card that stops being tappable mid-press or mid-hover settles back.
+  useEffect(() => {
+    if (tappable) return;
+    if (press.get() !== 0) animate(press, 0, PRESS_UP);
+    if (hover.get() !== 0) animate(hover, 0, HOVER_EASE);
+  }, [tappable, press, hover]);
   const UNAVAILABLE_OPACITY = 0.4;
 
   return (
@@ -243,7 +279,11 @@ const GameCard = ({
         touchAction: "manipulation",
       }}
       onClick={tappable ? onClick : undefined}
-      onPointerDown={tappable ? onPressStart : undefined}
+      onPointerDown={tappable ? () => { pressTo(1); onPressStart?.(); } : undefined}
+      onPointerUp={tappable ? () => pressTo(0) : undefined}
+      onPointerCancel={() => pressTo(0)}
+      onPointerEnter={tappable ? (e) => { if (e.pointerType === "mouse" && canHover()) hoverTo(1); } : undefined}
+      onPointerLeave={() => { pressTo(0); hoverTo(0); }}
       onKeyDown={tappable ? (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -273,7 +313,7 @@ const GameCard = ({
       <motion.div
         className="ww-select-pulse-scale"
         style={{
-          position: "absolute", inset: 0, transformOrigin: "center", scale: pulseScale,
+          position: "absolute", inset: 0, transformOrigin: "center", scale: touchScale,
           // The flip's direct parent owns the perspective, so the card turns
           // with real depth (an ancestor's perspective does not reach it).
           perspective: FLIP_PERSPECTIVE,
@@ -388,12 +428,20 @@ const GameCard = ({
           />
         )}
 
-        {highlighted && !wrong && !matched && (
-          <>
-            <div ref={washRef} className="ww-select-wash" style={{ zIndex: 2 }} />
-            <div className="ww-select-ring" style={{ zIndex: 3 }} />
-          </>
-        )}
+        {/* Selection fades in (CSS, 120ms) and, on deselect, fades back out
+            instead of vanishing. */}
+        <AnimatePresence>
+          {highlighted && !wrong && !matched && (
+            <motion.div
+              key="selected"
+              exit={{ opacity: 0, transition: reduceMotion ? { duration: 0 } : SELECT_FADE_OUT }}
+              style={{ position: "absolute", inset: 0, borderRadius: radius, zIndex: 2 }}
+            >
+              <div ref={washRef} className="ww-select-wash" style={{ zIndex: 2 }} />
+              <div className="ww-select-ring" style={{ zIndex: 3 }} />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
 
 

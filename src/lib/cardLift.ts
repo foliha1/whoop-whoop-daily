@@ -18,14 +18,30 @@ export const CARD_SHADOW_REST_CSS =
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-export function useCardLift(flipAngle: MotionValue<number>) {
+/** Shadow when a card is pressed into the table: tight, close and dark. */
+export const CARD_SHADOW_PRESSED = { y: 1.5, blur: 2, alpha: 0.3 };
+
+/**
+ * `boost` (optional) raises or lowers the card on top of the flip: positive
+ * for a hover lift, negative for a press. The shadow follows the total; the
+ * flip's own scale only follows the flip.
+ */
+export function useCardLift(flipAngle: MotionValue<number>, boost?: MotionValue<number>) {
   // 0 when flat on the table, 1 when standing on its edge mid-flip.
-  const lift = useTransform(flipAngle, (a) => Math.abs(Math.sin((a * Math.PI) / 180)));
-  const scale = useTransform(lift, (l) => 1 + FLIP_LIFT_SCALE * l);
+  const flipLift = useTransform(flipAngle, (a) => Math.abs(Math.sin((a * Math.PI) / 180)));
+  const scale = useTransform(flipLift, (l) => 1 + FLIP_LIFT_SCALE * l);
   const shadowScaleX = useTransform(flipAngle, (a) => Math.max(0.04, Math.abs(Math.cos((a * Math.PI) / 180))));
-  const y = useTransform(lift, (l) => lerp(CARD_SHADOW_REST.y, CARD_SHADOW_LIFT.y, l));
-  const blur = useTransform(lift, (l) => lerp(CARD_SHADOW_REST.blur, CARD_SHADOW_LIFT.blur, l));
-  const alpha = useTransform(lift, (l) => lerp(CARD_SHADOW_REST.alpha, CARD_SHADOW_LIFT.alpha, l));
+  // Total elevation: -1 pressed flat, 0 resting, 1 fully lifted.
+  const lift = useTransform(() =>
+    Math.max(-1, Math.min(1, flipLift.get() + (boost ? boost.get() : 0))),
+  );
+  const pick = (key: "y" | "blur" | "alpha") => (l: number) =>
+    l >= 0
+      ? lerp(CARD_SHADOW_REST[key], CARD_SHADOW_LIFT[key], l)
+      : lerp(CARD_SHADOW_REST[key], CARD_SHADOW_PRESSED[key], -l);
+  const y = useTransform(lift, pick("y"));
+  const blur = useTransform(lift, pick("blur"));
+  const alpha = useTransform(lift, pick("alpha"));
   const shadow = useMotionTemplate`0px ${y}px ${blur}px rgba(0,0,0,${alpha})`;
   return { scale, shadow, shadowScaleX };
 }
