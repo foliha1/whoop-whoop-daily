@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
+import { animate, motion, useMotionTemplate, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { Card, CARD_BACK_PATH } from "@/cardData";
 import { COLORS, RADIUS } from "@/lib/tokens";
 import { CARD_FLIP_MS, SELECT_PULSE_MS } from "@/lib/animationTiming";
@@ -18,6 +18,16 @@ const PULSE_LOOP = {
 /** How long the pulse takes to settle to rest once it stops. */
 export const PULSE_SETTLE_MS = 240;
 const PULSE_SETTLE = { duration: PULSE_SETTLE_MS / 1000, ease: [0.33, 0, 0.2, 1] as const };
+
+// Card shadow and lift. The shadow lives inside the card's moving layers, so
+// it travels with the deal-in, the wrong-claim shake, the press and the claim
+// pulse. During a flip it narrows with the card's edge, and the card lifts a
+// little off the table: the shadow drops further and softens at the midpoint.
+const SHADOW_REST = { y: 4, blur: 4, alpha: 0.25 };
+const SHADOW_LIFT = { y: 10, blur: 14, alpha: 0.16 };
+const FLIP_LIFT_SCALE = 0.04;
+const FLIP_PERSPECTIVE = 600;
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 interface GameCardProps {
   card: Card;
@@ -42,6 +52,8 @@ interface GameCardProps {
   /** Loops the shared active-claim pulse. The parent enables it for every
    *  available card so the grid breathes as one board. */
   pulsing?: boolean;
+  /** Draw the card's own drop shadow, which moves, flips and lifts with it. */
+  shadow?: boolean;
   /** Remount key for the deal-in wrapper; changing it replays the animation. */
   dealKey?: string | number;
   /** Stagger index for the deal-in animation (`--ww-deal-i`). */
@@ -75,6 +87,7 @@ const GameCard = ({
   shaking,
   fill,
   pulsing = false,
+  shadow = false,
   interactive = true,
   unavailable = false,
   dealKey,
@@ -143,6 +156,23 @@ const GameCard = ({
     if (!pulsing) run.then(() => setGlowOn(false));
     return () => run.stop();
   }, [pulsing, reduceMotion, pulseScale]);
+
+  // One value drives the flip; the lift and the shadow are read off it.
+  const flipAngle = useMotionValue(faceUp ? 0 : 180);
+  useEffect(() => {
+    const to = faceUp ? 0 : 180;
+    if (reduceMotion) { flipAngle.set(to); return; }
+    const run = animate(flipAngle, to, { duration: CARD_FLIP_MS / 1000, ease: [0.4, 0, 0.2, 1] });
+    return () => run.stop();
+  }, [faceUp, reduceMotion, flipAngle]);
+  // 0 when flat on the table, 1 when standing on its edge mid-flip.
+  const lift = useTransform(flipAngle, (a) => Math.abs(Math.sin((a * Math.PI) / 180)));
+  const flipScale = useTransform(lift, (l) => 1 + FLIP_LIFT_SCALE * l);
+  const shadowScaleX = useTransform(flipAngle, (a) => Math.max(0.04, Math.abs(Math.cos((a * Math.PI) / 180))));
+  const shadowY = useTransform(lift, (l) => lerp(SHADOW_REST.y, SHADOW_LIFT.y, l));
+  const shadowBlur = useTransform(lift, (l) => lerp(SHADOW_REST.blur, SHADOW_LIFT.blur, l));
+  const shadowAlpha = useTransform(lift, (l) => lerp(SHADOW_REST.alpha, SHADOW_LIFT.alpha, l));
+  const shadowCss = useMotionTemplate`0px ${shadowY}px ${shadowBlur}px rgba(0,0,0,${shadowAlpha})`;
 
   const boxShadow = undefined;
 
@@ -251,25 +281,33 @@ const GameCard = ({
           later animation declaration replace the other one's transform. */}
       <motion.div
         className="ww-select-pulse-scale"
-        style={{ position: "absolute", inset: 0, transformOrigin: "center", scale: pulseScale }}
+        style={{
+          position: "absolute", inset: 0, transformOrigin: "center", scale: pulseScale,
+          // The flip's direct parent owns the perspective, so the card turns
+          // with real depth (an ancestor's perspective does not reach it).
+          perspective: FLIP_PERSPECTIVE,
+        }}
       >
-      {/* Motion drives the flip: it starts from whatever angle the card is
-          at, so a flip that is reversed or re-sent mid-turn never jumps.
-          initial={false}: a card mounts at its resting face, no flip. */}
+      {shadow && (
+        <motion.div
+          aria-hidden="true"
+          style={{
+            position: "absolute", inset: 0, borderRadius: radius,
+            pointerEvents: "none", boxShadow: shadowCss, scaleX: shadowScaleX,
+          }}
+        />
+      )}
+      {/* Motion drives the flip from one angle value: it continues from
+          wherever the card is, so a reversed or re-sent flip never jumps. */}
       <motion.div
         className="ww-card-flip"
-        initial={false}
-        animate={{ rotateY: faceUp ? 0 : 180 }}
-        transition={
-          reduceMotion
-            ? { duration: 0 }
-            : { duration: CARD_FLIP_MS / 1000, ease: [0.4, 0, 0.2, 1] }
-        }
         style={{
           width: "100%",
           height: "100%",
           position: "relative",
           transformStyle: "preserve-3d",
+          rotateY: flipAngle,
+          scale: flipScale,
         }}
       >
 

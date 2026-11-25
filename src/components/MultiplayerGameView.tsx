@@ -2170,7 +2170,7 @@ const MultiplayerGameView: React.FC<Props> = ({
                 ref={(el) => { cellRefs.current[i] = el; }}
                 style={{
                   width: cardW, height: cardH,
-                  borderRadius: R_CARD, boxShadow: CARD_SHADOW,
+                  borderRadius: R_CARD,
                 }}>
 
                 <GameCard
@@ -2182,6 +2182,7 @@ const MultiplayerGameView: React.FC<Props> = ({
                   opening={tapAck?.idx === i}
                   highlighted={selected && pickedCount < 2}
                   pulsing={pulsing}
+                  shadow
                   wrong={wrongCards.includes(i)}
                   // Locked to me only: face up and live for everyone else.
                   // The pending-board and claimant-specific dimming remains
