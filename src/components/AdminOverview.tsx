@@ -242,14 +242,15 @@ export const AdminOverviewView: React.FC<{
         </div>
       </Section>
 
-      <Section title="Email list" note="Lifetime · everyone goes to one ActiveCampaign list">
+      <Section title="Email list" note="Lifetime · accounts join WW: Updates; Daily reminders is a separate opt-in list">
         <div style={grid}>
-          <Tile wide tone="blue" value={n(data.list.total)} label="subscribers" />
+          <Tile tone="blue" value={n(data.list.accounts)} label="signed-in accounts · WW: Updates" />
+          <Tile tone="blue" value={n(data.list.total)} label="Daily reminder subscribers" />
         </div>
         <table style={table}>
           <thead>
             <tr>
-              <th style={{ ...th, textAlign: "left" }}>Where they joined</th>
+              <th style={{ ...th, textAlign: "left" }}>Daily reminders · where they joined</th>
               <th style={th}>People</th>
             </tr>
           </thead>
@@ -304,7 +305,7 @@ export const AdminOverviewView: React.FC<{
             </tbody>
           </table>
         </div>
-        <p style={sub}>"Signed up" is the share of visitors who joined the list or signed in. "Came back" is the share of players who played on 2 or more days.</p>
+        <p style={sub}>"Signed up" is the share of visitors who signed in with email (account, WW: Updates) or joined the Daily reminder list; most sign in without opting in to reminders. "Came back" is the share of players who played on 2 or more days.</p>
       </Section>
 
       <Section title="Last 30 days" note="People per day · today is left off until it ends">

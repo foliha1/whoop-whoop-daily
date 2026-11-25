@@ -32,11 +32,11 @@ import {
   listSection,
   pitchSnapshot,
   sectionCsv,
-  subscriberCsv,
+  contactCsv,
   trendSection,
   type ExportInput,
   type ExportSection,
-  type SubscriberExportRow,
+  type ContactExportRow,
 } from "@/lib/adminExport";
 import {
   BORDER,
@@ -781,18 +781,18 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
   const exportSubscribers = useCallback(async () => {
     setListBusy(true);
     setListError(null);
-    const { data: rows, error } = await supabase.rpc("admin_export_subscribers");
+    const { data: rows, error } = await supabase.rpc("admin_export_contacts");
     setListBusy(false);
     if (error) {
       setListError("Could not fetch the list. Try again.");
       return;
     }
-    const list = (rows as SubscriberExportRow[] | null) ?? [];
+    const list = (rows as unknown as ContactExportRow[] | null) ?? [];
     if (list.length === 0) {
       setListError("No subscribers returned.");
       return;
     }
-    downloadFile(exportFilename("subscribers", from, to), subscriberCsv(list));
+    downloadFile(exportFilename("contacts", from, to), contactCsv(list));
     setConfirmList(false);
   }, [from, to]);
 
@@ -933,15 +933,15 @@ const Dashboard: React.FC<{ session: Session }> = ({ session }) => {
             <div style={{ marginTop: SPACE[8], paddingTop: SPACE[5], borderTop: `1px solid ${COLORS.panelMuted}` }}>
               <AppButton type="button" onClick={() => setConfirmList(true)}
                 style={{ ...exportButtonStyle, color: COLORS.redText, borderColor: COLORS.red }}>
-                ↓ Subscriber List (Emails)
+                ↓ All Emails (Accounts + Daily List)
               </AppButton>
             </div>
       {confirmList ? (
         <div style={{ ...cardStyle, gap: SPACE[6] }}>
           <h2 style={sectionTitle}>Export subscriber emails?</h2>
           <p style={{ ...mono, fontSize: FONT_SIZE.xs, color: COLORS.ink, margin: 0 }}>
-            This downloads every subscriber's email address, source, ActiveCampaign sync state and
-            signup time. It is personal data — handle it accordingly. The export is recorded against{" "}
+            This downloads every email we hold: Daily reminder subscribers and signed-in player
+            accounts, one row each, with which lists they are on, source, sync state and first seen time. It is personal data — handle it accordingly. The export is recorded against{" "}
             {session.user.email}.
           </p>
           {listError ? (

@@ -297,3 +297,24 @@ export function subscriberCsv(rows: SubscriberExportRow[]): string {
     rows.map((r) => [r.email, r.source, r.synced_to_ac, r.created_at]),
   );
 }
+
+export interface ContactExportRow {
+  email: string;
+  daily_reminders: boolean;
+  has_account: boolean;
+  source: string;
+  synced_to_ac: boolean;
+  first_seen: string;
+}
+
+/** One row per address: Daily reminder list, signed-in account, or both. */
+export function contactCsv(rows: ContactExportRow[]): string {
+  return toCsv(
+    ["email", "lists", "daily_reminders", "has_account", "source", "synced_to_ac", "first_seen"],
+    rows.map((r) => [
+      r.email,
+      [r.has_account ? "WW: Updates (account)" : "", r.daily_reminders ? "Daily reminders" : ""].filter(Boolean).join(" + "),
+      r.daily_reminders, r.has_account, r.source, r.synced_to_ac, r.first_seen,
+    ]),
+  );
+}

@@ -994,6 +994,17 @@ export type Database = {
           found: number
         }[]
       }
+      admin_export_contacts: {
+        Args: never
+        Returns: {
+          daily_reminders: boolean
+          email: string
+          first_seen: string
+          has_account: boolean
+          source: string
+          synced_to_ac: boolean
+        }[]
+      }
       admin_export_subscribers: {
         Args: never
         Returns: {

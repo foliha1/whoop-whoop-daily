@@ -351,6 +351,13 @@
       "when": 1795450475236,
       "tag": "0049_first_attempt_study_level",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1795611703748,
+      "tag": "0050_admin_export_contacts",
+      "breakpoints": true
     }
   ]
 }
