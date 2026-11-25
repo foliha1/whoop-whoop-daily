@@ -42,6 +42,7 @@ import type { PublicState } from "@/lib/publicState";
 import type { IntentAction, RollAttribute, RollCommitPayload, TransientEvent } from "@/lib/multiplayer";
 import { ROLL_HERO_MS } from "@/lib/multiplayer";
 import { CARD_FLIP_MS } from "@/lib/animationTiming";
+import { flipStartAngle } from "@/lib/flipStartAngle";
 import {
   GREAT_MATCH_DELAY_MS, DEAL_MOVE_MS, WRONG_ANIM_MS, SETTLE_REVEAL_HOLD_MS, DAILY_MATCH_REVEAL_MS,
   applyAnimationTimingVars,
@@ -1227,8 +1228,14 @@ const MultiplayerGameView: React.FC<Props> = ({
   // Slots face up as of the previous commit. Effects run after layout
   // effects, so the settle layout effect still sees the pre-reveal faces.
   const prevFaceUpRef = React.useRef<Set<number>>(new Set());
+  // When each slot last turned from hidden to face up (performance.now()).
+  const revealedAtRef = React.useRef<Map<number, number>>(new Map());
   React.useEffect(() => {
-    prevFaceUpRef.current = new Set(s.grid.flatMap((g, i) => (g.card ? [i] : [])));
+    const next = new Set(s.grid.flatMap((g, i) => (g.card ? [i] : [])));
+    const now = performance.now();
+    next.forEach((i) => { if (!prevFaceUpRef.current.has(i)) revealedAtRef.current.set(i, now); });
+    revealedAtRef.current.forEach((_, i) => { if (!next.has(i)) revealedAtRef.current.delete(i); });
+    prevFaceUpRef.current = next;
   }, [s.grid]);
   const [ghost, setGhost] = React.useState<GhostCard[]>([]);
   const [ghostElapsed, setGhostElapsed] = React.useState(0);
@@ -1252,18 +1259,24 @@ const MultiplayerGameView: React.FC<Props> = ({
       const card = gridRef.current[i]?.card;
       if (!el || !card) return [];
       const r = el.getBoundingClientRect();
+      // A card still mid-flip continues from its current angle (no snap).
+      const at = revealedAtRef.current.get(i);
+      const fromRotate = umbrella && prevFaceUpRef.current.has(i) && at != null
+        ? flipStartAngle(performance.now() - at)
+        : null;
       return [{
         key: `settle-${i}-${r.top}-${r.left}`,
+        ...(fromRotate != null ? { flip: true, fromRotate } : {}),
         card,
         rect: { top: r.top, left: r.left, width: r.width, height: r.height },
         // ON: a card revealed by this claim plays its full flip first.
-        flip: umbrella && !prevFaceUpRef.current.has(i),
+        flip: umbrella && (!prevFaceUpRef.current.has(i) || fromRotate != null),
       }];
     });
     // A client arriving mid-settle starts at the host's point in the timeline.
     const elapsed = presentationElapsed(s.settleEndsAt, SETTLE_MATCH_MS, serverNow());
     // A late arrival skips the flip and joins the timeline face up.
-    if (elapsed > 150) copies.forEach((c) => { c.flip = false; });
+    if (elapsed > 150) copies.forEach((c) => { c.flip = false; c.fromRotate = undefined; });
     // ON: a pair the player already flipped face up has nothing to reveal, so
     // skip the flip beat and start the treatment after the short read hold.
     const skip = umbrella && copies.length > 0 && copies.every((c) => !c.flip) && elapsed < DAILY_MATCH_REVEAL_MS ? DAILY_MATCH_REVEAL_MS - elapsed : 0;

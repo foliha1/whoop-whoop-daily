@@ -85,12 +85,14 @@ export const MatchGhostCard: React.FC<{
   /** Corner radius in px; defaults to the board's value. */
   radius?: number;
   style?: React.CSSProperties;
-}> = ({ card, stage, faceUp, k, radius = RADIUS.md, style }) => {
+  /** Start angle for a card caught mid-flip; it continues up to face up. */
+  fromRotate?: number;
+}> = ({ card, stage, faceUp, k, radius = RADIUS.md, style, fromRotate }) => {
   // Subscribed so a skin toggle re-renders; skinArt maps at render time.
   useSkin();
   // Captured at mount: face down means this card should flip; face up means
   // it starts revealed. Motion owns the start frame, so no paint race.
-  const initialRotate = React.useRef(faceUp ? 0 : 180).current;
+  const initialRotate = React.useRef(fromRotate ?? (faceUp ? 0 : 180)).current;
   const reduceMotion = useReducedMotion();
   return (
   <div
@@ -106,7 +108,7 @@ export const MatchGhostCard: React.FC<{
     <motion.div
       className="ww-match-ghost-flip"
       initial={{ rotateY: initialRotate }}
-      animate={{ rotateY: faceUp ? 0 : 180 }}
+      animate={{ rotateY: fromRotate != null || faceUp ? 0 : 180 }}
       transition={
         reduceMotion
           ? { duration: 0 }

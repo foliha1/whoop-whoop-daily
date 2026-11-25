@@ -27,6 +27,8 @@ export interface GhostCard {
   rect: { top: number; left: number; width: number; height: number };
   /** With startFaceUp: this copy was face down a moment ago, so it flips up. */
   flip?: boolean;
+  /** With flip: the angle the real card had reached mid-flip. */
+  fromRotate?: number;
 }
 
 const DailyMatchGhost: React.FC<{
@@ -52,6 +54,7 @@ const DailyMatchGhost: React.FC<{
           card={g.card}
           stage={stage}
           faceUp={startFaceUp && !g.flip ? true : faceUp}
+          fromRotate={g.fromRotate}
           k={g.rect.width / 104.333}
           style={{
             position: "absolute",
