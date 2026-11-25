@@ -1,10 +1,23 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { Card, CARD_BACK_PATH } from "@/cardData";
 import { COLORS, RADIUS } from "@/lib/tokens";
-import { CARD_FLIP_MS } from "@/lib/animationTiming";
+import { CARD_FLIP_MS, SELECT_PULSE_MS } from "@/lib/animationTiming";
 import { SPOOK_AT_LOAD, colorWord, skinArt, useSkin } from "@/lib/skin";
 
+
+// Active-claim breathing: one SELECT_PULSE_MS loop, both halves eased with
+// cubic-bezier(0.5, 0, 0.5, 1). Motion runs it so that when the pulse ends
+// (the second card is picked) scale and glow ease back to rest from wherever
+// they are, instead of snapping off mid-breath.
+const PULSE_LOOP = {
+  duration: SELECT_PULSE_MS / 1000,
+  ease: [0.5, 0, 0.5, 1] as const,
+  repeat: Infinity,
+};
+/** How long the pulse takes to settle to rest once it stops. */
+export const PULSE_SETTLE_MS = 240;
+const PULSE_SETTLE = { duration: PULSE_SETTLE_MS / 1000, ease: [0.33, 0, 0.2, 1] as const };
 
 interface GameCardProps {
   card: Card;
@@ -111,6 +124,26 @@ const GameCard = ({
   const frontFace = card.svgPath || stickyFace;
   const reduceMotion = useReducedMotion();
 
+  // One value drives the whole pulse: the card's scale. The stroke and glow
+  // brightness are read straight off it (1 → 0, 0.96 → full), so they can
+  // never drift apart, and when the pulse stops both ease back together.
+  const pulseScale = useMotionValue(pulsing && reduceMotion ? 0.96 : 1);
+  const pulseGlow = useTransform(pulseScale, [1, 0.96], [0, 1]);
+  const [glowOn, setGlowOn] = useState(pulsing);
+  useEffect(() => {
+    if (pulsing) setGlowOn(true);
+    if (reduceMotion) {
+      pulseScale.set(pulsing ? 0.96 : 1);
+      if (!pulsing) setGlowOn(false);
+      return;
+    }
+    const run = pulsing
+      ? animate(pulseScale, [1, 0.96, 1], PULSE_LOOP)
+      : animate(pulseScale, 1, PULSE_SETTLE);
+    if (!pulsing) run.then(() => setGlowOn(false));
+    return () => run.stop();
+  }, [pulsing, reduceMotion, pulseScale]);
+
   const boxShadow = undefined;
 
 
@@ -216,9 +249,9 @@ const GameCard = ({
       {/* Deal-in and claim breathing need separate transform layers. Both can
           be active on a freshly refilled card; sharing one element lets the
           later animation declaration replace the other one's transform. */}
-      <div
-        className={pulsing ? "ww-select-pulse-scale" : undefined}
-        style={{ position: "absolute", inset: 0, transformOrigin: "center" }}
+      <motion.div
+        className="ww-select-pulse-scale"
+        style={{ position: "absolute", inset: 0, transformOrigin: "center", scale: pulseScale }}
       >
       {/* Motion drives the flip: it starts from whatever angle the card is
           at, so a flip that is reversed or re-sent mid-turn never jumps.
@@ -301,10 +334,10 @@ const GameCard = ({
       {/* Shared active-claim stroke. Nested inside the scaled + glowing
           wrapper (as the SVG's single filtered <g>) so stroke, glow and scale
           stay locked together. */}
-      {pulsing && !wrong && !matched && (
-        <div className="ww-select-pulse" style={{ zIndex: 4 }} />
+      {glowOn && !wrong && !matched && (
+        <motion.div className="ww-select-pulse" style={{ zIndex: 4, opacity: pulseGlow }} />
       )}
-      </div>
+      </motion.div>
       </div>
 
       {onPressStart && (
