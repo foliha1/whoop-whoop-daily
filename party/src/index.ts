@@ -3,23 +3,30 @@
  *   wss://whoop-whoop-tables.<account>.workers.dev/parties/table/<CODE>?pid=<player id>
  *
  * Step 3: the whole game runs here (see tableGame.ts), using the same rules
- * file as every other mode. Step 4 replaces the trusted `pid` with a checked
- * sign-in and saves results. Live Together keeps running on the host's
- * phone until the switch in step 5.
+ * file as every other mode.
+ * Step 4: a phone is only seated after Supabase confirms it holds this room's
+ * secret seat key (table_member). The host's credentials register each game's
+ * seat map and save the result (supabase.ts). `pid` is the member's public id.
+ * Live Together keeps running on the host's phone until the switch in step 5.
  */
 import { routePartykitRequest, Server, type Connection, type ConnectionContext } from "partyserver";
+import { SupabaseRpc, type HostCredentials, type SupabaseEnv } from "./supabase";
 import { TABLE_PROTOCOL, TableGame, type ServerMessage, type TableIntent } from "./tableGame";
 
-type Env = { Table: DurableObjectNamespace<Table> };
+type Env = SupabaseEnv & {
+  Table: DurableObjectNamespace<Table>;
+  /** "supabase" (production): seats need a checked seat key. "open": local tests only. */
+  TABLE_AUTH?: string;
+};
 
 type ClientMessage =
   | { t: "ping"; id: number; sentAt?: number }
-  | { t: "join"; name?: string }
+  | { t: "join"; name?: string; roomId?: string; visitorId?: string; playerKey?: string }
   | { t: "start" }
   | { t: "intent"; action: TableIntent; id?: string }
   | { t: "visibility"; hidden: boolean };
 
-type ConnState = { pid: string };
+type ConnState = { pid: string; verified: boolean };
 
 const PID_RE = /^[A-Za-z0-9_-]{8,64}$/;
 const INTENT_TYPES = new Set([
@@ -52,9 +59,23 @@ export class Table extends Server<Env> {
 
   private game: TableGame | null = null;
   private rate = new Map<string, { second: number; count: number }>();
+  private rpc: SupabaseRpc | null = null;
+  /** The Supabase room this table belongs to, fixed by the first checked join. */
+  private roomId: string | null = null;
+  private host: (HostCredentials & { pid: string }) | null = null;
+
+  private get open(): boolean {
+    return this.env.TABLE_AUTH === "open";
+  }
+
+  private getRpc(): SupabaseRpc {
+    if (!this.rpc) this.rpc = new SupabaseRpc(this.env);
+    return this.rpc;
+  }
 
   private getGame(): TableGame {
     if (!this.game) {
+      const rpc = this.getRpc();
       this.game = new TableGame(
         {
           now: () => Date.now(),
@@ -62,6 +83,22 @@ export class Table extends Server<Env> {
           clear: (h) => clearTimeout(h as ReturnType<typeof setTimeout>),
         },
         (to, msg) => this.deliver(to, msg),
+        () => crypto.randomUUID(),
+        this.open
+          ? {}
+          : {
+              registerGame: async (gameId, seats) =>
+                !!this.host && (await rpc.registerGame(this.host, gameId, seats)),
+              saveResult: (report) => {
+                const host = this.host;
+                if (!host) return;
+                this.ctx.waitUntil(
+                  rpc.saveGame(host, report).then((ok) => {
+                    if (!ok) console.warn("[table] result not saved", report.gameId);
+                  }),
+                );
+              },
+            },
       );
     }
     return this.game;
@@ -81,22 +118,50 @@ export class Table extends Server<Env> {
       conn.close(4000, "bad_pid");
       return;
     }
-    conn.setState({ pid });
+    // Open (test) tables trust the pid; real tables wait for a checked join.
+    conn.setState({ pid, verified: this.open });
     conn.send(
       JSON.stringify({ t: "hello", v: TABLE_PROTOCOL, you: conn.id, table: this.name, serverNow: Date.now() }),
     );
-    this.getGame().connect(pid);
+    if (this.open) this.getGame().connect(pid);
   }
 
   onClose(conn: Connection<ConnState>) {
-    const pid = conn.state?.pid;
-    if (pid) this.getGame().disconnect(pid);
+    const st = conn.state;
+    if (st?.pid && st.verified) this.getGame().disconnect(st.pid);
     this.rate.delete(conn.id);
+  }
+
+  /** Check a phone's seat key with Supabase, then seat it. */
+  private async verifiedJoin(conn: Connection<ConnState>, msg: Extract<ClientMessage, { t: "join" }>) {
+    const pid = conn.state!.pid;
+    const { roomId, visitorId, playerKey } = msg;
+    if (typeof roomId !== "string" || typeof visitorId !== "string" || typeof playerKey !== "string") {
+      return this.reply(conn, "join_needs_seat_key");
+    }
+    if (this.roomId && this.roomId !== roomId) return this.reply(conn, "wrong_room");
+    let member;
+    try {
+      member = await this.getRpc().member(roomId, visitorId.slice(0, 100), playerKey.slice(0, 64));
+    } catch {
+      return this.reply(conn, "check_failed");
+    }
+    if (!member || member.pubId !== pid) return this.reply(conn, "seat_key_refused");
+    if (member.roomCode.toUpperCase() !== this.name.toUpperCase()) return this.reply(conn, "wrong_room");
+    this.roomId = roomId;
+    if (member.isHost) this.host = { pid, roomId, visitorId, playerKey };
+    const game = this.getGame();
+    if (!conn.state?.verified) {
+      conn.setState({ pid, verified: true });
+      game.connect(pid);
+    }
+    game.join(pid, member.displayName, member.isHost);
   }
 
   onMessage(conn: Connection<ConnState>, raw: string | ArrayBuffer) {
     const pid = conn.state?.pid;
     if (!pid) return;
+    const verified = conn.state?.verified === true;
     if (typeof raw !== "string" || raw.length > 4096) return this.reply(conn, "bad_message");
 
     const second = Math.floor(Date.now() / 1000);
@@ -120,15 +185,19 @@ export class Table extends Server<Env> {
         conn.send(JSON.stringify({ t: "pong", id: msg.id, serverNow: Date.now(), sentAt: msg.sentAt }));
         return;
       case "join":
-        game.join(pid, msg.name);
+        if (this.open) game.join(pid, msg.name);
+        else void this.verifiedJoin(conn, msg);
         return;
       case "start":
+        if (!verified) return this.reply(conn, "not_seated");
+        if (!this.open && this.host?.pid !== pid) return this.reply(conn, "host_only");
         game.start(pid);
         return;
       case "visibility":
-        game.visibility(pid, msg.hidden === true);
+        if (verified) game.visibility(pid, msg.hidden === true);
         return;
       case "intent": {
+        if (!verified) return this.reply(conn, "not_seated");
         const action = readIntent(msg.action);
         if (!action) return this.reply(conn, "bad_intent");
         const id = typeof msg.id === "string" ? msg.id.slice(0, 64) : undefined;

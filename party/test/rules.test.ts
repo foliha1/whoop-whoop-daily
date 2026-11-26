@@ -2,7 +2,8 @@
 import { describe, expect, it } from "vitest";
 import { ROTATION_CLAIM_WINDOW_MS, CLAIM_ABANDON_MS } from "@/lib/animationTiming";
 import { SETTLE_MATCH_MS, SETTLE_WRONG_MS, TARGET_SCORE } from "@/lib/gameEngine";
-import { makeTable, matchingPair, rollAndSettle, startedTable, wrongPair } from "./harness";
+import { TableGame, type GameReport, type TableHooks } from "../src/tableGame";
+import { FakeClock, makeTable, matchingPair, rollAndSettle, startedTable, wrongPair } from "./harness";
 
 describe("lobby", () => {
   it("seats players in order and only the host can start", () => {
@@ -367,4 +368,111 @@ describe("pause when fewer than two players are present", () => {
     expect(t.game.state.disconnected).toEqual([false, false, true]);
   });
 
+});
+
+describe("seats and saving (step 4)", () => {
+  it("the checked host always sits in seat 0, even if they join last", () => {
+    const t = makeTable();
+    t.game.join("guest-aaaa1", "Guest");
+    t.game.join("host-bbbbb2", "Host", true);
+    expect(t.game.seatList.map((e) => [e.seat, e.display_name])).toEqual([
+      [0, "Host"],
+      [1, "Guest"],
+    ]);
+  });
+
+  it("a game only starts once its seat map is registered", async () => {
+    let answer: (ok: boolean) => void = () => {};
+    const registered: string[] = [];
+    const clock = new FakeClock();
+    const game = new TableGame(clock, () => {}, () => "11111111-1111-4111-8111-111111111111", {
+      registerGame: (gameId, seats) => {
+        registered.push(`${gameId}:${seats.map((e) => e.pid).join(",")}`);
+        return new Promise((r) => (answer = r));
+      },
+    });
+    game.join("host-bbbbb2", "Host", true);
+    game.join("guest-aaaa1", "Guest");
+    game.start("host-bbbbb2");
+    game.start("host-bbbbb2"); // a double tap registers once
+    expect(registered).toEqual(["11111111-1111-4111-8111-111111111111:host-bbbbb2,guest-aaaa1"]);
+    expect(game.isStarted).toBe(false);
+    answer(true);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(game.isStarted).toBe(true);
+    expect(game.gameId).toBe("11111111-1111-4111-8111-111111111111");
+  });
+
+  it("a refused registration leaves the lobby as it was", async () => {
+    const sent: string[] = [];
+    const game = new TableGame(new FakeClock(), (_to, m) => sent.push(m.t === "error" ? m.reason : m.t), undefined, {
+      registerGame: async () => false,
+    });
+    game.join("host-bbbbb2", "Host", true);
+    game.join("guest-aaaa1", "Guest");
+    game.start("host-bbbbb2");
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(game.isStarted).toBe(false);
+    expect(sent).toContain("start_failed");
+  });
+
+  it("the server reports each finished game once, with its own counts", () => {
+    const reports: GameReport[] = [];
+    const t = makeTable();
+    (t.game as unknown as { hooks: TableHooks }).hooks.saveResult = (r) => reports.push(r);
+    const pids = ["player-0-xxxx", "player-1-xxxx"];
+    pids.forEach((p, i) => t.player(p, `P${i}`));
+    t.game.start(pids[0]);
+    const tt = { ...t, pids };
+    let guard = 0;
+    let wrongDone = false;
+    while (t.game.state.phase !== "GAME_OVER" && guard++ < 300) {
+      if (t.game.state.phase === "AWAITING_ROLL") rollAndSettle(tt);
+      if (!wrongDone) {
+        const w = wrongPair(tt, 1);
+        if (w) {
+          t.game.intent(pids[1], { type: "CLAIM" });
+          t.game.intent(pids[1], { type: "PLAYER_SELECT_CARD", idx: w[0] });
+          t.game.intent(pids[1], { type: "PLAYER_SELECT_CARD", idx: w[1] });
+          t.game.intent(pids[1], { type: "PLAYER_RESOLVE_MATCH" });
+          t.clock.advance(SETTLE_WRONG_MS);
+          wrongDone = true;
+          continue;
+        }
+      }
+      const pair = matchingPair(tt, 0);
+      if (!pair) {
+        t.game.intent(pids[t.game.state.flipper], { type: "FLIP_START", idx: t.game.state.grid.findIndex((c) => c) });
+        t.clock.advance(4500);
+        continue;
+      }
+      t.game.intent(pids[0], { type: "CLAIM" });
+      t.game.intent(pids[0], { type: "PLAYER_SELECT_CARD", idx: pair[0] });
+      t.game.intent(pids[0], { type: "PLAYER_SELECT_CARD", idx: pair[1] });
+      t.game.intent(pids[0], { type: "PLAYER_RESOLVE_MATCH" });
+      t.clock.advance(SETTLE_MATCH_MS);
+    }
+    expect(reports).toHaveLength(1);
+    const r = reports[0];
+    expect(r.endReason).toBe("target");
+    expect(r.correctClaims).toBe(6);
+    expect(r.wrongClaims).toBe(1);
+    expect(r.seats).toEqual([
+      { seat: 0, pid: pids[0], name: "P0", score: 12 },
+      { seat: 1, pid: pids[1], name: "P1", score: 0 },
+    ]);
+    t.clock.advance(10_000);
+    expect(reports).toHaveLength(1);
+  });
+
+  it("an emptied table reports as table_empty", () => {
+    const reports: GameReport[] = [];
+    const t = startedTable(2);
+    (t.game as unknown as { hooks: TableHooks }).hooks.saveResult = (r) => reports.push(r);
+    t.game.disconnect(t.pids[1]);
+    t.clock.advance(60_000);
+    expect(reports.map((r) => r.endReason)).toEqual(["table_empty"]);
+  });
 });

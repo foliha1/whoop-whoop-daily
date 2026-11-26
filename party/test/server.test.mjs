@@ -4,35 +4,50 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 
+// Two local servers: an "open" one that trusts player ids, for playing a game
+// without a database, and a real-mode one that must refuse unchecked phones.
 const PORT = 8799;
+const REAL_PORT = 8798;
 const BASE = `http://127.0.0.1:${PORT}`;
-let dev;
+const devs = [];
 
-before(async () => {
-  dev = spawn("npx", ["wrangler", "dev", "--port", String(PORT), "--ip", "127.0.0.1"], {
+function startDev(port, extra) {
+  const dev = spawn("npx", ["wrangler", "dev", "--port", String(port), "--ip", "127.0.0.1", ...extra], {
     cwd: new URL("..", import.meta.url).pathname,
     stdio: "ignore",
     detached: true,
     env: { ...process.env, WRANGLER_SEND_METRICS: "false" },
   });
+  devs.push(dev);
+}
+
+async function waitFor(port) {
   for (let i = 0; i < 120; i++) {
     try {
-      if ((await fetch(`${BASE}/health`)).ok) return;
+      if ((await fetch(`http://127.0.0.1:${port}/health`)).ok) return;
     } catch {}
     await new Promise((r) => setTimeout(r, 500));
   }
-  throw new Error("wrangler dev did not start");
+  throw new Error(`wrangler dev on ${port} did not start`);
+}
+
+before(async () => {
+  startDev(PORT, ["--var", "TABLE_AUTH:open"]);
+  startDev(REAL_PORT, ["--inspector-port", "9230"]);
+  await Promise.all([waitFor(PORT), waitFor(REAL_PORT)]);
 });
 
 after(() => {
-  // wrangler starts its own children; stop the whole group so the run exits.
-  try {
-    process.kill(-dev.pid, "SIGTERM");
-  } catch {}
+  // wrangler starts its own children; stop each whole group so the run exits.
+  for (const dev of devs) {
+    try {
+      process.kill(-dev.pid, "SIGTERM");
+    } catch {}
+  }
 });
 
-function open(code, pid) {
-  const ws = new WebSocket(`ws://127.0.0.1:${PORT}/parties/table/${code}?pid=${pid}`);
+function open(code, pid, port = PORT) {
+  const ws = new WebSocket(`ws://127.0.0.1:${port}/parties/table/${code}?pid=${pid}`);
   const inbox = [];
   const waiters = [];
   ws.addEventListener("message", (e) => {
@@ -112,6 +127,19 @@ test("a missing player id is refused", async () => {
   const a = open("NOPID1", "x");
   await a.ready;
   assert.equal((await a.next((m) => m.t === "error")).reason, "bad_pid");
+});
+
+test("a real table seats nobody without a checked seat key", async () => {
+  const a = open("REAL01", "someone-public-1", REAL_PORT);
+  await a.ready;
+  await a.next((m) => m.t === "hello");
+  a.send({ t: "intent", action: { type: "REQUEST_ROLL" }, id: "x" });
+  assert.equal((await a.next((m) => m.t === "error")).reason, "not_seated");
+  a.send({ t: "start" });
+  assert.equal((await a.next((m) => m.t === "error")).reason, "not_seated");
+  a.send({ t: "join", name: "Mallory" });
+  assert.equal((await a.next((m) => m.t === "error")).reason, "join_needs_seat_key");
+  a.ws.close();
 });
 
 test("bad table codes are refused", async () => {

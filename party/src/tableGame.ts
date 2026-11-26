@@ -29,6 +29,7 @@ import {
   REVEAL_MS,
   SETTLE_MATCH_MS,
   SETTLE_WRONG_MS,
+  TARGET_SCORE,
   hasAnyValidPair,
   hasLegalCard,
   initialState,
@@ -127,6 +128,28 @@ export type ServerMessage =
 /** `to: null` means everyone at the table. */
 export type Send = (to: string | null, msg: ServerMessage) => void;
 
+export type EndReason = "target" | "table_empty" | "stalled";
+
+/** One finished game, as the server saw it. Saved once per game. */
+export interface GameReport {
+  gameId: string;
+  endReason: EndReason;
+  seats: { seat: number; pid: string; name: string; score: number }[];
+  roundsPlayed: number;
+  correctClaims: number;
+  wrongClaims: number;
+}
+
+/**
+ * Links to the outside world (Supabase), all optional so tests can run the
+ * table alone. registerGame must succeed before a game starts: it records the
+ * frozen seat map that saving results checks against.
+ */
+export interface TableHooks {
+  registerGame?: (gameId: string, seats: SeatEntry[]) => Promise<boolean>;
+  saveResult?: (report: GameReport) => void;
+}
+
 const ROLL_ATTRS: readonly RollAttribute[] = ["SHAPE", "NUMBER", "COLOR"];
 const BOARD_ACTIONS = new Set(["FLIP_START", "PLAYER_SELECT_CARD", "PLAYER_RESOLVE_MATCH"]);
 
@@ -160,6 +183,11 @@ export class TableGame {
   private scheduledWindow = -1;
   private scheduledAbandon = -1;
   private dirty = false;
+  /** Correct claims this game, counted as each match hold begins. */
+  private correctClaims = 0;
+  private savedGameId: string | null = null;
+  /** A start or rematch is waiting on registerGame. */
+  private starting = false;
   /** Back-to-back reshuffles in one burst; stops a hopeless grid looping. */
   private swapsInARow = 0;
   /** Game timers: flips, rolls, settles, claim windows. Frozen by a pause. */
@@ -172,6 +200,7 @@ export class TableGame {
     private readonly clock: Clock,
     private readonly send: Send,
     private readonly newId: () => string = () => crypto.randomUUID(),
+    private readonly hooks: TableHooks = {},
   ) {
     this.deadlines = new DeadlineQueue(clock);
     this.liveness = new DeadlineQueue(clock);
@@ -311,8 +340,12 @@ export class TableGame {
   // Lobby
   // ==========================================================================
 
-  /** Take a seat. Before the start anyone may join; after it, only reconnects. */
-  join(pid: string, name: unknown): void {
+  /**
+   * Take a seat. Before the start anyone may join; after it, only reconnects.
+   * `isHost` comes from the server's check of the room; the host always sits
+   * in seat 0. Left out (tests), the first player to join hosts.
+   */
+  join(pid: string, name: unknown, isHost?: boolean): void {
     const existing = this.seatOf(pid);
     if (existing) {
       if (!this.started) existing.display_name = cleanName(name, existing.display_name);
@@ -329,8 +362,11 @@ export class TableGame {
       this.send(pid, { t: "error", reason: "table_full" });
       return;
     }
-    const seat = this.seats.length;
-    this.seats.push({ seat, pid, display_name: cleanName(name, `Player ${seat + 1}`) });
+    const entry = { seat: 0, pid, display_name: cleanName(name, `Player ${this.seats.length + 1}`) };
+    if (isHost) this.seats.unshift(entry);
+    else this.seats.push(entry);
+    this.seats = this.seats.map((e, i) => ({ ...e, seat: i }));
+    const seat = this.seatOf(pid)!.seat;
     this.send(pid, { t: "joined", seat, host: seat === 0 });
     this.sendLobby();
   }
@@ -347,18 +383,51 @@ export class TableGame {
       this.send(pid, { t: "error", reason: "need_two_players" });
       return;
     }
-    this.started = true;
-    this.newGame();
+    this.beginGame(pid, () => {
+      this.started = true;
+    });
   }
 
-  private newGame(): void {
+  /**
+   * Register a fresh game id with the seat map, then deal. The table does not
+   * change until registration succeeds, so a failure leaves it as it was.
+   */
+  private beginGame(pid: string, onReady: () => void): void {
+    if (this.starting) return;
+    const gameId = this.newId();
+    const register = this.hooks.registerGame;
+    if (!register) {
+      onReady();
+      this.newGame(gameId);
+      return;
+    }
+    this.starting = true;
+    const seats = this.seats.map((e) => ({ ...e }));
+    register(gameId, seats)
+      .then((ok) => {
+        this.starting = false;
+        if (!ok) {
+          this.send(pid, { t: "error", reason: "start_failed" });
+          return;
+        }
+        onReady();
+        this.newGame(gameId);
+      })
+      .catch(() => {
+        this.starting = false;
+        this.send(pid, { t: "error", reason: "start_failed" });
+      });
+  }
+
+  private newGame(gameId: string): void {
     this.deadlines.clearAll();
     if (this.pausedAt !== null) {
       this.pausedAt = null;
       this.liveness.cancel("pause_limit");
       this.deadlines.resume();
     }
-    this.gameId = this.newId();
+    this.gameId = gameId;
+    this.correctClaims = 0;
     this.claimWindow = 0;
     this.rollLatch = null;
     this.rollCommit = null;
@@ -407,7 +476,7 @@ export class TableGame {
       if (seat !== 0) return ack(false, "host_only");
       if (this.state.phase !== "GAME_OVER") return ack(false, "not_allowed");
       ack(true);
-      this.newGame();
+      this.beginGame(pid, () => {});
       return;
     }
     if (this.state.phase === "GAME_OVER") return ack(false, "game_over");
@@ -534,6 +603,7 @@ export class TableGame {
   private afterChange(prev: State, actionType: Action["type"]): void {
     const s = this.state;
     if (s.roundNum !== prev.roundNum) this.claimWindow += 1;
+    if (s.settleKind === "MATCH" && prev.settleKind !== "MATCH") this.correctClaims += 1;
     if (prev.claimBy !== null && s.claimBy === null) this.claimWindow += 1;
 
     for (let i = 0; i < s.seatCount; i++) {
@@ -588,6 +658,7 @@ export class TableGame {
     }
 
     if (s.phase === "GAME_OVER") {
+      this.report();
       for (const key of ["settle", "claim_window", "claim_abandon", "roll_start", "roll_land", "roll_settle"]) {
         this.deadlines.cancel(key);
       }
@@ -621,6 +692,26 @@ export class TableGame {
       const swapped = computeSafetySwap(s.grid, s.deck, rngOf(s));
       this.dispatch({ type: "SAFETY_SWAP", grid: swapped.grid, deck: swapped.deck });
     }
+  }
+
+  /** Hand the finished game to saveResult, once per game. */
+  private report(): void {
+    const s = this.state;
+    if (!this.gameId || this.savedGameId === this.gameId) return;
+    this.savedGameId = this.gameId;
+    const endReason: EndReason = s.scores.some((v) => v >= TARGET_SCORE)
+      ? "target"
+      : s.messageType === "warning"
+        ? "table_empty"
+        : "stalled";
+    this.hooks.saveResult?.({
+      gameId: this.gameId,
+      endReason,
+      seats: this.seats.map((e) => ({ seat: e.seat, pid: e.pid, name: e.display_name, score: s.scores[e.seat] ?? 0 })),
+      roundsPlayed: s.roundNum,
+      correctClaims: this.correctClaims,
+      wrongClaims: s.wrongCalls,
+    });
   }
 
   private event(kind: TransientEvent["kind"], seat: number): void {

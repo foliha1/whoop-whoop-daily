@@ -12,5 +12,12 @@
     "bindings": [{ "name": "Table", "class_name": "Table" }]
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Table"] }],
+  // Public values only (the same ones every phone has). Seats are checked and
+  // results saved through public database functions; no secret lives here.
+  "vars": {
+    "TABLE_AUTH": "supabase",
+    "SUPABASE_URL": "https://ykbsctucsvmdaliersjm.supabase.co",
+    "SUPABASE_ANON_KEY": "sb_publishable__rxenqoPJaZfKRNoW17Jdg_4F5kRhEr"
+  },
   "observability": { "enabled": true }
 }
