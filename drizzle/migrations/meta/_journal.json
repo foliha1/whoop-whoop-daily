@@ -372,6 +372,13 @@
       "when": 1795685117265,
       "tag": "0052_classic_timing_claim_surfaces",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1795692215148,
+      "tag": "0053_table_member",
+      "breakpoints": true
     }
   ]
 }
