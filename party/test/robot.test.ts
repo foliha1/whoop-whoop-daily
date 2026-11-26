@@ -69,6 +69,7 @@ function playOne(game: number, rnd: () => number) {
   let lastState = t.game.state;
   let steps = 0;
   let refillGap = false;
+  let restarts = 0;
 
   while (t.game.state.phase !== "GAME_OVER") {
     steps++;
@@ -98,7 +99,17 @@ function playOne(game: number, rnd: () => number) {
     const pid = pids[seat];
     const r = rnd();
 
-    if (chaos && r < 0.004 && !away.has(seat)) {
+    if (r > 0.997) {
+      // The server restarts (a deploy): save, stay down up to 3 s, restore,
+      // and every phone that is around reconnects.
+      t.restart(Math.floor(rnd() * 3000));
+      restarts++;
+      pids.forEach((p, i) => {
+        if (away.has(i)) return;
+        t.game.connect(p);
+        if (hiddenSeats.has(i)) t.game.visibility(p, true);
+      });
+    } else if (chaos && r < 0.004 && !away.has(seat)) {
       away.set(seat, now + 1000 + Math.floor(rnd() * 90_000));
       t.game.disconnect(pid);
     } else if (chaos && r < 0.008) {
@@ -166,13 +177,13 @@ function playOne(game: number, rnd: () => number) {
   }
   checkInvariants(t, `game ${game} end`);
   const endedEmpty = t.game.state.message.startsWith("Game ended");
-  return { steps, refillGap, dragged: false, endedEmpty, players: count, minutes: (t.clock.now() - 1_800_000_000_000) / 60000 };
+  return { steps, restarts, refillGap, dragged: false, endedEmpty, players: count, minutes: (t.clock.now() - 1_800_000_000_000) / 60000 };
 }
 
 describe("robot", () => {
   const BATCH = 40;
   const rnd = createRng("whoop-robot-actions-v1");
-  const tally = { finished: 0, emptied: 0, longest: 0, gaps: 0, dragged: 0 };
+  const tally = { finished: 0, emptied: 0, longest: 0, gaps: 0, dragged: 0, restarts: 0 };
   // Batches keep the test runner responsive between long stretches of play.
   for (let from = 0; from < GAMES; from += BATCH) {
     const to = Math.min(GAMES, from + BATCH);
@@ -182,6 +193,7 @@ describe("robot", () => {
         await new Promise((r) => setImmediate(r));
         const r = playOne(g, rnd);
         if (r.refillGap) tally.gaps++;
+        tally.restarts += r.restarts;
         if (r.dragged) {
           tally.dragged++;
           continue;
@@ -193,16 +205,17 @@ describe("robot", () => {
     }, 600_000);
   }
   it("summary", () => {
-    const { finished, emptied, longest, gaps, dragged } = tally;
+    const { finished, emptied, longest, gaps, dragged, restarts } = tally;
     console.log(
       `robot: ${GAMES} games, ${finished} won by a player, ${emptied} ended as an empty table, ` +
         `longest ${longest.toFixed(1)} min, ${gaps} had empty slots while the pile had cards, ` +
-        `${dragged} dragged past 3 hours because of it`,
+        `${dragged} dragged past 3 hours because of it, ${restarts} server restarts survived`,
     );
     expect(finished + emptied + dragged).toBe(GAMES);
     expect(finished).toBeGreaterThan(GAMES * 0.8);
     // v7.3 fills empty spaces before every roll, so neither may happen.
     expect(gaps).toBe(0);
+    expect(restarts).toBeGreaterThan(GAMES);
     expect(dragged).toBe(0);
   });
 });

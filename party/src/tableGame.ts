@@ -148,6 +148,39 @@ export interface GameReport {
 export interface TableHooks {
   registerGame?: (gameId: string, seats: SeatEntry[]) => Promise<boolean>;
   saveResult?: (report: GameReport) => void;
+  /** Something worth saving changed (see snapshot). */
+  changed?: () => void;
+}
+
+/**
+ * Everything needed to pick a game back up after the server restarts (a
+ * deploy, or Cloudflare moving the table). Plain JSON: Sets become arrays,
+ * timers become names and times. Players' connections are not saved; phones
+ * reconnect on their own within seconds and check in again.
+ */
+export interface TableSnapshot {
+  v: 1;
+  savedAt: number;
+  seats: SeatEntry[];
+  started: boolean;
+  gameId: string | null;
+  claimWindow: number;
+  seq: number;
+  flipToken: number;
+  rollLatch: string | null;
+  rollCommit: RollCommitPayload | null;
+  correctClaims: number;
+  savedGameId: string | null;
+  hostPid?: string | null;
+  skippable: number[];
+  pausedAt: number | null;
+  pauseLimitAt: number | null;
+  timers: { key: string; at: number }[];
+  state: Omit<State, "wrongBy" | "flippedThisCycle" | "matchedCards" | "rng"> & {
+    wrongBy: number[][];
+    flippedThisCycle: number[];
+    matchedCards: number[];
+  };
 }
 
 const ROLL_ATTRS: readonly RollAttribute[] = ["SHAPE", "NUMBER", "COLOR"];
@@ -402,6 +435,7 @@ export class TableGame {
     }
     this.beginGame(pid, () => {
       this.started = true;
+      this.hostPid = this.seats[0]?.pid ?? null;
     });
   }
 
@@ -409,17 +443,21 @@ export class TableGame {
    * Register a fresh game id with the seat map, then deal. The table does not
    * change until registration succeeds, so a failure leaves it as it was.
    */
-  private beginGame(pid: string, onReady: () => void): void {
+  private beginGame(pid: string, onReady: () => void, nextSeats?: SeatEntry[]): void {
     if (this.starting) return;
     const gameId = this.newId();
     const register = this.hooks.registerGame;
-    if (!register) {
+    const seats = (nextSeats ?? this.seats).map((e) => ({ ...e }));
+    const ready = () => {
+      if (nextSeats) this.reseat(seats);
       onReady();
       this.newGame(gameId);
+    };
+    if (!register) {
+      ready();
       return;
     }
     this.starting = true;
-    const seats = this.seats.map((e) => ({ ...e }));
     register(gameId, seats)
       .then((ok) => {
         this.starting = false;
@@ -427,8 +465,7 @@ export class TableGame {
           this.send(pid, { t: "error", reason: "start_failed" });
           return;
         }
-        onReady();
-        this.newGame(gameId);
+        ready();
       })
       .catch(() => {
         this.starting = false;
@@ -495,10 +532,14 @@ export class TableGame {
     if (this.skippable.has(seat) || this.gone.has(seat)) this.markPresent(seat, pid);
 
     if (action.type === "NEW_GAME") {
-      if (seat !== 0) return ack(false, "host_only");
+      // The host starts rematches. If the host has left, anyone still at the
+      // table can, and the rematch is played by the players who are here.
+      if (pid !== this.hostPid && this.hostHere()) return ack(false, "host_only");
       if (this.state.phase !== "GAME_OVER") return ack(false, "not_allowed");
+      const here = this.seats.filter((e) => this.isPresent(e.seat));
+      if (here.length < 2) return ack(false, "not_allowed");
       ack(true);
-      this.beginGame(pid, () => {});
+      this.beginGame(pid, () => {}, here.length < this.seats.length ? here.map((e, i) => ({ ...e, seat: i })) : undefined);
       return;
     }
     if (this.state.phase === "GAME_OVER") return ack(false, "game_over");
@@ -516,10 +557,7 @@ export class TableGame {
         const token = ++this.flipToken;
         accepted = this.dispatch({ type: "FLIP_START", by: seat, idx: action.idx, token });
         if (accepted) {
-          this.deadlines.after(`flip:${token}`, "flip_complete", REVEAL_MS, () => {
-            this.dispatch({ type: "FLIP_COMPLETE", token });
-            this.flush();
-          });
+          this.armGameTimer(`flip:${token}`, this.clock.now() + REVEAL_MS);
         }
         break;
       }
@@ -587,19 +625,48 @@ export class TableGame {
     };
     this.rollCommit = payload;
     this.send(null, { t: "roll_committed", payload });
-    this.deadlines.schedule("roll_start", "roll_start", startAt, () => {
-      this.dispatch({ type: "ROLL_START" });
-      this.flush();
-    });
-    this.deadlines.schedule("roll_land", "roll_land", startAt + ROLL_LAND_MS, () => {
-      this.dispatch({ type: "ROLL_LAND", values: [attribute], rule: [attribute] });
-      this.flush();
-    });
-    this.deadlines.schedule("roll_settle", "roll_settle", startAt + ROLL_HERO_MS, () => {
-      this.dispatch({ type: "ROLL_SETTLE" });
-      this.flush();
-    });
+    this.armGameTimer("roll_start", startAt);
+    this.armGameTimer("roll_land", startAt + ROLL_LAND_MS);
+    this.armGameTimer("roll_settle", startAt + ROLL_HERO_MS);
     return true;
+  }
+
+  /**
+   * Every game timer, by name. What each one does is decided here from the
+   * name and the current game, so a saved game can re-arm its timers after a
+   * server restart from nothing but names and times (see snapshot/restore).
+   */
+  private armGameTimer(key: string, at: number): void {
+    const run = (action: Action) => () => {
+      this.dispatch(action);
+      this.flush();
+    };
+    if (key.startsWith("flip:")) {
+      const token = Number(key.slice(5));
+      this.deadlines.schedule(key, "flip_complete", at, run({ type: "FLIP_COMPLETE", token }));
+      return;
+    }
+    const attr = this.rollCommit?.attribute;
+    switch (key) {
+      case "roll_start":
+        this.deadlines.schedule(key, "roll_start", at, run({ type: "ROLL_START" }));
+        return;
+      case "roll_land":
+        if (attr) this.deadlines.schedule(key, "roll_land", at, run({ type: "ROLL_LAND", values: [attr], rule: [attr] }));
+        return;
+      case "roll_settle":
+        this.deadlines.schedule(key, "roll_settle", at, run({ type: "ROLL_SETTLE" }));
+        return;
+      case "settle":
+        this.deadlines.schedule(key, "settle_complete", at, run({ type: "SETTLE_COMPLETE", token: this.state.settleToken }));
+        return;
+      case "claim_window":
+        this.deadlines.schedule(key, "claim_window_expire", at, run({ type: "CLAIM_WINDOW_EXPIRE", token: this.state.claimWindowToken }));
+        return;
+      case "claim_abandon":
+        this.deadlines.schedule(key, "claim_abandon", at, run({ type: "CLAIM_ABANDONED", seq: this.state.claimSeq }));
+        return;
+    }
   }
 
   // ==========================================================================
@@ -637,12 +704,8 @@ export class TableGame {
     if (s.phase === "SETTLING" && s.settleKind !== null) {
       if (this.scheduledSettle !== s.settleToken) {
         this.scheduledSettle = s.settleToken;
-        const token = s.settleToken;
         const ms = s.settleKind === "MATCH" ? SETTLE_MATCH_MS : SETTLE_WRONG_MS;
-        this.deadlines.after("settle", "settle_complete", ms, () => {
-          this.dispatch({ type: "SETTLE_COMPLETE", token });
-          this.flush();
-        });
+        this.armGameTimer("settle", this.clock.now() + ms);
       }
     } else {
       this.deadlines.cancel("settle");
@@ -653,11 +716,7 @@ export class TableGame {
     if (s.claimWindowOpen) {
       if (this.scheduledWindow !== s.claimWindowToken) {
         this.scheduledWindow = s.claimWindowToken;
-        const token = s.claimWindowToken;
-        this.deadlines.after("claim_window", "claim_window_expire", ROTATION_CLAIM_WINDOW_MS, () => {
-          this.dispatch({ type: "CLAIM_WINDOW_EXPIRE", token });
-          this.flush();
-        });
+        this.armGameTimer("claim_window", this.clock.now() + ROTATION_CLAIM_WINDOW_MS);
       }
     } else {
       this.deadlines.cancel("claim_window");
@@ -668,11 +727,7 @@ export class TableGame {
     if (s.phase === "CLAIM_SELECTING") {
       if (this.scheduledAbandon !== s.claimSeq) {
         this.scheduledAbandon = s.claimSeq;
-        const seq = s.claimSeq;
-        this.deadlines.after("claim_abandon", "claim_abandon", CLAIM_ABANDON_MS, () => {
-          this.dispatch({ type: "CLAIM_ABANDONED", seq });
-          this.flush();
-        });
+        this.armGameTimer("claim_abandon", this.clock.now() + CLAIM_ABANDON_MS);
       }
     } else {
       this.deadlines.cancel("claim_abandon");
@@ -790,6 +845,7 @@ export class TableGame {
     this.dirty = false;
     this.seq += 1;
     this.send(null, { t: "state", seq: this.seq, state: this.publicState() });
+    this.hooks.changed?.();
   }
 
   private catchUp(pid: string): void {
@@ -800,11 +856,146 @@ export class TableGame {
   }
 
   private sendLobby(): void {
+    this.hooks.changed?.();
     this.send(null, { t: "lobby", seats: this.seats.slice(), started: this.started, gameId: this.gameId });
+  }
+
+  /** The table's host (seat 0 at the first start), even after leaving. */
+  private hostPid: string | null = null;
+
+  private hostHere(): boolean {
+    const e = this.hostPid ? this.seatOf(this.hostPid) : undefined;
+    return !!e && this.isPresent(e.seat);
+  }
+
+  /** Connected and not skipped as absent. */
+  private isPresent(seat: number): boolean {
+    const e = this.seats[seat];
+    return !!e && this.sockets.has(e.pid) && !this.skippable.has(seat);
+  }
+
+  /** A rematch without the players who left: renumber seats, forget their timers. */
+  private reseat(next: SeatEntry[]): void {
+    for (const e of this.seats) {
+      for (const k of ["drop", "gone", "away"]) this.liveness.cancel(`${k}:${e.seat}`);
+    }
+    this.skippable.clear();
+    this.gone.clear();
+    this.seats = next.map((e, i) => ({ ...e, seat: i }));
   }
 
   private seatOf(pid: string): SeatEntry | undefined {
     return this.seats.find((e) => e.pid === pid);
+  }
+
+  // ==========================================================================
+  // Saving and restoring (survive server restarts)
+  // ==========================================================================
+
+  snapshot(): TableSnapshot {
+    const { rng: _rng, wrongBy, flippedThisCycle, matchedCards, ...rest } = this.state;
+    return {
+      v: 1,
+      savedAt: this.clock.now(),
+      seats: this.seats.map((e) => ({ ...e })),
+      started: this.started,
+      gameId: this.gameId,
+      claimWindow: this.claimWindow,
+      seq: this.seq,
+      flipToken: this.flipToken,
+      rollLatch: this.rollLatch,
+      rollCommit: this.rollCommit,
+      correctClaims: this.correctClaims,
+      savedGameId: this.savedGameId,
+      hostPid: this.hostPid,
+      skippable: [...this.skippable],
+      pausedAt: this.pausedAt,
+      pauseLimitAt: this.liveness.atOf("pause_limit"),
+      timers: this.deadlines.entries(),
+      state: {
+        ...rest,
+        wrongBy: wrongBy.map((set) => [...set]),
+        flippedThisCycle: [...flippedThisCycle],
+        matchedCards: [...matchedCards],
+      },
+    };
+  }
+
+  /**
+   * Rebuild a table from a snapshot. Time the server was down is added to
+   * every game timer (and to a pause), so a flip or a claim window picks up
+   * with exactly the time it had left. Every seat starts as "just left":
+   * players are skipped only if they have not reconnected within 15 s.
+   */
+  static restore(
+    snap: TableSnapshot,
+    clock: Clock,
+    send: Send,
+    newId?: () => string,
+    hooks?: TableHooks,
+  ): TableGame {
+    const t = new TableGame(clock, send, newId, hooks);
+    const now = clock.now();
+    const down = Math.max(0, now - snap.savedAt);
+    t.seats = snap.seats.map((e) => ({ ...e }));
+    t.started = snap.started;
+    t.gameId = snap.gameId;
+    t.claimWindow = snap.claimWindow;
+    t.seq = snap.seq;
+    t.flipToken = snap.flipToken;
+    t.rollLatch = snap.rollLatch;
+    t.rollCommit = snap.rollCommit ? { ...snap.rollCommit, startAt: snap.rollCommit.startAt + down } : null;
+    t.correctClaims = snap.correctClaims;
+    t.savedGameId = snap.savedGameId;
+    t.hostPid = snap.hostPid ?? snap.seats[0]?.pid ?? null;
+    const st = snap.state;
+    t.state = {
+      ...st,
+      wrongBy: st.wrongBy.map((a) => new Set(a)),
+      flippedThisCycle: new Set(st.flippedThisCycle),
+      matchedCards: new Set(st.matchedCards),
+      rng: Math.random,
+    } as State;
+    // The timers already armed for this state must not be armed twice.
+    t.scheduledSettle = st.phase === "SETTLING" ? st.settleToken : -1;
+    t.scheduledWindow = st.claimWindowOpen ? st.claimWindowToken : -1;
+    t.scheduledAbandon = st.phase === "CLAIM_SELECTING" ? st.claimSeq : -1;
+    for (const { key, at } of snap.timers) t.armGameTimer(key, at + down);
+    if (snap.pausedAt !== null) {
+      t.pausedAt = snap.pausedAt + down;
+      t.deadlines.pause();
+      if (snap.pauseLimitAt !== null) {
+        t.liveness.schedule("pause_limit", "seat_gone", snap.pauseLimitAt + down, () => {
+          if (t.pausedAt === null || t.state.phase === "GAME_OVER") return;
+          t.resumeTimers();
+          t.dispatch({ type: "END_GAME_TABLE_EMPTY" });
+          t.flush();
+        });
+      }
+    }
+    for (const seat of snap.skippable) t.skippable.add(seat);
+    if (t.started) {
+      for (const e of t.seats) {
+        if (t.skippable.has(e.seat)) continue;
+        t.liveness.after(`drop:${e.seat}`, "seat_drop", HEARTBEAT_STALE_MS, () => {
+          t.skippable.add(e.seat);
+          t.applyLiveness();
+        });
+      }
+      for (const e of t.seats) {
+        t.liveness.after(`gone:${e.seat}`, "seat_gone", HEARTBEAT_END_GAME_STALE_MS, () => {
+          t.gone.add(e.seat);
+          t.checkTableEmpty();
+        });
+      }
+    }
+    return t;
+  }
+
+  /** Stop every timer (tests replacing a table, as a restart would). */
+  dispose(): void {
+    this.deadlines.clearAll();
+    this.liveness.clearAll();
   }
 
   // ---- read-only views for tests and the server ----

@@ -1667,6 +1667,11 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // ---------- GAME IN PROGRESS: TABLE SERVER (host and joiners alike) ----------
   if (onServer && table.state && activeRoom) {
     const st = table.state;
+    // Rematches belong to the host; once the host has left the table (or the
+    // last rematch went ahead without them), anyone still here can start one.
+    // The server applies the same rule.
+    const hostSeat = st.seatMap.find((e) => e.pid === hostVisitorId);
+    const hostHere = !!hostSeat && !st.disconnectedSeats.includes(hostSeat.seat);
     return (
       <GameShell mobile={mobile}>
       <MultiplayerGameView
@@ -1680,6 +1685,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
           table.sendIntent(action);
         }}
         claim={table.claim}
+        tableServer
+        canRematch={isHostView || !hostHere}
         onLeave={leaveToIdle}
         mobile={mobile}
         roomId={activeRoom.id}

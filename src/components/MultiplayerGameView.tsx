@@ -153,6 +153,14 @@ interface Props {
    * is unchanged. Omitted: the referee, as before.
    */
   claim?: (claimWindow: number) => Promise<ClaimLockResult>;
+  /**
+   * The game runs on the table server: the host's phone is just another
+   * player (its taps get the same pressed feedback, and leaving does not end
+   * the game for everyone).
+   */
+  tableServer?: boolean;
+  /** Who may start a rematch. Default: the host (and Solo). */
+  canRematch?: boolean;
 }
 
 // -------- Figma-transcribed constants --------
@@ -971,7 +979,7 @@ const DebugControls: React.FC<{
 
 const MultiplayerGameView: React.FC<Props> = ({
   publicState: s, mySeat, events = [], rollCommit = null, lastClaimReject = null, onIntent, onLeave, mobile = false, roomId, visitorId, browserId = "", playerKey, isHost, presenceVisitorIds,
-  heartbeatStale, awaySkip, hostDisconnectedSeats, presenceStatus, soloMode = false, onInvite, claim,
+  heartbeatStale, awaySkip, hostDisconnectedSeats, presenceStatus, soloMode = false, onInvite, claim, tableServer = false, canRematch: canRematchProp,
 }) => {
   const umbrella = useUmbrella();
   useTogetherStatsRecorder(s, mySeat, umbrella && !soloMode);
@@ -1642,12 +1650,15 @@ const MultiplayerGameView: React.FC<Props> = ({
   }, [serverPairReady]);
 
 
+  // Only a host-phone game ends when its host leaves.
+  const hostEndsGame = isHost && !tableServer;
+
   // ---- joiner tap acknowledgment ----------------------------------------
   // Pressed/opening treatment the instant a joiner touches a card, before the
   // host's flip arrives. The face is never revealed locally.
   const [tapAck, setTapAck] = React.useState<TapAck | null>(null);
   const noteTapAck = (i: number) => {
-    if (isHost || soloMode || claimMode || !isMyTurnToFlip) return;
+    if ((isHost && !tableServer) || soloMode || claimMode || !isMyTurnToFlip) return;
     if (!s.grid[i]?.occupied) return;
     setTapAck({ idx: i, at: Date.now() });
   };
@@ -2227,7 +2238,7 @@ const MultiplayerGameView: React.FC<Props> = ({
               .map((c, seat) => ({ seat, name: c.name, score: s.scores[seat] ?? 0 }))
               .filter((e) => chips[e.seat].kind !== "EMPTY")}
             target={TARGET_SCORE}
-            canRematch={soloMode === true || isHost}
+            canRematch={canRematchProp ?? (soloMode === true || isHost)}
             onPlayAgain={() => onIntent({ type: "NEW_GAME" })}
             onInvite={soloMode ? undefined : onInvite}
             onDone={onLeave}
@@ -2261,7 +2272,7 @@ const MultiplayerGameView: React.FC<Props> = ({
           </div>
         )}
 
-        <DebugControls deckCount={s.deckCount} isHost={isHost} onIntent={onIntent} />
+        <DebugControls deckCount={s.deckCount} isHost={isHost && !tableServer} onIntent={onIntent} />
 
         <PresenceDebugOverlay
           mySeat={mySeat}
@@ -2323,10 +2334,10 @@ const MultiplayerGameView: React.FC<Props> = ({
       {showLeave && (
         <ModalShell titleId="mp-leave-title" unified={umbrella} onCancel={() => setShowLeave(false)}>
           <h2 id="mp-leave-title" style={{ margin: 0, color: INK, ...textStyle("title") }}>
-            {isHost ? "End the game?" : "Leave the table?"}
+            {hostEndsGame ? "End the game?" : "Leave the table?"}
           </h2>
           <p style={{ margin: 0, fontFamily: FONT_FAMILY, fontSize: 15, lineHeight: 1.4, color: INK }}>
-            {isHost
+            {hostEndsGame
               ? "Leaving now ends the game for everyone. All players will be returned to the lobby and the game cannot be resumed."
               : "Your seat and score stay visible to the table with your turns auto-skipped — you won't be removed."}
           </p>
@@ -2345,7 +2356,7 @@ const MultiplayerGameView: React.FC<Props> = ({
                 onClick={() => { setShowLeave(false); onLeave(); }}
                 style={{ ...buttonStyle("dangerConfirm", "lg"), fontStyle: "italic", flexGrow: 1, flexBasis: 0, height: CONTROL_H.lg + SPACE[2], padding: 0 }}
               >
-                {isHost && !soloMode ? "End Game" : "Leave"}
+                {hostEndsGame && !soloMode ? "End Game" : "Leave"}
               </button>
             </div>
           ) : (
@@ -2372,7 +2383,7 @@ const MultiplayerGameView: React.FC<Props> = ({
                 ...textStyle("control"),
               }}
             >
-              {isHost ? "End Game" : "Leave"}
+              {hostEndsGame ? "End Game" : "Leave"}
             </button>
           </div>
           )}

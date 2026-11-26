@@ -35,3 +35,9 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Live check (two scripted phones on the live server; never saved)
+        run: |
+          export SUPABASE_URL=$(node -e "const s=require('fs').readFileSync('wrangler.jsonc','utf8');console.log(s.match(/\"SUPABASE_URL\": \"([^\"]+)/)[1])")
+          export SUPABASE_ANON_KEY=$(node -e "const s=require('fs').readFileSync('wrangler.jsonc','utf8');console.log(s.match(/\"SUPABASE_ANON_KEY\": \"([^\"]+)/)[1])")
+          sleep 10
+          node scripts/smoke.mjs

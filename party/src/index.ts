@@ -11,7 +11,27 @@
  */
 import { routePartykitRequest, Server, type Connection, type ConnectionContext } from "partyserver";
 import { SupabaseRpc, type HostCredentials, type SupabaseEnv } from "./supabase";
-import { TABLE_PROTOCOL, TableGame, type ServerMessage, type TableIntent } from "./tableGame";
+import {
+  TABLE_PROTOCOL,
+  TableGame,
+  type ServerMessage,
+  type TableHooks,
+  type TableIntent,
+  type TableSnapshot,
+} from "./tableGame";
+
+/** Browser ids the live smoke test uses. Its games are never saved as results. */
+const SMOKE_VISITOR_PREFIX = "smoke-";
+/** A saved table older than this is left behind (its room code may be reused). */
+const SNAPSHOT_MAX_AGE_MS = 2 * 60 * 60 * 1000;
+/** Saves are batched: at most one write per this many ms, plus one at game end. */
+const SAVE_EVERY_MS = 250;
+/**
+ * What a table keeps in its own Cloudflare storage. `host` holds the host's
+ * seat key so a restarted table can still register a rematch and save the
+ * result; it never leaves this table's storage.
+ */
+type Saved = { roomId: string | null; host: (HostCredentials & { pid: string }) | null; snap: TableSnapshot };
 
 type Env = SupabaseEnv & {
   Table: DurableObjectNamespace<Table>;
@@ -83,35 +103,84 @@ export class Table extends Server<Env> {
     return this.rpc;
   }
 
+  private saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private readonly clock = {
+    now: () => Date.now(),
+    set: (fn: () => void, ms: number) => setTimeout(fn, ms),
+    clear: (h: unknown) => clearTimeout(h as ReturnType<typeof setTimeout>),
+  };
+
+  private hooks(): TableHooks {
+    const rpc = this.getRpc();
+    const changed = () => this.scheduleSave();
+    if (this.open) return { changed };
+    return {
+      changed,
+      registerGame: async (gameId, seats) => !!this.host && (await rpc.registerGame(this.host, gameId, seats)),
+      saveResult: (report) => {
+        const host = this.host;
+        if (!host) return;
+        // The live smoke test's games are never saved (see scripts/smoke.mjs).
+        if (host.visitorId.startsWith(SMOKE_VISITOR_PREFIX)) {
+          console.log("[table] smoke test game, not saved", report.gameId);
+          return;
+        }
+        this.ctx.waitUntil(
+          rpc.saveGame(host, report).then((ok) => {
+            if (!ok) console.warn("[table] result not saved", report.gameId);
+          }),
+        );
+      },
+    };
+  }
+
   private getGame(): TableGame {
     if (!this.game) {
-      const rpc = this.getRpc();
-      this.game = new TableGame(
-        {
-          now: () => Date.now(),
-          set: (fn, ms) => setTimeout(fn, ms),
-          clear: (h) => clearTimeout(h as ReturnType<typeof setTimeout>),
-        },
-        (to, msg) => this.deliver(to, msg),
-        () => crypto.randomUUID(),
-        this.open
-          ? {}
-          : {
-              registerGame: async (gameId, seats) =>
-                !!this.host && (await rpc.registerGame(this.host, gameId, seats)),
-              saveResult: (report) => {
-                const host = this.host;
-                if (!host) return;
-                this.ctx.waitUntil(
-                  rpc.saveGame(host, report).then((ok) => {
-                    if (!ok) console.warn("[table] result not saved", report.gameId);
-                  }),
-                );
-              },
-            },
-      );
+      this.game = new TableGame(this.clock, (to, msg) => this.deliver(to, msg), () => crypto.randomUUID(), this.hooks());
     }
     return this.game;
+  }
+
+  /**
+   * Pick a saved game back up after a restart (a deploy, or Cloudflare moving
+   * the table). Runs before the first phone connects.
+   */
+  async onStart() {
+    try {
+      const saved = await this.ctx.storage.get<Saved>("table");
+      if (!saved || Date.now() - saved.snap.savedAt > SNAPSHOT_MAX_AGE_MS) return;
+      this.roomId = saved.roomId;
+      this.host = saved.host ?? null;
+      this.game = TableGame.restore(
+        saved.snap,
+        this.clock,
+        (to, msg) => this.deliver(to, msg),
+        () => crypto.randomUUID(),
+        this.hooks(),
+      );
+      console.log("[table] restored", this.name, saved.snap.state.phase);
+    } catch (e) {
+      console.warn("[table] restore failed", e instanceof Error ? e.message : e);
+    }
+  }
+
+  private scheduleSave() {
+    if (this.saveTimer) return;
+    this.saveTimer = setTimeout(() => {
+      this.saveTimer = null;
+      this.saveNow();
+    }, SAVE_EVERY_MS);
+  }
+
+  private saveNow() {
+    if (!this.game) return;
+    const value: Saved = { roomId: this.roomId, host: this.host, snap: this.game.snapshot() };
+    this.ctx.waitUntil(
+      this.ctx.storage.put("table", value).catch((e: unknown) => {
+        console.warn("[table] save failed", e instanceof Error ? e.message : e);
+      }),
+    );
   }
 
   private deliver(to: string | null, msg: ServerMessage) {
@@ -149,7 +218,14 @@ export class Table extends Server<Env> {
     if (typeof roomId !== "string" || typeof visitorId !== "string" || typeof playerKey !== "string") {
       return this.reply(conn, "join_needs_seat_key");
     }
-    if (this.roomId && this.roomId !== roomId) return this.reply(conn, "wrong_room");
+    if (this.roomId && this.roomId !== roomId) {
+      // A table code from an old room, reused: start fresh unless a game is live.
+      const g = this.game;
+      if (g?.isStarted && g.state.phase !== "GAME_OVER") return this.reply(conn, "wrong_room");
+      this.game = null;
+      this.roomId = null;
+      this.host = null;
+    }
     let member;
     try {
       member = await this.getRpc().member(roomId, visitorId.slice(0, 100), playerKey.slice(0, 64));

@@ -526,3 +526,127 @@ describe("starting from the host's lobby (step 5)", () => {
     expect(t.game.isStarted).toBe(false);
   });
 });
+
+describe("surviving a server restart", () => {
+  it("a flip picks up with exactly the time it had left", () => {
+    const t = startedTable(2);
+    rollAndSettle(t);
+    t.game.intent(t.pids[0], { type: "FLIP_START", idx: 3 });
+    t.clock.advance(800); // 1.2 s of the flip left
+    t.restart(2_000);
+    t.pids.forEach((p) => t.game.connect(p));
+    expect(t.game.state.peekingCard).toBe(3);
+    t.clock.advance(1_199);
+    expect(t.game.state.peekingCard).toBe(3);
+    t.clock.advance(1);
+    expect(t.game.state.peekingCard).toBeNull();
+  });
+
+  it("the board, scores, locks and claim count come back the same", () => {
+    const t = startedTable(2);
+    rollAndSettle(t);
+    const w = wrongPair(t, 1)!;
+    t.game.intent(t.pids[1], { type: "CLAIM" });
+    t.game.intent(t.pids[1], { type: "PLAYER_SELECT_CARD", idx: w[0] });
+    t.game.intent(t.pids[1], { type: "PLAYER_SELECT_CARD", idx: w[1] });
+    t.game.intent(t.pids[1], { type: "PLAYER_RESOLVE_MATCH" });
+    t.clock.advance(SETTLE_WRONG_MS);
+    const before = JSON.stringify(t.game.publicState());
+    const wrongBefore = [...t.game.state.wrongBy[1]];
+    t.restart(0);
+    expect(JSON.stringify({ ...t.game.publicState() })).toBe(before);
+    expect([...t.game.state.wrongBy[1]]).toEqual(wrongBefore);
+    expect(t.game.state.deck.length).toBe(48 - 9);
+  });
+
+  it("a roll in the air lands after the restart, on the same face", () => {
+    const t = startedTable(2);
+    t.game.intent(t.pids[0], { type: "REQUEST_ROLL" });
+    const commit = t.all.find((m) => m.t === "roll_committed");
+    t.clock.advance(300);
+    t.restart(1_000);
+    t.pids.forEach((p) => t.game.connect(p));
+    t.clock.advance(2_500);
+    expect(t.game.state.phase).toBe("FLIPPING");
+    expect(commit && commit.t === "roll_committed" && t.game.state.rule[0]).toBe(
+      commit && commit.t === "roll_committed" ? commit.payload.attribute : null,
+    );
+  });
+
+  it("phones reconnecting get the restored game with a newer sequence number", () => {
+    const t = startedTable(2);
+    rollAndSettle(t);
+    const seqBefore = [...t.all].reverse().find((m) => m.t === "state");
+    t.restart(500);
+    t.inbox.set(t.pids[1], []);
+    t.game.connect(t.pids[1]);
+    t.game.join(t.pids[1], "P1");
+    const st = t.inbox.get(t.pids[1])!.find((m) => m.t === "state");
+    expect(st && st.t === "state" && seqBefore && seqBefore.t === "state" && st.seq >= seqBefore.seq).toBe(true);
+    expect(st && st.t === "state" && st.state.phase).toBe("FLIPPING");
+  });
+
+  it("a player who never comes back after the restart is skipped after 15 s", () => {
+    const t = startedTable(3);
+    rollAndSettle(t);
+    t.restart(0);
+    t.game.connect(t.pids[0]);
+    t.game.connect(t.pids[1]);
+    t.clock.advance(15_000);
+    expect(t.game.state.disconnected).toEqual([false, false, true]);
+  });
+});
+
+describe("rematch when the host has left", () => {
+  function endGame(t: ReturnType<typeof startedTable>) {
+    t.game.disconnect(t.pids[0]);
+    t.clock.advance(60_000);
+    expect(t.game.state.phase).toBe("GAME_OVER");
+  }
+
+  it("with the host still here, only the host can rematch", () => {
+    const t = startedTable(3);
+    t.game.disconnect(t.pids[2]);
+    t.clock.advance(60_000);
+    t.game.disconnect(t.pids[1]);
+    t.game.connect(t.pids[1]);
+    // End the game the quick way: everyone but the host leaves and returns.
+    t.game.disconnect(t.pids[1]);
+    t.clock.advance(60_000);
+    t.game.connect(t.pids[1]);
+    expect(t.game.state.phase).toBe("GAME_OVER");
+    t.game.intent(t.pids[1], { type: "NEW_GAME" }, "n1");
+    expect(t.acks(t.pids[1]).at(-1)).toMatchObject({ accepted: false, reason: "host_only" });
+  });
+
+  it("with the host gone, anyone can rematch, and only the players here play", () => {
+    const t = startedTable(3);
+    t.game.disconnect(t.pids[0]);
+    t.clock.advance(15_000);
+    // End the game directly; how it ended doesn't matter here.
+    (t.game as unknown as { dispatch: (a: { type: string }) => void }).dispatch({ type: "END_GAME_TABLE_EMPTY" });
+    expect(t.game.state.phase).toBe("GAME_OVER");
+    const first = t.game.gameId;
+    t.game.intent(t.pids[2], { type: "NEW_GAME" }, "n2");
+    expect(t.acks(t.pids[2]).at(-1)).toMatchObject({ accepted: true });
+    expect(t.game.gameId).not.toBe(first);
+    expect(t.game.seatList.map((e) => [e.seat, e.pid])).toEqual([
+      [0, t.pids[1]],
+      [1, t.pids[2]],
+    ]);
+    expect(t.game.state.seatCount).toBe(2);
+    expect(t.game.isPaused).toBe(false);
+    // The old host is not seated in the new game.
+    t.inbox.set(t.pids[0], []);
+    t.game.connect(t.pids[0]);
+    t.game.join(t.pids[0], "P0");
+    expect(t.inbox.get(t.pids[0])!.some((m) => m.t === "error" && m.reason === "game_in_progress")).toBe(true);
+  });
+
+  it("a rematch needs two players still here", () => {
+    const t = startedTable(2);
+    endGame(t);
+    t.game.intent(t.pids[1], { type: "NEW_GAME" }, "n");
+    expect(t.acks(t.pids[1]).at(-1)).toMatchObject({ accepted: false });
+  });
+});

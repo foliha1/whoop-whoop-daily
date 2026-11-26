@@ -41,33 +41,48 @@ export function makeTable(ids?: () => string) {
   const inbox: Inbox = new Map();
   const all: ServerMessage[] = [];
   let n = 0;
-  const game = new TableGame(
-    clock,
-    (to, msg) => {
-      all.push(msg);
-      const targets = to === null ? [...inbox.keys()] : [to];
-      for (const pid of targets) {
-        if (!inbox.has(pid)) inbox.set(pid, []);
-        inbox.get(pid)!.push(msg);
-      }
-    },
-    ids ?? (() => `game-${++n}`),
-  );
-  const player = (pid: string, name = pid) => {
-    inbox.set(pid, inbox.get(pid) ?? []);
-    game.connect(pid);
-    game.join(pid, name);
-  };
-  const lastState = (pid?: string): TableStateMessage | null => {
-    const list = pid ? inbox.get(pid) ?? [] : all;
-    for (let i = list.length - 1; i >= 0; i--) {
-      const m = list[i];
-      if (m.t === "state") return m.state;
+  const newId = ids ?? (() => `game-${++n}`);
+  const send = (to: string | null, msg: ServerMessage) => {
+    all.push(msg);
+    const targets = to === null ? [...inbox.keys()] : [to];
+    for (const pid of targets) {
+      if (!inbox.has(pid)) inbox.set(pid, []);
+      inbox.get(pid)!.push(msg);
     }
-    return null;
   };
-  const acks = (pid: string) => (inbox.get(pid) ?? []).filter((m) => m.t === "ack");
-  return { clock, game, inbox, all, player, lastState, acks };
+  const t = {
+    clock,
+    inbox,
+    all,
+    game: new TableGame(clock, send, newId),
+    player(pid: string, name = pid) {
+      inbox.set(pid, inbox.get(pid) ?? []);
+      t.game.connect(pid);
+      t.game.join(pid, name);
+    },
+    lastState(pid?: string): TableStateMessage | null {
+      const list = pid ? inbox.get(pid) ?? [] : all;
+      for (let i = list.length - 1; i >= 0; i--) {
+        const m = list[i];
+        if (m.t === "state") return m.state;
+      }
+      return null;
+    },
+    acks(pid: string) {
+      return (inbox.get(pid) ?? []).filter((m) => m.t === "ack");
+    },
+    /**
+     * Simulate a server restart: save, stop the old table, stay down for
+     * `downMs`, then restore from the saved JSON. Phones are disconnected.
+     */
+    restart(downMs = 0) {
+      const json = JSON.stringify(t.game.snapshot());
+      t.game.dispose();
+      clock.advance(downMs);
+      t.game = TableGame.restore(JSON.parse(json), clock, send, newId);
+    },
+  };
+  return t;
 }
 
 /** Start a table of `count` players named p0..pN (pids padded to pass checks). */
@@ -76,7 +91,7 @@ export function startedTable(count = 2) {
   const pids = Array.from({ length: count }, (_, i) => `player-${i}-xxxx`);
   pids.forEach((p, i) => t.player(p, `P${i}`));
   t.game.start(pids[0]);
-  return { ...t, pids };
+  return Object.assign(t, { pids });
 }
 
 /** Roll for whoever holds the die, and wait for it to land. */

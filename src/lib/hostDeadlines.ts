@@ -94,6 +94,11 @@ export class DeadlineQueue {
     return this.paused;
   }
 
+  /** Every pending deadline's key and time (the table server saves these). */
+  entries(): { key: string; at: number }[] {
+    return [...this.items.entries()].map(([key, d]) => ({ key, at: d.at }));
+  }
+
   /**
    * Push every deadline later by `ms`. Used by the table server to freeze a
    * paused game: pause(), then shift by the paused time, then resume().

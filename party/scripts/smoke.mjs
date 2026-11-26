@@ -2,7 +2,9 @@
 // Makes a throwaway room with two members through the same public database
 // functions the app uses, connects two phones to the LIVE table server,
 // checks in, starts, rolls, flips and claims, and prints every message.
-// The room code is printed so the test rows can be deleted afterwards.
+// It leaves no trace in the stats: the server never saves a game whose host
+// browser id starts with "smoke-", and these two fixed ids are on the admin
+// "This is me" list, so their tables are left out of every admin report.
 import { webcrypto } from "node:crypto";
 
 const URL_ = process.env.SUPABASE_URL;
@@ -49,8 +51,8 @@ function phone(label, code, pid) {
   return { ws, next, send, ready: new Promise((r) => ws.addEventListener("open", r)) };
 }
 
-const hostV = `smoke-${rid()}`;
-const guestV = `smoke-${rid()}`;
+const hostV = "smoke-host-tableserver";
+const guestV = "smoke-guest-tableserver";
 const hostKey = rid();
 const guestKey = rid();
 const room = (await rpc("create_room", { p_visitor_id: hostV }))?.[0];
