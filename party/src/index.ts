@@ -153,7 +153,8 @@ export class Table extends Server<Env> {
     let member;
     try {
       member = await this.getRpc().member(roomId, visitorId.slice(0, 100), playerKey.slice(0, 64));
-    } catch {
+    } catch (e) {
+      console.warn("[table] seat check failed", e instanceof Error ? e.message : e);
       return this.reply(conn, "check_failed");
     }
     if (!member || member.pubId !== pid) return this.reply(conn, "seat_key_refused");

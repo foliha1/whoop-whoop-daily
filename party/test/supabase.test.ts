@@ -16,6 +16,21 @@ function fakeFetch(reply: unknown, status = 200) {
 }
 
 describe("SupabaseRpc", () => {
+  it("calls the global fetch without borrowing this (Cloudflare throws Illegal invocation)", async () => {
+    const real = globalThis.fetch;
+    let seenThis: unknown = "unset";
+    globalThis.fetch = function (this: unknown) {
+      seenThis = this;
+      return Promise.resolve(new Response("[]"));
+    } as typeof fetch;
+    try {
+      await new SupabaseRpc(env).member(ROOM, "v", "k".repeat(20));
+    } finally {
+      globalThis.fetch = real;
+    }
+    expect(seenThis === undefined || seenThis === globalThis).toBe(true);
+  });
+
   it("sends a new publishable key as apikey only, never as a Bearer token", () => {
     expect(rpcHeaders("sb_publishable_abc")).toEqual({ apikey: "sb_publishable_abc", "Content-Type": "application/json" });
     expect(rpcHeaders("eyJhbGciOi.jwt")).toMatchObject({ Authorization: "Bearer eyJhbGciOi.jwt" });

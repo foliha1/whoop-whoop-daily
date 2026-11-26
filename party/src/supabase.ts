@@ -53,7 +53,9 @@ export function rpcHeaders(key: string): Record<string, string> {
 export class SupabaseRpc {
   constructor(
     private readonly env: SupabaseEnv,
-    private readonly fetchFn: typeof fetch = fetch,
+    // Wrapped: calling a stored bare `fetch` as this.fetchFn(...) throws
+    // "Illegal invocation" on Cloudflare, which broke every live check-in.
+    private readonly fetchFn: typeof fetch = (input, init) => fetch(input, init),
   ) {}
 
   get configured(): boolean {
