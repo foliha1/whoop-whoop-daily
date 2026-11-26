@@ -434,7 +434,17 @@ function hasPossibleMatch(s: State): boolean {
   return false;
 }
 
-function startRound(s: State, winnerIndex: number | null): State {
+function startRound(prev: State, winnerIndex: number | null): State {
+  // v7.3: every round starts on a full board when the pile allows. Once the
+  // pile runs dry, matched slots stay empty; a wrong claim can later return
+  // cards to the pile, and those must come back onto the board. Without this
+  // the board could shrink to two cards with dozens left in the pile.
+  let s = prev;
+  if (s.deck.length > 0 && s.grid.some((c) => c === null)) {
+    const empties = s.grid.map((c, i) => (c === null ? i : -1)).filter((i) => i !== -1);
+    const { grid, deck } = refill(s.grid, s.deck, empties);
+    s = { ...s, grid, deck, drawEmpty: deck.length === 0 };
+  }
   const hasCards = s.grid.some((c) => c !== null);
   const filled = s.grid.filter((c) => c !== null).length;
   if (!hasCards && s.deck.length === 0) return withGameOverAnnounce(s);

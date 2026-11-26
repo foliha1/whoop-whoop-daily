@@ -18,6 +18,7 @@ const STICKY = [
   ["No match on the table this round?", "That's fine. Everyone takes a turn, the die passes, and a new rule shows up."],
   ["Not enough cards left to refill the grid?", "Fill what you can. The grid gets smaller."],
   ["Draw pile ran out before anyone hit 12?", "Keep playing on the smaller grid. Wrong calls put cards back, so it almost never runs dry."],
+  ["Empty spaces, and cards back in the draw pile?", "Fill the empty spaces before the next roll."],
   ["Only one face-down card left on your turn?", "Flip it and pass."],
   ["You're locked out of every card?", "Your turn passes."],
 ] as const;

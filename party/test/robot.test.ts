@@ -26,8 +26,9 @@ afterAll(() => {
 function cardsAccountedFor(s: State): number {
   const onGrid = s.grid.filter((c) => c !== null).length;
   const inPiles = s.piles.reduce((n, p) => n + p.length, 0);
-  // During a match hold the pair is in the pile AND still on the grid.
-  const doubled = s.phase === "SETTLING" && s.settleKind === "MATCH" ? s.matchedCards.size : 0;
+  // During a match hold the pair is in the pile AND still on the grid. That
+  // holds too if the table empties mid-hold and the game ends right there.
+  const doubled = s.settleKind === "MATCH" ? s.matchedCards.size : 0;
   return onGrid + s.deck.length + inPiles - doubled;
 }
 
@@ -74,8 +75,8 @@ function playOne(game: number, rnd: () => number) {
     const now = t.clock.now();
     if (now >= 1_800_000_000_000 + GAME_CAP_MS) {
       const st = t.game.state;
-      // A known rules gap can make a game drag on forever without being stuck
-      // (see refillGap below). Count those; anything else is a real failure.
+      // Before v7.3 the refill gap could make a game drag on for hours. Counted
+      // so the summary can show it; the summary requires zero.
       if (refillGap) return { steps, refillGap, dragged: true, endedEmpty: false, players: count, minutes: GAME_CAP_MS / 60000 };
       throw new Error(
         `game ${game}: no winner after 3 hours (${count} players, phase ${st.phase}, chaos ${chaos}, ` +
@@ -149,8 +150,8 @@ function playOne(game: number, rnd: () => number) {
     }
 
     checkInvariants(t, `game ${game} step ${steps}`);
-    // Rules gap worth knowing about: empty grid slots while the pile has cards
-    // (cards returned by wrong claims after the pile ran dry).
+    // v7.3 guard: a round must never start with empty spaces while the pile
+    // has cards (returned by wrong claims after it ran dry).
     const ns = t.game.state;
     if (ns.phase === "AWAITING_ROLL" && ns.deck.length > 0 && ns.grid.some((c) => c === null)) refillGap = true;
 
@@ -200,7 +201,8 @@ describe("robot", () => {
     );
     expect(finished + emptied + dragged).toBe(GAMES);
     expect(finished).toBeGreaterThan(GAMES * 0.8);
-    // The rules gap is rare; if it ever stops being rare, look again.
-    expect(dragged).toBeLessThan(Math.max(2, GAMES * 0.01));
+    // v7.3 fills empty spaces before every roll, so neither may happen.
+    expect(gaps).toBe(0);
+    expect(dragged).toBe(0);
   });
 });

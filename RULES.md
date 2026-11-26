@@ -1,4 +1,4 @@
-# Whoop! Whoop! — Master Game Documentation (v7.2 Two Calls a Round)
+# Whoop! Whoop! — Master Game Documentation (v7.3 Full Board Each Round)
 
 *A card game about memory, luck, and just enough competition to ruin your family dinner.*
 
@@ -166,7 +166,7 @@ A round ends in one of two ways.
 1. **Somebody claims correctly.** They take the pair and become the new Roller.
 2. **Everyone completes their two-flip turn and nobody has claimed correctly.** The round ends anyway and the die passes clockwise to the next player.
 
-Either way, face-up cards from wrong claims turn back over, the locks clear, and a new Roller rolls a fresh rule.
+Either way, face-up cards from wrong claims turn back over, the locks clear, any empty spaces are filled from the draw pile, and a new Roller rolls a fresh rule.
 
 **This is the whole game.** The rule just changed. Last round you were hunting colors. Now it is shapes. The cards did not move, but what matters about them did. Can your brain keep up?
 
@@ -211,6 +211,7 @@ The bigger grid also works as a **handicap for mixed tables.** With more positio
 | No valid pair exists this round | Fine. The rotation runs out, the die passes, a new rule arrives. |
 | The draw pile cannot refill every space | Fill what you can. The grid shrinks. |
 | The draw pile empties before anyone reaches 12 | Keep playing on a shrinking grid. Wrong claims put cards back, so it rarely runs dry. |
+| Empty spaces on the grid, and cards back in the draw pile | Fill the empty spaces before the next roll. |
 | Only one face-down card is left on your turn | Flip it and pass. You take what flips are available. |
 | You lock yourself out of every card | Your turn passes. You cannot flip cards you have locked. |
 
@@ -332,7 +333,9 @@ Whoop! Whoop! is one game online at whoop-whoop.com, with three ways to play. No
 
 - **v7.1 — Target Twelve.** The win target moves from 10 cards to 12. A measured sweep of targets 10 through 18 across solo and two- to six-player tables (500 games per cell) showed 10 ending too quickly, while 12 runs about 40% longer and still completes 99.8% of the time at every table size. 14 and above were rejected: they buy little extra time and leave roughly one in twenty-six six-player games unable to finish, because the 48-card deck runs out before that many cards can be banked. Note that the 15–20 minute play time in the header describes the physical game, including shuffling, dealing and table talk; the digital build is a short, replayable game and is not measured against that figure.
 
-- **v7.2 (Current) — Two Calls a Round.** Each player now gets **two wrong claims per round**; after the second miss, claiming is closed to that player until the round ends. This closes an exploit found in live testing on the digital build: because a wrong claim leaves its two cards face up and nothing limited how often you could claim, a player could call repeatedly and turn almost the whole board face up. It was free at the start of a round, when an empty pile returns no card. At a physical table shouting Whoop! Whoop! eight times in a row is socially expensive and self-corrects; on a screen it costs one tap. The count is per player, per round, and resets for everyone when the round ends by either route. Correct claims never count against it. Nothing else changes: the returned card, the face-up pair, the lock and the free-of-flips claim all stand.
+- **v7.2 — Two Calls a Round.** Each player now gets **two wrong claims per round**; after the second miss, claiming is closed to that player until the round ends. This closes an exploit found in live testing on the digital build: because a wrong claim leaves its two cards face up and nothing limited how often you could claim, a player could call repeatedly and turn almost the whole board face up. It was free at the start of a round, when an empty pile returns no card. At a physical table shouting Whoop! Whoop! eight times in a row is socially expensive and self-corrects; on a screen it costs one tap. The count is per player, per round, and resets for everyone when the round ends by either route. Correct claims never count against it. Nothing else changes: the returned card, the face-up pair, the lock and the free-of-flips claim all stand.
+
+- **v7.3 (Current) — Full Board Each Round.** Before every roll, empty grid spaces are filled from the draw pile. Previously spaces were only filled right after a correct claim, so once the pile ran dry and wrong claims later returned cards to it, those cards never came back onto the board. Found by a test robot playing 3,000 random digital games (26 Nov 2026): in about 2% of games the grid shrank to a few cards while the pile held dozens, and about 1 in 1,500 games then dragged on for hours, mostly at five and six players. With the fix, 3,000 robot games show no shrinking and the longest game drops from nearly three hours to 14 minutes. Nothing else changes.
 
 ---
 
