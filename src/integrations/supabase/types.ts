@@ -1613,6 +1613,15 @@ export type Database = {
             Args: { p_email: string; p_source: string; p_visitor_id: string }
             Returns: boolean
           }
+      table_member: {
+        Args: { p_player_key: string; p_room_id: string; p_visitor_id: string }
+        Returns: {
+          display_name: string
+          is_host: boolean
+          pub_id: string
+          room_code: string
+        }[]
+      }
       unlink_device: { Args: { p_visitor_id: string }; Returns: boolean }
       whoop_points_active_identities: {
         Args: { p_as_of?: string }
