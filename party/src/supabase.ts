@@ -38,6 +38,18 @@ export function isUuid(v: unknown): v is string {
   return typeof v === "string" && UUID_RE.test(v);
 }
 
+/**
+ * New Supabase keys (sb_publishable_…) are opaque, not JWTs: they go in the
+ * apikey header only. Sent as a Bearer token they are refused, which is what
+ * broke the first live server games (26 Nov 2026). Old JWT anon keys also
+ * ride as the Bearer token, as before.
+ */
+export function rpcHeaders(key: string): Record<string, string> {
+  const h: Record<string, string> = { apikey: key, "Content-Type": "application/json" };
+  if (!key.startsWith("sb_")) h.Authorization = `Bearer ${key}`;
+  return h;
+}
+
 export class SupabaseRpc {
   constructor(
     private readonly env: SupabaseEnv,
@@ -52,11 +64,7 @@ export class SupabaseRpc {
     if (!this.configured) return null;
     const res = await this.fetchFn(`${this.env.SUPABASE_URL}/rest/v1/rpc/${fn}`, {
       method: "POST",
-      headers: {
-        apikey: this.env.SUPABASE_ANON_KEY!,
-        Authorization: `Bearer ${this.env.SUPABASE_ANON_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: rpcHeaders(this.env.SUPABASE_ANON_KEY!),
       body: JSON.stringify(body),
     });
     if (!res.ok) {

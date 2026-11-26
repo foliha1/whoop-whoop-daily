@@ -1,6 +1,6 @@
 // The server's Supabase calls, against a fake fetch.
 import { describe, expect, it } from "vitest";
-import { SupabaseRpc, SERVER_APP_VERSION } from "../src/supabase";
+import { SupabaseRpc, SERVER_APP_VERSION, rpcHeaders } from "../src/supabase";
 
 const ROOM = "22222222-2222-4222-8222-222222222222";
 const GAME = "33333333-3333-4333-8333-333333333333";
@@ -16,6 +16,11 @@ function fakeFetch(reply: unknown, status = 200) {
 }
 
 describe("SupabaseRpc", () => {
+  it("sends a new publishable key as apikey only, never as a Bearer token", () => {
+    expect(rpcHeaders("sb_publishable_abc")).toEqual({ apikey: "sb_publishable_abc", "Content-Type": "application/json" });
+    expect(rpcHeaders("eyJhbGciOi.jwt")).toMatchObject({ Authorization: "Bearer eyJhbGciOi.jwt" });
+  });
+
   it("checks a seat key with table_member using the public key", async () => {
     const f = fakeFetch([{ pub_id: "abc123", display_name: "Ana", is_host: true, room_code: "WHOOP1" }]);
     const rpc = new SupabaseRpc(env, f.fn);
