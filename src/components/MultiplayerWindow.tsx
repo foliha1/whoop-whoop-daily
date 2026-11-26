@@ -65,6 +65,10 @@ function rememberTable(code: string | null) {
 }
 import { useMultiplayerHost, useMultiplayerJoiner, useTransientEvents, type SeatMapEntry } from "@/hooks/useMultiplayerGame";
 import { useHeartbeatSender, useHeartbeatMonitor } from "@/hooks/useHeartbeat";
+import { useTableServer } from "@/hooks/useTableServer";
+import { hostUsesTableServer, type TableState } from "@/lib/tableServer";
+import { serverNow } from "@/hooks/useServerClock";
+import { setTimingTableMode } from "@/lib/classicTiming";
 import DailyFrame from "@/components/DailyFrame";
 import { GAME_COLUMN_MAX_W, GAME_SIDE_PAD } from "@/lib/layout";
 import DailyLogoLockup, { lockupStills } from "@/components/DailyLogoLockup";
@@ -166,6 +170,47 @@ const FitColumn: React.FC<{ children: React.ReactNode }> = ({ children }) => {
  * cap and the desktop safe-area padding that used to live on the page wrapper
  * live here, around the board only.
  */
+/**
+ * Table server pause: fewer than two players are present, so the board is
+ * frozen until someone comes back. Names who we are waiting for and how long
+ * before the game ends.
+ */
+const TablePausedNotice: React.FC<{ state: TableState; mobile: boolean }> = ({ state, mobile }) => {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const t = window.setInterval(() => tick((n) => n + 1), 500);
+    return () => window.clearInterval(t);
+  }, []);
+  const names = state.waitingFor
+    .map((seat) => state.seatMap.find((e) => e.seat === seat)?.display_name)
+    .filter((n): n is string => !!n);
+  const who = names.length ? names.join(" and ") : "a player";
+  const left = state.pauseEndsAt ? Math.max(0, Math.ceil((state.pauseEndsAt - serverNow()) / 1000)) : null;
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
+        position: "absolute",
+        top: SPACE[8],
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 50,
+        padding: `${SPACE[4]}px ${SPACE[8]}px`,
+        borderRadius: RADIUS.sm,
+        ...panelStyle("panel", 8),
+        ...textStyle("control", mobile),
+        fontStyle: "italic",
+        color: COLORS.ink,
+        pointerEvents: "none",
+        whiteSpace: "nowrap",
+      }}
+    >
+      Waiting for {who}…{left !== null ? ` ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}` : ""}
+    </div>
+  );
+};
+
 const GameShell: React.FC<{ mobile: boolean; children: React.ReactNode }> = ({ mobile, children }) => (
   <div
     style={{
@@ -542,6 +587,35 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     return dirHostPid;
   }, [isHostView, visitorId, dirHostPid]);
 
+  // ---- Together on the table server (PartyKit plan, step 5) ----
+  // Every phone in a room checks in with the table server while in the lobby,
+  // so a server game can start with nobody left to catch up. The HOST decides
+  // whether this table plays on the server; everyone else follows the host.
+  const table = useTableServer({
+    enabled: !!activeRoom && !!security && security.roomId === activeRoom.id,
+    roomCode: activeRoom?.room_code ?? null,
+    roomId: activeRoom?.id ?? null,
+    pid: visitorId,
+    visitorId: browserId,
+    playerKey: sessionKey,
+  });
+  const [hostPicksServer, setHostPicksServer] = useState(false);
+  useEffect(() => {
+    if (!isHostView) return;
+    let live = true;
+    void hostUsesTableServer().then((yes) => { if (live) setHostPicksServer(yes); });
+    return () => { live = false; };
+  }, [isHostView]);
+  // Set when the host starts (or tells us it started) a server game. The
+  // server's own lobby also says so, which covers a phone that reloads.
+  const [serverGame, setServerGame] = useState(false);
+  useEffect(() => { setServerGame(false); }, [activeRoomId]);
+  const onServer = !!activeRoom && (serverGame || table.started);
+  useEffect(() => {
+    setTimingTableMode(onServer);
+    return () => setTimingTableMode(false);
+  }, [onServer]);
+
   // Heartbeat: EVERY client (host + joiner) sends. The host also monitors
   // inbound heartbeats to detect crashed/slept peers that presence never
   // reports as gone. Merged into disconnectedSeats below via UNION with the
@@ -712,7 +786,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   hostPrevClaimByRef.current = host.state.claimBy;
 
   // Joiner: pure receiver.
-  const joinerEnabled = view.kind === "joiner" && !!channel;
+  const joinerEnabled = view.kind === "joiner" && !!channel && !onServer;
   const joiner = useMultiplayerJoiner({
     channel,
     onBroadcast,
@@ -734,6 +808,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // to Play demo owns the music while it is open; this effect re-runs on close.
   const gameOnScreen =
     (umbrella && view.kind === "solo") ||
+    (onServer && !!table.state) ||
     (isHostView && frozenSeats !== null && !!activeRoom) ||
     (view.kind === "joiner" && !!joinerPublicState && !!activeRoom);
   useEffect(() => {
@@ -1052,6 +1127,23 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     }));
     setStarting(true);
     setStartFailed(false);
+    // A server table: the server registers the seats, deals and saves the
+    // result. This phone only asks it to start with the frozen lobby.
+    if (hostPicksServer && table.status === "connected") {
+      try {
+        channel?.send({ type: "broadcast", event: "msg", payload: { kind: "game_starting", server: true } });
+      } catch {
+        /* non-fatal: joiners also learn it from the server */
+      }
+      setServerGame(true);
+      completedFiredRef.current = false;
+      if (!table.start(seatMap)) setStartFailed(true);
+      trackEvent("game_started", {
+        roomCode: activeRoom?.room_code,
+        metadata: { player_count: seatMap.length, grid_size: FIXED_GRID, table_server: true },
+      });
+      return;
+    }
     const newGameId = crypto.randomUUID();
     // Persist the frozen seat map BEFORE the game exists: the claim arbiter
     // refuses every claim from a seat it has not registered, so a game that
@@ -1096,7 +1188,30 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       roomCode: activeRoom?.room_code,
       metadata: { player_count: seatMap.length, grid_size: FIXED_GRID },
     });
-  }, [isHostView, canonicalParticipants, activeRoom, starting, startFailed, channel, browserId, host.dispatch, host.state.slotCount, security]);
+  }, [isHostView, canonicalParticipants, activeRoom, starting, startFailed, channel, browserId, host.dispatch, host.state.slotCount, security, hostPicksServer, table.status, table.start]);
+
+  // Server table: a refused start (seats not registered) offers the retry.
+  useEffect(() => {
+    if (onServer && starting && table.lastError === "start_failed") setStartFailed(true);
+  }, [onServer, starting, table.lastError]);
+  // The first server state ends "Starting…".
+  useEffect(() => {
+    if (onServer && table.state) setStarting(false);
+  }, [onServer, table.state]);
+  // game_completed, once per server game, from the host's phone.
+  const serverCompletedRef = useRef<string>("");
+  useEffect(() => {
+    const st = table.state;
+    if (!isHostView || !onServer || !st || st.phase !== "GAME_OVER") return;
+    if (serverCompletedRef.current === st.gameId) return;
+    serverCompletedRef.current = st.gameId;
+    const top = Math.max(...st.scores);
+    const winners = st.scores.map((v, i) => (v === top ? i : -1)).filter((i) => i !== -1);
+    trackEvent("game_completed", {
+      roomCode: activeRoom?.room_code,
+      metadata: { round_count: st.roundNum, winner_seat: winners.length === 1 ? winners[0] : null, table_server: true },
+    });
+  }, [isHostView, onServer, table.state, activeRoom]);
 
 
   // Joiner: listen for the host's game_starting notice.
@@ -1106,6 +1221,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       if (!payload || typeof payload !== "object") return;
       if ((payload as { kind?: string }).kind === "game_starting") {
         setStarting(true);
+        if ((payload as { server?: boolean }).server === true) setServerGame(true);
         // Drop the finished game's payload so the joiner can never render the
         // previous results screen while waiting for the first new broadcast.
         joiner.reset();
@@ -1525,6 +1641,36 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // ---------- SOLO ----------
   if (view.kind === "solo") {
     return <SoloView onLeave={leaveToIdle} mobile={mobile} />;
+  }
+
+  // ---------- GAME IN PROGRESS: TABLE SERVER (host and joiners alike) ----------
+  if (onServer && table.state && activeRoom) {
+    const st = table.state;
+    return (
+      <GameShell mobile={mobile}>
+      <MultiplayerGameView
+        publicState={st}
+        mySeat={table.mySeat}
+        events={table.events}
+        rollCommit={table.rollCommit}
+        lastClaimReject={table.lastClaimReject}
+        onIntent={(action) => {
+          // Debug tools and claim entry never travel: the server owns both.
+          table.sendIntent(action);
+        }}
+        claim={table.claim}
+        onLeave={leaveToIdle}
+        mobile={mobile}
+        roomId={activeRoom.id}
+        visitorId={visitorId}
+        isHost={isHostView}
+        onInvite={() => handleShare(activeRoom.room_code)}
+        presenceVisitorIds={participants.map((p) => p.pid)}
+        presenceStatus={table.status}
+      />
+      {st.paused ? <TablePausedNotice state={st} mobile={mobile} /> : null}
+      </GameShell>
+    );
   }
 
   // ---------- GAME IN PROGRESS: HOST ----------

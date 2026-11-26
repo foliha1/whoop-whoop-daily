@@ -31,6 +31,16 @@ export function getServerOffset(): number {
   return sharedOffset;
 }
 
+/**
+ * Together on the table server: the server measures this precisely with
+ * pings (millisecond clock, no 1 s Date-header rounding) and sets it here,
+ * so every server timestamp lines up with serverNow().
+ */
+export function setServerOffset(ms: number): void {
+  if (!Number.isFinite(ms)) return;
+  sharedOffset = Math.max(-MAX_OFFSET_MS, Math.min(MAX_OFFSET_MS, ms));
+}
+
 async function measureOffsetOnce(): Promise<number> {
   if (!SUPABASE_URL) return 0;
   try {

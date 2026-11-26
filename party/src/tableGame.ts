@@ -371,14 +371,31 @@ export class TableGame {
     this.sendLobby();
   }
 
-  /** The host starts the game with whoever is seated. */
-  start(pid: string): void {
+  /**
+   * The host starts the game. `seatList` is the host's frozen lobby (the
+   * Supabase room, host first): players on it who have not connected yet are
+   * seated anyway and take their seat when their checked join arrives.
+   * Without a list, whoever joined this table's lobby plays.
+   */
+  start(pid: string, seatList?: { pid: string; name: unknown }[]): void {
     const entry = this.seatOf(pid);
-    if (!entry || entry.seat !== 0) {
+    const hostListed = seatList ? seatList[0]?.pid === pid : true;
+    if (!entry || entry.seat !== 0 || !hostListed) {
       this.send(pid, { t: "error", reason: "host_only" });
       return;
     }
     if (this.started) return;
+    if (seatList) {
+      const seen = new Set<string>();
+      const list = seatList.filter((e) => !seen.has(e.pid) && seen.add(e.pid)).slice(0, TABLE_CAPACITY);
+      const lobbyName = new Map(this.seats.map((e) => [e.pid, e.display_name]));
+      this.seats = list.map((e, seat) => ({
+        seat,
+        pid: e.pid,
+        // A checked join's name wins over the host's copy of it.
+        display_name: lobbyName.get(e.pid) ?? cleanName(e.name, `Player ${seat + 1}`),
+      }));
+    }
     if (this.seats.length < 2) {
       this.send(pid, { t: "error", reason: "need_two_players" });
       return;
@@ -437,10 +454,15 @@ export class TableGame {
       seatCount: this.seats.length,
       names: this.seats.map((e) => e.display_name),
     });
-    // Liveness carries over a rematch: an absent seat is still absent.
+    // A seat with no phone connected gets the same grace as one that just
+    // left: skipped after 15 s, gone after 60 s. Phones still on their way
+    // in from the lobby arrive well inside that.
     for (const e of this.seats) {
-      if (!this.sockets.has(e.pid)) {
-        this.skippable.add(e.seat);
+      if (!this.sockets.has(e.pid) && !this.skippable.has(e.seat)) {
+        this.liveness.after(`drop:${e.seat}`, "seat_drop", HEARTBEAT_STALE_MS, () => {
+          this.skippable.add(e.seat);
+          this.applyLiveness();
+        });
         this.liveness.after(`gone:${e.seat}`, "seat_gone", HEARTBEAT_END_GAME_STALE_MS, () => {
           this.gone.add(e.seat);
           this.checkTableEmpty();

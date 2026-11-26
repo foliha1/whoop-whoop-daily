@@ -18,3 +18,12 @@ export const SIGN_IN_ENABLED = true;
  * each result and event, so switching this back on needs no other change.
  */
 export const STUDY_LEVELS_ENABLED = false;
+
+/**
+ * Together on the table server (PartyKit plan, step 5).
+ * "off":      every table runs on the host's phone, as before.
+ * "admins":   tables HOSTED by a signed-in admin run on the table server.
+ * "everyone": every table runs on the table server.
+ * The host decides for the whole table; other phones follow the host.
+ */
+export const TABLE_SERVER_MODE: "off" | "admins" | "everyone" = "admins";

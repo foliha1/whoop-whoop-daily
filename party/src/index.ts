@@ -22,7 +22,7 @@ type Env = SupabaseEnv & {
 type ClientMessage =
   | { t: "ping"; id: number; sentAt?: number }
   | { t: "join"; name?: string; roomId?: string; visitorId?: string; playerKey?: string }
-  | { t: "start" }
+  | { t: "start"; seats?: { pid?: unknown; name?: unknown }[] }
   | { t: "intent"; action: TableIntent; id?: string }
   | { t: "visibility"; hidden: boolean };
 
@@ -50,6 +50,16 @@ function readIntent(raw: unknown): TableIntent | null {
     return { type: a.type, idx: a.idx };
   }
   return { type: a.type } as TableIntent;
+}
+
+/** The host's frozen lobby: up to six { pid, name }, ids checked for shape. */
+function readSeatList(raw: unknown): { pid: string; name: unknown }[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const list = raw
+    .slice(0, 6)
+    .filter((e): e is { pid: string; name?: unknown } => !!e && typeof e.pid === "string" && PID_RE.test(e.pid))
+    .map((e) => ({ pid: e.pid, name: e.name }));
+  return list.length ? list : undefined;
 }
 
 export class Table extends Server<Env> {
@@ -191,7 +201,7 @@ export class Table extends Server<Env> {
       case "start":
         if (!verified) return this.reply(conn, "not_seated");
         if (!this.open && this.host?.pid !== pid) return this.reply(conn, "host_only");
-        game.start(pid);
+        game.start(pid, readSeatList(msg.seats));
         return;
       case "visibility":
         if (verified) game.visibility(pid, msg.hidden === true);

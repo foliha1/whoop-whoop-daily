@@ -266,9 +266,11 @@ describe("6. player_key never goes on the channel", () => {
     const rpcUses = win.match(/(joinRoomSessionSigned|fetchSignKeys)\([^)]*sessionKey/g) ?? [];
     expect(rpcUses.length).toBe(2);
     // Plus the server-only paths from security pass 2: release-lock (host
-    // hook), the claim arbiter (two game views) and the result save.
+    // hook), the claim arbiter (two game views) and the result save, and the
+    // table server check-in (useTableServer, PartyKit plan step 5), which sends
+    // it only over this tab's own socket to the table server.
     const serverOnly = win.match(/hostSessionKey: sessionKey|playerKey: sessionKey|playerKey=\{sessionKey\}/g) ?? [];
-    expect(serverOnly.length).toBe(4);
+    expect(serverOnly.length).toBe(5);
     // declaration + 2 matched RPC uses + member-name RPC + effect deps + the server-only paths
     expect(uses.length).toBe(6 + serverOnly.length);
   });

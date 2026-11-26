@@ -476,3 +476,53 @@ describe("seats and saving (step 4)", () => {
     expect(reports.map((r) => r.endReason)).toEqual(["table_empty"]);
   });
 });
+
+describe("starting from the host's lobby (step 5)", () => {
+  it("seats everyone on the host's list, even before their phones connect", () => {
+    const t = makeTable();
+    t.game.connect("host-bbbbb2");
+    t.game.join("host-bbbbb2", "Host", true);
+    t.game.start("host-bbbbb2", [
+      { pid: "host-bbbbb2", name: "Host" },
+      { pid: "guest-aaaa1", name: "Guest" },
+      { pid: "guest-aaaa1", name: "Dup" },
+    ]);
+    expect(t.game.isStarted).toBe(true);
+    expect(t.game.seatList.map((e) => [e.seat, e.pid, e.display_name])).toEqual([
+      [0, "host-bbbbb2", "Host"],
+      [1, "guest-aaaa1", "Guest"],
+    ]);
+    // The guest's phone arrives a moment later and takes its seat.
+    t.inbox.set("guest-aaaa1", []);
+    t.game.connect("guest-aaaa1");
+    t.game.join("guest-aaaa1", "Guest (checked)");
+    const got = t.inbox.get("guest-aaaa1")!;
+    expect(got.find((m) => m.t === "joined")).toMatchObject({ seat: 1 });
+    expect(got.some((m) => m.t === "state")).toBe(true);
+    t.clock.advance(20_000);
+    expect(t.game.isPaused).toBe(false);
+  });
+
+  it("a listed player who never arrives gets the normal grace, then the table pauses", () => {
+    const t = makeTable();
+    t.game.join("host-bbbbb2", "Host", true);
+    t.game.connect("host-bbbbb2");
+    t.game.start("host-bbbbb2", [
+      { pid: "host-bbbbb2", name: "Host" },
+      { pid: "guest-aaaa1", name: "Guest" },
+    ]);
+    t.clock.advance(14_000);
+    expect(t.game.isPaused).toBe(false);
+    t.clock.advance(1_000);
+    expect(t.game.isPaused).toBe(true);
+  });
+
+  it("only the host, listed first, can start", () => {
+    const t = makeTable();
+    t.game.join("host-bbbbb2", "Host", true);
+    t.game.join("guest-aaaa1", "Guest");
+    t.game.start("guest-aaaa1", [{ pid: "guest-aaaa1", name: "G" }, { pid: "host-bbbbb2", name: "H" }]);
+    t.game.start("host-bbbbb2", [{ pid: "guest-aaaa1", name: "G" }, { pid: "host-bbbbb2", name: "H" }]);
+    expect(t.game.isStarted).toBe(false);
+  });
+});

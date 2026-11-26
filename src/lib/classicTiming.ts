@@ -12,7 +12,8 @@
 import type { TimingProbe, TimingProbeAck } from "@/lib/multiplayer";
 import { browserFamily, isInstagramInApp, sampledGame, type BrowserFamily } from "@/lib/classicResponsiveness";
 
-export type TimingRole = "host" | "joiner";
+/** "table": any phone in a Together game run by the table server. */
+export type TimingRole = "host" | "joiner" | "table";
 
 export interface TimingSample {
   kind: "tap" | "frames";
@@ -42,12 +43,22 @@ let sender: Sender = (samples) => {
   ).catch(() => {});
 };
 
+let tableMode = false;
+/**
+ * Table-server games label every sample "table", whoever hosts, so the
+ * before (host phone) and after (table server) numbers never mix.
+ */
+export function setTimingTableMode(on: boolean): void {
+  tableMode = on;
+  if (on && gameKey) role = "table";
+}
+
 /** Decide sampling once per game. */
 export function beginTimingGame(id: string, r: TimingRole, rand = Math.random()): void {
   if (id === gameKey) return;
   flushTiming();
   gameKey = id;
-  role = r;
+  role = tableMode ? "table" : r;
   sampled = !!id && sampledGame(rand);
 }
 
@@ -137,7 +148,9 @@ export const joinerTimingProbe = {
 
 /** Host's own taps: tap → local paint (no network leg). */
 export function recordHostTap(tapAt: number): void {
-  if (!sampled) return;
+  // On the table server the host is just another phone: its flips are timed
+  // through the server like everyone's (noteTableFlip*).
+  if (!sampled || tableMode) return;
   const done = () => {
     const t = nowFn();
     recordTiming({ kind: "tap", surface: "flip", tap_to_host_ms: 0, host_to_send_ms: 0, send_to_paint_ms: Math.round(t - tapAt), total_ms: Math.round(t - tapAt) });
@@ -252,4 +265,40 @@ export function watchFrames(surface: "pulse" | "roll"): () => void {
       dropped_frames: dropped,
     });
   };
+}
+
+// ---- table server flips (PartyKit plan, step 5) ----
+// tap → server receipt (ack.recvAt) → server state send (state.serverNow) →
+// this phone paints the face. Same stages as the joiner probe above.
+let tableFlip: { idx: number; tapAt: number; recvAt: number | null } | null = null;
+
+export function noteTableFlipTap(idx: number, tapAt: number): void {
+  if (!sampled) return;
+  tableFlip = { idx, tapAt, recvAt: null };
+}
+
+export function noteTableFlipAck(recvAt: number, accepted: boolean): void {
+  if (!tableFlip) return;
+  if (!accepted) tableFlip = null;
+  else tableFlip.recvAt = recvAt;
+}
+
+/** A state arrived. If it shows the flipped card, time the paint. */
+export function noteTableFlipState(peekingCard: number | null, sentAt: number): void {
+  const f = tableFlip;
+  if (!f || f.recvAt === null || peekingCard !== f.idx) return;
+  tableFlip = null;
+  const paint = () => {
+    const paintAt = nowFn();
+    recordTiming({
+      kind: "tap",
+      surface: "flip",
+      tap_to_host_ms: Math.round((f.recvAt as number) - f.tapAt),
+      host_to_send_ms: Math.round(sentAt - (f.recvAt as number)),
+      send_to_paint_ms: Math.round(paintAt - sentAt),
+      total_ms: Math.round(paintAt - f.tapAt),
+    });
+  };
+  if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => paint());
+  else paint();
 }

@@ -63,7 +63,7 @@ import RollHeroOverlay, { TUMBLE_MS } from "@/components/RollHeroOverlay";
 import { CLASSIC_ACTION_ROW_HEIGHT } from "@/lib/layout";
 import { MATCH_ART_SRC } from "@/components/MatchDie";
 import type { Card } from "@/cardData";
-import { callClaimLock } from "@/lib/claimLock";
+import { callClaimLock, type ClaimLockResult } from "@/lib/claimLock";
 import {
   playFlip, playDiceRoll, playWhoopCall, playCorrect, playWrong, playDeal,
   playSelect, playDeselect, playDieLand, playRoundAdvance,
@@ -147,6 +147,12 @@ interface Props {
   /** Shares the table link the same way the lobby's Share button does.
    *  Omitted in solo, where there is no table to invite anyone to. */
   onInvite?: () => void;
+  /**
+   * Together on the table server: WHOOP! WHOOP! asks the server instead of
+   * the claim-lock referee. Same answer shape, so the optimistic claim flow
+   * is unchanged. Omitted: the referee, as before.
+   */
+  claim?: (claimWindow: number) => Promise<ClaimLockResult>;
 }
 
 // -------- Figma-transcribed constants --------
@@ -965,7 +971,7 @@ const DebugControls: React.FC<{
 
 const MultiplayerGameView: React.FC<Props> = ({
   publicState: s, mySeat, events = [], rollCommit = null, lastClaimReject = null, onIntent, onLeave, mobile = false, roomId, visitorId, browserId = "", playerKey, isHost, presenceVisitorIds,
-  heartbeatStale, awaySkip, hostDisconnectedSeats, presenceStatus, soloMode = false, onInvite,
+  heartbeatStale, awaySkip, hostDisconnectedSeats, presenceStatus, soloMode = false, onInvite, claim,
 }) => {
   const umbrella = useUmbrella();
   useTogetherStatsRecorder(s, mySeat, umbrella && !soloMode);
@@ -1773,14 +1779,16 @@ const MultiplayerGameView: React.FC<Props> = ({
       let result: Awaited<ReturnType<typeof callClaimLock>>;
       if (!soloMode) noteClaimTap(mySeat, serverNow());
       try {
-        result = await callClaimLock({
-          room_id: roomId,
-          game_id: s.gameId,
-          claim_window: window_,
-          player_seat: mySeat,
-          visitor_id: browserId,
-          player_key: playerKey,
-        });
+        result = claim
+          ? await claim(window_)
+          : await callClaimLock({
+              room_id: roomId,
+              game_id: s.gameId,
+              claim_window: window_,
+              player_seat: mySeat,
+              visitor_id: browserId,
+              player_key: playerKey,
+            });
       } catch (error) {
         result = { outcome: "unknown", won: false, winner_seat: null, claim_window: window_, error };
       } finally {
