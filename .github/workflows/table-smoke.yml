@@ -1,0 +1,37 @@
+# Live check of the table server: a throwaway room, two scripted phones,
+# and the server's own logs. Run by hand from the Actions tab.
+name: Table server smoke test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: party
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: party/package-lock.json
+      - run: npm ci
+      - name: Read public Supabase values from the server config
+        run: |
+          echo "SUPABASE_URL=$(node -e "const s=require('fs').readFileSync('wrangler.jsonc','utf8');console.log(s.match(/\"SUPABASE_URL\": \"([^\"]+)/)[1])")" >> $GITHUB_ENV
+          echo "SUPABASE_ANON_KEY=$(node -e "const s=require('fs').readFileSync('wrangler.jsonc','utf8');console.log(s.match(/\"SUPABASE_ANON_KEY\": \"([^\"]+)/)[1])")" >> $GITHUB_ENV
+      - name: Server logs (background)
+        run: |
+          (timeout 45 npx wrangler tail whoop-whoop-tables --format pretty > tail.log 2>&1 &)
+          sleep 8
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Smoke
+        run: node scripts/smoke.mjs
+      - name: Print server logs
+        if: always()
+        run: sleep 20; cat tail.log || true
