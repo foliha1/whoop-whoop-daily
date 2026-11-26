@@ -29,7 +29,7 @@
 - The launched umbrella Home reuses the Classic idle entry frame; Home-only destinations extend that frame rather than creating a separate layout.
 - The Home plain-logo motion is a checked-in crop of the Classic Lottie with its suffix asset removed, so runtime code only loads final variants.
 
-- The Daily board renders its Home/Leave control inline, square above the header and left aligned with the grid (HomeControl placement="inline"), in a slot it always reserves; the fixed corner control is used only when the board is off screen. Peek takes the width and x of the black field inside the right-hand card (13.5/180 inset), via --ww-board-card-w.
+- The Daily board and the Daily How to Play share one status bar (src/components/DailyStatusBar.tsx): grid-wide, one card gap above the grid, card surface/radius/resting shadow, fixed 44px slots left (Home before Start, dark Leave X during a run, HomeControl placement="inline" so it stays above the start scrim) and right (Peek), so the centred round/rule/misses never shift; the fixed corner control is used only when the board is off screen.
 - Classic in-game controls use the shared 44px header slot: launch ON orders Leave, readout, Settings; launch OFF preserves readout, Settings, Leave.
 - The launched Daily holds the engine in READY behind a non-dismissible start dialog; only its Start action enters the existing deal/study sequence, so pre-start exits never create attempts.
 - The Daily's pre-start HUD shows no round rule (src/pages/DailyPage.tsx readout returns a blank for READY), because the seeded roll is already known before Start and the memorize phase depends on it staying unseen.

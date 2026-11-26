@@ -76,7 +76,7 @@ describe("Daily tutorial integration", () => {
   it("keeps every region unmasked until the step's animation has finished", () => {
     render(<DailyDemo {...props()} />);
     next();
-    const peek = () => screen.getByText("Peek (5s)").closest("div[style*='opacity']") as HTMLElement;
+    const peek = () => screen.getByText("Peek").closest("div[style*='opacity']") as HTMLElement;
     act(() => { vi.advanceTimersByTime(600); });
     expect(peek().style.opacity).toBe("1");
     act(() => { vi.advanceTimersByTime(12000); });

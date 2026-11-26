@@ -104,7 +104,7 @@ describe("Part 3 Home control", () => {
     // Off the board (ready screen) the corner control shows; on the board it
     // sits inline above the header: Home before Start, Leave during a run.
     expect(daily).toContain("{umbrella && !finished && ready ? <HomeControl /> : null}");
-    expect(daily).toContain("control={umbrella ? boardControl : undefined}");
+    expect(daily).toContain("control={umbrella ? boardControl : null}");
     expect(daily).toContain('!finished && phase === "READY" ? (\n      <HomeControl placement="inline" />');
     expect(daily).toContain("!finished && daily.result === null && runInProgress(state) ? (");
     expect(src("src/components/MultiplayerWindow.tsx")).toContain("umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null");

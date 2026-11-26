@@ -7,6 +7,7 @@ import GameCard from "@/components/GameCard";
 import { MatchGhostCard, useMatchGhostStage } from "@/components/matchGhostParts";
 import { ALL_CARDS, type Card } from "@/cardData";
 import DailyMissTracker from "@/components/DailyMissTracker";
+import DailyStatusBar, { peekButtonStyle } from "@/components/DailyStatusBar";
 import DailyRoundIntro, { DAILY_FADE_IN_MS, DAILY_ROLL_HERO_MS } from "@/components/DailyRoundIntro";
 import { getDailyNumber } from "@/lib/daily";
 import { DAILY_ROUNDS, MISSES_PER_ROUND, PEEK_MS, STUDY_MS } from "@/lib/dailyEngine";
@@ -230,23 +231,30 @@ export default function DailyDemo({ mode, onStart, onClose }: DailyDemoProps) {
         </div>
         <CloseButton label="Skip" ariaLabel={mode === "gate" ? "Skip how to play and continue" : "Close how to play"} onClick={dismiss} />
       </div>
-      {/* The live board's header: round caption, readout, miss dots, Peek. */}
-      <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: SPACE[3], width: boardWidth, maxWidth: "100%", alignSelf: "center" }}>
-        <div style={{ flex: "1 1 auto", minWidth: 0 }}>
-          <div style={{ ...textStyle("caption", true), color: COLORS.inkMuted }}>Round {step === 2 && scene.roll ? scene.roll : 1} of {DAILY_ROUNDS}</div>
-          <Spot on={lit("readout") || lit("board") && step === 1}>
-            <div data-testid="daily-demo-readout" style={{ ...textStyle("title", true), color: COLORS.ink, fontVariantNumeric: "tabular-nums", minHeight: "1.2em" }}>{readout}</div>
-          </Spot>
-          <Spot on={lit("misses")} style={{ marginTop: SPACE[2], display: "inline-block" }}>
-            <DailyMissTracker used={scene.misses} />
-          </Spot>
-        </div>
-        <Spot on={lit("peek")} style={{ flex: "0 0 auto" }}>
-          <button type="button" tabIndex={-1} aria-hidden="true" disabled style={{ ...buttonStyle("secondary", "sm", { mobile: true, disabled: scene.peekSpent }), whiteSpace: "nowrap", pointerEvents: "none" }}>{scene.peekSpent ? "Peek Used" : "Peek (5s)"}</button>
-        </Spot>
+      {/* The live board's status bar: round caption, readout, miss dots, Peek. */}
+      <div style={{ flex: "none", width: boardWidth, maxWidth: "100%", alignSelf: "center" }}>
+        <DailyStatusBar
+          control={null}
+          caption={<>Round {step === 2 && scene.roll ? scene.roll : 1} of {DAILY_ROUNDS}</>}
+          title={
+            <Spot on={lit("readout") || lit("board") && step === 1}>
+              <div data-testid="daily-demo-readout" style={{ ...textStyle("title", false), lineHeight: 1.1, color: COLORS.ink, fontVariantNumeric: "tabular-nums", minHeight: "1.1em", whiteSpace: "nowrap" }}>{readout}</div>
+            </Spot>
+          }
+          misses={
+            <Spot on={lit("misses")} style={{ display: "inline-block" }}>
+              <DailyMissTracker used={scene.misses} />
+            </Spot>
+          }
+          peek={
+            <Spot on={lit("peek")} style={{ flex: "0 0 auto" }}>
+              <button type="button" tabIndex={-1} aria-hidden="true" disabled style={{ ...peekButtonStyle(scene.peekSpent), pointerEvents: "none" }}>Peek</button>
+            </Spot>
+          }
+        />
       </div>
       <DemoSpotlight active={lit("board") || lit("misses")} instant={reduced} style={{ flex: "1 1 auto", minHeight: 190, position: "relative", marginBottom: SPACE[4] }}>
-        <div ref={board} style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
+        <div ref={board} style={{ position: "absolute", inset: 0, display: "grid", placeItems: "start center" }}>
         <div data-testid="daily-demo-board" aria-hidden="true" style={{ width: boardWidth, maxWidth: "100%", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: BOARD_GAP }}>
           {DAILY_DEMO_CARDS.map((card, i) => <div key={card.id} style={{ aspectRatio: "5 / 7", position: "relative" }}>
             {scene.removed.includes(i) ? <div style={{ height: "100%", borderRadius: RADIUS.sm, border: `2px dashed ${COLORS.inkMuted}`, opacity: 0.25 }} /> : <>

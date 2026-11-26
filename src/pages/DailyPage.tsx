@@ -4,7 +4,8 @@ import { DEFAULT_STUDY_LEVEL, type StudyLevel } from "@/lib/studyLevels";
 import { STUDY_LEVELS_ENABLED } from "@/lib/featureFlags";
 import { DAILY_100_NUMBER, dailyTitle, hasDaily100Keepsake } from "@/lib/daily100";
 import { useLocation, useNavigate } from "react-router-dom";
-import HomeControl, { HOME_CONTROL_SIZE } from "@/components/HomeControl";
+import HomeControl from "@/components/HomeControl";
+import DailyStatusBar, { STATUS_BAR_H, peekButtonStyle } from "@/components/DailyStatusBar";
 import DailyLeaveDialog from "@/components/DailyLeaveDialog";
 import DailyStartDialog from "@/components/DailyStartDialog";
 import { runInProgress } from "@/lib/dailyForfeit";
@@ -1199,16 +1200,8 @@ const BOARD_COLS = 3;
 const BOARD_GAP = 8;
 const BOARD_RATIO = 7 / 5; // card height / card width
 const BOARD_MIN_CARD_W = 44;
-// Header block: caption (14 x 1.4) + title (26 x 1.25) + gap 8 + miss dots 10.
-const BOARD_HEADER_H = 70;
-/** Space between the exit control, the header and the grid. */
-const BOARD_STACK_GAP = SPACE[8];
-/**
- * The black field inside the card art starts 13.5 of 180 units in from each
- * side (src/assets/cards/*.svg). Peek matches it so the button lines up with
- * the inside of the right-hand card at every size.
- */
-const CARD_FIELD_INSET = 13.5 / 180;
+// The status bar sits one card gap above the grid and is as wide as it.
+const BOARD_HEADER_H = STATUS_BAR_H;
 
 /** Space kept clear around the board for the card shadow (src/lib/cardLift.ts). */
 const SHADOW_ROOM_X = 4;
@@ -1216,12 +1209,10 @@ const SHADOW_ROOM_Y = 12;
 
 const DailyBoard: React.FC<{
   rows: number;
-  /** Round status, misses and Peek travel with the grid as one centered group. */
+  /** The status bar (exit, round, rule, misses, Peek) travels with the grid. */
   header?: React.ReactNode;
-  /** The exit control, square above the header, left aligned with the grid. */
-  control?: React.ReactNode;
   children: React.ReactNode;
-}> = ({ rows, header, control, children }) => {
+}> = ({ rows, header, children }) => {
   const ref = React.useRef<HTMLDivElement | null>(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
 
@@ -1253,9 +1244,7 @@ const DailyBoard: React.FC<{
       : typeof window !== "undefined" && window.innerHeight > 0
       ? window.innerHeight
       : 0;
-  const headerReserve =
-    (header ? BOARD_HEADER_H + BOARD_STACK_GAP : 0) +
-    (control !== undefined ? HOME_CONTROL_SIZE + BOARD_STACK_GAP : 0);
+  const headerReserve = header ? BOARD_HEADER_H + BOARD_GAP : 0;
   const byHeight =
     (availH - SHADOW_ROOM_Y - headerReserve - (rows - 1) * BOARD_GAP) / rows / BOARD_RATIO;
   const raw = availH > 0 ? Math.min(byWidth, byHeight) : byWidth;
@@ -1283,17 +1272,9 @@ const DailyBoard: React.FC<{
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: BOARD_STACK_GAP,
-          ["--ww-board-card-w" as string]: `${cardW}px`,
+          gap: BOARD_GAP,
         }}
       >
-        {control !== undefined ? (
-          // Always reserves the slot, so the board never shifts when the
-          // control changes from Home to Leave or goes away at the end.
-          <div style={{ width: gridW, height: HOME_CONTROL_SIZE, flex: "0 0 auto", display: "flex" }}>
-            {control}
-          </div>
-        ) : null}
         {header ? <div style={{ width: gridW, flex: "0 0 auto" }}>{header}</div> : null}
         <div
           style={{
@@ -1764,7 +1745,7 @@ const DailyPage: React.FC = () => {
     !finished && phase === "READY" ? (
       <HomeControl placement="inline" />
     ) : !finished && daily.result === null && runInProgress(state) ? (
-      <HomeControl placement="inline" kind="leave" onLeave={() => { hapticTap(); setLeaveOpen(true); }} />
+      <HomeControl placement="inline" kind="leave" tone="dark" onLeave={() => { hapticTap(); setLeaveOpen(true); }} />
     ) : null;
 
   const readout = (() => {
@@ -2089,68 +2070,29 @@ const DailyPage: React.FC = () => {
 
               <DailyBoard
                 rows={Math.max(1, Math.ceil(state.grid.length / 3))}
-                control={umbrella ? boardControl : undefined}
                 header={
-                  <div
-                    data-testid="daily-gameplay-status"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: SPACE[3],
-                      width: "100%",
-                    }}
-                  >
-                    <div style={{ flex: "1 1 auto", minWidth: 0 }}>
-                      <div style={{ ...textStyle("caption", mobile), color: COLORS.inkMuted }}>
-                        Round {state.roundIndex} of {DAILY_ROUNDS}
-                      </div>
-                      <div
-                        aria-live="polite"
-                        style={{
-                          // One size on every screen: the board's headline.
-                          ...textStyle("title", false),
-                          color: COLORS.ink,
-                          fontVariantNumeric: "tabular-nums",
-                          minHeight: "1.25em",
+                  <DailyStatusBar
+                    testId="daily-gameplay-status"
+                    control={umbrella ? boardControl : null}
+                    caption={<>Round {state.roundIndex} of {DAILY_ROUNDS}</>}
+                    title={readout}
+                    misses={<MissTracker used={state.roundMisses} />}
+                    peek={
+                      <button
+                        type="button"
+                        className="ww-press"
+                        disabled={!daily.canPeek}
+                        aria-label={state.peekUsed ? "Peek used" : "Peek for 5 seconds"}
+                        onClick={() => {
+                          hapticTap();
+                          daily.peek();
                         }}
+                        style={peekButtonStyle(!daily.canPeek)}
                       >
-                        {readout}
-                      </div>
-                      <div style={{ marginTop: SPACE[4] }}>
-                        <MissTracker used={state.roundMisses} />
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      className="ww-press"
-                      disabled={!daily.canPeek}
-                      onClick={() => {
-                        hapticTap();
-                        daily.peek();
-                      }}
-                      style={{
-                        ...buttonStyle("secondary", "md", {
-                          mobile,
-                          disabled: !daily.canPeek,
-                        }),
-                        // Same width and x as the black field inside the
-                        // right-hand card, at every board size.
-                        width: `calc(var(--ww-board-card-w) * ${1 - 2 * CARD_FIELD_INSET})`,
-                        marginRight: `calc(var(--ww-board-card-w) * ${CARD_FIELD_INSET})`,
-                        minWidth: 0,
-                        height: HOME_CONTROL_SIZE,
-                        minHeight: HOME_CONTROL_SIZE,
-                        padding: `0 ${SPACE[2]}px`,
-                        boxSizing: "border-box",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        flex: "0 0 auto",
-                      }}
-                    >
-                      {state.peekUsed ? "Peek Used" : "Peek (5s)"}
-                    </button>
-                  </div>
+                        Peek
+                      </button>
+                    }
+                  />
                 }
               >
                 {state.grid.map((card, idx) => (

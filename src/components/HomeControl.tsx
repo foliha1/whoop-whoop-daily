@@ -27,7 +27,9 @@ const HomeControl: React.FC<{
    * stays above the start dialog's scrim.
    */
   placement?: "corner" | "inline";
-}> = ({ kind = "home", onLeave, placement = "corner" }) => {
+  /** Leave only: "dark" draws the X like the Home box (ink fill, cream icon). */
+  tone?: "danger" | "dark";
+}> = ({ kind = "home", onLeave, placement = "corner", tone = "danger" }) => {
   const navigate = useNavigate();
   const leave = kind === "leave";
   return (
@@ -55,7 +57,7 @@ const HomeControl: React.FC<{
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        ...(leave
+        ...(leave && tone === "danger"
           ? { ...buttonStyle("danger", "md"), width: HOME_CONTROL_SIZE, height: HOME_CONTROL_SIZE, padding: 0 }
           : { background: COLORS.ink, color: COLORS.surface, border: BORDER.heavy, borderRadius: RADIUS.sm }),
       }}
