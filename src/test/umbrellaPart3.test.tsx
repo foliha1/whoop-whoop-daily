@@ -101,8 +101,12 @@ describe("Part 3 Home control", () => {
 
   it("mounts Home controls only when ON and never over finished results", () => {
     const daily = src("src/pages/DailyPage.tsx");
-    expect(daily).toContain('{umbrella && !finished && (ready || phase === "READY") ? <HomeControl /> : null}');
-    expect(daily).toContain("umbrella && !ready && !finished && daily.result === null && runInProgress(state)");
+    // Off the board (ready screen) the corner control shows; on the board it
+    // sits inline above the header: Home before Start, Leave during a run.
+    expect(daily).toContain("{umbrella && !finished && ready ? <HomeControl /> : null}");
+    expect(daily).toContain("control={umbrella ? boardControl : undefined}");
+    expect(daily).toContain('!finished && phase === "READY" ? (\n      <HomeControl placement="inline" />');
+    expect(daily).toContain("!finished && daily.result === null && runInProgress(state) ? (");
     expect(src("src/components/MultiplayerWindow.tsx")).toContain("umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null");
     expect(src("src/components/SiteHeader.tsx")).toContain("umbrella && !onLeave ?");
   });

@@ -61,7 +61,7 @@ vi.mock("lottie-react", () => ({ default: () => null }));
 import DailyPage from "@/pages/DailyPage";
 
 const SEED = "whoop-test-ready-readout";
-const RULES = ["Match the shape", "Match the number", "Match the color"];
+const RULES = ["Match the Shape", "Match the Number", "Match the Color"];
 
 const tick = async (ms: number) => {
   await act(async () => {

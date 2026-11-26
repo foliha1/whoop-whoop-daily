@@ -47,7 +47,7 @@ type Rule = "SHAPE" | "NUMBER" | "COLOR";
 type Scene = { face: number[]; selected: number[]; removed: number[]; wrong: number[]; ghost: boolean; seconds: number | null; rule: Rule | null; peekSpent: boolean; peeking: boolean; dealing: boolean; misses: number; roll: number; rolling: boolean; settled: boolean };
 const blank = (): Scene => ({ face: [], selected: [], removed: [], wrong: [], ghost: false, seconds: null, rule: null, peekSpent: false, peeking: false, dealing: false, misses: 0, roll: 0, rolling: false, settled: false });
 // Same labels as the live board's readout.
-const RULE_LABEL: Record<Rule, string> = { SHAPE: "Match the shape", NUMBER: "Match the number", COLOR: "Match the color" };
+const RULE_LABEL: Record<Rule, string> = { SHAPE: "Match the Shape", NUMBER: "Match the Number", COLOR: "Match the Color" };
 /** Gap between cards on the live board. */
 const BOARD_GAP = 8;
 /** The live board's claim-resolution beat between the second tap and the reveal. */
@@ -233,7 +233,7 @@ export default function DailyDemo({ mode, onStart, onClose }: DailyDemoProps) {
       {/* The live board's header: round caption, readout, miss dots, Peek. */}
       <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: SPACE[3], width: boardWidth, maxWidth: "100%", alignSelf: "center" }}>
         <div style={{ flex: "1 1 auto", minWidth: 0 }}>
-          <div style={{ ...textStyle("caption", true), color: COLORS.inkMuted }}>Round {step === 2 && scene.roll ? scene.roll : 1} of {DAILY_ROUNDS} · {EVERY.length - scene.removed.length} cards</div>
+          <div style={{ ...textStyle("caption", true), color: COLORS.inkMuted }}>Round {step === 2 && scene.roll ? scene.roll : 1} of {DAILY_ROUNDS}</div>
           <Spot on={lit("readout") || lit("board") && step === 1}>
             <div data-testid="daily-demo-readout" style={{ ...textStyle("title", true), color: COLORS.ink, fontVariantNumeric: "tabular-nums", minHeight: "1.2em" }}>{readout}</div>
           </Spot>

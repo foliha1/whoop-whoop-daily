@@ -21,7 +21,13 @@ const HomeControl: React.FC<{
   kind?: "home" | "leave";
   /** Leave only: opens the caller's confirmation. */
   onLeave?: () => void;
-}> = ({ kind = "home", onLeave }) => {
+  /**
+   * "inline" sits in the page's own layout instead of the fixed corner (the
+   * Daily board puts it square above its header). It keeps the same box and
+   * stays above the start dialog's scrim.
+   */
+  placement?: "corner" | "inline";
+}> = ({ kind = "home", onLeave, placement = "corner" }) => {
   const navigate = useNavigate();
   const leave = kind === "leave";
   return (
@@ -32,10 +38,15 @@ const HomeControl: React.FC<{
       aria-label={leave ? "Leave today's Daily" : "Home"}
       onClick={() => (leave ? onLeave?.() : navigate("/"))}
       style={{
-        position: "fixed",
-        top: "calc(env(safe-area-inset-top) + 12px)",
-        left: "calc(env(safe-area-inset-left) + 12px)",
+        ...(placement === "inline"
+          ? { position: "relative" as const }
+          : {
+              position: "fixed" as const,
+              top: "calc(env(safe-area-inset-top) + 12px)",
+              left: "calc(env(safe-area-inset-left) + 12px)",
+            }),
         zIndex: 60,
+        flex: "0 0 auto",
         width: HOME_CONTROL_SIZE,
         height: HOME_CONTROL_SIZE,
         boxSizing: "border-box",
