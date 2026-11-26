@@ -56,8 +56,8 @@ const guestKey = rid();
 const room = (await rpc("create_room", { p_visitor_id: hostV }))?.[0];
 if (!room) throw new Error("create_room failed");
 console.log(`ROOM_CODE=${room.room_code} ROOM_ID=${room.id}`);
-const h = (await rpc("join_room_session", { p_room_id: room.id, p_visitor_id: hostV, p_player_key: hostKey, p_sign_pubkey: await pubkey(), p_display_name: "Smoke Host" }))?.[0];
-const g = (await rpc("join_room_session", { p_room_id: room.id, p_visitor_id: guestV, p_player_key: guestKey, p_sign_pubkey: await pubkey(), p_display_name: "Smoke Guest" }))?.[0];
+const h = (await rpc("join_room_session", { p_room_id: room.id, p_visitor_id: hostV, p_player_key: hostKey, p_sign_pubkey: await pubkey(), p_display_name: "SMOKEA" }))?.[0];
+const g = (await rpc("join_room_session", { p_room_id: room.id, p_visitor_id: guestV, p_player_key: guestKey, p_sign_pubkey: await pubkey(), p_display_name: "SMOKEB" }))?.[0];
 console.log("host", h, "guest", g);
 await rpc("table_member", { p_room_id: room.id, p_visitor_id: hostV, p_player_key: hostKey });
 
