@@ -53,7 +53,7 @@ import {
 import {
   claimWindowLive, presentationElapsed, shouldClearTapAck, type TapAck,
 } from "@/lib/classicResponsiveness";
-import { beginTimingGame, flushTiming, recordHostTap, setTimingClock, watchFrames } from "@/lib/classicTiming";
+import { beginTimingGame, flushTiming, noteClaimSeen, noteClaimTap, noteClaimVerdict, recordHostTap, setTimingClock, watchFrames } from "@/lib/classicTiming";
 import { SETTLE_MATCH_MS, SETTLE_WRONG_MS } from "@/hooks/useGameState";
 import DailyMatchGhost, { type GhostCard } from "@/components/DailyMatchGhost";
 import { serverNow } from "@/hooks/useServerClock";
@@ -1663,6 +1663,13 @@ const MultiplayerGameView: React.FC<Props> = ({
     beginTimingGame(s.gameId, isHost ? "host" : "joiner");
   }, [s.gameId, isHost, soloMode]);
   React.useEffect(() => { if (s.phase === "GAME_OVER") flushTiming(); }, [s.phase]);
+  // Another player's claim reaching this screen (claim timing, plan step 1).
+  React.useEffect(() => {
+    if (soloMode || s.claimBy === null || s.claimBy === mySeat) return;
+    const seat = s.claimBy;
+    const raf = requestAnimationFrame(() => noteClaimSeen(seat, serverNow()));
+    return () => cancelAnimationFrame(raf);
+  }, [s.claimBy, mySeat, soloMode]);
 
   const handleCardClick = (i: number) => {
     if (mySeat === null) return;
@@ -1764,6 +1771,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       cancelPendingRef.current = false;
       preGrantPairRef.current = null;
       let result: Awaited<ReturnType<typeof callClaimLock>>;
+      if (!soloMode) noteClaimTap(mySeat, serverNow());
       try {
         result = await callClaimLock({
           room_id: roomId,
@@ -1778,6 +1786,7 @@ const MultiplayerGameView: React.FC<Props> = ({
       } finally {
         // Always released, so a failed or slow call can never lock WHOOP.
         setClaimBusy(false);
+        if (!soloMode) noteClaimVerdict(serverNow());
       }
       // Tri-state. ONLY an explicit arbiter verdict naming another seat is a
       // loss. A transport failure is "unknown": we keep our optimistic claim

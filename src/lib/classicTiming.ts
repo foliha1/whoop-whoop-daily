@@ -19,7 +19,7 @@ export interface TimingSample {
   role: TimingRole;
   browser: BrowserFamily;
   ig: boolean;
-  surface: "flip" | "pulse" | "roll";
+  surface: "flip" | "pulse" | "roll" | "claim" | "claim_seen";
   tap_to_host_ms?: number;
   host_to_send_ms?: number;
   send_to_paint_ms?: number;
@@ -144,6 +144,62 @@ export function recordHostTap(tapAt: number): void {
   };
   if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => done());
   else done();
+}
+
+// ---- claims (PartyKit plan, step 1: the "before" numbers) ----
+//
+//   claim       on the claimer's phone. tap_to_host_ms = tap → the referee's
+//               granted_at (one way, server clock); total_ms = tap → the
+//               referee's answer back on this phone.
+//   claim_seen  on every OTHER phone (host included). tap_to_host_ms =
+//               granted_at → the grant arriving here; send_to_paint_ms =
+//               grant arrival → the claim painted here; total_ms = granted_at
+//               → painted. Add a claim's tap_to_host_ms for the full trip.
+const claimGrants = new Map<number, { grantedAt: number; arrival: number }>();
+let myClaim: { seat: number; tapAt: number; grantedAt?: number } | null = null;
+const CLAIM_VERDICT_SETTLE_MS = 1000;
+
+/** The claimer tapped WHOOP! WHOOP! (server-clock time). */
+export function noteClaimTap(seat: number, tapAt: number): void {
+  if (!sampled) return;
+  myClaim = { seat, tapAt };
+}
+
+/** A claim grant arrived on this phone (every phone hears it). */
+export function noteClaimGrant(seat: number, grantedAt: number | undefined, arrival: number): void {
+  if (!sampled || !grantedAt) return;
+  claimGrants.set(seat, { grantedAt, arrival });
+  if (myClaim && myClaim.seat === seat && myClaim.grantedAt === undefined) myClaim.grantedAt = grantedAt;
+}
+
+/** The referee answered the claimer. Waits a beat for its grant broadcast. */
+export function noteClaimVerdict(answeredAt: number): void {
+  if (!sampled || !myClaim) return;
+  const c = myClaim;
+  setTimeout(() => {
+    if (myClaim === c) myClaim = null;
+    recordTiming({
+      kind: "tap",
+      surface: "claim",
+      ...(c.grantedAt !== undefined ? { tap_to_host_ms: Math.round(c.grantedAt - c.tapAt) } : {}),
+      total_ms: Math.round(answeredAt - c.tapAt),
+    });
+  }, CLAIM_VERDICT_SETTLE_MS);
+}
+
+/** Another seat's claim was painted on this phone. */
+export function noteClaimSeen(seat: number, paintAt: number): void {
+  if (!sampled) return;
+  const g = claimGrants.get(seat);
+  claimGrants.delete(seat);
+  if (!g || paintAt - g.grantedAt > 10_000) return;
+  recordTiming({
+    kind: "tap",
+    surface: "claim_seen",
+    tap_to_host_ms: Math.round(g.arrival - g.grantedAt),
+    send_to_paint_ms: Math.round(paintAt - g.arrival),
+    total_ms: Math.round(paintAt - g.grantedAt),
+  });
 }
 
 // ---- frame monitoring during the board pulse and the die roll ----

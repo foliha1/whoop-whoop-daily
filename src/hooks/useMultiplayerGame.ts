@@ -47,7 +47,7 @@ import { serverNow, getServerOffset } from "@/hooks/useServerClock";
 import { isTumbleOnly, planResume, type QueuedMessage } from "@/lib/classicResponsiveness";
 import type { DeadlineQueue } from "@/lib/hostDeadlines";
 import { RESUME_INBOX_FLUSH_MS } from "@/lib/animationTiming";
-import { hostTimingProbe, joinerTimingProbe } from "@/lib/classicTiming";
+import { hostTimingProbe, joinerTimingProbe, noteClaimGrant } from "@/lib/classicTiming";
 import { warmClaimLock } from "@/lib/claimLock";
 import { SnapshotOrder, decideGrant, grantKey, mayRoll } from "@/lib/classicReliability";
 import { NonceStore, randomNonce } from "@/lib/channelSigning";
@@ -615,6 +615,7 @@ export function useMultiplayerHost(opts: {
       const env = msg.payload as Envelope;
       if (!env || env.v !== PROTOCOL_VERSION || env.type !== "claim_grant") return;
       const grant = (env as ClaimGrantEnvelope).payload;
+      noteClaimGrant(grant.seat, grant.granted_at, serverNow());
       if (enqueueIfResuming("grant", grant.granted_at, () => processGrant(grant))) return;
       processGrant(grant);
     };
@@ -882,6 +883,11 @@ export function useMultiplayerJoiner(opts: {
       } else if (env.type === "roll_committed") {
         // Latest commit wins — game only ever has one pending roll.
         setRollCommit(env.payload);
+      } else if (env.type === "claim_grant") {
+        // Joiners take the winner from the host's next state; the grant is
+        // only noted here for claim timing.
+        const grant = (env as ClaimGrantEnvelope).payload;
+        noteClaimGrant(grant.seat, grant.granted_at, serverNow());
       } else if (env.type === "claim_reject") {
         // Host dropped a claim grant due to a claim_window mismatch.
         // Surface locally; MultiplayerGameView filters by seat===mySeat.
