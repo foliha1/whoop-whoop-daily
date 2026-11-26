@@ -2040,7 +2040,7 @@ const DailyPage: React.FC = () => {
           </>
         )}
         {!ready && (
-        <DailyFrame gap={SPACE[4]} pad={finished || awaitingRequestedResult ? 24 : mobile ? 12 : 8} railGap={0} fill={!finished && !awaitingRequestedResult} tone={finished || awaitingRequestedResult ? "surface" : "panel"} topControl={umbrella} noRails contentMaxWidth={420}>
+        <DailyFrame gap={SPACE[4]} pad={finished || awaitingRequestedResult ? 24 : mobile ? 12 : 8} railGap={0} fill={!finished && !awaitingRequestedResult} tone={finished || awaitingRequestedResult ? "surface" : "panel"} topControl={umbrella && ready} noRails contentMaxWidth={420}>
 
           {finished ? (
             <DailyResultCard
