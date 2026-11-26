@@ -29,6 +29,7 @@
 - The launched umbrella Home reuses the Classic idle entry frame; Home-only destinations extend that frame rather than creating a separate layout.
 - The Home plain-logo motion is a checked-in crop of the Classic Lottie with its suffix asset removed, so runtime code only loads final variants.
 
+- Game screens share one width (src/lib/layout.ts GAME_SIDE_PAD 16px, GAME_COLUMN_MAX_W 412px = the Daily board); the Home lobby uses it through DailyFrame padX/contentMaxWidth, and Solo/Together should move to it rather than define their own.
 - The Daily board and the Daily How to Play share one status bar (src/components/DailyStatusBar.tsx): grid-wide, one card gap above the grid, card surface/radius/resting shadow, fixed 44px slots left (Home before Start, dark Leave X during a run, HomeControl placement="inline" so it stays above the start scrim) and right (Peek), so the centred round/rule/misses never shift; the fixed corner control is used only when the board is off screen.
 - Classic in-game controls use the shared 44px header slot: launch ON orders Leave, readout, Settings; launch OFF preserves readout, Settings, Leave.
 - The launched Daily holds the engine in READY behind a non-dismissible start dialog; only its Start action enters the existing deal/study sequence, so pre-start exits never create attempts.

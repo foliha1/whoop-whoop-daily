@@ -66,6 +66,7 @@ function rememberTable(code: string | null) {
 import { useMultiplayerHost, useMultiplayerJoiner, useTransientEvents, type SeatMapEntry } from "@/hooks/useMultiplayerGame";
 import { useHeartbeatSender, useHeartbeatMonitor } from "@/hooks/useHeartbeat";
 import DailyFrame from "@/components/DailyFrame";
+import { GAME_COLUMN_MAX_W, GAME_SIDE_PAD } from "@/lib/layout";
 import DailyLogoLockup, { lockupStills } from "@/components/DailyLogoLockup";
 import spookLightLogo from "@/assets/spook/spook-logo-light.svg?url";
 import spookNightLogo from "@/assets/spook/spook-logo-night.svg?url";
@@ -1383,7 +1384,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     <>
       {umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null}
       {umbrella && home && view.kind === "idle" && launchNoteOpen ? <LaunchAnnouncement onClose={() => setLaunchNoteOpen(false)} /> : null}
-      <DailyFrame gap={colGap} pad={framePad} railGap={railGap} fill noRails={umbrella && home && isMobile} topControl={umbrella && !home && opts.homeControl !== false}>
+      <DailyFrame gap={colGap} pad={framePad} padX={GAME_SIDE_PAD} contentMaxWidth={GAME_COLUMN_MAX_W} railGap={railGap} fill noRails={umbrella && home && isMobile} topControl={umbrella && !home && opts.homeControl !== false}>
         <FitColumn>
         <div
           style={{

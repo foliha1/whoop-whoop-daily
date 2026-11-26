@@ -17,6 +17,8 @@ const DailyFrame: React.FC<{
   gap?: number;
   /** Page edge padding. Shrinks on short viewports so the CTA stays in view. */
   pad?: number;
+  /** Left and right padding when it should differ from `pad`. */
+  padX?: number;
   /** Gap between the shape rules and the content column. */
   railGap?: number;
   /** When true the content column takes all the space between the rules and
@@ -38,7 +40,7 @@ const DailyFrame: React.FC<{
    *  pinned under the top rail so short screens do not float mid-page. */
   align?: "center" | "top";
   children?: React.ReactNode;
-}> = ({ gap = 24, pad = 24, railGap = 24, fill = false, tone = "surface", wide = false, topControl = false, scroll = false, noRails = false, contentMaxWidth = DAILY_CONTENT_MAX_W, align = "center", children }) => (
+}> = ({ gap = 24, pad = 24, padX, railGap = 24, fill = false, tone = "surface", wide = false, topControl = false, scroll = false, noRails = false, contentMaxWidth = DAILY_CONTENT_MAX_W, align = "center", children }) => (
   <div
     className={SPOOK_AT_LOAD ? "ww-spook-frame" : undefined}
     style={{
@@ -52,11 +54,11 @@ const DailyFrame: React.FC<{
       justifyContent: align === "top" ? "flex-start" : "space-between",
       alignItems: "center",
       gap: railGap,
-      padding: pad,
+      padding: `${pad}px ${padX ?? pad}px`,
       paddingBottom: `calc(${pad}px + env(safe-area-inset-bottom))`,
       overflowY: scroll ? "visible" : fill ? "hidden" : "auto",
       "--daily-content-max-width": `${contentMaxWidth}px`,
-      "--daily-content-padding-x": `${pad}px`,
+      "--daily-content-padding-x": `${padX ?? pad}px`,
     } as React.CSSProperties}
   >
 
