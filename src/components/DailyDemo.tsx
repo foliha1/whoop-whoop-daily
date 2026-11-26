@@ -208,11 +208,12 @@ export default function DailyDemo({ mode, onStart, onClose }: DailyDemoProps) {
   // Same wording as the live board: bare countdowns (red for the last three
   // seconds), nothing as cards turn down, and a cheer while a pair leaves.
   const countdown = (n: number) => <span style={{ color: n <= 3 ? COLORS.red : undefined }}>{n}</span>;
-  const readout: React.ReactNode = step === 0 ? (scene.dealing ? "Dealing…" : "\u00A0")
+  const readout: React.ReactNode = step === 0 ? (scene.dealing ? "Dealing" : "\u00A0")
     : step === 1 ? (scene.seconds !== null ? countdown(scene.seconds) : "\u00A0")
     : scene.peeking ? (scene.seconds ? countdown(scene.seconds) : "\u00A0")
     : scene.ghost ? "Great Match!"
-    : scene.rule ? RULE_LABEL[scene.rule] : "Rolling…";
+    : scene.wrong.length > 0 ? "Not Quite"
+    : scene.rule ? RULE_LABEL[scene.rule] : "Rolling";
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "ArrowRight") { event.preventDefault(); changeStep(step + 1); }

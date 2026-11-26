@@ -1764,7 +1764,7 @@ const DailyPage: React.FC = () => {
         // not even which rule the first round will ask for.
         return "\u00A0";
       case "DEAL":
-        return "Dealing…";
+        return "Dealing";
       case "STUDY":
         return countdown(daily.studyRemaining);
       case "HIDE":
@@ -1772,17 +1772,19 @@ const DailyPage: React.FC = () => {
         // turn down: say nothing. After a solve, celebrate.
         return justMatched ? "Great Match!" : "\u00A0";
       case "ROLL":
-        return "Rolling…";
+        return "Rolling";
       case "WHOOPED":
-        return "Whooped!";
+        // Second miss: the round is over.
+        return "Nope";
       case "DONE":
         if (justMatched) return "Great Match!";
         return ATTR_LABEL[daily.roll.attribute] ?? "\u00A0";
       default:
         // No resting die any more: the readout is the only rule reminder.
-        return state.peeking && daily.peekRemaining > 0
-          ? countdown(daily.peekRemaining)
-          : ATTR_LABEL[daily.roll.attribute] ?? "\u00A0";
+        if (state.peeking && daily.peekRemaining > 0) return countdown(daily.peekRemaining);
+        // First miss, while the wrong pair shakes: a try is still left.
+        if (state.wrongPair.length > 0) return "Not Quite";
+        return ATTR_LABEL[daily.roll.attribute] ?? "\u00A0";
     }
   })();
 
