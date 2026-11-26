@@ -61,6 +61,8 @@ export interface UseDailyGameResult {
   phase: DailyPhase;
   /** Seconds remaining in the study window, rounded up (10 → 1). */
   studyRemaining: number;
+  /** Seconds remaining in the Peek window, rounded up (5 → 1); 0 when closed. */
+  peekRemaining: number;
   /** Live run time in ms. Tracked silently, never scored. */
   elapsedMs: number;
   roll: DailyRoll;
@@ -289,6 +291,22 @@ export function useDailyGame(): UseDailyGameResult {
     return () => clearTimeout(t);
   }, [state.peeking]);
 
+  // ---- peek countdown ----
+  const [peekRemaining, setPeekRemaining] = useState(0);
+  useEffect(() => {
+    if (!state.peeking) {
+      setPeekRemaining(0);
+      return;
+    }
+    const start = Date.now();
+    setPeekRemaining(Math.ceil(PEEK_MS / 1000));
+    const id = setInterval(() => {
+      const left = Math.max(0, PEEK_MS - (Date.now() - start));
+      setPeekRemaining(Math.ceil(left / 1000));
+    }, 100);
+    return () => clearInterval(id);
+  }, [state.peeking]);
+
   // ---- study countdown ----
   const [studyRemaining, setStudyRemaining] = useState(
     Math.ceil(STUDY_MS / 1000)
@@ -513,6 +531,7 @@ export function useDailyGame(): UseDailyGameResult {
     state,
     phase: state.phase,
     studyRemaining,
+    peekRemaining,
     elapsedMs,
     roll: currentRoll(state),
     tumbleSeed,

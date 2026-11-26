@@ -9,13 +9,12 @@
 //
 // Left and right slots are fixed 44px squares, so the centre column stays
 // centred whether or not a slot is filled. The bar uses the card's own
-// surface, corner radius and resting shadow, so it reads as part of the board.
+// surface and corner radius, flat (no shadow), so it reads as part of the board.
 // ============================================================================
 
 import React from "react";
 import AutoFitText from "@/components/AutoFitText";
 import { HOME_CONTROL_SIZE } from "@/components/HomeControl";
-import { CARD_SHADOW_REST_CSS } from "@/lib/cardLift";
 import { COLORS, RADIUS, SPACE, buttonStyle, textStyle } from "@/lib/tokens";
 
 export const STATUS_BAR_PAD_X = SPACE[6]; // 12
@@ -56,14 +55,16 @@ const DailyStatusBar: React.FC<{
   /** Left slot: Home before Start, the X during a run, empty otherwise. */
   control?: React.ReactNode;
   caption: React.ReactNode;
-  /** The rule readout. Plain text is auto-fitted so long rules never wrap. */
+  /** The rule readout, auto-fitted so long rules never wrap. */
   title: React.ReactNode;
+  /** Set false when the caller styles and wraps the title itself (How to Play). */
+  fitTitle?: boolean;
   misses: React.ReactNode;
   /** Right slot: the Peek square. */
   peek?: React.ReactNode;
   titleTestId?: string;
   testId?: string;
-}> = ({ control, caption, title, misses, peek, titleTestId, testId }) => (
+}> = ({ control, caption, title, fitTitle = true, misses, peek, titleTestId, testId }) => (
   <div
     data-testid={testId}
     style={{
@@ -76,7 +77,6 @@ const DailyStatusBar: React.FC<{
       padding: `${STATUS_BAR_PAD_Y}px ${STATUS_BAR_PAD_X}px`,
       background: COLORS.surface,
       borderRadius: RADIUS.md,
-      boxShadow: CARD_SHADOW_REST_CSS,
     }}
   >
     <Slot>{control}</Slot>
@@ -98,7 +98,7 @@ const DailyStatusBar: React.FC<{
         data-testid={titleTestId}
         style={{ width: "100%", display: "flex", justifyContent: "center", minHeight: `${26 * TITLE_LINE}px` }}
       >
-        {typeof title === "string" ? (
+        {fitTitle ? (
           <AutoFitText
             minScale={0.7}
             style={{

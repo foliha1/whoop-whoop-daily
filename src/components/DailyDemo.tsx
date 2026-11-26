@@ -205,9 +205,13 @@ export default function DailyDemo({ mode, onStart, onClose }: DailyDemoProps) {
 
   // Before the step's animation finishes, nothing is dimmed: it reads like a live game.
   const lit = (region: string) => !scene.settled || current.region === region;
-  const readout = step === 0 ? (scene.dealing ? "Dealing…" : "\u00A0")
-    : step === 1 ? (scene.seconds !== null ? `Memorize: ${scene.seconds}` : "Cards down")
-    : scene.peeking ? "Peeking…"
+  // Same wording as the live board: bare countdowns (red for the last three
+  // seconds), nothing as cards turn down, and a cheer while a pair leaves.
+  const countdown = (n: number) => <span style={{ color: n <= 3 ? COLORS.red : undefined }}>{n}</span>;
+  const readout: React.ReactNode = step === 0 ? (scene.dealing ? "Dealing…" : "\u00A0")
+    : step === 1 ? (scene.seconds !== null ? countdown(scene.seconds) : "\u00A0")
+    : scene.peeking ? (scene.seconds ? countdown(scene.seconds) : "\u00A0")
+    : scene.ghost ? "Great Match!"
     : scene.rule ? RULE_LABEL[scene.rule] : "Rolling…";
 
   const onKeyDown = (event: React.KeyboardEvent) => {
@@ -235,6 +239,7 @@ export default function DailyDemo({ mode, onStart, onClose }: DailyDemoProps) {
       <div style={{ flex: "none", width: boardWidth, maxWidth: "100%", alignSelf: "center" }}>
         <DailyStatusBar
           control={null}
+          fitTitle={false}
           caption={<>Round {step === 2 && scene.roll ? scene.roll : 1} of {DAILY_ROUNDS}</>}
           title={
             <Spot on={lit("readout") || lit("board") && step === 1}>

@@ -60,10 +60,10 @@ describe("Daily tutorial integration", () => {
     render(<DailyDemo {...props()} />);
     next();
     act(() => { vi.advanceTimersByTime(500); });
-    expect(screen.getByText("Memorize: 10")).toBeInTheDocument();
+    expect(screen.getByTestId("daily-demo-readout")).toHaveTextContent(/^10$/);
     next();
     act(() => { vi.advanceTimersByTime(11000); });
-    expect(screen.queryByText("Memorize: 0")).toBeNull();
+    expect(screen.getByTestId("daily-demo-readout")).not.toHaveTextContent(/^0$/);
     expect(screen.getByTestId("daily-demo-readout")).toHaveTextContent("Match the");
   });
   it("reduced motion shows the readable study state without running a countdown", () => {
@@ -71,7 +71,7 @@ describe("Daily tutorial integration", () => {
     render(<DailyDemo {...props()} />);
     next();
     act(() => { vi.advanceTimersByTime(12000); });
-    expect(screen.getByText("Memorize: 10")).toBeInTheDocument();
+    expect(screen.getByTestId("daily-demo-readout")).toHaveTextContent(/^10$/);
   });
   it("keeps every region unmasked until the step's animation has finished", () => {
     render(<DailyDemo {...props()} />);

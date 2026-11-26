@@ -139,6 +139,9 @@ import {
 } from "@/lib/dailyMilestone";
 
 
+/** Countdowns (study, Peek) turn red for their last three seconds. */
+const COUNTDOWN_RED_FROM = 3;
+
 const ATTR_LABEL: Record<string, string> = {
   SHAPE: "Match the Shape",
   NUMBER: "Match the Number",
@@ -1748,7 +1751,13 @@ const DailyPage: React.FC = () => {
       <HomeControl placement="inline" kind="leave" tone="dark" onLeave={() => { hapticTap(); setLeaveOpen(true); }} />
     ) : null;
 
-  const readout = (() => {
+  // Countdowns show just the number; the last three seconds turn red.
+  const countdown = (n: number): React.ReactNode => (
+    <span style={{ color: n <= COUNTDOWN_RED_FROM ? COLORS.red : undefined }}>{n}</span>
+  );
+  // A solved round (including the last one) celebrates while its pair leaves.
+  const justMatched = state.matchedPair.length > 0;
+  const readout: React.ReactNode = (() => {
     switch (phase) {
       case "READY":
         // The board sits behind the start dialog: nothing may be revealed yet,
@@ -1757,17 +1766,22 @@ const DailyPage: React.FC = () => {
       case "DEAL":
         return "Dealing…";
       case "STUDY":
-        return `Memorize: ${daily.studyRemaining}`;
+        return countdown(daily.studyRemaining);
       case "HIDE":
-        return "Cards down";
+        // After the study window and after a missed-out round the cards just
+        // turn down: say nothing. After a solve, celebrate.
+        return justMatched ? "Great Match!" : "\u00A0";
       case "ROLL":
         return "Rolling…";
       case "WHOOPED":
         return "Whooped!";
+      case "DONE":
+        if (justMatched) return "Great Match!";
+        return ATTR_LABEL[daily.roll.attribute] ?? "\u00A0";
       default:
         // No resting die any more: the readout is the only rule reminder.
-        return state.peeking
-          ? "Peeking…"
+        return state.peeking && daily.peekRemaining > 0
+          ? countdown(daily.peekRemaining)
           : ATTR_LABEL[daily.roll.attribute] ?? "\u00A0";
     }
   })();
