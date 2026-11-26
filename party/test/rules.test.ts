@@ -314,3 +314,57 @@ describe("hidden card faces", () => {
     expect(st.grid.every((g) => g.card === null)).toBe(true);
   });
 });
+
+describe("pause when fewer than two players are present", () => {
+  it("a two-player table freezes, refuses taps, and resumes exactly where it was", () => {
+    const t = startedTable(2);
+    rollAndSettle(t);
+    t.game.disconnect(t.pids[1]);
+    t.clock.advance(14_000);
+    t.game.intent(t.pids[0], { type: "FLIP_START", idx: 0 });
+    t.clock.advance(1_000); // the pause starts with 1 s of the flip left
+    expect(t.game.isPaused).toBe(true);
+    const st = t.lastState()!;
+    expect(st.paused).toBe(true);
+    expect(st.waitingFor).toEqual([1]);
+    expect(st.pauseEndsAt).toBe(t.clock.now() + 45_000); // 60 s after Bob left
+    // Frozen: the flip stays up, and nobody loses a turn to the pause.
+    t.clock.advance(20_000);
+    expect(t.game.state.peekingCard).toBe(0);
+    expect(t.game.state.disconnected).toEqual([false, false]);
+    t.game.intent(t.pids[0], { type: "CLAIM" }, "p");
+    expect(t.acks(t.pids[0]).at(-1)).toMatchObject({ accepted: false, reason: "paused" });
+    // Bob is back: the flip finishes 1 s later, as if nothing happened.
+    t.game.connect(t.pids[1]);
+    expect(t.game.isPaused).toBe(false);
+    expect(t.lastState()!.paused).toBe(false);
+    t.clock.advance(999);
+    expect(t.game.state.peekingCard).toBe(0);
+    t.clock.advance(1);
+    expect(t.game.state.peekingCard).toBeNull();
+    expect(t.game.state.flipper).toBe(0); // second flip still Ana's
+  });
+
+  it("a hidden tab pauses too, and the game ends if they never come back", () => {
+    const t = startedTable(2);
+    rollAndSettle(t);
+    t.game.visibility(t.pids[1], true);
+    t.clock.advance(15_000);
+    expect(t.game.isPaused).toBe(true);
+    t.clock.advance(59_999);
+    expect(t.game.state.phase).not.toBe("GAME_OVER");
+    t.clock.advance(1);
+    expect(t.game.state.phase).toBe("GAME_OVER");
+    expect(t.lastState()!.paused).toBe(false);
+  });
+
+  it("three players with one away keep playing; nobody pauses", () => {
+    const t = startedTable(3);
+    rollAndSettle(t);
+    t.game.disconnect(t.pids[2]);
+    t.clock.advance(15_000);
+    expect(t.game.isPaused).toBe(false);
+    expect(t.game.state.disconnected).toEqual([false, false, true]);
+  });
+
+});

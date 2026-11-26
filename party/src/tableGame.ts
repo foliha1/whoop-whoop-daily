@@ -59,6 +59,11 @@ export const ROLL_LEAD_MS = 150;
 /** The die lands this long after the roll starts (matches useGameState). */
 export const ROLL_LAND_MS = 450;
 const NAME_MAX = 24;
+/**
+ * A paused table (fewer than two players present) ends after this long if
+ * nobody comes back.
+ */
+export const PAUSE_MAX_MS = 60_000;
 
 export interface Clock {
   now: () => number;
@@ -91,11 +96,21 @@ export type RejectReason =
   | "not_allowed"
   | "too_slow"
   | "no_calls_left"
-  | "host_only";
+  | "host_only"
+  | "paused";
 
 export type TableStateMessage = PublicState & {
   /** Server-clock time this state was sent. */
   serverNow: number;
+  /**
+   * True while fewer than two players are present. The board is frozen:
+   * timers stop, taps are refused, and play resumes exactly where it was.
+   */
+  paused: boolean;
+  /** Seats the table is waiting for while paused. */
+  waitingFor: number[];
+  /** Server-clock time the game ends if nobody comes back. */
+  pauseEndsAt: number | null;
 };
 
 export type ServerMessage =
@@ -147,7 +162,11 @@ export class TableGame {
   private dirty = false;
   /** Back-to-back reshuffles in one burst; stops a hopeless grid looping. */
   private swapsInARow = 0;
+  /** Game timers: flips, rolls, settles, claim windows. Frozen by a pause. */
   private readonly deadlines: DeadlineQueue;
+  /** Presence timers: skip, end-of-table, pause limit. Never frozen. */
+  private readonly liveness: DeadlineQueue;
+  private pausedAt: number | null = null;
 
   constructor(
     private readonly clock: Clock,
@@ -155,6 +174,7 @@ export class TableGame {
     private readonly newId: () => string = () => crypto.randomUUID(),
   ) {
     this.deadlines = new DeadlineQueue(clock);
+    this.liveness = new DeadlineQueue(clock);
     this.state = initialState(SLOT_COUNT, { seatCount: 2 });
   }
 
@@ -192,11 +212,11 @@ export class TableGame {
       return;
     }
     const seat = entry.seat;
-    this.deadlines.after(`drop:${seat}`, "seat_drop", HEARTBEAT_STALE_MS, () => {
+    this.liveness.after(`drop:${seat}`, "seat_drop", HEARTBEAT_STALE_MS, () => {
       this.skippable.add(seat);
       this.applyLiveness();
     });
-    this.deadlines.after(`gone:${seat}`, "seat_gone", HEARTBEAT_END_GAME_STALE_MS, () => {
+    this.liveness.after(`gone:${seat}`, "seat_gone", HEARTBEAT_END_GAME_STALE_MS, () => {
       this.gone.add(seat);
       this.checkTableEmpty();
     });
@@ -210,7 +230,7 @@ export class TableGame {
     if (isHidden) {
       if (this.hidden.has(pid)) return;
       this.hidden.add(pid);
-      this.deadlines.after(`away:${entry.seat}`, "away_skip", AWAY_SKIP_MS, () => {
+      this.liveness.after(`away:${entry.seat}`, "away_skip", AWAY_SKIP_MS, () => {
         this.skippable.add(entry.seat);
         this.applyLiveness();
       });
@@ -223,23 +243,65 @@ export class TableGame {
 
   private markPresent(seat: number, pid: string): void {
     this.hidden.delete(pid);
-    this.deadlines.cancel(`drop:${seat}`);
-    this.deadlines.cancel(`gone:${seat}`);
-    this.deadlines.cancel(`away:${seat}`);
+    this.liveness.cancel(`drop:${seat}`);
+    this.liveness.cancel(`gone:${seat}`);
+    this.liveness.cancel(`away:${seat}`);
     this.gone.delete(seat);
     if (this.skippable.delete(seat)) this.applyLiveness();
+    else this.updatePause();
     this.dirty = true;
   }
 
   private applyLiveness(): void {
     if (!this.started) return;
-    this.dispatch({ type: "SET_DISCONNECTED", seats: [...this.skippable].sort() });
+    this.updatePause();
+    // While paused the rules never hear about absent seats, so nobody loses a
+    // turn to the pause itself. On resume they hear the current set.
+    if (this.pausedAt === null) {
+      this.dispatch({ type: "SET_DISCONNECTED", seats: [...this.skippable].sort() });
+    }
+    this.dirty = true;
     this.flush();
+  }
+
+  /**
+   * Pause when fewer than two seated players are present; resume when they
+   * are. A two-player table pauses as soon as one player is skippable; bigger
+   * tables keep playing and skip the absent seat as before.
+   */
+  private updatePause(): void {
+    const present = this.seats.length - this.skippable.size;
+    const should = this.started && this.state.phase !== "GAME_OVER" && present < 2;
+    const now = this.clock.now();
+    if (should && this.pausedAt === null) {
+      this.pausedAt = now;
+      this.deadlines.pause();
+      this.liveness.after("pause_limit", "seat_gone", PAUSE_MAX_MS, () => {
+        if (this.pausedAt === null || this.state.phase === "GAME_OVER") return;
+        this.resumeTimers();
+        this.dispatch({ type: "END_GAME_TABLE_EMPTY" });
+        this.flush();
+      });
+      this.dirty = true;
+    } else if (!should && this.pausedAt !== null) {
+      this.resumeTimers();
+      this.dirty = true;
+    }
+  }
+
+  private resumeTimers(): void {
+    if (this.pausedAt === null) return;
+    const held = this.clock.now() - this.pausedAt;
+    this.pausedAt = null;
+    this.liveness.cancel("pause_limit");
+    this.deadlines.shift(held);
+    this.deadlines.resume();
   }
 
   private checkTableEmpty(): void {
     if (!this.started || this.state.phase === "GAME_OVER") return;
     if (this.seats.length - this.gone.size < 2) {
+      this.resumeTimers();
       this.dispatch({ type: "END_GAME_TABLE_EMPTY" });
       this.flush();
     }
@@ -291,6 +353,11 @@ export class TableGame {
 
   private newGame(): void {
     this.deadlines.clearAll();
+    if (this.pausedAt !== null) {
+      this.pausedAt = null;
+      this.liveness.cancel("pause_limit");
+      this.deadlines.resume();
+    }
     this.gameId = this.newId();
     this.claimWindow = 0;
     this.rollLatch = null;
@@ -305,13 +372,16 @@ export class TableGame {
     for (const e of this.seats) {
       if (!this.sockets.has(e.pid)) {
         this.skippable.add(e.seat);
-        this.deadlines.after(`gone:${e.seat}`, "seat_gone", HEARTBEAT_END_GAME_STALE_MS, () => {
+        this.liveness.after(`gone:${e.seat}`, "seat_gone", HEARTBEAT_END_GAME_STALE_MS, () => {
           this.gone.add(e.seat);
           this.checkTableEmpty();
         });
       }
     }
-    if (this.skippable.size) this.dispatch({ type: "SET_DISCONNECTED", seats: [...this.skippable] });
+    this.updatePause();
+    if (this.skippable.size && this.pausedAt === null) {
+      this.dispatch({ type: "SET_DISCONNECTED", seats: [...this.skippable] });
+    }
     this.sendLobby();
     this.dirty = true;
     this.flush();
@@ -341,6 +411,7 @@ export class TableGame {
       return;
     }
     if (this.state.phase === "GAME_OVER") return ack(false, "game_over");
+    if (this.pausedAt !== null) return ack(false, "paused");
     if (this.state.rolling && BOARD_ACTIONS.has(action.type)) return ack(false, "rolling");
 
     let accepted = false;
@@ -577,10 +648,27 @@ export class TableGame {
         [...this.skippable].sort(),
         hiddenSeats,
       ),
-      settleEndsAt: settleAt,
-      claimWindowEndsAt: windowAt,
+      settleEndsAt: settleAt === null ? null : settleAt + this.heldSoFar(),
+      claimWindowEndsAt: windowAt === null ? null : windowAt + this.heldSoFar(),
       serverNow: this.clock.now(),
+      paused: this.pausedAt !== null,
+      waitingFor: this.pausedAt !== null ? [...this.skippable].sort() : [],
+      pauseEndsAt: this.pauseEndsAt(),
     };
+  }
+
+  /** How long the current pause has held the game timers so far. */
+  private heldSoFar(): number {
+    return this.pausedAt === null ? 0 : this.clock.now() - this.pausedAt;
+  }
+
+  private pauseEndsAt(): number | null {
+    if (this.pausedAt === null) return null;
+    const ends = [this.liveness.atOf("pause_limit")];
+    // A closed phone can end the table sooner, 60 s after it left.
+    for (const seat of this.skippable) ends.push(this.liveness.atOf(`gone:${seat}`));
+    const real = ends.filter((t): t is number => t !== null);
+    return real.length ? Math.min(...real) : null;
   }
 
   /** Send the latest state once, after a burst of changes. */
@@ -615,5 +703,8 @@ export class TableGame {
   }
   get pendingTimers(): number {
     return this.deadlines.due(Number.POSITIVE_INFINITY).length;
+  }
+  get isPaused(): boolean {
+    return this.pausedAt !== null;
   }
 }

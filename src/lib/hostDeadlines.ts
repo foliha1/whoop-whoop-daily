@@ -94,6 +94,14 @@ export class DeadlineQueue {
     return this.paused;
   }
 
+  /**
+   * Push every deadline later by `ms`. Used by the table server to freeze a
+   * paused game: pause(), then shift by the paused time, then resume().
+   */
+  shift(ms: number): void {
+    for (const d of this.items.values()) d.at += ms;
+  }
+
   /** Overdue deadlines, oldest first. Does not remove them. */
   due(now = this.fns.now()): Deadline[] {
     return [...this.items.values()]
