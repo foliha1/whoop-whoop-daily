@@ -379,6 +379,13 @@
       "when": 1795692215148,
       "tag": "0053_table_member",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1795693386677,
+      "tag": "0054_classic_timing_table_role",
+      "breakpoints": true
     }
   ]
 }
