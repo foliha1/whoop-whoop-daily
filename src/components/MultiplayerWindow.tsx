@@ -609,7 +609,10 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
   // Set when the host starts (or tells us it started) a server game. The
   // server's own lobby also says so, which covers a phone that reloads.
   const [serverGame, setServerGame] = useState(false);
-  useEffect(() => { setServerGame(false); }, [activeRoomId]);
+  // A server start that failed at this table: "Try again" plays on the host's
+  // phone instead, so a table can never be stuck on Starting game.
+  const serverStartFailedRef = useRef(false);
+  useEffect(() => { setServerGame(false); serverStartFailedRef.current = false; }, [activeRoomId]);
   const onServer = !!activeRoom && (serverGame || table.started);
   useEffect(() => {
     setTimingTableMode(onServer);
@@ -1129,7 +1132,7 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     setStartFailed(false);
     // A server table: the server registers the seats, deals and saves the
     // result. This phone only asks it to start with the frozen lobby.
-    if (hostPicksServer && table.status === "connected") {
+    if (hostPicksServer && table.status === "connected" && !serverStartFailedRef.current) {
       try {
         channel?.send({ type: "broadcast", event: "msg", payload: { kind: "game_starting", server: true } });
       } catch {
@@ -1144,6 +1147,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       });
       return;
     }
+    // Host-phone game (also the fallback after a failed server start).
+    setServerGame(false);
     const newGameId = crypto.randomUUID();
     // Persist the frozen seat map BEFORE the game exists: the claim arbiter
     // refuses every claim from a seat it has not registered, so a game that
@@ -1190,10 +1195,25 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
     });
   }, [isHostView, canonicalParticipants, activeRoom, starting, startFailed, channel, browserId, host.dispatch, host.state.slotCount, security, hostPicksServer, table.status, table.start]);
 
-  // Server table: a refused start (seats not registered) offers the retry.
+  // Server table: a refused start, any server error while starting, or no
+  // game within 8 s offers "Try again", which then plays on the host's phone.
   useEffect(() => {
-    if (onServer && starting && table.lastError === "start_failed") setStartFailed(true);
-  }, [onServer, starting, table.lastError]);
+    if (!isHostView || !serverGame || !starting || startFailed || table.state) return;
+    const fail = () => {
+      serverStartFailedRef.current = true;
+      setStartFailed(true);
+    };
+    if (table.lastError) {
+      console.warn("[table-server] start failed", table.lastError);
+      fail();
+      return;
+    }
+    const t = window.setTimeout(() => {
+      console.warn("[table-server] start timed out");
+      fail();
+    }, 8000);
+    return () => window.clearTimeout(t);
+  }, [isHostView, serverGame, starting, startFailed, table.state, table.lastError]);
   // The first server state ends "Starting…".
   useEffect(() => {
     if (onServer && table.state) setStarting(false);
@@ -1221,7 +1241,8 @@ const MultiplayerWindow: React.FC<MultiplayerWindowProps> = ({
       if (!payload || typeof payload !== "object") return;
       if ((payload as { kind?: string }).kind === "game_starting") {
         setStarting(true);
-        if ((payload as { server?: boolean }).server === true) setServerGame(true);
+        // The host's choice decides the table, either way.
+        setServerGame((payload as { server?: boolean }).server === true);
         // Drop the finished game's payload so the joiner can never render the
         // previous results screen while waiting for the first new broadcast.
         joiner.reset();
