@@ -67,7 +67,6 @@ const PreorderPage = lazyPage(loadPreorderPage);
 const AdminPage = lazyPage(() => import("./pages/AdminPage.tsx"));
 const GroupsPage = lazyPage(() => import("./pages/GroupsPage.tsx"));
 const YouPage = lazyPage(() => import("./pages/YouPage.tsx"));
-const TypographyPage = lazyPage(() => import("./pages/TypographyPage.tsx"));
 const PrivacyPage = lazyPage(() => import("./pages/PrivacyPage.tsx"));
 const TermsPage = lazyPage(() => import("./pages/TermsPage.tsx"));
 const loadFaqPage = () => import("./pages/FaqPage.tsx");
@@ -256,7 +255,6 @@ const AnimatedRoutes: React.FC = () => {
           <Route path="/play" element={<ClassicRedirect />} />
           <Route path="/play/:roomCode" element={<ClassicRedirect />} />
           {/* Debug-gated routes: 404 in production, live under ?debug=1. */}
-          <Route path="/typography" element={<DebugOnlyRoute><TypographyPage /></DebugOnlyRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
