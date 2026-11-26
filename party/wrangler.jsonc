@@ -1,0 +1,14 @@
+{
+  // Together table server. One Durable Object (a tiny always-on server) per Table.
+  // Deployed by .github/workflows/deploy-tables.yml on every push to main that touches party/.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "whoop-whoop-tables",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "durable_objects": {
+    "bindings": [{ "name": "Table", "class_name": "Table" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Table"] }],
+  "observability": { "enabled": true }
+}

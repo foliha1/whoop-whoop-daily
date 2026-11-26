@@ -1,0 +1,36 @@
+# Deploys the Together table server (party/) to Cloudflare.
+# Runs on every push to main that changes party/, or by hand from the Actions tab.
+# Needs repo secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.
+name: Deploy table server
+
+on:
+  push:
+    branches: [main]
+    paths: ["party/**", ".github/workflows/deploy-tables.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-tables
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: party
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: party/package-lock.json
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - name: Deploy
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
