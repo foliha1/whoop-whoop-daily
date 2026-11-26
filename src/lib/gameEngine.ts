@@ -1,0 +1,1044 @@
+/**
+ * WHOOP! WHOOP! game rules: the pure reducer shared by every mode.
+ *
+ * No React, no browser APIs, no timers. Solo and the Together host run it
+ * through src/hooks/useGameState.ts; the Together table server (party/) runs
+ * this same file on Cloudflare. Change the rules here, once.
+ */
+import { Card, createDeck, ATTRIBUTES } from "@/cardData";
+import {
+  DAILY_MATCH_SETTLE_MS,
+  WRONG_SETTLE_TOTAL_MS,
+} from "@/lib/animationTiming";
+import { createRng, type Rng } from "@/lib/rng";
+export type MessageType = "info" | "success" | "error" | "warning";
+
+export const OPPONENT_TUNING = {
+  reactionMinMs: 2500,
+  reactionMaxMs: 5500,
+  confidenceThreshold: 0.55,
+  thinkDelayMs: 1400,
+} as const;
+export const REVEAL_MS = 2000;
+/** v6.7: a turn is two flips. Same card may not be flipped twice per turn. */
+export const FLIPS_PER_TURN = 2;
+/** First seat to reach this score wins immediately.
+ *
+ * 12 was chosen by a measured sweep (500 games per cell, competent probe)
+ * across targets 10, 12, 14, 16 and 18 and table sizes solo through six
+ * players. 12 keeps completion at 99.8% or better at every table size, while
+ * 14 and above stall at five and six players: the 48-card deck runs out before
+ * that many cards can be banked, so games terminate on a degenerate-state
+ * safety instead of a win. */
+export const TARGET_SCORE = 12;
+
+/** v7.2 — wrong-claim cap. Each player gets this many wrong claims per round;
+ * after that, claiming is closed to them until the round ends (by either
+ * route: a correct claim, or a completed rotation with no claim). Closes the
+ * self-serve reveal exploit, where a player could miss repeatedly to turn
+ * almost the whole board face up at no cost. Nothing else about a capped
+ * seat changes: they keep their flips and their place in the rotation. */
+export const MAX_WRONG_CLAIMS_PER_ROUND = 2;
+
+/** Has any seat reached the target score? Checked wherever a score rises. */
+function reachedTarget(s: State): boolean {
+  return s.scores.some((v) => v >= TARGET_SCORE);
+}
+
+export function rollRandomAttributes(count: number, rng: Rng = Math.random): string[] {
+  const result: string[] = [];
+  for (let i = 0; i < count; i++) {
+    result.push(ATTRIBUTES[Math.floor(rng() * ATTRIBUTES.length)]);
+  }
+  return result;
+}
+
+// v6.1 Single-Die Core: always roll exactly one die.
+export function getDieCount(): number {
+  return 1;
+}
+
+function cardsMatchOnAttribute(a: Card, b: Card, attr: string): boolean {
+  switch (attr) {
+    case "SHAPE": return a.shape === b.shape;
+    case "NUMBER": return a.number === b.number;
+    case "COLOR": return a.color === b.color;
+    default: return false;
+  }
+}
+
+function cardsMatchRule(a: Card, b: Card, rule: string[]): boolean {
+  return rule.every((attr) => cardsMatchOnAttribute(a, b, attr));
+}
+
+function hasValidPair(grid: (Card | null)[], rule: string[]): boolean {
+  const cards = grid.filter((c): c is Card => c !== null);
+  for (let i = 0; i < cards.length; i++) {
+    for (let j = i + 1; j < cards.length; j++) {
+      if (cardsMatchRule(cards[i], cards[j], rule)) return true;
+    }
+  }
+  return false;
+}
+
+export function hasAnyValidPair(grid: (Card | null)[]): boolean {
+  const allRules: string[][] = [["SHAPE"], ["NUMBER"], ["COLOR"]];
+  return allRules.some((rule) => hasValidPair(grid, rule));
+}
+
+function shuffleArray<T>(arr: T[], rng: Rng = Math.random): T[] {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+export function computeRule(values: string[]): { rule: string[] } {
+  return { rule: [values[0]] };
+}
+
+export function defaultNames(seatCount: number): string[] {
+  const base = ["you", "opponent"];
+  const out: string[] = [];
+  for (let i = 0; i < seatCount; i++) {
+    out.push(base[i] ?? `player ${i + 1}`);
+  }
+  return out;
+}
+
+function emptyWrongBy(seatCount: number): Set<number>[] {
+  return Array.from({ length: seatCount }, () => new Set<number>());
+}
+
+// Advance to the next connected seat starting AFTER `from`. Bounded by
+// seatCount so all-disconnected / single-connected tables cannot spin. If no
+// other connected seat exists, returns the neighbouring seat — host-level
+// end-game policy handles the "table empty" case; the reducer must still
+// terminate.
+function nextConnected(
+  from: number,
+  seatCount: number,
+  disconnected: boolean[],
+): number {
+  let next = (from + 1) % seatCount;
+  for (let i = 0; i < seatCount; i++) {
+    if (!disconnected[next]) return next;
+    next = (next + 1) % seatCount;
+  }
+  return (from + 1) % seatCount;
+}
+
+function connectedCount(seatCount: number, disconnected: boolean[]): number {
+  let n = 0;
+  for (let i = 0; i < seatCount; i++) if (!disconnected[i]) n++;
+  return n;
+}
+
+// ============================================================================
+// Reducer-driven control flow
+// ============================================================================
+
+export type Phase =
+  | "AWAITING_ROLL"
+  | "FLIPPING"
+  | "CLAIM_SELECTING"
+  | "CLAIM_RESOLVING"
+  // Rotation claim window: the rotation completed with no correct claim, so
+  // the board is settled, no further flips are possible, and claims stay live
+  // for every seat for ROTATION_CLAIM_WINDOW_MS before the round ends.
+  | "CLAIM_WINDOW"
+  | "SETTLING"
+  | "GAME_OVER";
+
+// How long the engine holds in SETTLING so feedback animations can finish
+// before the board advances.
+// RULE: each settle constant MUST equal the FULL sequence its board plays.
+// Multiplayer's pair is face down when a claim resolves — exactly like the
+// Daily's — so both settles are reveal (flip) + hold + treatment. The totals
+// live in animationTiming.ts; never restate them as literals here.
+//   match = 500 flip + 100 hold + 1300 ghost = 1900ms
+//   wrong = 500 flip + 100 hold + 1000 shake = 1600ms
+export const SETTLE_MATCH_MS = DAILY_MATCH_SETTLE_MS;
+export const SETTLE_WRONG_MS = WRONG_SETTLE_TOTAL_MS;
+
+
+
+export type InFlight =
+  | null
+  | { kind: "flip"; token: number; by: number; idx: number }
+  | { kind: "claim"; token: number; by: number; a: number; b: number };
+
+export interface State {
+  phase: Phase;
+  slotCount: number;
+  seatCount: number;
+  names: string[];
+  roller: number;
+  flipper: number;
+  grid: (Card | null)[];
+  deck: Card[];
+  scores: number[];
+  rule: string[];
+  dieValues: string[];
+  wrongBy: Set<number>[];
+  // v7.2: wrong claims made by each seat THIS round. Reset every round start.
+  // A seat at MAX_WRONG_CLAIMS_PER_ROUND cannot claim again this round.
+  missesThisRound: number[];
+  // v6.5: cards won by each seat. Length always equals that seat's score.
+  // A wrong claim returns one of these to the bottom of the draw pile.
+  piles: Card[][];
+  disconnected: boolean[];
+  flippedThisCycle: Set<number>;
+  // v6.7: flips taken by the current flipper this turn. A turn is two flips.
+  flipsThisTurn: number;
+  claimedThisCycle: boolean;
+  drawEmpty: boolean;
+  roundNum: number;
+  // Metric only: rounds since the last correct claim. Not an end condition.
+  roundsSinceClaim: number;
+  allFaceUp: boolean;
+  selectedCards: number[];
+  matchedCards: Set<number>;
+  peekingCard: number | null;
+  rolling: boolean;
+  message: string;
+  messageType: MessageType;
+  inFlight: InFlight;
+  claimBy: number | null;
+  // SETTLING bookkeeping. `settleKind` says which feedback animation is
+  // playing; `settleToken` guards against stale SETTLE_COMPLETE timers;
+  // `settleBy` remembers the claiming seat so the deferred startRound can
+  // hand the roll to the winner.
+  settleKind: "MATCH" | "WRONG" | null;
+  settleToken: number;
+  settleBy: number | null;
+  // Rotation claim window bookkeeping. `claimWindowOpen` survives a claim
+  // resolving inside the window, so a wrong claim returns the board to
+  // CLAIM_WINDOW instead of FLIPPING. `claimWindowToken` guards the single
+  // owner-side expiry timer — it is bumped ONLY when a window opens, never by
+  // a claim, so a wrong claim can neither extend nor restart the window.
+  claimWindowOpen: boolean;
+  // True when the window's single expiry timer already fired while a claim was
+  // in progress; the claim's return path then ends the round immediately.
+  claimWindowElapsed: boolean;
+  claimWindowToken: number;
+  // Bumped every time a claim opens. Guards the owner-side abandoned-claim
+  // timer so a stale expiry can never close a newer claim.
+  claimSeq: number;
+  // Deterministic randomness source. When a `seed` was supplied at init this
+  // is a seeded PRNG; otherwise it wraps Math.random. Any randomness the
+  // reducer needs after init MUST read from here, never Math.random directly.
+  seed: string | null;
+  rng: Rng;
+  // Attempt metric. Reset on INIT: counts every incorrect claim resolution.
+  wrongCalls: number;
+}
+
+
+export interface InitOptions {
+  seatCount?: number;
+  names?: string[];
+  /** When supplied, the deck order and opening roll become reproducible. */
+  seed?: string;
+}
+
+export type Action =
+  | {
+      type: "INIT";
+      slotCount: number;
+      seatCount?: number;
+      names?: string[];
+      seed?: string;
+    }
+  | { type: "TUMBLE"; values: string[] }
+  | { type: "ROLL_START" }
+  | { type: "ROLL_LAND"; values: string[]; rule: string[] }
+  | { type: "ROLL_SETTLE" }
+  | { type: "PLAYER_ENTER_CLAIM"; by: number }
+  | { type: "PLAYER_SELECT_CARD"; by: number; idx: number }
+  | { type: "PLAYER_RESOLVE_MATCH"; by: number }
+  | { type: "FLIP_START"; by: number; idx: number; token: number }
+  | { type: "FLIP_COMPLETE"; token: number }
+  | { type: "SETTLE_COMPLETE"; token: number }
+  | { type: "CLAIM_WINDOW_EXPIRE"; token: number }
+  | { type: "CLAIM_ABANDONED"; seq: number }
+
+
+  | { type: "SKIP_TICK" }
+  | { type: "CLAIM_START"; by: number; a: number; b: number; token: number }
+  | { type: "CLAIM_RESOLVE"; token: number }
+  | { type: "CANCEL_CLAIM"; by: number }
+  | { type: "SET_DISCONNECTED"; seats: number[] }
+  | { type: "END_GAME_TABLE_EMPTY" }
+  | { type: "SAFETY_SWAP"; grid: (Card | null)[]; deck: Card[] }
+  | { type: "REMOVE_MATCHED" }
+  | { type: "DEBUG_DRAIN_DECK" }
+  | { type: "DEBUG_FORCE_END_GAME" }
+  | { type: "SET_MESSAGE"; message: string; messageType: MessageType };
+
+// Debug URL flag (?debug=1). Read live so it cannot be stale.
+export function debugFlagOn(): boolean {
+  try {
+    return new URLSearchParams(window.location.search).get("debug") === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function initialState(slotCount: number, opts: InitOptions = {}): State {
+  const seatCount = opts.seatCount ?? 2;
+  const names = opts.names ?? defaultNames(seatCount);
+  const seed = opts.seed ?? null;
+  const rng: Rng = seed !== null ? createRng(seed) : Math.random;
+  const newDeck = createDeck(rng);
+  const dealt = newDeck.splice(0, slotCount);
+  const newGrid = dealt.concat(Array(slotCount - dealt.length).fill(null));
+  const values = rollRandomAttributes(getDieCount(), rng);
+  const { rule } = computeRule(values);
+  return {
+    phase: "AWAITING_ROLL",
+    slotCount,
+    seatCount,
+    names,
+    roller: 0,
+    flipper: 0,
+    grid: newGrid,
+    deck: newDeck,
+    scores: Array(seatCount).fill(0),
+    rule,
+    dieValues: values,
+    wrongBy: emptyWrongBy(seatCount),
+    missesThisRound: Array(seatCount).fill(0),
+    piles: Array.from({ length: seatCount }, () => [] as Card[]),
+    disconnected: Array(seatCount).fill(false),
+    flippedThisCycle: new Set(),
+    flipsThisTurn: 0,
+    claimedThisCycle: false,
+    drawEmpty: newDeck.length === 0,
+    roundNum: 1,
+    roundsSinceClaim: 0,
+
+
+    allFaceUp: false,
+    selectedCards: [],
+    matchedCards: new Set(),
+    peekingCard: null,
+    rolling: false,
+    message: "",
+    messageType: "info",
+    inFlight: null,
+    claimBy: null,
+    settleKind: null,
+    settleToken: 0,
+    settleBy: null,
+    claimWindowOpen: false,
+    claimWindowElapsed: false,
+    claimWindowToken: 0,
+    claimSeq: 0,
+    seed,
+    rng,
+    wrongCalls: 0,
+
+  };
+}
+
+function refill(
+  grid: (Card | null)[],
+  deck: Card[],
+  slots: number[]
+): { grid: (Card | null)[]; deck: Card[] } {
+  const g = [...grid];
+  const d = [...deck];
+  for (const i of slots) {
+    if (d.length > 0) g[i] = d.shift()!;
+    else g[i] = null;
+  }
+  return { grid: g, deck: d };
+}
+
+// v6.5 wrong-claim penalty: the claimant returns ONE card from their score
+// pile to the BOTTOM of the draw pile. Score drops by one. If their pile is
+// empty they return nothing and the score never goes negative. If the draw
+// pile was empty, the returned card simply becomes its only card and refills
+// the grid through the normal refill path.
+function returnOneCard(
+  s: State,
+  by: number,
+): {
+  scores: number[];
+  piles: Card[][];
+  deck: Card[];
+  drawEmpty: boolean;
+  returnedCard: Card | null;
+} {
+  const pile = s.piles[by] ?? [];
+  if ((s.scores[by] ?? 0) <= 0 || pile.length === 0) {
+    return {
+      scores: s.scores,
+      piles: s.piles,
+      deck: s.deck,
+      drawEmpty: s.drawEmpty,
+      returnedCard: null,
+    };
+  }
+  const nextPile = pile.slice();
+  const card = nextPile.pop()!;
+  const deck = [...s.deck, card];
+  return {
+    scores: replaceAt(s.scores, by, (s.scores[by] ?? 0) - 1),
+    piles: replaceAt(s.piles, by, nextPile),
+    deck,
+    drawEmpty: deck.length === 0,
+    returnedCard: card,
+  };
+}
+
+function withGameOverAnnounce(s: State): State {
+  const top = Math.max(...s.scores);
+  const winners = s.scores
+    .map((v, i) => (v === top ? i : -1))
+    .filter((i) => i !== -1);
+  const outcome =
+    winners.length === 1
+      ? `${s.names[winners[0]]} wins! ${s.scores.join("–")}`
+      : `Tie ${s.scores.join("–")}`;
+  return {
+    ...s,
+    phase: "GAME_OVER",
+    message: `Game over — ${outcome}`,
+    messageType: "info",
+    inFlight: null,
+    peekingCard: null,
+    claimBy: null,
+  };
+}
+
+/**
+ * True when at least one pair of remaining grid cards shares any attribute
+ * (shape, number or colour). Sharing an attribute is a necessary condition for
+ * any rolled rule to ever match, so when this is false and the draw pile is
+ * empty the table is dead — no seat can ever score again.
+ */
+function hasPossibleMatch(s: State): boolean {
+  const cards = s.grid.filter((c): c is NonNullable<typeof c> => c !== null);
+  for (let i = 0; i < cards.length; i++) {
+    for (let j = i + 1; j < cards.length; j++) {
+      const a = cards[i];
+      const b = cards[j];
+      if (a.shape === b.shape || a.number === b.number || a.color === b.color) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function startRound(s: State, winnerIndex: number | null): State {
+  const hasCards = s.grid.some((c) => c !== null);
+  const filled = s.grid.filter((c) => c !== null).length;
+  if (!hasCards && s.deck.length === 0) return withGameOverAnnounce(s);
+  if (filled < 2 && s.deck.length === 0) return withGameOverAnnounce(s);
+  // Stalemate safety net: draw pile empty and nothing left on the table can
+  // ever be matched. Without this the round loop rotates forever.
+  if (s.deck.length === 0 && !hasPossibleMatch(s)) return withGameOverAnnounce(s);
+
+
+  const candidate =
+    winnerIndex !== null ? winnerIndex : (s.roller + 1) % s.seatCount;
+  // If the candidate roller is disconnected, hop forward to the next connected
+  // seat. Bounded by nextConnected.
+  const nextRoller = s.disconnected[candidate]
+    ? nextConnected(candidate, s.seatCount, s.disconnected)
+    : candidate;
+  return {
+    ...s,
+    phase: "AWAITING_ROLL",
+    roller: nextRoller,
+    flipper: nextRoller,
+    wrongBy: emptyWrongBy(s.seatCount),
+    missesThisRound: Array(s.seatCount).fill(0),
+    // `disconnected` is persistent — do NOT reset it here.
+    flippedThisCycle: new Set(),
+    flipsThisTurn: 0,
+    claimedThisCycle: false,
+    selectedCards: [],
+    matchedCards: new Set(),
+    inFlight: null,
+    peekingCard: null,
+    roundNum: s.roundNum + 1,
+    roundsSinceClaim: winnerIndex !== null ? 0 : s.roundsSinceClaim,
+    claimBy: null,
+    claimWindowOpen: false,
+    claimWindowElapsed: false,
+  };
+}
+
+/**
+ * The rotation claim window elapsed: end the round and pass the roll clockwise.
+ */
+function endClaimWindow(s: State): State {
+  return startRound(
+    {
+      ...s,
+      claimWindowOpen: false,
+      claimWindowElapsed: false,
+      roundsSinceClaim: s.roundsSinceClaim + 1,
+    },
+    null,
+  );
+}
+
+/**
+ * Where the board goes when a claim ends without a match (wrong claim settled,
+ * or cancelled). Inside a still-live rotation claim window it returns to the
+ * window; if the window's single timer already elapsed while the claim was in
+ * progress, the round ends now so the game can never stall there.
+ */
+function resumeAfterClaim(s: State): State {
+  if (!s.claimWindowOpen) return { ...s, phase: "FLIPPING" };
+  if (s.claimWindowElapsed) return endClaimWindow(s);
+  return { ...s, phase: "CLAIM_WINDOW" };
+}
+
+/**
+ * A card index from an action is usable only when it is a real integer slot
+ * inside the grid that still holds a card. Rejects out-of-range numbers
+ * (grid[99] is undefined, not null), fractions, NaN and string indices.
+ */
+export function isLiveCardIdx(s: State, idx: unknown): idx is number {
+  return (
+    typeof idx === "number" &&
+    Number.isSafeInteger(idx) &&
+    idx >= 0 &&
+    idx < s.grid.length &&
+    s.grid[idx] != null
+  );
+}
+
+/**
+ * A legal card for a seat is a filled grid slot that is not locked out for
+ * that seat by an earlier wrong claim this round.
+ */
+export function hasLegalCard(s: State, seat: number): boolean {
+  for (let i = 0; i < s.grid.length; i++) {
+    if (s.grid[i] !== null && !s.wrongBy[seat]?.has(i)) return true;
+  }
+  return false;
+}
+
+function cycleAdvance(s: State, addWho: number): State {
+  const flipped = new Set(s.flippedThisCycle);
+  flipped.add(addWho);
+  // Cycle ends when every CONNECTED seat has flipped this cycle. Disconnected
+  // seats never contribute a flip, so counting them would stall the loop.
+  const conn = Math.max(1, connectedCount(s.seatCount, s.disconnected));
+  if (flipped.size >= conn) {
+    const noClaim = !s.claimedThisCycle;
+    // A rotation with no correct claim simply ends the round and passes the
+    // roll clockwise — same as when the pile still has cards. The game only
+    // ends when a seat reaches TARGET_SCORE (or a startRound safety fires).
+    if (noClaim) {
+      // v6.8: the final flip of a rotation is the newest information on the
+      // table, so the round does NOT end here. Open a claim window instead.
+      // CLAIM_WINDOW_EXPIRE ends the round when the window elapses.
+      return {
+        ...s,
+        phase: "CLAIM_WINDOW",
+        flippedThisCycle: flipped,
+        claimWindowOpen: true,
+        claimWindowElapsed: false,
+        claimWindowToken: (s.claimWindowToken ?? 0) + 1,
+        inFlight: null,
+        peekingCard: null,
+      };
+    }
+    return startRound({ ...s, flippedThisCycle: flipped }, null);
+  }
+  const next = nextConnected(s.flipper, s.seatCount, s.disconnected);
+  return {
+    ...s,
+    flipper: next,
+    flipsThisTurn: 0,
+    flippedThisCycle: flipped,
+    inFlight: null,
+    peekingCard: null,
+  };
+}
+
+function replaceAt<T>(arr: T[], idx: number, value: T): T[] {
+  const out = arr.slice();
+  out[idx] = value;
+  return out;
+}
+
+export function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "INIT":
+      return initialState(action.slotCount, {
+        seatCount: action.seatCount ?? state.seatCount,
+        names: action.names ?? state.names,
+        seed: action.seed,
+      });
+
+    case "TUMBLE":
+      if (!state.rolling) return state;
+      return { ...state, dieValues: action.values };
+
+    case "ROLL_START":
+      if (state.phase !== "AWAITING_ROLL") return state;
+      return { ...state, rolling: true };
+
+    case "ROLL_LAND": {
+      if (!state.rolling) return state;
+      return { ...state, dieValues: action.values, rule: action.rule };
+    }
+
+    case "ROLL_SETTLE": {
+      if (!state.rolling) return state;
+      return { ...state, rolling: false, phase: "FLIPPING", flipper: state.roller };
+    }
+
+    case "PLAYER_ENTER_CLAIM": {
+      if (state.phase !== "FLIPPING" && state.phase !== "CLAIM_WINDOW") return state;
+      // v7.2: two wrong calls per round and you are out of calls for the round.
+      if ((state.missesThisRound[action.by] ?? 0) >= MAX_WRONG_CLAIMS_PER_ROUND)
+        return state;
+      // v6.7: claiming never consumes a flip. flippedThisCycle and
+      // flipsThisTurn are left exactly as they were.
+      return {
+        ...state,
+        phase: "CLAIM_SELECTING",
+        inFlight: null,
+        peekingCard: null,
+        selectedCards: [],
+        matchedCards: new Set(),
+        claimBy: action.by,
+        claimSeq: (state.claimSeq ?? 0) + 1,
+        message: "Select 2 cards that match the rule.",
+        messageType: "info",
+      };
+    }
+
+    case "PLAYER_SELECT_CARD": {
+      if (state.phase !== "CLAIM_SELECTING") return state;
+      if (state.claimBy !== action.by) return state;
+      const idx = action.idx;
+      if (state.wrongBy[action.by]?.has(idx)) return state;
+      if (state.selectedCards.includes(idx)) return state;
+      if (!isLiveCardIdx(state, idx)) return state;
+      if (state.selectedCards.length >= 2) return state;
+      return { ...state, selectedCards: [...state.selectedCards, idx] };
+    }
+
+
+    case "PLAYER_RESOLVE_MATCH": {
+      if (state.phase !== "CLAIM_SELECTING") return state;
+      if (state.claimBy !== action.by) return state;
+      if (state.selectedCards.length !== 2) return state;
+      const by = action.by;
+      const [ia, ib] = state.selectedCards;
+      const a = state.grid[ia];
+      const b = state.grid[ib];
+      if (a && b && cardsMatchRule(a, b, state.rule)) {
+        const scores = replaceAt(state.scores, by, (state.scores[by] ?? 0) + 2);
+        const piles = replaceAt(state.piles, by, [
+          ...(state.piles[by] ?? []),
+          a,
+          b,
+        ]);
+        // Do NOT refill or start the round yet — hold in SETTLING so the
+        // matched pair stays in place, face-up, while the Great Match
+        // animation plays. SETTLE_COMPLETE does the refill + startRound.
+        return {
+          ...state,
+          phase: "SETTLING",
+          settleKind: "MATCH",
+          settleToken: state.settleToken + 1,
+          settleBy: by,
+          scores,
+          piles,
+          matchedCards: new Set(state.selectedCards),
+          selectedCards: [],
+          claimedThisCycle: true,
+          claimBy: null,
+          inFlight: null,
+          peekingCard: null,
+          message: `${state.names[by]} — match! +2`,
+          messageType: "success",
+        };
+      }
+      // Wrong claim
+      const wrongForBy = new Set(state.wrongBy[by] ?? []);
+      wrongForBy.add(ia);
+      wrongForBy.add(ib);
+      const nextWrongBy = state.wrongBy.slice();
+      nextWrongBy[by] = wrongForBy;
+      const returned = returnOneCard(state, by);
+
+      const post: State = {
+        ...state,
+        phase: "SETTLING",
+        settleKind: "WRONG",
+        settleToken: state.settleToken + 1,
+        settleBy: by,
+        wrongBy: nextWrongBy,
+        missesThisRound: replaceAt(state.missesThisRound, by, (state.missesThisRound[by] ?? 0) + 1),
+        wrongCalls: state.wrongCalls + 1,
+        scores: returned.scores,
+        piles: returned.piles,
+        deck: returned.deck,
+        drawEmpty: returned.drawEmpty,
+        selectedCards: [],
+        matchedCards: new Set(),
+        claimBy: null,
+        message: returned.returnedCard
+          ? `${state.names[by]} — no match. One card back to the pile.`
+          : `${state.names[by]} — no match.`,
+        messageType: "error",
+      };
+      return post;
+    }
+
+    // Ends the feedback hold. Token-guarded so a stale timer from an earlier
+    // settle can never advance the board twice.
+    case "SETTLE_COMPLETE": {
+      if (state.phase !== "SETTLING") return state;
+      if (state.settleToken !== action.token) return state;
+      if (state.settleKind === "MATCH") {
+        const idxs = Array.from(state.matchedCards);
+        const { grid: newGrid, deck: newDeck } = refill(state.grid, state.deck, idxs);
+        const draining = newDeck.length === 0;
+        const post: State = {
+          ...state,
+          grid: newGrid,
+          deck: newDeck,
+          drawEmpty: state.drawEmpty || draining,
+          settleKind: null,
+          settleBy: null,
+        };
+        // The match animation has finished — now check the win target.
+        if (reachedTarget(post)) return withGameOverAnnounce(post);
+        return startRound(post, state.settleBy);
+      }
+      // A wrong claim inside the rotation claim window returns to the window,
+      // NOT to FLIPPING — and without touching claimWindowToken, so the
+      // pending expiry timer still fires on its original schedule. If that
+      // timer already fired while the claim was resolving, the round ends now.
+      return resumeAfterClaim({
+        ...state,
+        selectedCards: [],
+        settleKind: null,
+        settleBy: null,
+      });
+
+    }
+
+
+
+    // Rotation claim window elapsed with no correct claim: end the round and
+    // pass the roll clockwise, exactly as the rotation used to do inline.
+    case "CLAIM_WINDOW_EXPIRE": {
+      if (state.claimWindowToken !== action.token) return state;
+      if (!state.claimWindowOpen) return state;
+      // The window elapsed while a claim was still being made/resolved. Record
+      // it so the claim's return path ends the round instead of re-entering a
+      // window that has no live timer left.
+      if (state.phase !== "CLAIM_WINDOW") {
+        return { ...state, claimWindowElapsed: true };
+      }
+      return endClaimWindow(state);
+    }
+
+    // An abandoned claim: a seat won its window and then never selected two
+    // cards (disconnect, crash, dead tab, or a response that never arrived).
+    // The host expires it and play continues IN THE SAME ROUND: no score
+    // change, no roll advance, no roller change, no penalty, and no settle
+    // animation — nothing that would read as a resolution. Claiming reopens
+    // for every seat (claimBy → null also rotates the claim window), so the
+    // round can still be won. Seq-guarded so a stale timer is inert.
+    case "CLAIM_ABANDONED": {
+      if (state.phase !== "CLAIM_SELECTING") return state;
+      if ((state.claimSeq ?? 0) !== action.seq) return state;
+      return resumeAfterClaim({
+        ...state,
+        selectedCards: [],
+        matchedCards: new Set(),
+        peekingCard: null,
+        inFlight: null,
+        claimBy: null,
+        message: "Claim expired — the round continues.",
+        messageType: "info",
+      });
+    }
+
+
+
+    case "FLIP_START": {
+      if (state.phase !== "FLIPPING") return state;
+      if (state.flipper !== action.by) return state;
+      if (state.inFlight) return state;
+      if (state.wrongBy[action.by]?.has(action.idx)) return state;
+      if (!isLiveCardIdx(state, action.idx)) return state;
+      return {
+        ...state,
+        inFlight: {
+          kind: "flip",
+          token: action.token,
+          by: action.by,
+          idx: action.idx,
+        },
+        peekingCard: action.idx,
+      };
+    }
+
+
+    case "FLIP_COMPLETE": {
+      if (state.inFlight?.kind !== "flip") return state;
+      if (state.inFlight.token !== action.token) return state;
+      const who = state.inFlight.by;
+      // v6.7: a turn is two flips. Stay with the same flipper for the second
+      // flip when one is still available and a legal card remains.
+      const flips = state.flipsThisTurn + 1;
+      const mid: State = { ...state, flipsThisTurn: flips };
+      if (flips < FLIPS_PER_TURN && hasLegalCard(mid, who)) {
+        return {
+          ...mid,
+          phase: "FLIPPING",
+          inFlight: null,
+          peekingCard: null,
+        };
+      }
+      return cycleAdvance(mid, who);
+    }
+
+    case "SKIP_TICK": {
+      if (state.phase !== "FLIPPING") return state;
+      if (state.inFlight) return state;
+      const who = state.flipper;
+      // v6.7: a seat cannot take its flip turn when it is disconnected, or
+      // when every remaining card is locked out for it by earlier wrong
+      // claims. SKIP_TICK advances the rotation past it, and that turn still
+      // counts toward the no-claim rotation backstop.
+      if (!state.disconnected[who] && hasLegalCard(state, who)) return state;
+      return cycleAdvance(state, who);
+    }
+
+    case "CLAIM_START": {
+      if (
+        state.phase !== "FLIPPING" &&
+        state.phase !== "CLAIM_WINDOW" &&
+        state.phase !== "CLAIM_SELECTING"
+      )
+        return state;
+      if (state.phase === "CLAIM_SELECTING") return state;
+      // v7.2 cap applies to every claim path, bot claims included.
+      if ((state.missesThisRound[action.by] ?? 0) >= MAX_WRONG_CLAIMS_PER_ROUND)
+        return state;
+      if (!isLiveCardIdx(state, action.a) || !isLiveCardIdx(state, action.b)) return state;
+      if (action.a === action.b) return state;
+      if (
+        state.wrongBy[action.by]?.has(action.a) ||
+        state.wrongBy[action.by]?.has(action.b)
+      )
+        return state;
+
+      // v6.7: claiming never consumes a flip — flippedThisCycle untouched.
+      return {
+        ...state,
+        phase: "CLAIM_RESOLVING",
+        peekingCard: null,
+        claimBy: action.by,
+        inFlight: {
+          kind: "claim",
+          token: action.token,
+          by: action.by,
+          a: action.a,
+          b: action.b,
+        },
+      };
+    }
+
+    case "CLAIM_RESOLVE": {
+      if (state.inFlight?.kind !== "claim") return state;
+      if (state.inFlight.token !== action.token) return state;
+      const { by, a, b } = state.inFlight;
+      const cardA = state.grid[a];
+      const cardB = state.grid[b];
+      if (cardA && cardB && cardsMatchRule(cardA, cardB, state.rule)) {
+        const scores = replaceAt(state.scores, by, (state.scores[by] ?? 0) + 2);
+        const piles = replaceAt(state.piles, by, [
+          ...(state.piles[by] ?? []),
+          cardA,
+          cardB,
+        ]);
+        // Hold in SETTLING so every client plays the same reveal → hold →
+        // success treatment a human claim gets. SETTLE_COMPLETE refills the
+        // slots, checks the target and starts the next round.
+        const post: State = {
+          ...state,
+          phase: "SETTLING",
+          settleKind: "MATCH",
+          settleToken: state.settleToken + 1,
+          settleBy: by,
+          scores,
+          piles,
+          matchedCards: new Set([a, b]),
+          selectedCards: [a, b],
+          claimedThisCycle: true,
+          claimBy: null,
+          inFlight: null,
+          peekingCard: null,
+          message: `${state.names[by]} — match! +2`,
+          messageType: "success",
+        };
+        return post;
+      }
+      const wrongForBy = new Set(state.wrongBy[by] ?? []);
+      wrongForBy.add(a);
+      wrongForBy.add(b);
+      const nextWrongBy = state.wrongBy.slice();
+      nextWrongBy[by] = wrongForBy;
+      const returned = returnOneCard(state, by);
+
+      const post: State = {
+        ...state,
+        // Same wrong-claim settle a human claim gets: the pair reveals, holds,
+        // then plays the shared `.ww-wrong*` treatment before play resumes.
+        phase: "SETTLING",
+        settleKind: "WRONG",
+        settleToken: state.settleToken + 1,
+        settleBy: by,
+        wrongBy: nextWrongBy,
+        missesThisRound: replaceAt(state.missesThisRound, by, (state.missesThisRound[by] ?? 0) + 1),
+        wrongCalls: state.wrongCalls + 1,
+        scores: returned.scores,
+        piles: returned.piles,
+        deck: returned.deck,
+        drawEmpty: returned.drawEmpty,
+        selectedCards: [a, b],
+        matchedCards: new Set(),
+        inFlight: null,
+        claimBy: null,
+        peekingCard: null,
+        message: returned.returnedCard
+          ? `${state.names[by]} — no match. One card back to the pile.`
+          : `${state.names[by]} — no match.`,
+        messageType: "info",
+      };
+      return post;
+    }
+
+
+    case "SAFETY_SWAP":
+      return {
+        ...state,
+        grid: action.grid,
+        deck: action.deck,
+        message: "Refreshing grid — no possible matches!",
+        messageType: "warning",
+      };
+
+    case "REMOVE_MATCHED": {
+      if (state.matchedCards.size === 0) return state;
+      const g = [...state.grid];
+      state.matchedCards.forEach((i) => { g[i] = null; });
+      return { ...state, grid: g };
+    }
+
+    // Debug-only: shrink the draw pile so the end-game can be reached quickly.
+    // No-op unless ?debug=1 is on. Grid, scores, roller and phase untouched.
+    case "DEBUG_DRAIN_DECK": {
+      if (!debugFlagOn()) return state;
+      if (state.deck.length <= 2) return state;
+      return { ...state, deck: state.deck.slice(0, 2) };
+    }
+
+    // Debug-only: set the highest-scoring seat to TARGET_SCORE - 2, so the
+    // next correct claim ends the game through the normal target-check path.
+    // Pile length always equals score, so the pile is padded from the deck.
+    case "DEBUG_FORCE_END_GAME": {
+      if (!debugFlagOn()) return state;
+      const target = TARGET_SCORE - 2;
+      let top = 0;
+      state.scores.forEach((v, i) => {
+        if (v > state.scores[top]) top = i;
+      });
+      const deck = [...state.deck];
+      const pile: Card[] = [...(state.piles[top] ?? [])];
+      while (pile.length < target && deck.length > 0) pile.push(deck.pop()!);
+      // Deck exhausted: pad by cycling the pile's own cards (debug-only).
+      for (let i = 0; pile.length < target && pile.length > 0; i++) pile.push(pile[i]);
+      const scores = replaceAt(state.scores, top, pile.length);
+      const piles = replaceAt(state.piles, top, pile);
+      return { ...state, scores, piles, deck, drawEmpty: deck.length === 0 };
+    }
+
+    case "SET_MESSAGE":
+      return { ...state, message: action.message, messageType: action.messageType };
+
+    // Cancel-claim: a claim INTERRUPTS an in-progress FLIPPING turn; per the
+    // rulebook, cancelling returns control to whoever was flipping so they
+    // finish their turn. flipper stays put. No skip penalty; cancelling is
+    // penalty-free. flippedThisCycle is untouched (the interrupted flip did
+    // not complete). claimBy transitions non-null → null, which the host
+    // hook watches to bump claimWindow so the consumed claim_locks row is
+    // rotated past.
+    case "CANCEL_CLAIM": {
+      if (state.phase !== "CLAIM_SELECTING") return state;
+      if (state.claimBy !== action.by) return state;
+      const base: State = {
+        ...state,
+        selectedCards: [],
+        matchedCards: new Set(),
+        peekingCard: null,
+        inFlight: null,
+        claimBy: null,
+        message: `${state.names[action.by]} — cancelled.`,
+        messageType: "info",
+      };
+      return resumeAfterClaim(base);
+    }
+
+    // SET_DISCONNECTED uses REPLACE semantics — the payload is the complete
+    // current set of disconnected seats, not a delta. Idempotent, and gives
+    // reconnection for free (a seat missing from `seats` becomes connected).
+    // If the current roller is now disconnected while AWAITING_ROLL, reassign
+    // the roll to the next connected seat so the game never stalls waiting
+    // for a roll that will never come.
+    case "SET_DISCONNECTED": {
+      const disconnected = Array(state.seatCount).fill(false) as boolean[];
+      for (const s of action.seats) {
+        if (s >= 0 && s < state.seatCount) disconnected[s] = true;
+      }
+      let out: State = { ...state, disconnected };
+      if (
+        out.phase === "AWAITING_ROLL" &&
+        disconnected[out.roller] &&
+        connectedCount(out.seatCount, disconnected) > 0
+      ) {
+        const nr = nextConnected(out.roller, out.seatCount, disconnected);
+        out = { ...out, roller: nr, flipper: nr };
+      }
+      return out;
+    }
+
+    // Host policy: when the table empties (fewer than 2 connected seats),
+    // cleanly end the game with a clear message rather than leaving a lone
+    // player staring at a live-looking board. Not a normal completion.
+    case "END_GAME_TABLE_EMPTY": {
+      return {
+        ...state,
+        phase: "GAME_OVER",
+        message: "Game ended — not enough players remain.",
+        messageType: "warning",
+        inFlight: null,
+        peekingCard: null,
+        claimBy: null,
+      };
+    }
+
+    default:
+      return state;
+  }
+}

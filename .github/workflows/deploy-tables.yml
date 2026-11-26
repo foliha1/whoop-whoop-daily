@@ -6,7 +6,8 @@ name: Deploy table server
 on:
   push:
     branches: [main]
-    paths: ["party/**", ".github/workflows/deploy-tables.yml"]
+    # The server runs the app's rules file, so rule changes redeploy it too.
+    paths: ["party/**", "src/lib/**", "src/cardData.ts", ".github/workflows/deploy-tables.yml"]
   workflow_dispatch:
 
 concurrency:

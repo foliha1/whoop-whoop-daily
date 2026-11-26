@@ -16,7 +16,12 @@ export type DeadlineKind =
   | "claim_abandon"
   | "roll_start"
   | "roll_land"
-  | "roll_settle";
+  | "roll_settle"
+  // Table server only (party/): seat liveness, driven by socket close and
+  // tab visibility instead of heartbeats.
+  | "seat_drop"
+  | "seat_gone"
+  | "away_skip";
 
 export interface Deadline {
   key: string;

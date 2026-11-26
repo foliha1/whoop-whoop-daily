@@ -6,6 +6,8 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["nodejs_compat"],
+  // The rules come from the app (../src). Its art file is swapped for a stub.
+  "alias": { "@/lib/assetUrls": "./src/assetUrlsStub.ts" },
   "durable_objects": {
     "bindings": [{ "name": "Table", "class_name": "Table" }]
   },
