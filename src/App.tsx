@@ -54,8 +54,10 @@ function lazyPage<T extends React.ComponentType<any>>(load: () => Promise<{ defa
   );
 }
 
-const MultiplayerPage = lazyPage(() => import("./pages/MultiplayerPage.tsx"));
-const DailyPage = lazyPage(() => import("./pages/DailyPage.tsx"));
+const loadMultiplayerPage = () => import("./pages/MultiplayerPage.tsx");
+const MultiplayerPage = lazyPage(loadMultiplayerPage);
+const loadDailyPage = () => import("./pages/DailyPage.tsx");
+const DailyPage = lazyPage(loadDailyPage);
 const loadSupportPage = () => import("./pages/SupportPage.tsx");
 const SupportPage = lazyPage(loadSupportPage);
 const loadRulesPage = () => import("./pages/RulesPage.tsx");
@@ -77,6 +79,12 @@ const FaqPage = lazyPage(loadFaqPage);
  * built instead of flashing a blank fallback and then popping in.
  */
 const ROUTE_PRELOAD: Record<string, () => Promise<unknown>> = {
+  // Game screens too: on a slow phone the old page fades out while their code
+  // arrives, instead of a blank fallback flashing between the two.
+  "/": loadMultiplayerPage,
+  "/daily": loadDailyPage,
+  "/classic": loadMultiplayerPage,
+  "/classic.html": loadMultiplayerPage,
   "/preorder": loadPreorderPage,
   "/rules": loadRulesPage,
   "/about": loadSupportPage,
@@ -192,7 +200,15 @@ const AnimatedRoutes: React.FC = () => {
 
   // The pre-order page is one tap from Home (IRL, the pre-order note): fetch
   // its code once the current page has painted and gone idle.
-  useEffect(() => afterFirstContent(() => { void loadPreorderPage().catch(() => undefined); }), []);
+  // Once the current page has painted and gone idle, warm what the next tap
+  // most likely needs: the game screens' code and the card back and die art,
+  // so a game opens with its cards already drawn.
+  useEffect(() => afterFirstContent(() => {
+    void loadPreorderPage().catch(() => undefined);
+    void loadDailyPage().catch(() => undefined);
+    void loadMultiplayerPage().catch(() => undefined);
+    void import("@/lib/preloadArt").then((m) => m.preloadEssentialGameArt()).catch(() => undefined);
+  }), []);
 
   return (
     <div

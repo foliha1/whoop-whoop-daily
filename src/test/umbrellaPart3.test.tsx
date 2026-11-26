@@ -105,8 +105,8 @@ describe("Part 3 Home control", () => {
     // sits inline above the header: Home before Start, Leave during a run.
     expect(daily).toContain("{umbrella && !finished && ready ? <HomeControl /> : null}");
     expect(daily).toContain("control={umbrella ? boardControl : null}");
-    expect(daily).toContain('!finished && phase === "READY" ? (\n      <HomeControl placement="inline" />');
-    expect(daily).toContain("!finished && daily.result === null && runInProgress(state) ? (");
+    expect(daily).toContain('finished ? null : phase === "READY" ? (\n      <HomeControl placement="inline" />');
+    expect(daily).toContain("const canLeaveRun = daily.result === null && runInProgress(state);");
     expect(src("src/components/MultiplayerWindow.tsx")).toContain("umbrella && !home && opts.homeControl !== false ? <HomeControl /> : null");
     expect(src("src/components/SiteHeader.tsx")).toContain("umbrella && !onLeave ?");
   });

@@ -1219,7 +1219,9 @@ const DailyBoard: React.FC<{
   const ref = React.useRef<HTMLDivElement | null>(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
 
-  useEffect(() => {
+  // Layout effect: measure before the first paint, so on a slow phone the
+  // board never paints once at minimum size and then jumps to full size.
+  React.useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
     const apply = (w: number, h: number) =>
@@ -1742,14 +1744,25 @@ const DailyPage: React.FC = () => {
     return () => { cancel(); leaveThemeZone(); };
   }, [umbrella]);
 
-  // Exit control on the board: Home before Start, the red X once a run is
-  // under way, an empty reserved slot otherwise.
+  // Exit control on the board: Home before Start, the X from Start until the
+  // board gives way to results. It stays through the final reveal so it never
+  // vanishes mid-screen; once the run is complete a tap has nothing to leave.
+  const canLeaveRun = daily.result === null && runInProgress(state);
   const boardControl: React.ReactNode =
-    !finished && phase === "READY" ? (
+    finished ? null : phase === "READY" ? (
       <HomeControl placement="inline" />
-    ) : !finished && daily.result === null && runInProgress(state) ? (
-      <HomeControl placement="inline" kind="leave" tone="dark" onLeave={() => { hapticTap(); setLeaveOpen(true); }} />
-    ) : null;
+    ) : (
+      <HomeControl
+        placement="inline"
+        kind="leave"
+        tone="dark"
+        onLeave={() => {
+          if (!canLeaveRun) return;
+          hapticTap();
+          setLeaveOpen(true);
+        }}
+      />
+    );
 
   // Countdowns show just the number; the last three seconds turn red.
   const countdown = (n: number): React.ReactNode => (
