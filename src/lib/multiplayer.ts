@@ -14,7 +14,7 @@
 // ============================================================================
 
 import type { PublicState } from "@/lib/publicState";
-import type { Action } from "@/hooks/useGameState";
+import type { Action } from "@/lib/gameEngine";
 
 export const PROTOCOL_VERSION = 2;
 

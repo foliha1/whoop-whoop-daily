@@ -19,7 +19,7 @@
 // ============================================================================
 
 import type { Card } from "@/cardData";
-import type { Phase, State } from "@/hooks/useGameState";
+import type { Phase, State } from "@/lib/gameEngine";
 
 export interface PublicSlot {
   occupied: boolean;
