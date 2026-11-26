@@ -26,4 +26,4 @@ export const STUDY_LEVELS_ENABLED = false;
  * "everyone": every table runs on the table server.
  * The host decides for the whole table; other phones follow the host.
  */
-export const TABLE_SERVER_MODE: "off" | "admins" | "everyone" = "admins";
+export const TABLE_SERVER_MODE: "off" | "admins" | "everyone" = "everyone";
